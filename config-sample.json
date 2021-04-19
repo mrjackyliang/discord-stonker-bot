@@ -1,0 +1,219 @@
+{
+    "settings": {
+        "client-token": "",
+        "log-channel-id": "000000000000000000",
+        "log-level": 30,
+        "bot-prefix": "!"
+    },
+    "features": {
+        "change-nickname-notification": true,
+        "change-username-notification": true,
+        "delete-message-notification": true,
+        "update-message-notification": true
+    },
+    "schedule-posts": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "message": "This is a sample scheduled post",
+            "reactions": [
+                "🟢",
+                "🟡",
+                "🔴"
+            ],
+            "send-every": {
+                "time-zone": "Etc/UTC",
+                "days-of-week": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "hour": 0,
+                "minute": 0,
+                "second": 0
+            },
+            "skip-days": [
+                "2021-01-01",
+                "2021-02-01"
+            ]
+        }
+    ],
+    "regex-rules": [
+        {
+            "name": "Sample Regex",
+            "channel-id": "000000000000000000",
+            "regex": {
+                "pattern": "(?:)",
+                "flags": "g"
+            },
+            "exclude-roles": [
+                {
+                    "description": "Sample role",
+                    "id": "000000000000000000"
+                }
+            ]
+        }
+    ],
+    "suspicious-words": [
+        {
+            "category": "Sample",
+            "words": [
+                "suspicious",
+                "really suspicious"
+            ]
+        }
+    ],
+    "remove-roles": [
+        {
+            "name": "Remove Sample 2 role if member has Sample 1 role",
+            "type": "if-roles",
+            "to-detect": [
+                {
+                    "description": "Sample 1 role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-remove": [
+                {
+                    "description": "Sample 2 role",
+                    "id": "000000000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Remove Sample 2 role if member does not have Sample 1 role",
+            "type": "if-no-roles",
+            "to-detect": [
+                {
+                    "description": "Sample 1 role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-remove": [
+                {
+                    "description": "Sample 2 role",
+                    "id": "000000000000000000"
+                }
+            ]
+        }
+    ],
+    "auto-reply": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "tag-author": true,
+            "regex": {
+                "pattern": "(?:)",
+                "flags": "gi"
+            },
+            "messages": [
+                "reply 1",
+                "reply 2",
+                "reply 3"
+            ]
+        }
+    ],
+    "affiliate-links": {
+        "links": [
+            {
+                "category": "Affiliate Company",
+                "regex-pattern": "(?:)",
+                "regex-flags": "gi"
+            }
+        ],
+        "excluded-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "banned-users": {
+        "avatar": [
+            "017a63c2a15654860b1615e20063f177"
+        ],
+        "username": [
+            "Bitcoin Raid Bot"
+        ]
+    },
+    "help": {
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "voice": {
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "fetch-members": {
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "find-duplicate-users": {
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "toggle-perms": {
+        "perms": [
+            {
+                "name": "Sample",
+                "id": "sample",
+                "on": [
+                    {
+                        "description": "#sample-channel",
+                        "channel-id": "000000000000000000",
+                        "channel-perms": [
+                            {
+                                "description": "Sample role",
+                                "user-or-role-id": "000000000000000000",
+                                "user-or-role-perms": {
+                                    "SEND_MESSAGES": false
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "off": [
+                    {
+                        "description": "#sample-channel",
+                        "channel-id": "000000000000000000",
+                        "channel-perms": [
+                            {
+                                "description": "Sample role",
+                                "user-or-role-id": "000000000000000000",
+                                "user-or-role-perms": {
+                                    "SEND_MESSAGES": false
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    }
+}

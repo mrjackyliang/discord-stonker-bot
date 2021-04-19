@@ -1,0 +1,50 @@
+{
+    "name": "discord-stocker-bot",
+    "displayName": "Discord Stonker Bot",
+    "version": "1.0.0",
+    "description": "A Discord bot built for finance related servers",
+    "main": "src/launch.js",
+    "scripts": {
+        "start": "node src/launch.js",
+        "test": ""
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/mrjackyliang/discord-stonker-bot.git"
+    },
+    "funding": {
+        "type": "github",
+        "url": "http://github.com/sponsors/mrjackyliang"
+    },
+    "keywords": [
+        "discord",
+        "discord-bot",
+        "stocks",
+        "moderation"
+    ],
+    "author": "Jacky Liang",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/mrjackyliang/discord-stonker-bot/issues"
+    },
+    "files": [
+        "src/*.js"
+    ],
+    "homepage": "https://github.com/mrjackyliang/discord-stonker-bot#readme",
+    "engines": {
+        "node": ">=10.0.0"
+    },
+    "dependencies": {
+        "axios": "^0.21.1",
+        "chalk": "^4.1.0",
+        "discord.js": "^12.5.1",
+        "lodash": "^4.17.21",
+        "luxon": "^1.26.0",
+        "node-schedule": "^2.0.0"
+    },
+    "devDependencies": {
+        "eslint": "^7.21.0",
+        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint-plugin-import": "^2.22.1"
+    }
+}
