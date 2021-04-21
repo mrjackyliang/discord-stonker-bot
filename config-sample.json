@@ -137,18 +137,17 @@
             "017a63c2a15654860b1615e20063f177"
         ],
         "username": [
-            "Bitcoin Raid Bot"
+            "Raid Bot"
         ]
     },
-    "help": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "voice": {
+    "user-scanners": [
+        {
+            "guild-id": "000000000000000000",
+            "channel-id": "000000000000000000",
+            "message": "Raid Alert"
+        }
+    ],
+    "add-role": {
         "allowed-roles": [
             {
                 "description": "Sample role",
@@ -165,6 +164,14 @@
         ]
     },
     "find-duplicate-users": {
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "help": {
         "allowed-roles": [
             {
                 "description": "Sample role",
@@ -209,6 +216,14 @@
                 ]
             }
         ],
+        "allowed-roles": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "voice": {
         "allowed-roles": [
             {
                 "description": "Sample role",

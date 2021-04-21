@@ -1,4 +1,6 @@
 const chalk = require('chalk');
+const { DateTime } = require('luxon');
+const schedule = require('node-schedule');
 const _ = require('lodash');
 
 const {
@@ -154,7 +156,7 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
   }
 
   // Check for suspicious words.
-  suspiciousWords.forEach((suspiciousWord) => {
+  _.forEach(suspiciousWords, (suspiciousWord) => {
     const category = _.get(suspiciousWord, 'category', 'Unknown');
     const words = _.get(suspiciousWord, 'words', []);
 
@@ -215,7 +217,7 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id));
 
   // Scan through list of affiliate links.
-  links.forEach((link) => {
+  _.forEach(links, (link) => {
     const website = _.get(link, 'website', 'Unknown');
     const regexPattern = _.get(link, 'regex-pattern', '(?:)');
     const regexFlags = _.get(link, 'regex-flags', 'g');
@@ -282,9 +284,74 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   }
 }
 
+/**
+ * User scanner.
+ *
+ * @param {module:"discord.js".Guild} guild         - Discord guild.
+ * @param {string}                    message       - Message to send when duplicate users detected.
+ * @param {TextBasedChannel}          sendToChannel - User scanner settings from configuration.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function userScanner(guild, message, sendToChannel) {
+  let lastSentMessage = 0;
+
+  if (!guild || !message || !sendToChannel) {
+    return;
+  }
+
+  schedule.scheduleJob('* * * * *', () => {
+    const guildMembers = guild.members.cache.array();
+    const finalList = [];
+
+    let avatars = {};
+
+    // Remap users based on their avatar.
+    _.forEach(guildMembers, (guildMember) => {
+      const { avatar } = guildMember.user;
+
+      if (avatar !== null) {
+        // Create entry for avatar hash if it does not exist.
+        if (avatars[avatar] === undefined) {
+          avatars[avatar] = [];
+        }
+
+        avatars[avatar].push(guildMember.toString());
+      }
+    });
+
+    /**
+     * @type {[string, string[]][]}
+     */
+    avatars = Object.entries(avatars);
+
+    _.forEach(avatars, (avatar) => {
+      const ids = avatar[1];
+
+      if (ids.length > 1) {
+        finalList.push(...ids);
+      }
+    });
+
+    // If a message was sent less than 10 minutes ago, it will skip.
+    if (finalList.length && (DateTime.now().toSeconds() - lastSentMessage) > 600) {
+      sendToChannel.send(message).then(() => {
+        lastSentMessage = DateTime.now().toSeconds();
+      }).catch((error) => generateLogMessage(
+        'Failed to send message',
+        10,
+        error,
+      ));
+    }
+  });
+}
+
 module.exports = {
   automaticBan,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
+  userScanner,
 };

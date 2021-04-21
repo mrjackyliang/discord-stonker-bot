@@ -1,8 +1,8 @@
 const chalk = require('chalk');
+const { DateTime } = require('luxon');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
-const { DateTime } = require('luxon');
 const { generateLogMessage } = require('./utilities');
 
 /**
@@ -114,7 +114,7 @@ function schedulePost(event, sendToChannel) {
       const todayDate = DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
-      if (!skipDays.includes(todayDate)) {
+      if (!_.includes(skipDays, todayDate)) {
         await sendToChannel.send(message).then((post) => {
           generateLogMessage(
             [
@@ -127,7 +127,7 @@ function schedulePost(event, sendToChannel) {
           );
 
           // React to message.
-          reactions.forEach(async (reaction) => {
+          _.forEach(reactions, async (reaction) => {
             await post.react(reaction).catch((error) => generateLogMessage(
               [
                 'Failed to react',

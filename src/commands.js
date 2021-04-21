@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const _ = require('lodash');
 
 const {
+  createAddRoleEmbed,
   createCommandErrorEmbed,
   createHelpMenuEmbed,
   createListMembersEmbed,
@@ -10,6 +11,196 @@ const {
   createVoiceEmbed,
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
+
+/**
+ * Add role.
+ *
+ * @param {module:"discord.js".Message} message   - Message object.
+ * @param {string}                      botPrefix - Command prefix.
+ * @param {object}                      settings  - Command settings defined in configuration.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function addRole(message, botPrefix, settings) {
+  const allowedRoles = _.get(settings, 'allowed-roles', []);
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[1], /[<@&>]/g, ''));
+  const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
+  const guildMembers = message.channel.guild.members.cache.array();
+
+  if (
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    && !message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    await message.channel.send(createCommandErrorEmbed(
+      `You do not have enough permissions to use the \`${botPrefix}add-role\` command.`,
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  if (
+    commandArguments[1] !== 'everyone'
+    && commandArguments[1] !== 'no-role'
+    && !roleOne
+  ) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The command selection (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a selection.\r\n`,
+        'Examples:',
+        '```',
+        `${botPrefix}add-role everyone [@role to add]`,
+        `${botPrefix}add-role no-role [@role to add]`,
+        `${botPrefix}add-role [@role] [@role to add]`,
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  if (!roleTwo) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The role (${commandArguments[2]}) is invalid or does not exist. Try using the command by tagging a role to add.\r\n`,
+        'Examples:',
+        '```',
+        `${botPrefix}add-role ${commandArguments[1]} [@role to add]`,
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  // Partial sentences for actions below.
+  const messageEveryone = (commandArguments[1] === 'everyone') ? 'members...' : '';
+  const messageNoRole = (commandArguments[1] === 'no-role') ? 'members with no roles...' : '';
+  const messageRole = (roleOne) ? `members with the ${roleOne.toString()} role...` : '';
+
+  // Begin to perform add role actions.
+  await message.channel.send(createAddRoleEmbed(
+    [
+      'Please wait while',
+      message.guild.me.toString(),
+      'adds the',
+      roleTwo.toString(),
+      'role to all',
+      messageEveryone || messageNoRole || messageRole,
+    ].join(' '),
+    'in-progress',
+    message.member.user.tag,
+  )).then(async (theMessage) => {
+    const results = await _.map(guildMembers, async (guildMember) => {
+      /**
+       * Voice state result logger.
+       *
+       * @param {string}          word  - Beginning phrase.
+       * @param {undefined|Error} error - Error object.
+       *
+       * @returns {boolean}
+       *
+       * @since 1.0.0
+       */
+      const logger = (word, error = undefined) => {
+        generateLogMessage(
+          [
+            word,
+            (!_.isError(error)) ? chalk.green(roleTwo.toString()) : chalk.red(roleTwo.toString()),
+            'role to',
+            (!_.isError(error)) ? chalk.green(guildMember.toString()) : chalk.red(guildMember.toString()),
+          ].join(' '),
+          (!_.isError(error)) ? 40 : 10,
+          (_.isError(error)) ? error : undefined,
+        );
+
+        return (!_.isError(error));
+      };
+
+      let success = true;
+
+      if (commandArguments[1] === 'everyone') {
+        await guildMember.roles.add(roleTwo).then(() => logger(
+          'Successfully added',
+        )).catch((error) => {
+          success = logger(
+            'Failed to add',
+            error,
+          );
+        });
+      } else if (commandArguments[1] === 'no-role') {
+        const roles = guildMember.roles.cache.array();
+
+        // Each user has the @everyone role.
+        if (roles.length === 1) {
+          await guildMember.roles.add(roleTwo).then(() => logger(
+            'Successfully added',
+          )).catch((error) => {
+            success = logger(
+              'Failed to add',
+              error,
+            );
+          });
+        }
+      } else if (roleOne) {
+        const hasRole = guildMember.roles.cache.has(roleOne.id);
+
+        if (hasRole) {
+          await guildMember.roles.add(roleTwo).then(() => logger(
+            'Successfully added',
+          )).catch((error) => {
+            success = logger(
+              'Failed to add',
+              error,
+            );
+          });
+        }
+      }
+
+      return success;
+    });
+
+    Promise.all(results).then(async (responses) => {
+      const success = _.every(responses, (response) => response === true);
+
+      await theMessage.edit(createAddRoleEmbed(
+        [
+          roleTwo.toString(),
+          (success) ? 'was successfully added to all' : 'could not be added to all',
+          messageEveryone || messageNoRole || messageRole,
+        ].join(' '),
+        (success) ? 'complete' : 'fail',
+        message.member.user.tag,
+      )).catch((error) => generateLogMessage(
+        'Failed to edit add role embed',
+        10,
+        error,
+      ));
+    });
+  }).catch((error) => generateLogMessage(
+    'Failed to send add role embed',
+    10,
+    error,
+  ));
+}
 
 /**
  * Fetch members.
@@ -26,27 +217,24 @@ async function fetchMembers(message, botPrefix, settings) {
   const allowedRoles = _.get(settings, 'allowed-roles', []);
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
-  const commandRoute = commandArguments[1];
-  const commandTagOrText = commandArguments[2];
-  const id = (_.isString(commandTagOrText)) ? commandTagOrText.replace(/[<@&!>]/g, '') : undefined;
-  const member = message.channel.guild.members.cache.get(id);
-  const role = message.channel.guild.roles.cache.get(id);
+  const member = message.channel.guild.members.cache.get(_.replace(commandArguments[2], /[<@!>]/g, ''));
+  const role = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
   const guildMembers = message.channel.guild.members.cache.array();
   const matchedUsers = [];
 
   let query;
 
   // Transform "string" command route input with quotes into query.
-  if (commandRoute === 'string' && new RegExp(/"(.+)"/g).test(messageText)) {
+  if (commandArguments[1] === 'string' && new RegExp(/"(.+)"/g).test(messageText)) {
     const stringArg = messageText.substring(messageText.lastIndexOf(' "') + 1);
 
     if (stringArg !== '"') {
-      query = stringArg.replace(/"/g, '');
+      query = _.replace(stringArg, /"/g, '');
     } else {
       query = ' ';
     }
   } else {
-    query = commandTagOrText;
+    query = _.get(commandArguments, '[2]');
   }
 
   if (
@@ -66,10 +254,10 @@ async function fetchMembers(message, botPrefix, settings) {
   }
 
   // If command route is invalid.
-  if (!['avatar', 'role', 'string', 'username'].includes(commandRoute)) {
+  if (!_.includes(['avatar', 'role', 'string', 'username'], commandArguments[1])) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
         'Examples:',
         '```',
         `${botPrefix}fetch-members avatar [@user]`,
@@ -90,21 +278,21 @@ async function fetchMembers(message, botPrefix, settings) {
 
   // If member or role is invalid.
   if (
-    (commandRoute === 'avatar' && !member)
-    || (commandRoute === 'role' && !role)
-    || (commandRoute === 'string' && _.isUndefined(query))
-    || (commandRoute === 'username' && !member)
+    (commandArguments[1] === 'avatar' && !member)
+    || (commandArguments[1] === 'role' && !role)
+    || (commandArguments[1] === 'string' && _.isUndefined(query))
+    || (commandArguments[1] === 'username' && !member)
   ) {
-    const userMode = (['avatar', 'username'].includes(commandRoute)) ? [`The member (${query}) is invalid`, 'tagging a member', '@user'] : [];
-    const roleMode = (['role'].includes(commandRoute)) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
-    const stringMode = (['string'].includes(commandRoute)) ? ['There is nothing specified', 'specifying a string (with or without quotes)', 'text'] : [];
+    const userMode = (_.includes(['avatar', 'username'], commandArguments[1])) ? [`The member (${query}) is invalid`, 'tagging a member', '@user'] : [];
+    const roleMode = (_.includes(['role'], commandArguments[1])) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
+    const stringMode = (_.includes(['string'], commandArguments[1])) ? ['There is nothing specified', 'specifying a string (with or without quotes)', 'text'] : [];
 
     await message.channel.send(createCommandErrorEmbed(
       [
         `${userMode[0] || roleMode[0] || stringMode[0]}. Try using the command by ${userMode[1] || roleMode[1] || stringMode[1]}.\r\n`,
         'Example:',
         '```',
-        `${botPrefix}fetch-members ${commandRoute} [${userMode[2] || roleMode[2] || stringMode[2]}]`,
+        `${botPrefix}fetch-members ${commandArguments[1]} [${userMode[2] || roleMode[2] || stringMode[2]}]`,
         '```',
       ].join('\r\n'),
       message.member.user.tag,
@@ -118,7 +306,7 @@ async function fetchMembers(message, botPrefix, settings) {
   }
 
   // If user does not have an avatar.
-  if (commandRoute === 'avatar' && !_.get(member, 'user.avatar')) {
+  if (commandArguments[1] === 'avatar' && !_.get(member, 'user.avatar')) {
     await message.channel.send(createCommandErrorEmbed(
       `Cannot compare members. ${member.toString()} does not have an avatar to compare from.`,
       message.member.user.tag,
@@ -131,7 +319,7 @@ async function fetchMembers(message, botPrefix, settings) {
     return;
   }
 
-  guildMembers.forEach((guildMember) => {
+  _.forEach(guildMembers, (guildMember) => {
     const {
       nickname,
       user,
@@ -140,20 +328,20 @@ async function fetchMembers(message, botPrefix, settings) {
       avatar,
       username,
     } = user;
-    const hasRole = guildMember.roles.cache.has(id);
+    const hasRole = guildMember.roles.cache.has(_.replace(commandArguments[2], /[<@&>]/g, ''));
 
     if (
-      (commandRoute === 'avatar' && avatar === member.user.avatar)
-      || (commandRoute === 'role' && hasRole)
-      || (commandRoute === 'string' && (_.includes(nickname, query) || _.includes(username, query)))
-      || (commandRoute === 'username' && username === member.user.username)
+      (commandArguments[1] === 'avatar' && avatar === member.user.avatar)
+      || (commandArguments[1] === 'role' && hasRole)
+      || (commandArguments[1] === 'string' && (_.includes(nickname, query) || _.includes(username, query)))
+      || (commandArguments[1] === 'username' && username === member.user.username)
     ) {
       matchedUsers.push(guildMember.toString());
     }
   });
 
   // No results for "string".
-  if (commandRoute === 'string' && !matchedUsers.length) {
+  if (commandArguments[1] === 'string' && !matchedUsers.length) {
     await message.channel.send(createNoResultsEmbed(
       `No results were found using \`${query}\`.`,
       message.member.user.tag,
@@ -167,11 +355,11 @@ async function fetchMembers(message, botPrefix, settings) {
   }
 
   // Send a message embed for every 80 members.
-  _.chunk(matchedUsers, 80).forEach((matchedUsersChunk, key) => {
-    const avatarTitle = (commandRoute === 'avatar') ? `Avatars Matching @${member.user.tag}` : undefined;
-    const roleTitle = (commandRoute === 'role') ? `${role.name} Members` : undefined;
-    const stringTitle = (commandRoute === 'string') ? `Members Matching \`${query}\`` : undefined;
-    const usernameTitle = (commandRoute === 'username') ? `Usernames Matching @${member.user.tag}` : undefined;
+  _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
+    const avatarTitle = (commandArguments[1] === 'avatar') ? `Avatars Matching @${member.user.tag}` : undefined;
+    const roleTitle = (commandArguments[1] === 'role') ? `${role.name} Members` : undefined;
+    const stringTitle = (commandArguments[1] === 'string') ? `Members Matching \`${query}\`` : undefined;
+    const usernameTitle = (commandArguments[1] === 'username') ? `Usernames Matching @${member.user.tag}` : undefined;
 
     message.channel.send(createListMembersEmbed(
       `${avatarTitle || roleTitle || stringTitle || usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
@@ -220,8 +408,8 @@ async function findDuplicateUsers(message, botPrefix, settings) {
     return;
   }
 
-  // Remap users based on their username or avatar.
-  guildMembers.forEach((guildMember) => {
+  // Remap users based on their avatar.
+  _.forEach(guildMembers, (guildMember) => {
     const guildMemberAvatar = guildMember.user.avatar;
 
     if (guildMemberAvatar !== null) {
@@ -235,29 +423,27 @@ async function findDuplicateUsers(message, botPrefix, settings) {
   });
 
   /**
-   * Convert object to array for easier loop compatibility.
-   *
    * @type {[string, string[]][]}
    */
   userByAvatar = Object.entries(userByAvatar);
 
   // Loop through all users with avatars.
-  userByAvatar.forEach((category) => {
+  _.forEach(userByAvatar, (category) => {
     const avatarHash = category[0];
     const userIds = category[1];
 
     if (userIds.length > 1) {
       const userIdsChunks = _.chunk(userIds, 80);
 
-      // Empty result message switch.
+      // Don't show empty results message.
       empty = false;
 
       // Send a message embed for every 80 members.
-      userIdsChunks.forEach(async (userIdsChunk, key) => {
+      _.forEach(userIdsChunks, async (userIdsChunk, key) => {
         await message.channel.send(createListMembersEmbed(
           [
-            'Duplicate Members',
-            `for \`${avatarHash.substr(avatarHash.length - 8)}\``,
+            'Duplicate Members for',
+            `\`${avatarHash.substr(avatarHash.length - 8)}\``,
             (key > 0) ? `(Page ${key + 1})` : '',
           ].join(' '),
           userIdsChunk,
@@ -297,6 +483,7 @@ async function findDuplicateUsers(message, botPrefix, settings) {
  * @since 1.0.0
  */
 async function launchHelpMenu(message, botPrefix, settings, allowedRoles) {
+  const allowAddRoleRoles = _.get(allowedRoles, 'configAddRole.allowed-roles', []);
   const allowFetchMembersRoles = _.get(allowedRoles, 'configFetchMembers.allowed-roles', []);
   const allowFindDuplicateUsersRoles = _.get(allowedRoles, 'configFindDuplicateUsers.allowed-roles', []);
   const allowedHelpRoles = _.get(settings, 'allowed-roles', []);
@@ -319,6 +506,20 @@ async function launchHelpMenu(message, botPrefix, settings, allowedRoles) {
     ));
 
     return;
+  }
+
+  if (
+    _.some(allowAddRoleRoles, (allowAddRoleRole) => message.member.roles.cache.has(allowAddRoleRole.id))
+    || message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    commands.push({
+      queries: [
+        `${botPrefix}add-role everyone [@role to add]`,
+        `${botPrefix}add-role no-role [@role to add]`,
+        `${botPrefix}add-role [@role] [@role to add]`,
+      ],
+      description: 'Add role to everyone, users with no roles, or users with a specific role',
+    });
   }
 
   if (
@@ -408,12 +609,10 @@ async function launchHelpMenu(message, botPrefix, settings, allowedRoles) {
  */
 async function togglePerms(message, botPrefix, settings) {
   const commandArguments = message.toString().split(' ');
-  const toggleGroup = commandArguments[1];
-  const toggleDirection = commandArguments[2];
   const perms = _.get(settings, 'perms', []);
   const allowedRoles = _.get(settings, 'allowed-roles', []);
-  const selectedToggleGroup = _.find(perms, { id: toggleGroup });
-  const selectedToggleDirection = _.get(selectedToggleGroup, toggleDirection);
+  const selectedToggleGroup = _.find(perms, { id: commandArguments[1] });
+  const selectedToggleDirection = _.get(selectedToggleGroup, commandArguments[2]);
   const selectedToggleName = _.get(selectedToggleGroup, 'name', 'Unknown');
 
   if (
@@ -439,7 +638,7 @@ async function togglePerms(message, botPrefix, settings) {
     let commands = '';
 
     // Shows the first 10 commands.
-    permsIds.forEach((permsId, key) => {
+    _.forEach(permsIds, (permsId, key) => {
       if (key < 10) {
         commands += `${botPrefix}toggle-perms ${permsId} on\r\n${botPrefix}toggle-perms ${permsId} off\r\n\r\n`;
       }
@@ -447,7 +646,7 @@ async function togglePerms(message, botPrefix, settings) {
 
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The toggle group (${toggleGroup}) is invalid. Please type your command with the correct group and try again.\r\n`,
+        `The toggle group (${commandArguments[1]}) is invalid. Please type your command with the correct group and try again.\r\n`,
         'Example(s):',
         '```',
         commands,
@@ -468,15 +667,15 @@ async function togglePerms(message, botPrefix, settings) {
     _.isEmpty(selectedToggleDirection)
     || !_.isArray(selectedToggleDirection)
     || !_.every(selectedToggleDirection, _.isPlainObject)
-    || (toggleDirection !== 'on' && toggleDirection !== 'off')
+    || (commandArguments[2] !== 'on' && commandArguments[2] !== 'off')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The toggle direction (${toggleDirection}) is invalid or not configured. Please type your command with the correct direction and try again.\r\n`,
+        `The toggle direction (${commandArguments[2]}) is invalid or not configured. Please type your command with the correct direction and try again.\r\n`,
         'Example:',
         '```',
-        `${botPrefix}toggle-perms ${toggleGroup} on`,
-        `${botPrefix}toggle-perms ${toggleGroup} off`,
+        `${botPrefix}toggle-perms ${commandArguments[1]} on`,
+        `${botPrefix}toggle-perms ${commandArguments[1]} off`,
         '```',
       ].join('\r\n'),
       message.member.user.tag,
@@ -494,7 +693,7 @@ async function togglePerms(message, botPrefix, settings) {
    *
    * @type {[boolean, boolean[]]}
    */
-  const channelToggles = await selectedToggleDirection.map(async (channelToggle) => {
+  const channelToggles = await _.map(selectedToggleDirection, async (channelToggle) => {
     const channelToggleId = _.get(channelToggle, 'channel-id');
     const channelTogglePerms = _.get(channelToggle, 'channel-perms', []);
     const channelToggleChannel = message.channel.guild.channels.cache.get(channelToggleId);
@@ -505,7 +704,7 @@ async function togglePerms(message, botPrefix, settings) {
           'Failed to toggle preset permissions for',
           chalk.red(selectedToggleName),
           'to',
-          toggleDirection,
+          commandArguments[2],
           `because channel (${channelToggleId}) is invalid`,
         ].join(' '),
         10,
@@ -519,7 +718,7 @@ async function togglePerms(message, botPrefix, settings) {
      *
      * @type {boolean[]}
      */
-    const userToggles = await channelTogglePerms.map(async (userToggle) => {
+    const userToggles = await _.map(channelTogglePerms, async (userToggle) => {
       const theId = userToggle['user-or-role-id'];
       const thePerms = userToggle['user-or-role-perms'];
 
@@ -533,7 +732,7 @@ async function togglePerms(message, botPrefix, settings) {
           'toggled preset permissions for',
           selectedToggleName,
           'to',
-          toggleDirection,
+          commandArguments[2],
         ].join(' '),
       ).catch((error) => {
         isSuccess = false;
@@ -543,7 +742,7 @@ async function togglePerms(message, botPrefix, settings) {
             'Failed to toggle preset permissions for',
             chalk.red(selectedToggleName),
             'to',
-            toggleDirection,
+            commandArguments[2],
             'for',
             chalk.red(channelToggleChannel.toString()),
           ].join(' '),
@@ -569,13 +768,13 @@ async function togglePerms(message, botPrefix, settings) {
           'Successfully toggled preset permissions for',
           chalk.green(selectedToggleName),
           'to',
-          toggleDirection,
+          commandArguments[2],
         ].join(' '),
         30,
       );
 
       await message.channel.send(createTogglePermsEmbed(
-        `Successfully toggled preset permissions for **${selectedToggleName}** to ${toggleDirection}.`,
+        `Successfully toggled preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
         true,
         message.member.user.tag,
       )).catch((error) => generateLogMessage(
@@ -586,7 +785,7 @@ async function togglePerms(message, botPrefix, settings) {
     } else {
       await message.channel.send(createTogglePermsEmbed(
         [
-          `Failed to toggle one or more preset permissions for **${selectedToggleName}** to ${toggleDirection}.`,
+          `Failed to toggle one or more preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
           'Please check the logs and configuration then try again.',
         ].join(' '),
         false,
@@ -614,10 +813,7 @@ async function togglePerms(message, botPrefix, settings) {
 async function voice(message, botPrefix, settings) {
   const allowedRoles = _.get(settings, 'allowed-roles', []);
   const commandArguments = message.toString().split(' ');
-  const commandRoute = commandArguments[1];
-  const commandTag = commandArguments[2];
-  const channelId = (_.isString(commandTag)) ? commandTag.replace(/[<#>]/g, '') : undefined;
-  const channel = message.channel.guild.channels.cache.get(channelId);
+  const channel = message.channel.guild.channels.cache.get(_.replace(commandArguments[2], /[<#>]/g, ''));
   const isVoiceChannel = (channel && channel.type === 'voice');
 
   if (
@@ -637,10 +833,10 @@ async function voice(message, botPrefix, settings) {
   }
 
   // If command route is invalid.
-  if (!['disconnect', 'unmute'].includes(commandRoute)) {
+  if (!_.includes(['disconnect', 'unmute'], commandArguments[1])) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
         'Examples:',
         '```',
         `${botPrefix}voice disconnect [#channel]`,
@@ -661,10 +857,10 @@ async function voice(message, botPrefix, settings) {
   if (!channel || !isVoiceChannel) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The voice channel (${channelId}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
+        `The voice channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
         'Example:',
         '```',
-        `${botPrefix}voice ${commandRoute} [#channel]`,
+        `${botPrefix}voice ${commandArguments[1]} [#channel]`,
         '```',
       ].join('\r\n'),
       message.member.user.tag,
@@ -679,11 +875,11 @@ async function voice(message, botPrefix, settings) {
 
   // If bot does not have enough permissions.
   if (
-    (commandRoute === 'disconnect' && !message.guild.me.hasPermission('MOVE_MEMBERS'))
-    || (commandRoute === 'unmute' && !message.guild.me.hasPermission('MUTE_MEMBERS'))
+    (commandArguments[1] === 'disconnect' && !message.guild.me.hasPermission('MOVE_MEMBERS'))
+    || (commandArguments[1] === 'unmute' && !message.guild.me.hasPermission('MUTE_MEMBERS'))
   ) {
-    const disconnect = (commandRoute === 'disconnect') ? 'Move Members' : undefined;
-    const unmute = (commandRoute === 'unmute') ? 'Mute Members' : undefined;
+    const disconnect = (commandArguments[1] === 'disconnect') ? 'Move Members' : undefined;
+    const unmute = (commandArguments[1] === 'unmute') ? 'Mute Members' : undefined;
 
     await message.channel.send(createCommandErrorEmbed(
       [
@@ -691,7 +887,7 @@ async function voice(message, botPrefix, settings) {
         'requires the',
         `**${disconnect || unmute}**`,
         'permission to',
-        commandRoute,
+        commandArguments[1],
         'members from the',
         channel.toString(),
         'voice channel.',
@@ -708,14 +904,14 @@ async function voice(message, botPrefix, settings) {
 
   // Begin to perform voice channel actions.
   await message.channel.send(createVoiceEmbed(
-    commandRoute,
-    `Please wait while ${message.guild.me.toString()} ${commandRoute}s all members connected to the ${channel.toString()} voice channel...`,
+    commandArguments[1],
+    `Please wait while ${message.guild.me.toString()} ${commandArguments[1]}s all members connected to the ${channel.toString()} voice channel...`,
     'in-progress',
     message.member.user.tag,
   )).then(async (theMessage) => {
     const voiceStates = channel.guild.voiceStates.cache.array();
-    const usersResults = await voiceStates.map(async (voiceState) => {
-      let success = false;
+    const usersResults = await _.map(voiceStates, async (voiceState) => {
+      let success = true;
 
       if (voiceState.channelID === channel.id) {
         const memberMention = voiceState.member.toString();
@@ -735,28 +931,28 @@ async function voice(message, botPrefix, settings) {
           generateLogMessage(
             [
               word,
-              chalk.red(memberMention),
+              (!_.isError(error)) ? chalk.green(memberMention) : chalk.red(memberMention),
               'from',
-              chalk.red(channelMention),
+              (!_.isError(error)) ? chalk.green(channelMention) : chalk.red(channelMention),
               'voice channel',
             ].join(' '),
-            40,
+            (!_.isError(error)) ? 40 : 10,
             (_.isError(error)) ? error : undefined,
           );
 
           return (!_.isError(error));
         };
 
-        if (commandRoute === 'disconnect') {
-          await voiceState.kick().then(() => {
-            success = logger('Disconnected');
-          }).catch((error) => {
+        if (commandArguments[1] === 'disconnect') {
+          await voiceState.kick().then(() => logger(
+            'Disconnected',
+          )).catch((error) => {
             success = logger('Failed to disconnect', error);
           });
-        } else if (commandRoute === 'unmute') {
-          await voiceState.setMute(false).then(() => {
-            success = logger('Unmuted');
-          }).catch((error) => {
+        } else if (commandArguments[1] === 'unmute') {
+          await voiceState.setMute(false).then(() => logger(
+            'Unmuted',
+          )).catch((error) => {
             success = logger('Failed to unmute', error);
           });
         }
@@ -767,11 +963,11 @@ async function voice(message, botPrefix, settings) {
 
     Promise.all(usersResults).then(async (responses) => {
       const success = _.every(responses, (response) => response === true);
-      const disconnect = (commandRoute === 'disconnect') ? 'disconnected' : undefined;
-      const unmute = (commandRoute === 'unmute') ? 'unmuted' : undefined;
+      const disconnect = (commandArguments[1] === 'disconnect') ? 'disconnected' : undefined;
+      const unmute = (commandArguments[1] === 'unmute') ? 'unmuted' : undefined;
 
       await theMessage.edit(createVoiceEmbed(
-        commandRoute,
+        commandArguments[1],
         [
           (success) ? 'All members have been' : 'One or more members could not be',
           disconnect || unmute,
@@ -795,6 +991,7 @@ async function voice(message, botPrefix, settings) {
 }
 
 module.exports = {
+  addRole,
   fetchMembers,
   findDuplicateUsers,
   launchHelpMenu,

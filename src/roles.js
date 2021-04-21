@@ -16,7 +16,7 @@ const { generateLogMessage } = require('./utilities');
 async function removeRolesIfNoRoles(member, removeRoles) {
   const noRoles = _.filter(removeRoles, { type: 'if-no-roles' });
 
-  noRoles.map(async (noRole) => {
+  _.map(noRoles, async (noRole) => {
     const name = _.get(noRole, 'name', 'Unknown');
 
     /**
@@ -71,7 +71,7 @@ async function removeRolesIfNoRoles(member, removeRoles) {
 async function removeRolesIfRoles(member, removeRoles) {
   const roles = _.filter(removeRoles, { type: 'if-roles' });
 
-  roles.map(async (role) => {
+  _.map(roles, async (role) => {
     const name = _.get(role, 'name', 'Unknown');
 
     /**

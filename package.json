@@ -2,7 +2,7 @@
     "name": "discord-stocker-bot",
     "displayName": "Discord Stonker Bot",
     "version": "1.0.0",
-    "description": "A Discord bot built for finance related servers",
+    "description": "A Discord bot built for finance-related servers",
     "main": "src/launch.js",
     "scripts": {
         "start": "node src/launch.js",
@@ -20,7 +20,9 @@
         "discord",
         "discord-bot",
         "stocks",
-        "moderation"
+        "moderation",
+        "scheduler",
+        "auto-reply"
     ],
     "author": "Jacky Liang",
     "license": "ISC",

@@ -4,7 +4,7 @@ const _ = require('lodash');
 const { splitStringChunks } = require('./utilities');
 
 /**
- * Create embed.
+ * Add embed.
  *
  * @param {string}      title        - Embed title.
  * @param {string}      description  - Embed description.
@@ -17,7 +17,7 @@ const { splitStringChunks } = require('./utilities');
  *
  * @since 1.0.0
  */
-function createEmbed(title, description, thumbnailUrl = null, fields = undefined, footer, color = '#808080') {
+function addEmbed(title, description, thumbnailUrl = null, fields = undefined, footer, color = '#808080') {
   if (fields !== undefined) {
     return new Discord.MessageEmbed()
       .setColor(color)
@@ -39,7 +39,7 @@ function createEmbed(title, description, thumbnailUrl = null, fields = undefined
 }
 
 /**
- * Create message fields.
+ * Add message fields.
  *
  * @param {string} message    - Message content.
  * @param {string} fieldTitle - Field title.
@@ -48,11 +48,11 @@ function createEmbed(title, description, thumbnailUrl = null, fields = undefined
  *
  * @since 1.0.0
  */
-function createMessageFields(message, fieldTitle = 'Message') {
+function addMessageFields(message, fieldTitle = 'Message') {
   const theMessages = splitStringChunks(message, 1020);
   const fields = [];
 
-  theMessages.forEach((theMessage, key) => {
+  _.forEach(theMessages, (theMessage, key) => {
     fields.push({
       name: `**${fieldTitle}${(key > 0) ? ' (cont.)' : ''}**`,
       value: `>>> ${theMessage}`,
@@ -63,7 +63,7 @@ function createMessageFields(message, fieldTitle = 'Message') {
 }
 
 /**
- * Create attachment fields.
+ * Add attachment fields.
  *
  * @param {object} attachments - The attachments.
  *
@@ -71,15 +71,15 @@ function createMessageFields(message, fieldTitle = 'Message') {
  *
  * @since 1.0.0
  */
-function createAttachmentFields(attachments) {
+function addAttachmentFields(attachments) {
   const theAttachments = [];
   const fields = [];
 
-  attachments.forEach((theAttachment) => {
-    theAttachments.push(`[Link](${theAttachment.url})\r\n[Raw Link](${theAttachment.proxyURL})`);
+  _.forEach(attachments.array(), (attachment) => {
+    theAttachments.push(`[Original link](${attachment.url}) (or [alternative link](${attachment.proxyURL}))`);
   });
 
-  theAttachments.forEach((theAttachment, key) => {
+  _.forEach(theAttachments, (theAttachment, key) => {
     fields.push({
       name: `**Attachment ${key + 1}**`,
       value: theAttachment,
@@ -87,6 +87,47 @@ function createAttachmentFields(attachments) {
   });
 
   return fields;
+}
+
+/**
+ * Create add role embed.
+ *
+ * @param {string}                          message - Embed message.
+ * @param {"complete"|"fail"|"in-progress"} status  - Status of add role command.
+ * @param {string}                          userTag - User tag of initiator.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createAddRoleEmbed(message, status, userTag) {
+  let title;
+  let color;
+
+  switch (status) {
+    case 'complete':
+      title = 'Roles Added';
+      color = '#5fdc46';
+      break;
+    case 'fail':
+      title = 'Failed to Add Roles';
+      color = '#de564f';
+      break;
+    case 'in-progress':
+    default:
+      title = 'Adding Roles';
+      color = '#eea942';
+      break;
+  }
+
+  return addEmbed(
+    title,
+    message,
+    null,
+    undefined,
+    `Initiated by @${userTag}`,
+    color,
+  );
 }
 
 /**
@@ -134,7 +175,7 @@ function createChangeNicknameEmbed(oldNickname, newNickname, userMention, avatar
     actionDescription = 'changed their nickname';
   }
 
-  return createEmbed(
+  return addEmbed(
     `Nickname ${actionTitle}`,
     `:clown: ${userMention} ${actionDescription}`,
     avatarUrl,
@@ -175,7 +216,7 @@ function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
     });
   }
 
-  return createEmbed(
+  return addEmbed(
     'Username Changed',
     `:clown: ${userMention} changed their username`,
     avatarUrl,
@@ -196,7 +237,7 @@ function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
  * @since 1.0.0
  */
 function createCommandErrorEmbed(reason, userTag) {
-  return createEmbed(
+  return addEmbed(
     'Error',
     reason,
     null,
@@ -224,14 +265,14 @@ function createDeleteMessageEmbed(userMention, channelMention, id, content, atta
   const fields = [];
 
   if (content) {
-    fields.push(...createMessageFields(content));
+    fields.push(...addMessageFields(content));
   }
 
   if (attachments) {
-    fields.push(...createAttachmentFields(attachments));
+    fields.push(...addAttachmentFields(attachments));
   }
 
-  return createEmbed(
+  return addEmbed(
     'Message Deleted',
     `:wastebasket: [Message](${url}) sent by ${userMention} was deleted in ${channelMention}`,
     null,
@@ -254,13 +295,13 @@ function createDeleteMessageEmbed(userMention, channelMention, id, content, atta
 function createHelpMenuEmbed(commands, userTag) {
   const fields = [];
 
-  commands.forEach((command) => {
-    const allQueries = command.queries.map((query) => `\`${query}\`\r\n`);
+  _.forEach(commands, (command) => {
+    const allQueries = _.map(command.queries, (query) => `\`${query}\`\r\n`);
 
     fields.push(`${allQueries.join('')}${command.description}`);
   });
 
-  return createEmbed(
+  return addEmbed(
     'Command Help Menu',
     fields.join('\r\n\r\n'),
     null,
@@ -282,7 +323,7 @@ function createHelpMenuEmbed(commands, userTag) {
  * @since 1.0.0
  */
 function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
-  return createEmbed(
+  return addEmbed(
     title,
     mentions.join(', '),
     thumbnail,
@@ -303,7 +344,7 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
  * @since 1.0.0
  */
 function createNoResultsEmbed(message, userTag) {
-  return createEmbed(
+  return addEmbed(
     'No Results',
     message,
     null,
@@ -338,14 +379,14 @@ function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, conten
   }
 
   if (content) {
-    fields.push(...createMessageFields(content));
+    fields.push(...addMessageFields(content));
   }
 
   if (attachments) {
-    fields.push(...createAttachmentFields(attachments));
+    fields.push(...addAttachmentFields(attachments));
   }
 
-  return createEmbed(
+  return addEmbed(
     'Affiliate Link Detected',
     `:rotating_light: [Message](${url}) sent by ${userMention} includes affiliate links in ${channelMention}.`,
     null,
@@ -381,14 +422,14 @@ function createSuspiciousWordsEmbed(userMention, channelMention, id, content, at
   }
 
   if (content) {
-    fields.push(...createMessageFields(content));
+    fields.push(...addMessageFields(content));
   }
 
   if (attachments) {
-    fields.push(...createAttachmentFields(attachments));
+    fields.push(...addAttachmentFields(attachments));
   }
 
-  return createEmbed(
+  return addEmbed(
     'Suspicious Word Detected',
     `:detective: [Message](${url}) sent by ${userMention} includes suspicious words in ${channelMention}`,
     null,
@@ -410,7 +451,7 @@ function createSuspiciousWordsEmbed(userMention, channelMention, id, content, at
  * @since 1.0.0
  */
 function createTogglePermsEmbed(message, success, userTag) {
-  return createEmbed(
+  return addEmbed(
     'Toggle Permissions',
     message,
     null,
@@ -439,18 +480,18 @@ function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, n
   const fields = [];
 
   if (oldContent) {
-    fields.push(...createMessageFields(oldContent, 'Old message'));
+    fields.push(...addMessageFields(oldContent, 'Old message'));
   }
 
   if (newContent) {
-    fields.push(...createMessageFields(newContent, 'New message'));
+    fields.push(...addMessageFields(newContent, 'New message'));
   }
 
   if (attachments) {
-    fields.push(...createAttachmentFields(attachments));
+    fields.push(...addAttachmentFields(attachments));
   }
 
-  return createEmbed(
+  return addEmbed(
     'Message Updated',
     `:pencil: [Message](${url}) sent by ${userMention} was updated in ${channelMention}`,
     null,
@@ -465,7 +506,7 @@ function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, n
  *
  * @param {"disconnect"|"unmute"}           route   - Voice command route.
  * @param {string}                          message - Embed message.
- * @param {"complete"|"fail"|"in-progress"} status  - Status of voice channel command.
+ * @param {"complete"|"fail"|"in-progress"} status  - Status of voice command.
  * @param {string}                          userTag - User tag of initiator.
  *
  * @returns {module:"discord.js".MessageEmbed}
@@ -493,14 +534,14 @@ function createVoiceEmbed(route, message, status, userTag) {
       break;
     case 'in-progress':
     default:
-      titleDisconnect = (route === 'disconnect') ? 'Disconnecting...' : undefined;
-      titleUnmute = (route === 'unmute') ? 'Unmuting...' : undefined;
+      titleDisconnect = (route === 'disconnect') ? 'Disconnecting' : undefined;
+      titleUnmute = (route === 'unmute') ? 'Unmuting' : undefined;
       title = titleDisconnect || titleUnmute;
       color = '#eea942';
       break;
   }
 
-  return createEmbed(
+  return addEmbed(
     title,
     message,
     null,
@@ -511,6 +552,7 @@ function createVoiceEmbed(route, message, status, userTag) {
 }
 
 module.exports = {
+  createAddRoleEmbed,
   createChangeNicknameEmbed,
   createChangeUsernameEmbed,
   createCommandErrorEmbed,

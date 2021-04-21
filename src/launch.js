@@ -5,6 +5,7 @@ const _ = require('lodash');
 const config = require('../config.json');
 
 const {
+  addRole,
   fetchMembers,
   findDuplicateUsers,
   launchHelpMenu,
@@ -17,6 +18,7 @@ const {
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
+  userScanner,
 } = require('./moderator');
 const {
   removeRolesIfNoRoles,
@@ -51,12 +53,14 @@ const configSuspiciousWords = _.get(config, 'suspicious-words');
 const configRemoveRoles = _.get(config, 'remove-roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
-const configHelpMenu = _.get(config, 'help');
-const configVoice = _.get(config, 'voice');
+const configBannedUsers = _.get(config, 'banned-users');
+const configUserScanners = _.get(config, 'user-scanners');
+const configAddRole = _.get(config, 'add-role');
 const configFetchMembers = _.get(config, 'fetch-members');
 const configFindDuplicateUsers = _.get(config, 'find-duplicate-users');
+const configHelp = _.get(config, 'help');
 const configTogglePerms = _.get(config, 'toggle-perms');
-const configBannedUsers = _.get(config, 'banned-users');
+const configVoice = _.get(config, 'voice');
 
 /**
  * Discord client.
@@ -65,7 +69,7 @@ const configBannedUsers = _.get(config, 'banned-users');
  */
 const client = new Discord.Client({
   messageCacheMaxSize: Infinity,
-  messageCacheLifetime: 1209600, // 14 days.
+  messageCacheLifetime: 2592000, // 30 days.
   messageSweepInterval: 60, // 1 minute.
   messageEditHistoryMaxSize: -1,
   fetchAllMembers: true,
@@ -100,7 +104,7 @@ client.on('ready', async () => {
    *
    * @since 1.0.0
    */
-  if (!logChannel || ![10, 20, 30, 40].includes(configLogLevel) || !_.isString(configBotPrefix) || _.isEmpty(configBotPrefix)) {
+  if (!logChannel || !_.includes([10, 20, 30, 40], configLogLevel) || !_.isString(configBotPrefix) || _.isEmpty(configBotPrefix)) {
     if (!logChannel) {
       console.error([
         chalk.red('Server failed to start!'),
@@ -109,7 +113,7 @@ client.on('ready', async () => {
       ].join(' '));
     }
 
-    if (![10, 20, 30, 40].includes(configLogLevel)) {
+    if (!_.includes([10, 20, 30, 40], configLogLevel)) {
       console.error([
         chalk.red('Server failed to start!'),
         '"settings.log-level" is not configured or is invalid',
@@ -168,6 +172,19 @@ client.on('ready', async () => {
    */
   client.on('message', async (message) => {
     if (!message.author.bot) {
+      /**
+       * Add role.
+       *
+       * @since 1.0.0
+       */
+      if (message.content.startsWith(`${configBotPrefix}add-role`)) {
+        await addRole(message, configBotPrefix, configAddRole).catch((error) => generateLogMessage(
+          'Failed to execute "addRole" function',
+          10,
+          error,
+        ));
+      }
+
       /**
        * Auto responder.
        *
@@ -244,7 +261,8 @@ client.on('ready', async () => {
        * @since 1.0.0
        */
       if (message.content.startsWith(`${configBotPrefix}help`)) {
-        await launchHelpMenu(message, configBotPrefix, configHelpMenu, {
+        await launchHelpMenu(message, configBotPrefix, configHelp, {
+          configAddRole,
           configFetchMembers,
           configFindDuplicateUsers,
           configTogglePerms,
@@ -377,7 +395,7 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   client.on('messageDeleteBulk', (messages) => {
-    messages.forEach(async (message) => {
+    _.forEach(messages.array(), async (message) => {
       const messageAuthorId = message.author.id;
       const clientUserId = client.user.id;
 
@@ -480,10 +498,29 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   if (_.isArray(configSchedulePosts) && !_.isEmpty(configSchedulePosts)) {
-    configSchedulePosts.forEach((configSchedulePost) => {
+    _.forEach(configSchedulePosts, (configSchedulePost) => {
       const channel = getTextBasedChannel(client, configSchedulePost['channel-id']);
 
       schedulePost(configSchedulePost, channel);
+    });
+  }
+
+  /**
+   * User scanner.
+   *
+   * @since 1.0.0
+   */
+  if (_.isArray(configUserScanners) && !_.isEmpty(configUserScanners)) {
+    _.forEach(configUserScanners, async (configUserScanner) => {
+      const guild = client.guilds.cache.get(configUserScanner['guild-id']);
+      const channel = getTextBasedChannel(client, configUserScanner['channel-id']);
+      const message = _.get(configUserScanner, 'message');
+
+      await userScanner(guild, message, channel).catch((error) => generateLogMessage(
+        'Failed to execute "userScanner" function',
+        10,
+        error,
+      ));
     });
   }
 });

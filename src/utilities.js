@@ -58,12 +58,13 @@ async function getGoogleCloudStorageObjects(message) {
   const links = [];
 
   // Throw attachment urls into array first.
-  attachments.forEach((attachment) => {
+  _.forEach(attachments.array(), (attachment) => {
     links.push(attachment.url);
+    links.push(attachment.proxyURL);
   });
 
   if (links.length) {
-    links.forEach((attachmentsLink) => {
+    _.forEach(links, (attachmentsLink) => {
       axios.get(attachmentsLink).then((response) => {
         const responseStatusText = response.statusText;
         const responseConfigUrl = response.config.url;

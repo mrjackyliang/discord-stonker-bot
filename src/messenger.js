@@ -20,7 +20,7 @@ async function autoResponder(message, autoReplies) {
     return;
   }
 
-  autoReplies.map(async (autoReply) => {
+  _.map(autoReplies, async (autoReply) => {
     const name = _.get(autoReply, 'name', 'Unknown');
     const channelId = _.get(autoReply, 'channel-id');
     const tagAuthor = _.get(autoReply, 'tag-author', false);
