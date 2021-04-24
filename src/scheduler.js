@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const { DateTime } = require('luxon');
+const luxon = require('luxon');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
@@ -111,7 +111,7 @@ function schedulePost(event, sendToChannel) {
 
   try {
     schedule.scheduleJob(rule, async () => {
-      const todayDate = DateTime.now().setZone(timeZone).toISODate();
+      const todayDate = luxon.DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
       if (!_.includes(skipDays, todayDate)) {

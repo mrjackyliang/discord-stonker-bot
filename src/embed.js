@@ -65,7 +65,7 @@ function addMessageFields(message, fieldTitle = 'Message') {
 /**
  * Add attachment fields.
  *
- * @param {object} attachments - The attachments.
+ * @param {Collection<Snowflake, MessageAttachment>} attachments - The attachments.
  *
  * @returns {object[]}
  *

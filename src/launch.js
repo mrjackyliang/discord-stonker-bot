@@ -8,11 +8,11 @@ const {
   addRole,
   fetchMembers,
   findDuplicateUsers,
-  launchHelpMenu,
+  help,
   togglePerms,
   voice,
 } = require('./commands');
-const { autoResponder } = require('./messenger');
+const { autoReply } = require('./messenger');
 const {
   automaticBan,
   checkRegexChannels,
@@ -186,12 +186,12 @@ client.on('ready', async () => {
       }
 
       /**
-       * Auto responder.
+       * Auto reply.
        *
        * @since 1.0.0
        */
-      await autoResponder(message, configAutoReply).catch((error) => generateLogMessage(
-        'Failed to execute "autoResponder" function',
+      await autoReply(message, configAutoReply).catch((error) => generateLogMessage(
+        'Failed to execute "autoReply" function',
         10,
         error,
       ));
@@ -256,19 +256,19 @@ client.on('ready', async () => {
       ));
 
       /**
-       * Launch help menu.
+       * Help.
        *
        * @since 1.0.0
        */
       if (message.content.startsWith(`${configBotPrefix}help`)) {
-        await launchHelpMenu(message, configBotPrefix, configHelp, {
+        await help(message, configBotPrefix, configHelp, {
           configAddRole,
           configFetchMembers,
           configFindDuplicateUsers,
           configTogglePerms,
           configVoice,
         }).catch((error) => generateLogMessage(
-          'Failed to execute "launchHelpMenu" function',
+          'Failed to execute "help" function',
           10,
           error,
         ));
@@ -379,6 +379,11 @@ client.on('ready', async () => {
 
     // If message was not sent by Stonker Bot.
     if (messageAuthorId !== clientUserId) {
+      /**
+       * Delete message notification.
+       *
+       * @since 1.0.0
+       */
       if (configFeatures['delete-message-notification'] === true) {
         await userDeleteMessage(message, logChannel).catch((error) => generateLogMessage(
           'Failed to execute "userDeleteMessage" function',
@@ -401,6 +406,11 @@ client.on('ready', async () => {
 
       // If message was not sent by Stonker Bot.
       if (messageAuthorId !== clientUserId) {
+        /**
+         * Delete message notification.
+         *
+         * @since 1.0.0
+         */
         if (configFeatures['delete-message-notification'] === true) {
           await userDeleteMessage(message, logChannel).catch((error) => generateLogMessage(
             'Failed to execute "userDeleteMessage" function',

@@ -137,20 +137,9 @@ async function addRole(message, botPrefix, settings) {
 
       let success = true;
 
-      if (commandArguments[1] === 'everyone') {
-        await guildMember.roles.add(roleTwo).then(() => logger(
-          'Successfully added',
-        )).catch((error) => {
-          success = logger(
-            'Failed to add',
-            error,
-          );
-        });
-      } else if (commandArguments[1] === 'no-role') {
-        const roles = guildMember.roles.cache.array();
-
-        // Each user has the @everyone role.
-        if (roles.length === 1) {
+      // Make sure member doesn't have role first.
+      if (!guildMember.roles.cache.has(roleTwo.id)) {
+        if (commandArguments[1] === 'everyone') {
           await guildMember.roles.add(roleTwo).then(() => logger(
             'Successfully added',
           )).catch((error) => {
@@ -159,19 +148,33 @@ async function addRole(message, botPrefix, settings) {
               error,
             );
           });
-        }
-      } else if (roleOne) {
-        const hasRole = guildMember.roles.cache.has(roleOne.id);
+        } else if (commandArguments[1] === 'no-role') {
+          const roles = guildMember.roles.cache.array();
 
-        if (hasRole) {
-          await guildMember.roles.add(roleTwo).then(() => logger(
-            'Successfully added',
-          )).catch((error) => {
-            success = logger(
-              'Failed to add',
-              error,
-            );
-          });
+          // Each user has the @everyone role.
+          if (roles.length === 1) {
+            await guildMember.roles.add(roleTwo).then(() => logger(
+              'Successfully added',
+            )).catch((error) => {
+              success = logger(
+                'Failed to add',
+                error,
+              );
+            });
+          }
+        } else if (roleOne) {
+          const hasRole = guildMember.roles.cache.has(roleOne.id);
+
+          if (hasRole) {
+            await guildMember.roles.add(roleTwo).then(() => logger(
+              'Successfully added',
+            )).catch((error) => {
+              success = logger(
+                'Failed to add',
+                error,
+              );
+            });
+          }
         }
       }
 
@@ -389,7 +392,7 @@ async function findDuplicateUsers(message, botPrefix, settings) {
   const allowedRoles = _.get(settings, 'allowed-roles', []);
   const guildMembers = message.channel.guild.members.cache.array();
 
-  let userByAvatar = {};
+  let users = {};
   let empty = true;
 
   if (
@@ -414,21 +417,23 @@ async function findDuplicateUsers(message, botPrefix, settings) {
 
     if (guildMemberAvatar !== null) {
       // Create entry for avatar hash if it does not exist.
-      if (userByAvatar[guildMemberAvatar] === undefined) {
-        userByAvatar[guildMemberAvatar] = [];
+      if (users[guildMemberAvatar] === undefined) {
+        users[guildMemberAvatar] = [];
       }
 
-      userByAvatar[guildMemberAvatar].push(guildMember.toString());
+      users[guildMemberAvatar].push(guildMember.toString());
     }
   });
 
   /**
+   * Convert object to array for loop later.
+   *
    * @type {[string, string[]][]}
    */
-  userByAvatar = Object.entries(userByAvatar);
+  users = Object.entries(users);
 
   // Loop through all users with avatars.
-  _.forEach(userByAvatar, (category) => {
+  _.forEach(users, (category) => {
     const avatarHash = category[0];
     const userIds = category[1];
 
@@ -471,7 +476,7 @@ async function findDuplicateUsers(message, botPrefix, settings) {
 }
 
 /**
- * Launch help menu.
+ * Help.
  *
  * @param {module:"discord.js".Message} message      - Message object.
  * @param {string}                      botPrefix    - Command prefix.
@@ -482,18 +487,18 @@ async function findDuplicateUsers(message, botPrefix, settings) {
  *
  * @since 1.0.0
  */
-async function launchHelpMenu(message, botPrefix, settings, allowedRoles) {
+async function help(message, botPrefix, settings, allowedRoles) {
+  const settingsAllowedRoles = _.get(settings, 'allowed-roles', []);
   const allowAddRoleRoles = _.get(allowedRoles, 'configAddRole.allowed-roles', []);
   const allowFetchMembersRoles = _.get(allowedRoles, 'configFetchMembers.allowed-roles', []);
   const allowFindDuplicateUsersRoles = _.get(allowedRoles, 'configFindDuplicateUsers.allowed-roles', []);
-  const allowedHelpRoles = _.get(settings, 'allowed-roles', []);
   const allowTogglePermsRoles = _.get(allowedRoles, 'configTogglePerms.allowed-roles', []);
   const allowVoiceRoles = _.get(allowedRoles, 'configVoice.allowed-roles', []);
 
   const commands = [];
 
   if (
-    !_.some(allowedHelpRoles, (allowedHelpRole) => message.member.roles.cache.has(allowedHelpRole.id))
+    !_.some(settingsAllowedRoles, (settingsAllowedRole) => message.member.roles.cache.has(settingsAllowedRole.id))
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -640,7 +645,10 @@ async function togglePerms(message, botPrefix, settings) {
     // Shows the first 10 commands.
     _.forEach(permsIds, (permsId, key) => {
       if (key < 10) {
-        commands += `${botPrefix}toggle-perms ${permsId} on\r\n${botPrefix}toggle-perms ${permsId} off\r\n\r\n`;
+        commands += [
+          `${botPrefix}toggle-perms ${permsId} on`,
+          `${botPrefix}toggle-perms ${permsId} off\r\n`,
+        ].join('\r\n\r\n');
       }
     });
 
@@ -994,7 +1002,7 @@ module.exports = {
   addRole,
   fetchMembers,
   findDuplicateUsers,
-  launchHelpMenu,
+  help,
   togglePerms,
   voice,
 };

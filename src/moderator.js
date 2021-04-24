@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const { DateTime } = require('luxon');
+const luxon = require('luxon');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
@@ -27,6 +27,7 @@ async function automaticBan(member, bannedUsers) {
   if (!_.isEmpty(avatars) && _.isArray(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))) {
     const userAvatar = member.user.avatar;
 
+    // If user has a banned avatar hash.
     if (userAvatar && _.includes(avatars, userAvatar)) {
       await member.ban(
         {
@@ -51,7 +52,7 @@ async function automaticBan(member, bannedUsers) {
     }
   }
 
-  // If member has a banned username.
+  // If user has a banned username.
   if (!_.isEmpty(usernames) && _.isArray(usernames) && _.every(usernames, (username) => _.isString(username) && !_.isEmpty(username))) {
     const userUsername = member.user.username;
 
@@ -304,9 +305,15 @@ async function userScanner(guild, message, sendToChannel) {
 
   schedule.scheduleJob('* * * * *', () => {
     const guildMembers = guild.members.cache.array();
+    const nowInSeconds = luxon.DateTime.now().toSeconds();
     const finalList = [];
 
     let avatars = {};
+
+    generateLogMessage(
+      `Initiating user scanner for the ${guild.name} guild`,
+      40,
+    );
 
     // Remap users based on their avatar.
     _.forEach(guildMembers, (guildMember) => {
@@ -323,6 +330,8 @@ async function userScanner(guild, message, sendToChannel) {
     });
 
     /**
+     * Convert object to array for loop later.
+     *
      * @type {[string, string[]][]}
      */
     avatars = Object.entries(avatars);
@@ -335,15 +344,22 @@ async function userScanner(guild, message, sendToChannel) {
       }
     });
 
-    // If a message was sent less than 10 minutes ago, it will skip.
-    if (finalList.length && (DateTime.now().toSeconds() - lastSentMessage) > 600) {
-      sendToChannel.send(message).then(() => {
-        lastSentMessage = DateTime.now().toSeconds();
-      }).catch((error) => generateLogMessage(
-        'Failed to send message',
-        10,
-        error,
-      ));
+    if (finalList.length) {
+      generateLogMessage(
+        `Duplicate users have been detected for the ${guild.name} guild`,
+        40,
+      );
+
+      // If a message was sent less than 10 minutes ago, it will skip.
+      if ((nowInSeconds - lastSentMessage) > 600) {
+        sendToChannel.send(message).then(() => {
+          lastSentMessage = nowInSeconds;
+        }).catch((error) => generateLogMessage(
+          'Failed to send message',
+          10,
+          error,
+        ));
+      }
     }
   });
 }
