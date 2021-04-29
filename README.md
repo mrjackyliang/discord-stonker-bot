@@ -204,7 +204,7 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
             {
                 "guild-id": "000000000000000000",
                 "channel-id": "000000000000000000",
-                "message": "Raid Alert! Please run the `o!find-duplicate-users` command.",
+                "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
                 "whitelisted-avatars": [
                     "00000000000000000000000000000000"
                 ]
