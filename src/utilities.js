@@ -63,7 +63,7 @@ async function getGoogleCloudStorageObjects(message) {
     links.push(attachment.proxyURL);
   });
 
-  if (links.length) {
+  if (_.size(links)) {
     _.forEach(links, (attachmentsLink) => {
       axios.get(attachmentsLink).then((response) => {
         const responseStatusText = response.statusText;
@@ -125,27 +125,27 @@ function splitStringChunks(string, maxSize) {
     const isFirstPiece = index === 0;
     const chunkSeparator = isFirstPiece ? '' : ' ';
 
-    let currentChunk = chunks[chunks.length - 1];
+    let currentChunk = chunks[_.size(chunks) - 1];
 
     // If a piece is simply too long, split it up harshly. Otherwise, split it nicely at space.
     // If max chars for this chunk, start a new chunk.
-    if (piece.length > maxSize) {
-      const startingPieceIndex = maxSize - (chunkSeparator + currentChunk).length;
+    if (_.size(piece) > maxSize) {
+      const startingPieceIndex = maxSize - _.size((chunkSeparator + currentChunk));
       const leftover = piece.substring(startingPieceIndex);
 
       currentChunk += chunkSeparator + piece.substring(0, startingPieceIndex);
-      theChunks[chunks.length - 1] = currentChunk;
+      theChunks[_.size(chunks) - 1] = currentChunk;
 
-      for (let i = 0; i < leftover.length; i += maxSize) {
+      for (let i = 0; i < _.size(leftover); i += maxSize) {
         theChunks.push(leftover.substring(i, i + maxSize));
       }
-    } else if ((currentChunk + chunkSeparator + piece).length <= maxSize) {
+    } else if (_.size((currentChunk + chunkSeparator + piece)) <= maxSize) {
       currentChunk += chunkSeparator + piece;
-      theChunks[theChunks.length - 1] = currentChunk;
+      theChunks[_.size(theChunks) - 1] = currentChunk;
     } else {
       currentChunk = piece;
       theChunks.push('');
-      theChunks[theChunks.length - 1] = currentChunk;
+      theChunks[_.size(theChunks) - 1] = currentChunk;
     }
 
     return theChunks;

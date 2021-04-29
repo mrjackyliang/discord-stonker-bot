@@ -16,7 +16,7 @@ const { generateLogMessage } = require('./utilities');
 async function autoReply(message, replies) {
   const messageContent = message.toString();
 
-  if (_.isEmpty(replies) || !_.isArray(replies) || !_.every(replies, _.isPlainObject)) {
+  if (!_.isArray(replies) || _.isEmpty(replies) || !_.every(replies, _.isPlainObject)) {
     return;
   }
 

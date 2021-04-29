@@ -14,11 +14,12 @@ const {
 } = require('./commands');
 const { autoReply } = require('./messenger');
 const {
-  automaticBan,
+  antiRaidAutoBan,
+  antiRaidAutoKick,
+  antiRaidScanner,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
-  userScanner,
 } = require('./moderator');
 const {
   removeRolesIfNoRoles,
@@ -42,25 +43,34 @@ const {
  *
  * @since 1.0.0
  */
-const configClientToken = _.get(config, 'settings.client-token');
-const configLogChannelId = _.get(config, 'settings.log-channel-id');
-const configLogLevel = _.get(config, 'settings.log-level');
-const configBotPrefix = _.get(config, 'settings.bot-prefix');
-const configFeatures = _.get(config, 'features');
+const configSettingsClientToken = _.get(config, 'settings.client-token');
+const configSettingsLogChannelId = _.get(config, 'settings.log-channel-id');
+const configSettingsLogLevel = _.get(config, 'settings.log-level');
+const configSettingsBotPrefix = _.get(config, 'settings.bot-prefix');
+
+const configNotificationsChangeNickname = _.get(config, 'notifications.change-nickname');
+const configNotificationsChangeUsername = _.get(config, 'notifications.change-username');
+const configNotificationsDeleteMessage = _.get(config, 'notifications.delete-message');
+const configNotificationsUpdateMessage = _.get(config, 'notifications.update-message');
+
+const configCommandsAddRole = _.get(config, 'commands.add-role');
+const configCommandsFetchMembers = _.get(config, 'commands.fetch-members');
+const configCommandsFindDuplicateUsers = _.get(config, 'commands.find-duplicate-users');
+const configCommandsHelp = _.get(config, 'commands.help');
+const configCommandsTogglePerms = _.get(config, 'commands.toggle-perms');
+const configCommandsVoice = _.get(config, 'commands.voice');
+
+const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
+const configAntiRaidAutoKick = _.get(config, 'anti-raid.auto-kick');
+const configAntiRaidScanners = _.get(config, 'anti-raid.scanners');
+
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRegexRules = _.get(config, 'regex-rules');
 const configSuspiciousWords = _.get(config, 'suspicious-words');
 const configRemoveRoles = _.get(config, 'remove-roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
-const configBannedUsers = _.get(config, 'banned-users');
-const configUserScanners = _.get(config, 'user-scanners');
-const configAddRole = _.get(config, 'add-role');
-const configFetchMembers = _.get(config, 'fetch-members');
-const configFindDuplicateUsers = _.get(config, 'find-duplicate-users');
-const configHelp = _.get(config, 'help');
 const configTogglePerms = _.get(config, 'toggle-perms');
-const configVoice = _.get(config, 'voice');
 
 /**
  * Discord client.
@@ -80,7 +90,7 @@ const client = new Discord.Client({
  *
  * @since 1.0.0
  */
-client.login(configClientToken).catch((error) => {
+client.login(configSettingsClientToken).catch((error) => {
   console.error([
     chalk.red('Server failed to start!'),
     error.message.replace(/\.$/, ''),
@@ -97,14 +107,14 @@ client.login(configClientToken).catch((error) => {
  * @since 1.0.0
  */
 client.on('ready', async () => {
-  const logChannel = getTextBasedChannel(client, configLogChannelId);
+  const logChannel = getTextBasedChannel(client, configSettingsLogChannelId);
 
   /**
    * Configuration pre-checks.
    *
    * @since 1.0.0
    */
-  if (!logChannel || !_.includes([10, 20, 30, 40], configLogLevel) || !_.isString(configBotPrefix) || _.isEmpty(configBotPrefix)) {
+  if (!logChannel || !_.includes([10, 20, 30, 40], configSettingsLogLevel) || !_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix)) {
     if (!logChannel) {
       console.error([
         chalk.red('Server failed to start!'),
@@ -113,7 +123,7 @@ client.on('ready', async () => {
       ].join(' '));
     }
 
-    if (!_.includes([10, 20, 30, 40], configLogLevel)) {
+    if (!_.includes([10, 20, 30, 40], configSettingsLogLevel)) {
       console.error([
         chalk.red('Server failed to start!'),
         '"settings.log-level" is not configured or is invalid',
@@ -121,10 +131,10 @@ client.on('ready', async () => {
       ].join(' '));
     }
 
-    if (!_.isString(configBotPrefix) || _.isEmpty(configBotPrefix)) {
+    if (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3) {
       console.error([
         chalk.red('Server failed to start!'),
-        '"settings.bot-prefix" is not configured or is invalid',
+        '"settings.bot-prefix" is not configured, is invalid, or too long',
         '...',
       ].join(' '));
     }
@@ -139,7 +149,7 @@ client.on('ready', async () => {
     ));
 
     await client.user.setActivity(
-      `${configBotPrefix}help | Powered by Discord Stonker Bot`,
+      `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
       { type: 'LISTENING' },
     ).catch((error) => generateLogMessage(
       'Failed to set user activity',
@@ -177,8 +187,8 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}add-role`)) {
-        await addRole(message, configBotPrefix, configAddRole).catch((error) => generateLogMessage(
+      if (message.content.startsWith(`${configSettingsBotPrefix}add-role`)) {
+        await addRole(message, configSettingsBotPrefix, configCommandsAddRole).catch((error) => generateLogMessage(
           'Failed to execute "addRole" function',
           10,
           error,
@@ -223,8 +233,8 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}fetch-members`)) {
-        await fetchMembers(message, configBotPrefix, configFetchMembers).catch((error) => generateLogMessage(
+      if (message.content.startsWith(`${configSettingsBotPrefix}fetch-members`)) {
+        await fetchMembers(message, configSettingsBotPrefix, configCommandsFetchMembers).catch((error) => generateLogMessage(
           'Failed to execute "fetchMembers" function',
           10,
           error,
@@ -236,8 +246,8 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}find-duplicate-users`)) {
-        await findDuplicateUsers(message, configBotPrefix, configFindDuplicateUsers).catch((error) => generateLogMessage(
+      if (message.content.startsWith(`${configSettingsBotPrefix}find-duplicate-users`)) {
+        await findDuplicateUsers(message, configSettingsBotPrefix, configCommandsFindDuplicateUsers).catch((error) => generateLogMessage(
           'Failed to execute "findDuplicateUsers" function',
           10,
           error,
@@ -260,13 +270,13 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}help`)) {
-        await help(message, configBotPrefix, configHelp, {
-          configAddRole,
-          configFetchMembers,
-          configFindDuplicateUsers,
-          configTogglePerms,
-          configVoice,
+      if (message.content.startsWith(`${configSettingsBotPrefix}help`)) {
+        await help(message, configSettingsBotPrefix, configCommandsHelp, {
+          configCommandsAddRole,
+          configCommandsFetchMembers,
+          configCommandsFindDuplicateUsers,
+          configCommandsTogglePerms,
+          configCommandsVoice,
         }).catch((error) => generateLogMessage(
           'Failed to execute "help" function',
           10,
@@ -290,8 +300,8 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}toggle-perms`)) {
-        await togglePerms(message, configBotPrefix, configTogglePerms).catch((error) => generateLogMessage(
+      if (message.content.startsWith(`${configSettingsBotPrefix}toggle-perms`)) {
+        await togglePerms(message, configSettingsBotPrefix, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
           'Failed to execute "togglePerms" function',
           10,
           error,
@@ -303,8 +313,8 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (message.content.startsWith(`${configBotPrefix}voice`)) {
-        await voice(message, configBotPrefix, configVoice).catch((error) => generateLogMessage(
+      if (message.content.startsWith(`${configSettingsBotPrefix}voice`)) {
+        await voice(message, configSettingsBotPrefix, configCommandsVoice).catch((error) => generateLogMessage(
           'Failed to execute "voice" function',
           10,
           error,
@@ -358,7 +368,7 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (configFeatures['update-message-notification'] === true) {
+      if (configNotificationsUpdateMessage === true) {
         await userUpdateMessage(message, logChannel).catch((error) => generateLogMessage(
           'Failed to execute "userUpdateMessage" function',
           10,
@@ -384,7 +394,7 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (configFeatures['delete-message-notification'] === true) {
+      if (configNotificationsDeleteMessage === true) {
         await userDeleteMessage(message, logChannel).catch((error) => generateLogMessage(
           'Failed to execute "userDeleteMessage" function',
           10,
@@ -411,7 +421,7 @@ client.on('ready', async () => {
          *
          * @since 1.0.0
          */
-        if (configFeatures['delete-message-notification'] === true) {
+        if (configNotificationsDeleteMessage === true) {
           await userDeleteMessage(message, logChannel).catch((error) => generateLogMessage(
             'Failed to execute "userDeleteMessage" function',
             10,
@@ -429,12 +439,23 @@ client.on('ready', async () => {
    */
   client.on('guildMemberAdd', async (member) => {
     /**
-     * Automatic ban.
+     * Anti-raid auto-ban.
      *
      * @since 1.0.0
      */
-    await automaticBan(member, configBannedUsers).catch((error) => generateLogMessage(
-      'Failed to execute "automaticBan" function',
+    await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
+      'Failed to execute "antiRaidAutoBan" function',
+      10,
+      error,
+    ));
+
+    /**
+     * Anti-raid auto-kick.
+     *
+     * @since 1.0.0
+     */
+    await antiRaidAutoKick(member, configAntiRaidAutoKick).catch((error) => generateLogMessage(
+      'Failed to execute "antiRaidAutoKick" function',
       10,
       error,
     ));
@@ -473,7 +494,7 @@ client.on('ready', async () => {
      *
      * @since 1.0.0
      */
-    if (configFeatures['change-nickname-notification'] === true) {
+    if (configNotificationsChangeNickname === true) {
       await userChangeNickname(oldMember, newMember, logChannel).catch((error) => generateLogMessage(
         'Failed to execute "userChangeNickname" function',
         10,
@@ -493,7 +514,7 @@ client.on('ready', async () => {
      *
      * @since 1.0.0
      */
-    if (configFeatures['change-username-notification'] === true) {
+    if (configNotificationsChangeUsername === true) {
       await userChangeUsername(oldMember, newMember, logChannel).catch((error) => generateLogMessage(
         'Failed to execute "userChangeUsername" function',
         10,
@@ -516,18 +537,17 @@ client.on('ready', async () => {
   }
 
   /**
-   * User scanner.
+   * Anti-raid scanner.
    *
    * @since 1.0.0
    */
-  if (_.isArray(configUserScanners) && !_.isEmpty(configUserScanners)) {
-    _.forEach(configUserScanners, async (configUserScanner) => {
-      const guild = client.guilds.cache.get(configUserScanner['guild-id']);
-      const channel = getTextBasedChannel(client, configUserScanner['channel-id']);
-      const message = _.get(configUserScanner, 'message');
+  if (_.isArray(configAntiRaidScanners) && !_.isEmpty(configAntiRaidScanners)) {
+    _.forEach(configAntiRaidScanners, async (configAntiRaidScanner) => {
+      const guild = client.guilds.cache.get(configAntiRaidScanner['guild-id']);
+      const channel = getTextBasedChannel(client, configAntiRaidScanner['channel-id']);
 
-      await userScanner(guild, message, channel).catch((error) => generateLogMessage(
-        'Failed to execute "userScanner" function',
+      await antiRaidScanner(guild, configAntiRaidScanner, channel).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidScanner" function',
         10,
         error,
       ));

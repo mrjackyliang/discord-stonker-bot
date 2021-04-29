@@ -5,11 +5,73 @@
         "log-level": 30,
         "bot-prefix": "!"
     },
-    "features": {
-        "change-nickname-notification": true,
-        "change-username-notification": true,
-        "delete-message-notification": true,
-        "update-message-notification": true
+    "notifications": {
+        "change-nickname": true,
+        "change-username": true,
+        "delete-message": true,
+        "update-message": true
+    },
+    "commands": {
+        "add-role": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "fetch-members": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "find-duplicate-users": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "help": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "toggle-perms": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "voice": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ]
+    },
+    "anti-raid": {
+        "auto-ban": {
+            "avatar": [
+                "00000000000000000000000000000000"
+            ],
+            "username": [
+                "Bad User"
+            ]
+        },
+        "auto-kick": {
+            "minimum-age": 0,
+            "message": "Failed to join server. Please contact server owner for assistance."
+        },
+        "scanners": [
+            {
+                "guild-id": "000000000000000000",
+                "channel-id": "000000000000000000",
+                "message": "Raid Alert! Please run the `o!find-duplicate-users` command.",
+                "whitelisted-avatars": [
+                    "00000000000000000000000000000000"
+                ]
+            }
+        ]
     },
     "schedule-posts": [
         {
@@ -112,17 +174,18 @@
             },
             "messages": [
                 "reply 1",
-                "reply 2",
-                "reply 3"
+                "reply 2"
             ]
         }
     ],
     "affiliate-links": {
         "links": [
             {
-                "category": "Affiliate Company",
-                "regex-pattern": "(?:)",
-                "regex-flags": "gi"
+                "website": "Affiliate Company",
+                "regex": {
+                    "pattern": "(?:)",
+                    "flags": "gi"
+                }
             }
         ],
         "excluded-roles": [
@@ -132,103 +195,40 @@
             }
         ]
     },
-    "banned-users": {
-        "avatar": [
-            "017a63c2a15654860b1615e20063f177"
-        ],
-        "username": [
-            "Raid Bot"
-        ]
-    },
-    "user-scanners": [
+    "toggle-perms": [
         {
-            "guild-id": "000000000000000000",
-            "channel-id": "000000000000000000",
-            "message": "Raid Alert"
+            "name": "Sample",
+            "id": "sample",
+            "on": [
+                {
+                    "description": "#sample-channel",
+                    "channel-id": "000000000000000000",
+                    "channel-perms": [
+                        {
+                            "description": "Sample role",
+                            "user-or-role-id": "000000000000000000",
+                            "user-or-role-perms": {
+                                "SEND_MESSAGES": false
+                            }
+                        }
+                    ]
+                }
+            ],
+            "off": [
+                {
+                    "description": "#sample-channel",
+                    "channel-id": "000000000000000000",
+                    "channel-perms": [
+                        {
+                            "description": "Sample role",
+                            "user-or-role-id": "000000000000000000",
+                            "user-or-role-perms": {
+                                "SEND_MESSAGES": false
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-    ],
-    "add-role": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "fetch-members": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "find-duplicate-users": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "help": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "toggle-perms": {
-        "perms": [
-            {
-                "name": "Sample",
-                "id": "sample",
-                "on": [
-                    {
-                        "description": "#sample-channel",
-                        "channel-id": "000000000000000000",
-                        "channel-perms": [
-                            {
-                                "description": "Sample role",
-                                "user-or-role-id": "000000000000000000",
-                                "user-or-role-perms": {
-                                    "SEND_MESSAGES": false
-                                }
-                            }
-                        ]
-                    }
-                ],
-                "off": [
-                    {
-                        "description": "#sample-channel",
-                        "channel-id": "000000000000000000",
-                        "channel-perms": [
-                            {
-                                "description": "Sample role",
-                                "user-or-role-id": "000000000000000000",
-                                "user-or-role-perms": {
-                                    "SEND_MESSAGES": false
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    },
-    "voice": {
-        "allowed-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    }
+    ]
 }

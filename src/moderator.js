@@ -9,8 +9,10 @@ const {
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
 
+const antiRaidDMCount = {};
+
 /**
- * Automatic ban.
+ * Anti-raid auto-ban.
  *
  * @param {module:"discord.js".GuildMember} member      - Member information.
  * @param {object}                          bannedUsers - Banned users from configuration.
@@ -19,15 +21,14 @@ const { generateLogMessage } = require('./utilities');
  *
  * @since 1.0.0
  */
-async function automaticBan(member, bannedUsers) {
+async function antiRaidAutoBan(member, bannedUsers) {
+  const userAvatar = member.user.avatar;
+  const userUsername = member.user.username;
   const avatars = _.get(bannedUsers, 'avatar');
   const usernames = _.get(bannedUsers, 'username');
 
-  // If member has a banned avatar.
-  if (!_.isEmpty(avatars) && _.isArray(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))) {
-    const userAvatar = member.user.avatar;
-
-    // If user has a banned avatar hash.
+  // If user has a banned avatar hash (and configuration is set).
+  if (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))) {
     if (userAvatar && _.includes(avatars, userAvatar)) {
       await member.ban(
         {
@@ -52,10 +53,8 @@ async function automaticBan(member, bannedUsers) {
     }
   }
 
-  // If user has a banned username.
-  if (!_.isEmpty(usernames) && _.isArray(usernames) && _.every(usernames, (username) => _.isString(username) && !_.isEmpty(username))) {
-    const userUsername = member.user.username;
-
+  // If user has a banned username (and configuration is set).
+  if (_.isArray(usernames) && !_.isEmpty(usernames) && _.every(usernames, (username) => _.isString(username) && !_.isEmpty(username))) {
     if (_.includes(usernames, userUsername)) {
       await member.ban(
         {
@@ -76,6 +75,153 @@ async function automaticBan(member, bannedUsers) {
       ));
     }
   }
+}
+
+/**
+ * Anti-raid auto-kick.
+ *
+ * @param {module:"discord.js".GuildMember} member           - Member information.
+ * @param {object}                          antiRaidSettings - Anti-raid settings from configuration.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidAutoKick(member, antiRaidSettings) {
+  const userAvatar = member.user.avatar;
+  const userCreatedTimestamp = member.user.createdTimestamp;
+  const userAge = Date.now() - userCreatedTimestamp;
+  const minimumAge = _.get(antiRaidSettings, 'minimum-age');
+  const message = _.get(antiRaidSettings, 'message');
+
+  // Member does not meet minimum age requirements and has no avatar.
+  if (_.isFinite(minimumAge) && !(userAge >= minimumAge) && userAvatar === null) {
+    if (antiRaidDMCount[member.id] === undefined) {
+      antiRaidDMCount[member.id] = 0;
+    }
+
+    // If bot has never sent an anti-raid message to user (and message is set).
+    if (_.isString(message) && !_.isEmpty(message) && antiRaidDMCount[member.id] === 0) {
+      await member.createDM().then(async (dmChannel) => {
+        await dmChannel.send(message).then(() => {
+          antiRaidDMCount[member.id] += 1;
+
+          generateLogMessage(
+            [
+              'Sent direct message to',
+              chalk.green(member.toString()),
+            ].join(' '),
+            40,
+          );
+        }).catch((error) => generateLogMessage(
+          'Failed to send direct message',
+          10,
+          error,
+        ));
+      }).catch((error) => generateLogMessage(
+        'Failed to create direct message channel',
+        10,
+        error,
+      ));
+    }
+
+    // Kick member after sending anti-raid message to user.
+    await member.kick('Member does not meet minimum age requirements and has no avatar').then(() => {
+      generateLogMessage(
+        [
+          chalk.red(member.toString()),
+          'was automatically kicked because member does not meet minimum age requirements and has no avatar',
+        ].join(' '),
+        40,
+      );
+    }).catch((error) => generateLogMessage(
+      'Failed to kick member',
+      10,
+      error,
+    ));
+  }
+}
+
+/**
+ * Anti-raid scanner.
+ *
+ * @param {module:"discord.js".Guild} guild           - Discord guild.
+ * @param {object}                    scannerSettings - User scanner settings from configuration.
+ * @param {TextBasedChannel}          sendToChannel   - Send message to channel.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
+  const message = _.get(scannerSettings, 'message');
+  const whitelistedAvatars = _.get(scannerSettings, 'whitelisted-avatars');
+
+  let lastSentMessage = 0;
+
+  if (!guild || !message || !sendToChannel) {
+    return;
+  }
+
+  schedule.scheduleJob('* * * * *', () => {
+    const guildMembers = guild.members.cache.array();
+    const nowInSeconds = luxon.DateTime.now().toSeconds();
+    const finalList = [];
+
+    let avatars = {};
+
+    generateLogMessage(
+      `Initiating user scanner for the ${guild.name} guild`,
+      40,
+    );
+
+    // Remap users based on their avatar.
+    _.forEach(guildMembers, (guildMember) => {
+      const { avatar } = guildMember.user;
+
+      if (avatar !== null && !_.includes(whitelistedAvatars, avatar)) {
+        // Create entry for avatar hash if it does not exist.
+        if (avatars[avatar] === undefined) {
+          avatars[avatar] = [];
+        }
+
+        avatars[avatar].push(guildMember.toString());
+      }
+    });
+
+    /**
+     * Convert object to array for loop later.
+     *
+     * @type {[string, string[]][]}
+     */
+    avatars = Object.entries(avatars);
+
+    _.forEach(avatars, (avatar) => {
+      const ids = avatar[1];
+
+      if (_.size(ids) > 1) {
+        finalList.push(...ids);
+      }
+    });
+
+    if (_.size(finalList)) {
+      generateLogMessage(
+        `Duplicate users have been detected for the ${guild.name} guild`,
+        40,
+      );
+
+      // If a message was sent less than 10 minutes ago, it will skip.
+      if ((nowInSeconds - lastSentMessage) > 600) {
+        sendToChannel.send(message).then(() => {
+          lastSentMessage = nowInSeconds;
+        }).catch((error) => generateLogMessage(
+          'Failed to send message',
+          10,
+          error,
+        ));
+      }
+    }
+  });
 }
 
 /**
@@ -152,7 +298,7 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
     .toLowerCase();
 
   // If suspicious words is not configured properly.
-  if (_.isEmpty(suspiciousWords) || !_.isArray(suspiciousWords) || !_.every(suspiciousWords, _.isPlainObject)) {
+  if (!_.isArray(suspiciousWords) || _.isEmpty(suspiciousWords) || !_.every(suspiciousWords, _.isPlainObject)) {
     return;
   }
 
@@ -169,7 +315,7 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
   });
 
   // If no suspicious words detected.
-  if (!categories.length) {
+  if (!_.size(categories)) {
     return;
   }
 
@@ -220,8 +366,8 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   // Scan through list of affiliate links.
   _.forEach(links, (link) => {
     const website = _.get(link, 'website', 'Unknown');
-    const regexPattern = _.get(link, 'regex-pattern', '(?:)');
-    const regexFlags = _.get(link, 'regex-flags', 'g');
+    const regexPattern = _.get(link, 'regex.pattern', '(?:)');
+    const regexFlags = _.get(link, 'regex.flags', 'g');
 
     let match;
 
@@ -247,7 +393,7 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   });
 
   // If no websites detected.
-  if (!websites.length) {
+  if (!_.size(websites)) {
     return;
   }
 
@@ -285,89 +431,11 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   }
 }
 
-/**
- * User scanner.
- *
- * @param {module:"discord.js".Guild} guild         - Discord guild.
- * @param {string}                    message       - Message to send when duplicate users detected.
- * @param {TextBasedChannel}          sendToChannel - User scanner settings from configuration.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function userScanner(guild, message, sendToChannel) {
-  let lastSentMessage = 0;
-
-  if (!guild || !message || !sendToChannel) {
-    return;
-  }
-
-  schedule.scheduleJob('* * * * *', () => {
-    const guildMembers = guild.members.cache.array();
-    const nowInSeconds = luxon.DateTime.now().toSeconds();
-    const finalList = [];
-
-    let avatars = {};
-
-    generateLogMessage(
-      `Initiating user scanner for the ${guild.name} guild`,
-      40,
-    );
-
-    // Remap users based on their avatar.
-    _.forEach(guildMembers, (guildMember) => {
-      const { avatar } = guildMember.user;
-
-      if (avatar !== null) {
-        // Create entry for avatar hash if it does not exist.
-        if (avatars[avatar] === undefined) {
-          avatars[avatar] = [];
-        }
-
-        avatars[avatar].push(guildMember.toString());
-      }
-    });
-
-    /**
-     * Convert object to array for loop later.
-     *
-     * @type {[string, string[]][]}
-     */
-    avatars = Object.entries(avatars);
-
-    _.forEach(avatars, (avatar) => {
-      const ids = avatar[1];
-
-      if (ids.length > 1) {
-        finalList.push(...ids);
-      }
-    });
-
-    if (finalList.length) {
-      generateLogMessage(
-        `Duplicate users have been detected for the ${guild.name} guild`,
-        40,
-      );
-
-      // If a message was sent less than 10 minutes ago, it will skip.
-      if ((nowInSeconds - lastSentMessage) > 600) {
-        sendToChannel.send(message).then(() => {
-          lastSentMessage = nowInSeconds;
-        }).catch((error) => generateLogMessage(
-          'Failed to send message',
-          10,
-          error,
-        ));
-      }
-    }
-  });
-}
-
 module.exports = {
-  automaticBan,
+  antiRaidAutoBan,
+  antiRaidAutoKick,
+  antiRaidScanner,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
-  userScanner,
 };

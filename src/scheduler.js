@@ -41,7 +41,7 @@ function schedulePost(event, sendToChannel) {
   }
 
   // If "message" is not a string, is empty, or is longer than 2000 characters.
-  if (!_.isString(message) || _.isEmpty(message) || message.length > 2000) {
+  if (!_.isString(message) || _.isEmpty(message) || _.size(message) > 2000) {
     generateLogMessage(
       [
         '"message" for',
@@ -91,7 +91,7 @@ function schedulePost(event, sendToChannel) {
 
   rule.tz = timeZone;
 
-  if (!_.isEmpty(daysOfWeek) && _.every(daysOfWeek, (dayOfWeek) => dayOfWeek >= 0 && dayOfWeek <= 6)) {
+  if (_.isArray(daysOfWeek) && !_.isEmpty(daysOfWeek) && _.every(daysOfWeek, (dayOfWeek) => dayOfWeek >= 0 && dayOfWeek <= 6)) {
     rule.dayOfWeek = daysOfWeek;
   } else {
     rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];

@@ -15,16 +15,15 @@ const { generateLogMessage } = require('./utilities');
 /**
  * Add role.
  *
- * @param {module:"discord.js".Message} message   - Message object.
- * @param {string}                      botPrefix - Command prefix.
- * @param {object}                      settings  - Command settings defined in configuration.
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function addRole(message, botPrefix, settings) {
-  const allowedRoles = _.get(settings, 'allowed-roles', []);
+async function addRole(message, botPrefix, allowedRoles) {
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
   const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[1], /[<@&>]/g, ''));
@@ -152,7 +151,7 @@ async function addRole(message, botPrefix, settings) {
           const roles = guildMember.roles.cache.array();
 
           // Each user has the @everyone role.
-          if (roles.length === 1) {
+          if (_.size(roles) === 1) {
             await guildMember.roles.add(roleTwo).then(() => logger(
               'Successfully added',
             )).catch((error) => {
@@ -208,16 +207,15 @@ async function addRole(message, botPrefix, settings) {
 /**
  * Fetch members.
  *
- * @param {module:"discord.js".Message} message   - Message object.
- * @param {string}                      botPrefix - Command prefix.
- * @param {object}                      settings  - Command settings defined in configuration.
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function fetchMembers(message, botPrefix, settings) {
-  const allowedRoles = _.get(settings, 'allowed-roles', []);
+async function fetchMembers(message, botPrefix, allowedRoles) {
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
   const member = message.channel.guild.members.cache.get(_.replace(commandArguments[2], /[<@!>]/g, ''));
@@ -344,7 +342,7 @@ async function fetchMembers(message, botPrefix, settings) {
   });
 
   // No results for "string".
-  if (commandArguments[1] === 'string' && !matchedUsers.length) {
+  if (commandArguments[1] === 'string' && !_.size(matchedUsers)) {
     await message.channel.send(createNoResultsEmbed(
       `No results were found using \`${query}\`.`,
       message.member.user.tag,
@@ -380,16 +378,15 @@ async function fetchMembers(message, botPrefix, settings) {
 /**
  * Find duplicate users.
  *
- * @param {module:"discord.js".Message} message   - Message object.
- * @param {string}                      botPrefix - Command prefix.
- * @param {object}                      settings  - Command settings defined in configuration.
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function findDuplicateUsers(message, botPrefix, settings) {
-  const allowedRoles = _.get(settings, 'allowed-roles', []);
+async function findDuplicateUsers(message, botPrefix, allowedRoles) {
   const guildMembers = message.channel.guild.members.cache.array();
 
   let users = {};
@@ -437,7 +434,7 @@ async function findDuplicateUsers(message, botPrefix, settings) {
     const avatarHash = category[0];
     const userIds = category[1];
 
-    if (userIds.length > 1) {
+    if (_.size(userIds) > 1) {
       const userIdsChunks = _.chunk(userIds, 80);
 
       // Don't show empty results message.
@@ -448,7 +445,7 @@ async function findDuplicateUsers(message, botPrefix, settings) {
         await message.channel.send(createListMembersEmbed(
           [
             'Duplicate Members for',
-            `\`${avatarHash.substr(avatarHash.length - 8)}\``,
+            `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
             (key > 0) ? `(Page ${key + 1})` : '',
           ].join(' '),
           userIdsChunk,
@@ -480,25 +477,24 @@ async function findDuplicateUsers(message, botPrefix, settings) {
  *
  * @param {module:"discord.js".Message} message      - Message object.
  * @param {string}                      botPrefix    - Command prefix.
- * @param {object}                      settings     - Command settings defined in configuration.
- * @param {object}                      allowedRoles - Allowed roles to use command.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {object}                      settings     - Command settings.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function help(message, botPrefix, settings, allowedRoles) {
-  const settingsAllowedRoles = _.get(settings, 'allowed-roles', []);
-  const allowAddRoleRoles = _.get(allowedRoles, 'configAddRole.allowed-roles', []);
-  const allowFetchMembersRoles = _.get(allowedRoles, 'configFetchMembers.allowed-roles', []);
-  const allowFindDuplicateUsersRoles = _.get(allowedRoles, 'configFindDuplicateUsers.allowed-roles', []);
-  const allowTogglePermsRoles = _.get(allowedRoles, 'configTogglePerms.allowed-roles', []);
-  const allowVoiceRoles = _.get(allowedRoles, 'configVoice.allowed-roles', []);
+async function help(message, botPrefix, allowedRoles, settings) {
+  const allowAddRoleRoles = _.get(settings, 'configCommandsAddRole');
+  const allowFetchMembersRoles = _.get(settings, 'configCommandsFetchMembers');
+  const allowFindDuplicateUsersRoles = _.get(settings, 'configCommandsFindDuplicateUsers');
+  const allowTogglePermsRoles = _.get(settings, 'configCommandsTogglePerms');
+  const allowVoiceRoles = _.get(settings, 'configCommandsVoice');
 
   const commands = [];
 
   if (
-    !_.some(settingsAllowedRoles, (settingsAllowedRole) => message.member.roles.cache.has(settingsAllowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -580,7 +576,7 @@ async function help(message, botPrefix, settings, allowedRoles) {
     });
   }
 
-  if (commands.length) {
+  if (_.size(commands)) {
     await message.channel.send(createHelpMenuEmbed(
       commands,
       message.member.user.tag,
@@ -604,19 +600,18 @@ async function help(message, botPrefix, settings, allowedRoles) {
 /**
  * Toggle permissions.
  *
- * @param {module:"discord.js".Message} message   - Message object.
- * @param {string}                      botPrefix - Command prefix.
- * @param {object}                      settings  - Command settings defined in configuration.
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {object[]}                    settings     - Command settings.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function togglePerms(message, botPrefix, settings) {
+async function togglePerms(message, botPrefix, allowedRoles, settings) {
   const commandArguments = message.toString().split(' ');
-  const perms = _.get(settings, 'perms', []);
-  const allowedRoles = _.get(settings, 'allowed-roles', []);
-  const selectedToggleGroup = _.find(perms, { id: commandArguments[1] });
+  const selectedToggleGroup = _.find(settings, { id: commandArguments[1] });
   const selectedToggleDirection = _.get(selectedToggleGroup, commandArguments[2]);
   const selectedToggleName = _.get(selectedToggleGroup, 'name', 'Unknown');
 
@@ -638,7 +633,7 @@ async function togglePerms(message, botPrefix, settings) {
 
   // If toggle group is invalid.
   if (selectedToggleGroup === undefined) {
-    const permsIds = _.map(perms, 'id');
+    const permsIds = _.map(settings, 'id');
 
     let commands = '';
 
@@ -672,8 +667,8 @@ async function togglePerms(message, botPrefix, settings) {
 
   // If toggle direction is invalid or not configured.
   if (
-    _.isEmpty(selectedToggleDirection)
-    || !_.isArray(selectedToggleDirection)
+    !_.isArray(selectedToggleDirection)
+    || _.isEmpty(selectedToggleDirection)
     || !_.every(selectedToggleDirection, _.isPlainObject)
     || (commandArguments[2] !== 'on' && commandArguments[2] !== 'off')
   ) {
@@ -810,16 +805,15 @@ async function togglePerms(message, botPrefix, settings) {
 /**
  * Voice.
  *
- * @param {module:"discord.js".Message} message   - Message object.
- * @param {string}                      botPrefix - Command prefix.
- * @param {object}                      settings  - Command settings defined in configuration.
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function voice(message, botPrefix, settings) {
-  const allowedRoles = _.get(settings, 'allowed-roles', []);
+async function voice(message, botPrefix, allowedRoles) {
   const commandArguments = message.toString().split(' ');
   const channel = message.channel.guild.channels.cache.get(_.replace(commandArguments[2], /[<#>]/g, ''));
   const isVoiceChannel = (channel && channel.type === 'voice');
