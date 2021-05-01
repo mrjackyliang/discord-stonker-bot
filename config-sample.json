@@ -47,6 +47,12 @@
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
+        ],
+        "whitelist": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
         ]
     },
     "anti-raid": {

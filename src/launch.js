@@ -11,6 +11,7 @@ const {
   help,
   togglePerms,
   voice,
+  whitelist,
 } = require('./commands');
 const { autoReply } = require('./messenger');
 const {
@@ -59,6 +60,7 @@ const configCommandsFindDuplicateUsers = _.get(config, 'commands.find-duplicate-
 const configCommandsHelp = _.get(config, 'commands.help');
 const configCommandsTogglePerms = _.get(config, 'commands.toggle-perms');
 const configCommandsVoice = _.get(config, 'commands.voice');
+const configCommandsWhitelist = _.get(config, 'commands.whitelist');
 
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidAutoKick = _.get(config, 'anti-raid.auto-kick');
@@ -71,6 +73,18 @@ const configRemoveRoles = _.get(config, 'remove-roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configTogglePerms = _.get(config, 'toggle-perms');
+
+/**
+ * Bot session storage.
+ *
+ * @since 1.0.0
+ */
+const sessionStorage = {
+  antiRaidAutoKick: {
+    dmTracker: {},
+    whitelist: [],
+  },
+};
 
 /**
  * Discord client.
@@ -277,6 +291,7 @@ client.on('ready', async () => {
           configCommandsFindDuplicateUsers,
           configCommandsTogglePerms,
           configCommandsVoice,
+          configCommandsWhitelist,
         }).catch((error) => generateLogMessage(
           'Failed to execute "help" function',
           10,
@@ -316,6 +331,19 @@ client.on('ready', async () => {
       if (message.content.startsWith(`${configSettingsBotPrefix}voice`)) {
         await voice(message, configSettingsBotPrefix, configCommandsVoice).catch((error) => generateLogMessage(
           'Failed to execute "voice" function',
+          10,
+          error,
+        ));
+      }
+
+      /**
+       * Whitelist.
+       *
+       * @since 1.0.0
+       */
+      if (message.content.startsWith(`${configSettingsBotPrefix}whitelist`)) {
+        await whitelist(message, configSettingsBotPrefix, configCommandsWhitelist, sessionStorage.antiRaidAutoKick).catch((error) => generateLogMessage(
+          'Failed to execute "whitelist" function',
           10,
           error,
         ));
@@ -454,7 +482,7 @@ client.on('ready', async () => {
      *
      * @since 1.0.0
      */
-    await antiRaidAutoKick(member, configAntiRaidAutoKick).catch((error) => generateLogMessage(
+    await antiRaidAutoKick(member, configAntiRaidAutoKick, sessionStorage.antiRaidAutoKick).catch((error) => generateLogMessage(
       'Failed to execute "antiRaidAutoKick" function',
       10,
       error,

@@ -9,23 +9,21 @@ const {
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
 
-const antiRaidDMCount = {};
-
 /**
  * Anti-raid auto-ban.
  *
- * @param {module:"discord.js".GuildMember} member      - Member information.
- * @param {object}                          bannedUsers - Banned users from configuration.
+ * @param {module:"discord.js".GuildMember} member  - Member information.
+ * @param {object}                          banList - Banned users from configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function antiRaidAutoBan(member, bannedUsers) {
+async function antiRaidAutoBan(member, banList) {
   const userAvatar = member.user.avatar;
   const userUsername = member.user.username;
-  const avatars = _.get(bannedUsers, 'avatar');
-  const usernames = _.get(bannedUsers, 'username');
+  const avatars = _.get(banList, 'avatar');
+  const usernames = _.get(banList, 'username');
 
   // If user has a banned avatar hash (and configuration is set).
   if (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))) {
@@ -80,36 +78,38 @@ async function antiRaidAutoBan(member, bannedUsers) {
 /**
  * Anti-raid auto-kick.
  *
- * @param {module:"discord.js".GuildMember} member           - Member information.
- * @param {object}                          antiRaidSettings - Anti-raid settings from configuration.
+ * @param {module:"discord.js".GuildMember} member   - Member information.
+ * @param {object}                          settings - Anti-raid settings from configuration.
+ * @param {object}                          storage  - Anti-raid session storage.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function antiRaidAutoKick(member, antiRaidSettings) {
-  const userAvatar = member.user.avatar;
+async function antiRaidAutoKick(member, settings, storage) {
   const userCreatedTimestamp = member.user.createdTimestamp;
   const userAge = Date.now() - userCreatedTimestamp;
-  const minimumAge = _.get(antiRaidSettings, 'minimum-age');
-  const message = _.get(antiRaidSettings, 'message');
+  const minimumAge = _.get(settings, 'minimum-age');
+  const message = _.get(settings, 'message');
 
-  // Member does not meet minimum age requirements and has no avatar.
-  if (_.isFinite(minimumAge) && !(userAge >= minimumAge) && userAvatar === null) {
-    if (antiRaidDMCount[member.id] === undefined) {
-      antiRaidDMCount[member.id] = 0;
+  // Member does not meet minimum age requirements and is not excluded from auto-kick.
+  if (_.isFinite(minimumAge) && !(userAge >= minimumAge) && !_.includes(storage.whitelist, member.id)) {
+    // Set a tracker if anti-raid DM never sent to user.
+    if (_.get(storage, `dmTracker[${member.id}]`) === undefined) {
+      _.set(storage, `dmTracker[${member.id}]`, false);
     }
 
-    // If bot has never sent an anti-raid message to user (and message is set).
-    if (_.isString(message) && !_.isEmpty(message) && antiRaidDMCount[member.id] === 0) {
+    // If bot has never sent an anti-raid DM to user (and message is set).
+    if (_.isString(message) && !_.isEmpty(message) && _.get(storage, `dmTracker[${member.id}]`) === false) {
       await member.createDM().then(async (dmChannel) => {
         await dmChannel.send(message).then(() => {
-          antiRaidDMCount[member.id] += 1;
+          _.set(storage, `dmTracker[${member.id}]`, true);
 
           generateLogMessage(
             [
               'Sent direct message to',
               chalk.green(member.toString()),
+              'because member did not meet minimum age requirements',
             ].join(' '),
             40,
           );
@@ -126,11 +126,11 @@ async function antiRaidAutoKick(member, antiRaidSettings) {
     }
 
     // Kick member after sending anti-raid message to user.
-    await member.kick('Member does not meet minimum age requirements and has no avatar').then(() => {
+    await member.kick('Member does not meet minimum age requirements').then(() => {
       generateLogMessage(
         [
           chalk.red(member.toString()),
-          'was automatically kicked because member does not meet minimum age requirements and has no avatar',
+          'was automatically kicked because member does not meet minimum age requirements',
         ].join(' '),
         40,
       );

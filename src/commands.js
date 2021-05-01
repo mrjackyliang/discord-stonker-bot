@@ -9,6 +9,7 @@ const {
   createNoResultsEmbed,
   createTogglePermsEmbed,
   createVoiceEmbed,
+  createWhitelistEmbed,
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
 
@@ -24,8 +25,7 @@ const { generateLogMessage } = require('./utilities');
  * @since 1.0.0
  */
 async function addRole(message, botPrefix, allowedRoles) {
-  const messageText = message.toString();
-  const commandArguments = messageText.split(' ');
+  const commandArguments = message.toString().split(' ');
   const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[1], /[<@&>]/g, ''));
   const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
   const guildMembers = message.channel.guild.members.cache.array();
@@ -321,21 +321,16 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   }
 
   _.forEach(guildMembers, (guildMember) => {
-    const {
-      nickname,
-      user,
-    } = guildMember;
-    const {
-      avatar,
-      username,
-    } = user;
+    const memberNickname = guildMember.nickname;
+    const userAvatar = guildMember.user.avatar;
+    const userUsername = guildMember.user.username;
     const hasRole = guildMember.roles.cache.has(_.replace(commandArguments[2], /[<@&>]/g, ''));
 
     if (
-      (commandArguments[1] === 'avatar' && avatar === member.user.avatar)
+      (commandArguments[1] === 'avatar' && userAvatar === member.user.avatar)
       || (commandArguments[1] === 'role' && hasRole)
-      || (commandArguments[1] === 'string' && (_.includes(nickname, query) || _.includes(username, query)))
-      || (commandArguments[1] === 'username' && username === member.user.username)
+      || (commandArguments[1] === 'string' && (_.includes(memberNickname, query) || _.includes(userUsername, query) || (userAvatar !== null && userAvatar === query)))
+      || (commandArguments[1] === 'username' && userUsername === member.user.username)
     ) {
       matchedUsers.push(guildMember.toString());
     }
@@ -490,6 +485,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   const allowFindDuplicateUsersRoles = _.get(settings, 'configCommandsFindDuplicateUsers');
   const allowTogglePermsRoles = _.get(settings, 'configCommandsTogglePerms');
   const allowVoiceRoles = _.get(settings, 'configCommandsVoice');
+  const allowWhitelistRoles = _.get(settings, 'configCommandsWhitelist');
 
   const commands = [];
 
@@ -534,7 +530,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
         `${botPrefix}fetch-members string [text]`,
         `${botPrefix}fetch-members username [@user]`,
       ],
-      description: 'Search for members matching an avatar, character, role, or username',
+      description: 'Search for members matching an avatar, role, string, or username',
     });
   }
 
@@ -573,6 +569,18 @@ async function help(message, botPrefix, allowedRoles, settings) {
         `${botPrefix}voice unmute [#channel]`,
       ],
       description: 'Disconnect or unmute everyone in a voice channel',
+    });
+  }
+
+  if (
+    _.some(allowWhitelistRoles, (allowWhitelistRole) => message.member.roles.cache.has(allowWhitelistRole.id))
+    || message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    commands.push({
+      queries: [
+        `${botPrefix}whitelist [@user]`,
+      ],
+      description: 'Temporarily whitelist a user kicked by anti-raid',
     });
   }
 
@@ -992,6 +1000,72 @@ async function voice(message, botPrefix, allowedRoles) {
   ));
 }
 
+/**
+ * Whitelist.
+ *
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {object}                      storage      - Anti-raid session storage.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function whitelist(message, botPrefix, allowedRoles, storage) {
+  const commandArguments = message.toString().split(' ');
+  const potentialUserId = _.replace(commandArguments[1], /[<@!>]/g, '');
+
+  if (
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    && !message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    await message.channel.send(createCommandErrorEmbed(
+      `You do not have enough permissions to use the \`${botPrefix}whitelist\` command.`,
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  // If member is invalid.
+  if (potentialUserId === '' || !new RegExp(/^\d+$/, 'g').test(potentialUserId)) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The member (${commandArguments[1]}) is invalid. Try using the command by tagging a member or pasting in the user ID.\r\n`,
+        'Examples:',
+        '```',
+        `${botPrefix}whitelist [@user]`,
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  // Set user ID into whitelist.
+  storage.whitelist.push(potentialUserId);
+
+  // Send success message.
+  await message.channel.send(createWhitelistEmbed(
+    potentialUserId,
+    message.member.user.tag,
+  )).catch((error) => generateLogMessage(
+    'Failed to send whitelist embed',
+    10,
+    error,
+  ));
+}
+
 module.exports = {
   addRole,
   fetchMembers,
@@ -999,4 +1073,5 @@ module.exports = {
   help,
   togglePerms,
   voice,
+  whitelist,
 };

@@ -119,6 +119,9 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 | `commands.voice`                               | `object[]` |                                            |                     |
 | `commands.voice[x].description`                | `string`   | Description of the allowed role (optional) |                     |
 | `commands.voice[x].id`                         | `string`   | Allowed role                               | Discord role ID     |
+| `commands.whitelist`                           | `object[]` |                                            |                     |
+| `commands.whitelist[x].description`            | `string`   | Description of the allowed role (optional) |                     |
+| `commands.whitelist[x].id`                     | `string`   | Allowed role                               | Discord role ID     |
 
 ```json
 {
@@ -154,6 +157,12 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
             }
         ],
         "voice": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "whitelist": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"

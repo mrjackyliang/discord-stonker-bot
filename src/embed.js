@@ -551,6 +551,27 @@ function createVoiceEmbed(route, message, status, userTag) {
   );
 }
 
+/**
+ * Create whitelist embed.
+ *
+ * @param {string} potentialUserId - Potential user id.
+ * @param {string} userTag         - User tag of initiator.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createWhitelistEmbed(potentialUserId, userTag) {
+  return addEmbed(
+    'Whitelisted',
+    `<@!${potentialUserId}> has been temporarily added into the anti-raid whitelist.`,
+    null,
+    undefined,
+    `Initiated by @${userTag}`,
+    '#5fdc46',
+  );
+}
+
 module.exports = {
   createAddRoleEmbed,
   createChangeNicknameEmbed,
@@ -565,4 +586,5 @@ module.exports = {
   createTogglePermsEmbed,
   createUpdateMessageEmbed,
   createVoiceEmbed,
+  createWhitelistEmbed,
 };
