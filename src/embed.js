@@ -66,22 +66,23 @@ function addMessageFields(message, fieldTitle = 'Message') {
  * Add attachment fields.
  *
  * @param {Collection<Snowflake, MessageAttachment>} attachments - The attachments.
+ * @param {string}                                   fieldTitle  - Field title.
  *
  * @returns {object[]}
  *
  * @since 1.0.0
  */
-function addAttachmentFields(attachments) {
+function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
   const theAttachments = [];
   const fields = [];
 
   _.forEach(attachments.array(), (attachment) => {
-    theAttachments.push(`[Original link](${attachment.url}) (or [alternative link](${attachment.proxyURL}))`);
+    theAttachments.push(attachment.url);
   });
 
   _.forEach(theAttachments, (theAttachment, key) => {
     fields.push({
-      name: `**Attachment ${key + 1}**`,
+      name: `**${fieldTitle} ${key + 1}**`,
       value: theAttachment,
     });
   });
@@ -296,9 +297,7 @@ function createHelpMenuEmbed(commands, userTag) {
   const fields = [];
 
   _.forEach(commands, (command) => {
-    const allQueries = _.map(command.queries, (query) => `\`${query}\`\r\n`);
-
-    fields.push(`${allQueries.join('')}${command.description}`);
+    fields.push(`\`${command.queries.join('`\r\n`')}\`\r\n${command.description}`);
   });
 
   return addEmbed(
@@ -552,6 +551,36 @@ function createVoiceEmbed(route, message, status, userTag) {
 }
 
 /**
+ * Create upload attachment embed.
+ *
+ * @param {string}                                   userMention    - User mention.
+ * @param {string}                                   channelMention - Channel mention.
+ * @param {string}                                   id             - Message id.
+ * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
+ * @param {string}                                   url            - Message url.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createUploadAttachmentEmbed(userMention, channelMention, id, attachments, url) {
+  const fields = [];
+
+  if (attachments) {
+    fields.push(...addAttachmentFields(attachments, 'Original attachment'));
+  }
+
+  return addEmbed(
+    'Attachment Uploaded',
+    `:dividers: [Message](${url}) sent by ${userMention} includes attachments in ${channelMention}`,
+    null,
+    fields,
+    `Message ID: ${id}`,
+    '#4798e0',
+  );
+}
+
+/**
  * Create whitelist embed.
  *
  * @param {string} potentialUserId - Potential user id.
@@ -586,5 +615,6 @@ module.exports = {
   createTogglePermsEmbed,
   createUpdateMessageEmbed,
   createVoiceEmbed,
+  createUploadAttachmentEmbed,
   createWhitelistEmbed,
 };

@@ -6,6 +6,7 @@ const {
   createChangeUsernameEmbed,
   createDeleteMessageEmbed,
   createUpdateMessageEmbed,
+  createUploadAttachmentEmbed,
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
 
@@ -165,9 +166,53 @@ async function userUpdateMessage(message, sendToChannel) {
   }
 }
 
+/**
+ * When user uploads attachments.
+ *
+ * @param {module:"discord.js".Message} message       - Message object.
+ * @param {TextBasedChannel}            sendToChannel - Send message to channel.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function userUploadAttachment(message, sendToChannel) {
+  const links = [];
+
+  // Throw attachment urls into array first.
+  _.forEach(message.attachments.array(), (attachment) => {
+    links.push(attachment.url);
+  });
+
+  if (_.size(links)) {
+    generateLogMessage(
+      [
+        'Message sent by',
+        chalk.yellow(message.author.toString()),
+        'in',
+        chalk.yellow(message.channel.toString()),
+        'includes attachments',
+      ].join(' '),
+      40,
+    );
+
+    await sendToChannel.send({
+      files: links,
+      embed: createUploadAttachmentEmbed(
+        message.author.toString(),
+        message.channel.toString(),
+        message.id,
+        message.attachments,
+        message.url,
+      ),
+    });
+  }
+}
+
 module.exports = {
   userChangeNickname,
   userChangeUsername,
   userDeleteMessage,
   userUpdateMessage,
+  userUploadAttachment,
 };

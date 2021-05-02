@@ -1,6 +1,7 @@
 {
     "settings": {
         "client-token": "",
+        "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
         "bot-prefix": "!"
@@ -9,7 +10,8 @@
         "change-nickname": true,
         "change-username": true,
         "delete-message": true,
-        "update-message": true
+        "update-message": true,
+        "upload-attachment": true
     },
     "commands": {
         "add-role": [
@@ -68,16 +70,14 @@
             "minimum-age": 0,
             "message": "Failed to join server. Please contact server owner for assistance."
         },
-        "scanners": [
-            {
-                "guild-id": "000000000000000000",
-                "channel-id": "000000000000000000",
-                "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
-                "whitelisted-avatars": [
-                    "00000000000000000000000000000000"
-                ]
-            }
-        ]
+        "scanner": {
+            "channel-id": "000000000000000000",
+            "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
+            "message-interval": 0,
+            "whitelisted-avatars": [
+                "00000000000000000000000000000000"
+            ]
+        }
     },
     "schedule-posts": [
         {

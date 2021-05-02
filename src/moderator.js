@@ -155,11 +155,12 @@ async function antiRaidAutoKick(member, settings, storage) {
  */
 async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
   const message = _.get(scannerSettings, 'message');
+  const messageInterval = _.get(scannerSettings, 'message-interval');
   const whitelistedAvatars = _.get(scannerSettings, 'whitelisted-avatars');
 
   let lastSentMessage = 0;
 
-  if (!guild || !message || !sendToChannel) {
+  if (!guild || !_.isString(message) || _.isEmpty(message) || !_.isFinite(messageInterval) || !sendToChannel) {
     return;
   }
 
@@ -171,7 +172,7 @@ async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
     let avatars = {};
 
     generateLogMessage(
-      `Initiating user scanner for the ${guild.name} guild`,
+      `Scanning for duplicate members in the ${guild.name} guild`,
       40,
     );
 
@@ -206,12 +207,12 @@ async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
 
     if (_.size(finalList)) {
       generateLogMessage(
-        `Duplicate users have been detected for the ${guild.name} guild`,
+        `Duplicate members have been detected in the ${guild.name} guild`,
         40,
       );
 
-      // If a message was sent less than 10 minutes ago, it will skip.
-      if ((nowInSeconds - lastSentMessage) > 600) {
+      // Skip message alert if sent recently.
+      if ((nowInSeconds - lastSentMessage) > messageInterval) {
         sendToChannel.send(message).then(() => {
           lastSentMessage = nowInSeconds;
         }).catch((error) => generateLogMessage(

@@ -60,7 +60,6 @@ async function getGoogleCloudStorageObjects(message) {
   // Throw attachment urls into array first.
   _.forEach(attachments.array(), (attachment) => {
     links.push(attachment.url);
-    links.push(attachment.proxyURL);
   });
 
   if (_.size(links)) {
@@ -89,15 +88,16 @@ async function getGoogleCloudStorageObjects(message) {
 /**
  * Get text-based channel.
  *
- * @param {module:"discord.js".Client} client    - Discord client.
- * @param {string}                     channelId - The channel id.
+ * @param {module:"discord.js".Guild} guild     - Discord guild.
+ * @param {string}                    channelId - The channel id.
  *
- * @returns {undefined|module:"discord.js".Channel}
+ * @returns {undefined|module:"discord.js".GuildChannel}
  *
  * @since 1.0.0
  */
-function getTextBasedChannel(client, channelId) {
-  const textChannel = client.channels.cache.get(channelId);
+function getTextBasedChannel(guild, channelId) {
+  const guildChannels = _.get(guild, 'channels.cache');
+  const textChannel = (guildChannels) ? guildChannels.get(channelId) : undefined;
 
   // If channel is a text-based channel.
   if (textChannel !== undefined && textChannel.isText()) {

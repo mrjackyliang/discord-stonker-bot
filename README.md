@@ -34,7 +34,7 @@ Once [NodeJS](https://nodejs.org) is installed, follow the directions below to c
 7. Click the __General Information__ menu item
 8. Under __Client ID__, click __Copy__
 9. Replace the `CLIENT_ID_HERE` below and visit link to add bot into server:
-    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=290679878`
+    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=290712646`
 
 ## Bot Configuration
 In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. All fields are required unless marked as _optional_.
@@ -58,6 +58,7 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 |---------------------------|----------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `settings`                | `object` |                                                        |                                                                                                                                                                                   |
 | `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#create-and-add-discord-application) |
+| `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                                  |
 | `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID                                                                                                                                                                |
 | `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                                 |
 | `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed                                                                                                                                                      |
@@ -66,6 +67,7 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 {
     "settings": {
         "client-token": "",
+        "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
         "bot-prefix": "!"
@@ -76,13 +78,14 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 ### 2. Notifications
 Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings).
 
-| __Key__                         | __Type__  | __Description__                             | __Accepted Values__ |
-|---------------------------------|-----------|---------------------------------------------|---------------------|
-| `notifications`                 | `object`  |                                             |                     |
-| `notifications.change-nickname` | `boolean` | Notify when a member changes their nickname | `true` or `false`   |
-| `notifications.change-username` | `boolean` | Notify when a member changes their username | `true` or `false`   |
-| `notifications.delete-message`  | `boolean` | Notify when a message is deleted            | `true` or `false`   |
-| `notifications.update-message`  | `boolean` | Notify when a message is edited             | `true` or `false`   |
+| __Key__                           | __Type__  | __Description__                             | __Accepted Values__ |
+|-----------------------------------|-----------|---------------------------------------------|---------------------|
+| `notifications`                   | `object`  |                                             |                     |
+| `notifications.change-nickname`   | `boolean` | Notify when a member changes their nickname | `true` or `false`   |
+| `notifications.change-username`   | `boolean` | Notify when a member changes their username | `true` or `false`   |
+| `notifications.delete-message`    | `boolean` | Notify when a message is deleted            | `true` or `false`   |
+| `notifications.update-message`    | `boolean` | Notify when a message is edited             | `true` or `false`   |
+| `notifications.upload-attachment` | `boolean` | Notify when attachments are uploaded        | `true` or `false`   |
 
 ```json
 {
@@ -90,7 +93,8 @@ Get notifications from user actions surrounding your server. When a nickname cha
         "change-nickname": true,
         "change-username": true,
         "delete-message": true,
-        "update-message": true
+        "update-message": true,
+        "upload-attachment": true
     }
 }
 ```
@@ -188,11 +192,11 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
 | `anti-raid.auto-kick`                       | `object`   |                                                    |                                                                                              |
 | `anti-raid.auto-kick.minimum-age`           | `number`   | Minimum age a user must have before joining server | Calculate the [time in milliseconds](https://www.calculateme.com/time/days/to-milliseconds/) |
 | `anti-raid.auto-kick.message`               | `string`   | Direct message content                             | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.scanners`                        | `object[]` |                                                    |                                                                                              |
-| `anti-raid.scanners[x].guild-id`            | `string`   | Guild to monitor members in                        | Discord guild ID                                                                             |
-| `anti-raid.scanners[x].channel-id`          | `string`   | Channel to post in when suspicious users are found | Discord channel ID                                                                           |
-| `anti-raid.scanners[x].message`             | `string`   | Message content                                    | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.scanners[x].whitelisted-avatars` | `string[]` | List of whitelisted avatar hashes                  | File name of avatar (without file extension)                                                 |
+| `anti-raid.scanner`                         | `object`   |                                                    |                                                                                              |
+| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found  | Discord channel ID                                                                           |
+| `anti-raid.scanner.message`                 | `string`   | Message content                                    | Cannot be empty and cannot exceed 2000 characters                                            |
+| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found      | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)        |
+| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                  | File name of avatar (without file extension)                                                 |
 
 ```json
 {
@@ -209,16 +213,14 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
             "minimum-age": 0,
             "message": "Failed to join server. Please contact server owner for assistance."
         },
-        "scanners": [
-            {
-                "guild-id": "000000000000000000",
-                "channel-id": "000000000000000000",
-                "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
-                "whitelisted-avatars": [
-                    "00000000000000000000000000000000"
-                ]
-            }
-        ]
+        "scanner": {
+            "channel-id": "000000000000000000",
+            "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
+            "message-interval": 0,
+            "whitelisted-avatars": [
+                "00000000000000000000000000000000"
+            ]
+        }
     }
 }
 ```
