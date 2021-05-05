@@ -21,35 +21,38 @@ async function autoReply(message, replies) {
   }
 
   _.map(replies, async (reply) => {
-    const name = _.get(reply, 'name', 'Unknown');
-    const channelId = _.get(reply, 'channel-id');
-    const tagAuthor = _.get(reply, 'tag-author', false);
-    const regexPattern = _.get(reply, 'regex.pattern', '(?:)');
-    const regexFlags = _.get(reply, 'regex.flags', 'g');
-    const messages = _.get(reply, 'messages', []);
+    const replyName = _.get(reply, 'name', 'Unknown');
+    const replyChannelId = _.get(reply, 'channel-id');
+    const replyTagAuthor = _.get(reply, 'tag-author');
+    const replyRegexPattern = _.get(reply, 'regex.pattern');
+    const replyRegexFlags = _.get(reply, 'regex.flags');
+    const replyMessages = _.get(reply, 'messages');
 
-    // If auto-reply is limited to a channel.
-    if (channelId && channelId !== message.channel.id) {
+    // If auto-reply is limited to a channel or messages is not defined.
+    if (
+      (replyChannelId && replyChannelId !== message.channel.id)
+      || (!_.isArray(replyMessages) || _.isEmpty(replyMessages) || !_.every(replyMessages, (replyMessage) => _.isString(replyMessage) && !_.isEmpty(replyMessage)))
+    ) {
       return;
     }
 
     try {
-      if (new RegExp(regexPattern, regexFlags).test(messageContent)) {
-        const userTag = (tagAuthor === true) ? `${message.author.toString()}, ` : '';
-        const content = `${userTag}${_.sample(messages)}`;
+      if (new RegExp(replyRegexPattern, replyRegexFlags).test(messageContent)) {
+        const userTag = (replyTagAuthor === true) ? `${message.author.toString()}, ` : '';
+        const content = `${userTag}${_.sample(replyMessages)}`;
 
         await message.channel.send(content).then(() => {
           generateLogMessage(
             [
               'Sent auto-reply message for',
-              chalk.green(name),
+              chalk.green(replyName),
             ].join(' '),
             40,
           );
         }).catch((error) => generateLogMessage(
           [
             'Failed to send auto-reply message for',
-            chalk.red(name),
+            chalk.red(replyName),
           ].join(' '),
           10,
           error,
@@ -59,7 +62,7 @@ async function autoReply(message, replies) {
       generateLogMessage(
         [
           '"regex.pattern" or "regex.flags" for',
-          chalk.red(name),
+          chalk.red(replyName),
           'is invalid',
         ].join(' '),
         10,

@@ -29,9 +29,12 @@ async function addRole(message, botPrefix, allowedRoles) {
   const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[1], /[<@&>]/g, ''));
   const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
   const guildMembers = message.channel.guild.members.cache.array();
+  const messageEveryone = (commandArguments[1] === 'everyone') ? 'members...' : '';
+  const messageNoRole = (commandArguments[1] === 'no-role') ? 'members with no roles...' : '';
+  const messageRole = (!_.isUndefined(roleOne)) ? `members with the ${roleOne.toString()} role...` : '';
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -49,7 +52,7 @@ async function addRole(message, botPrefix, allowedRoles) {
   if (
     commandArguments[1] !== 'everyone'
     && commandArguments[1] !== 'no-role'
-    && !roleOne
+    && _.isUndefined(roleOne)
   ) {
     await message.channel.send(createCommandErrorEmbed(
       [
@@ -71,7 +74,7 @@ async function addRole(message, botPrefix, allowedRoles) {
     return;
   }
 
-  if (!roleTwo) {
+  if (_.isUndefined(roleTwo)) {
     await message.channel.send(createCommandErrorEmbed(
       [
         `The role (${commandArguments[2]}) is invalid or does not exist. Try using the command by tagging a role to add.\r\n`,
@@ -89,11 +92,6 @@ async function addRole(message, botPrefix, allowedRoles) {
 
     return;
   }
-
-  // Partial sentences for actions below.
-  const messageEveryone = (commandArguments[1] === 'everyone') ? 'members...' : '';
-  const messageNoRole = (commandArguments[1] === 'no-role') ? 'members with no roles...' : '';
-  const messageRole = (roleOne) ? `members with the ${roleOne.toString()} role...` : '';
 
   // Begin to perform add role actions.
   await message.channel.send(createAddRoleEmbed(
@@ -137,7 +135,7 @@ async function addRole(message, botPrefix, allowedRoles) {
       let success = true;
 
       // Make sure member doesn't have role first.
-      if (!guildMember.roles.cache.has(roleTwo.id)) {
+      if (guildMember.roles.cache.has(roleTwo.id) === false) {
         if (commandArguments[1] === 'everyone') {
           await guildMember.roles.add(roleTwo).then(() => logger(
             'Successfully added',
@@ -150,7 +148,7 @@ async function addRole(message, botPrefix, allowedRoles) {
         } else if (commandArguments[1] === 'no-role') {
           const roles = guildMember.roles.cache.array();
 
-          // Each user has the @everyone role.
+          // Users with no roles always have the @everyone role.
           if (_.size(roles) === 1) {
             await guildMember.roles.add(roleTwo).then(() => logger(
               'Successfully added',
@@ -161,10 +159,11 @@ async function addRole(message, botPrefix, allowedRoles) {
               );
             });
           }
-        } else if (roleOne) {
-          const hasRole = guildMember.roles.cache.has(roleOne.id);
+        } else if (!_.isUndefined(roleOne)) {
+          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
 
-          if (hasRole) {
+          // If user has role #1, add role #2.
+          if (hasRoleOne === true) {
             await guildMember.roles.add(roleTwo).then(() => logger(
               'Successfully added',
             )).catch((error) => {
@@ -186,10 +185,10 @@ async function addRole(message, botPrefix, allowedRoles) {
       await theMessage.edit(createAddRoleEmbed(
         [
           roleTwo.toString(),
-          (success) ? 'was successfully added to all' : 'could not be added to all',
+          (success === true) ? 'was successfully added to all' : 'could not be added to all',
           messageEveryone || messageNoRole || messageRole,
         ].join(' '),
-        (success) ? 'complete' : 'fail',
+        (success === true) ? 'complete' : 'fail',
         message.member.user.tag,
       )).catch((error) => generateLogMessage(
         'Failed to edit add role embed',
@@ -223,23 +222,21 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   const guildMembers = message.channel.guild.members.cache.array();
   const matchedUsers = [];
 
-  let query;
+  let query = commandArguments[2];
 
   // Transform "string" command route input with quotes into query.
-  if (commandArguments[1] === 'string' && new RegExp(/"(.+)"/g).test(messageText)) {
+  if (commandArguments[1] === 'string' && new RegExp(/"(.+)"/g).test(messageText) === true) {
     const stringArg = messageText.substring(messageText.lastIndexOf(' "') + 1);
 
     if (stringArg !== '"') {
-      query = _.replace(stringArg, /"/g, '');
+      query = _.replace(stringArg, /"$/g, '');
     } else {
       query = ' ';
     }
-  } else {
-    query = _.get(commandArguments, '[2]');
   }
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -279,10 +276,10 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // If member or role is invalid.
   if (
-    (commandArguments[1] === 'avatar' && !member)
-    || (commandArguments[1] === 'role' && !role)
+    (commandArguments[1] === 'avatar' && _.isUndefined(member))
+    || (commandArguments[1] === 'role' && _.isUndefined(role))
     || (commandArguments[1] === 'string' && _.isUndefined(query))
-    || (commandArguments[1] === 'username' && !member)
+    || (commandArguments[1] === 'username' && _.isUndefined(member))
   ) {
     const userMode = (_.includes(['avatar', 'username'], commandArguments[1])) ? [`The member (${query}) is invalid`, 'tagging a member', '@user'] : [];
     const roleMode = (_.includes(['role'], commandArguments[1])) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
@@ -307,7 +304,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   }
 
   // If user does not have an avatar.
-  if (commandArguments[1] === 'avatar' && !_.get(member, 'user.avatar')) {
+  if (commandArguments[1] === 'avatar' && member.user.avatar === null) {
     await message.channel.send(createCommandErrorEmbed(
       `Cannot compare members. ${member.toString()} does not have an avatar to compare from.`,
       message.member.user.tag,
@@ -328,7 +325,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
     if (
       (commandArguments[1] === 'avatar' && userAvatar === member.user.avatar)
-      || (commandArguments[1] === 'role' && hasRole)
+      || (commandArguments[1] === 'role' && hasRole === true)
       || (commandArguments[1] === 'string' && (_.includes(memberNickname, query) || _.includes(userUsername, query) || (userAvatar !== null && userAvatar === query)))
       || (commandArguments[1] === 'username' && userUsername === member.user.username)
     ) {
@@ -337,7 +334,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   });
 
   // No results for "string".
-  if (commandArguments[1] === 'string' && !_.size(matchedUsers)) {
+  if (commandArguments[1] === 'string' && _.size(matchedUsers) < 1) {
     await message.channel.send(createNoResultsEmbed(
       `No results were found using \`${query}\`.`,
       message.member.user.tag,
@@ -388,7 +385,7 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
   let empty = true;
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -455,7 +452,7 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
     }
   });
 
-  if (empty) {
+  if (empty === true) {
     await message.channel.send(createNoResultsEmbed(
       `There are no duplicate users found in the **${message.channel.guild.toString()}** guild.`,
       message.member.user.tag,
@@ -490,7 +487,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   const commands = [];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -506,7 +503,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowAddRoleRoles, (allowAddRoleRole) => message.member.roles.cache.has(allowAddRoleRole.id))
+    _.some(allowAddRoleRoles, (allowAddRoleRole) => message.member.roles.cache.has(allowAddRoleRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
@@ -520,7 +517,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => message.member.roles.cache.has(allowFetchMembersRole.id))
+    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => message.member.roles.cache.has(allowFetchMembersRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
@@ -535,7 +532,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowFindDuplicateUsersRoles, (allowFindDuplicateUsersRole) => message.member.roles.cache.has(allowFindDuplicateUsersRole.id))
+    _.some(allowFindDuplicateUsersRoles, (allowFindDuplicateUsersRole) => message.member.roles.cache.has(allowFindDuplicateUsersRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
@@ -547,7 +544,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => message.member.roles.cache.has(allowTogglePermsRole.id))
+    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => message.member.roles.cache.has(allowTogglePermsRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
@@ -560,7 +557,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowVoiceRoles, (allowVoiceRole) => message.member.roles.cache.has(allowVoiceRole.id))
+    _.some(allowVoiceRoles, (allowVoiceRole) => message.member.roles.cache.has(allowVoiceRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
@@ -573,18 +570,18 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (
-    _.some(allowWhitelistRoles, (allowWhitelistRole) => message.member.roles.cache.has(allowWhitelistRole.id))
+    _.some(allowWhitelistRoles, (allowWhitelistRole) => message.member.roles.cache.has(allowWhitelistRole.id) === true)
     || message.member.hasPermission('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
         `${botPrefix}whitelist [@user]`,
       ],
-      description: 'Temporarily whitelist a user kicked by anti-raid',
+      description: 'Temporarily whitelist a user kicked by anti-raid measures',
     });
   }
 
-  if (_.size(commands)) {
+  if (_.size(commands) > 0) {
     await message.channel.send(createHelpMenuEmbed(
       commands,
       message.member.user.tag,
@@ -624,7 +621,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
   const selectedToggleName = _.get(selectedToggleGroup, 'name', 'Unknown');
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -640,12 +637,12 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
   }
 
   // If toggle group is invalid.
-  if (selectedToggleGroup === undefined) {
+  if (_.isUndefined(selectedToggleGroup)) {
     const permsIds = _.map(settings, 'id');
 
     let commands = '';
 
-    // Shows the first 10 commands.
+    // Shows the first 10 toggle groups.
     _.forEach(permsIds, (permsId, key) => {
       if (key < 10) {
         commands += [
@@ -706,10 +703,10 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
    */
   const channelToggles = await _.map(selectedToggleDirection, async (channelToggle) => {
     const channelToggleId = _.get(channelToggle, 'channel-id');
-    const channelTogglePerms = _.get(channelToggle, 'channel-perms', []);
+    const channelTogglePerms = _.get(channelToggle, 'channel-perms');
     const channelToggleChannel = message.channel.guild.channels.cache.get(channelToggleId);
 
-    if (!channelToggleChannel) {
+    if (_.isUndefined(channelToggleChannel)) {
       generateLogMessage(
         [
           'Failed to toggle preset permissions for',
@@ -773,7 +770,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
     const answers = _.flattenDeep(responses);
     const success = _.every(answers, (answer) => answer === true);
 
-    if (success) {
+    if (success === true) {
       generateLogMessage(
         [
           'Successfully toggled preset permissions for',
@@ -827,7 +824,7 @@ async function voice(message, botPrefix, allowedRoles) {
   const isVoiceChannel = (channel && channel.type === 'voice');
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -864,7 +861,7 @@ async function voice(message, botPrefix, allowedRoles) {
   }
 
   // If voice channel is invalid or does not exist.
-  if (!channel || !isVoiceChannel) {
+  if (_.isUndefined(channel) || _.isUndefined(isVoiceChannel)) {
     await message.channel.send(createCommandErrorEmbed(
       [
         `The voice channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
@@ -979,13 +976,13 @@ async function voice(message, botPrefix, allowedRoles) {
       await theMessage.edit(createVoiceEmbed(
         commandArguments[1],
         [
-          (success) ? 'All members have been' : 'One or more members could not be',
+          (success === true) ? 'All members have been' : 'One or more members could not be',
           disconnect || unmute,
           'from the',
           channel.toString(),
           'voice channel.',
         ].join(' '),
-        (success) ? 'complete' : 'fail',
+        (success === true) ? 'complete' : 'fail',
         message.member.user.tag,
       )).catch((error) => generateLogMessage(
         'Failed to edit voice embed',
@@ -1017,7 +1014,7 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
   const potentialUserId = _.replace(commandArguments[1], /[<@!>]/g, '');
 
   if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
     && !message.member.hasPermission('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
@@ -1033,7 +1030,7 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
   }
 
   // If member is invalid.
-  if (potentialUserId === '' || !new RegExp(/^\d+$/, 'g').test(potentialUserId)) {
+  if (potentialUserId === '' || new RegExp(/^\d+$/, 'g').test(potentialUserId) === false) {
     await message.channel.send(createCommandErrorEmbed(
       [
         `The member (${commandArguments[1]}) is invalid. Try using the command by tagging a member or pasting in the user ID.\r\n`,

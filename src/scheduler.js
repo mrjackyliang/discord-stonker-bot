@@ -17,14 +17,14 @@ const { generateLogMessage } = require('./utilities');
  */
 function schedulePost(event, sendToChannel) {
   const name = _.get(event, 'name', 'Unknown');
-  const message = _.get(event, 'message', '');
-  const reactions = _.get(event, 'reactions', []);
+  const message = _.get(event, 'message');
+  const reactions = _.get(event, 'reactions');
   const timeZone = _.get(event, 'send-every.time-zone', 'Etc/UTC');
-  const daysOfWeek = _.get(event, 'send-every.days-of-week', []);
+  const daysOfWeek = _.get(event, 'send-every.days-of-week');
   const hour = _.get(event, 'send-every.hour');
   const minute = _.get(event, 'send-every.minute');
   const second = _.get(event, 'send-every.second');
-  const skipDays = _.get(event, 'skip-days', []);
+  const skipDays = _.get(event, 'skip-days');
 
   // If "channel-id" is not a text-based channel.
   if (_.isUndefined(sendToChannel)) {

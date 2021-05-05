@@ -68,7 +68,8 @@
         },
         "auto-kick": {
             "minimum-age": 0,
-            "message": "Failed to join server. Please contact server owner for assistance."
+            "force-avatar": true,
+            "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
         "scanner": {
             "channel-id": "000000000000000000",
@@ -118,6 +119,7 @@
                 "pattern": "(?:)",
                 "flags": "g"
             },
+            "direct-message": "This type of text is not allowed in this channel!",
             "exclude-roles": [
                 {
                     "description": "Sample role",
@@ -194,6 +196,7 @@
                 }
             }
         ],
+        "direct-message": "Please do not send affiliate links!",
         "excluded-roles": [
             {
                 "description": "Sample role",

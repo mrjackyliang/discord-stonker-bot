@@ -34,8 +34,8 @@ async function removeRolesIfNoRoles(member, removeRoles) {
     const noRolesToRemove = _.map(noRole['to-remove'], 'id');
 
     if (
-      !_.some(noRolesToDetect, (noRoleToDetect) => member.roles.cache.has(noRoleToDetect))
-      && _.some(noRolesToRemove, (noRoleToRemove) => member.roles.cache.has(noRoleToRemove))
+      !_.some(noRolesToDetect, (noRoleToDetect) => member.roles.cache.has(noRoleToDetect) === true)
+      && _.some(noRolesToRemove, (noRoleToRemove) => member.roles.cache.has(noRoleToRemove) === true)
     ) {
       generateLogMessage(
         [
@@ -89,8 +89,8 @@ async function removeRolesIfRoles(member, removeRoles) {
     const rolesToRemove = _.map(role['to-remove'], 'id');
 
     if (
-      _.some(rolesToDetect, (roleToDetect) => member.roles.cache.has(roleToDetect))
-      && _.some(rolesToRemove, (roleToRemove) => member.roles.cache.has(roleToRemove))
+      _.some(rolesToDetect, (roleToDetect) => member.roles.cache.has(roleToDetect) === true)
+      && _.some(rolesToRemove, (roleToRemove) => member.roles.cache.has(roleToRemove) === true)
     ) {
       generateLogMessage(
         [

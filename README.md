@@ -9,19 +9,20 @@ Discord Stonker Bot
 A utility bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your Discord such as auto-reply, anti-raid, voice commands and more.
 
 To use this Discord bot, you would need to:
-1. Install the dependencies
-2. Create an application, add, and start the Stonker bot
-3. Configure the Discord Stonker Bot
+1. Install the [dependencies](#install-dependencies)
+2. Configure the [Discord Application](#configure-discord-application)
+3. Configure the [Stonker Bot](#bot-configuration)
+4. Start the bot using `npm start`
 
 ## Install Dependencies
-Before starting the bot, make sure to install [NodeJS](https://nodejs.org). Follow the directions below to get started:
+Before configuring and starting the bot, make sure to install the dependencies and required packages.
 
 1. Install [Homebrew](https://brew.sh) and run `brew install node`
 2. Tap into the bot directory with `cd discord-stonker-bot`
 3. Install dependencies by running `npm install`
 
-## Create and Add Discord Application
-Once [NodeJS](https://nodejs.org) is installed, follow the directions below to create an application and add the bot into your server.
+## Configure Discord Application
+Here are the instructions on how you can create an application and connect this bot to your Discord server. Simply follow the directions below:
 
 1. First go to the [Discord Developer Portal](https://discord.com/developers/applications)
 2. In the top right corner, click __New Application__
@@ -54,14 +55,14 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 ### 1. Base Settings
 This section is required for Stonker Bot to start. A text-based channel ID for `log-channel-id` is required. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
 
-| __Key__                   | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                               |
-|---------------------------|----------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `settings`                | `object` |                                                        |                                                                                                                                                                                   |
-| `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#create-and-add-discord-application) |
-| `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                                  |
-| `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID                                                                                                                                                                |
-| `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                                 |
-| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed                                                                                                                                                      |
+| __Key__                   | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                          |
+|---------------------------|----------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `settings`                | `object` |                                                        |                                                                                                                                                                              |
+| `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
+| `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
+| `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID                                                                                                                                                           |
+| `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
+| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed                                                                                                                                                 |
 
 ```json
 {
@@ -85,7 +86,7 @@ Get notifications from user actions surrounding your server. When a nickname cha
 | `notifications.change-username`   | `boolean` | Notify when a member changes their username | `true` or `false`   |
 | `notifications.delete-message`    | `boolean` | Notify when a message is deleted            | `true` or `false`   |
 | `notifications.update-message`    | `boolean` | Notify when a message is edited             | `true` or `false`   |
-| `notifications.upload-attachment` | `boolean` | Notify when attachments are uploaded        | `true` or `false`   |
+| `notifications.upload-attachment` | `boolean` | Notify when an attachment is uploaded       | `true` or `false`   |
 
 ```json
 {
@@ -181,22 +182,23 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
 
 - Automatically ban a user based on their avatar hash or username
 - Automatically kick a user (and send a direct message) if they don't meet the minimum age criteria
-- Automatically scan and notify a user if potential raid bots have entered your server
+- Automatically scan and send a message if potential raid bots have entered your server
 
-| __Key__                                     | __Type__   | __Description__                                    | __Accepted Values__                                                                          |
-|---------------------------------------------|------------|----------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `anti-raid`                                 | `object`   |                                                    |                                                                                              |
-| `anti-raid.auto-ban`                        | `object`   |                                                    |                                                                                              |
-| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                       | File name of avatar (without file extension)                                                 |
-| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                           | Username of user                                                                             |
-| `anti-raid.auto-kick`                       | `object`   |                                                    |                                                                                              |
-| `anti-raid.auto-kick.minimum-age`           | `number`   | Minimum age a user must have before joining server | Calculate the [time in milliseconds](https://www.calculateme.com/time/days/to-milliseconds/) |
-| `anti-raid.auto-kick.message`               | `string`   | Direct message content                             | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.scanner`                         | `object`   |                                                    |                                                                                              |
-| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found  | Discord channel ID                                                                           |
-| `anti-raid.scanner.message`                 | `string`   | Message content                                    | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found      | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)        |
-| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                  | File name of avatar (without file extension)                                                 |
+| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                          |
+|---------------------------------------------|------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `anti-raid`                                 | `object`   |                                                     |                                                                                              |
+| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                              |
+| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                 |
+| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                             |
+| `anti-raid.auto-kick`                       | `object`   |                                                     |                                                                                              |
+| `anti-raid.auto-kick.minimum-age`           | `number`   | Minimum age a user must have before joining server  | Calculate the [time in milliseconds](https://www.calculateme.com/time/days/to-milliseconds/) |
+| `anti-raid.auto-kick.force-avatar`          | `boolean`  | If a user must have an avatar before joining server | `true` or `false`                                                                            |
+| `anti-raid.auto-kick.direct-message`        | `string`   | Direct message content (optional)                   | Cannot be empty and cannot exceed 2000 characters                                            |
+| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                              |
+| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                           |
+| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                            |
+| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)        |
+| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                 |
 
 ```json
 {
@@ -211,7 +213,8 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
         },
         "auto-kick": {
             "minimum-age": 0,
-            "message": "Failed to join server. Please contact server owner for assistance."
+            "force-avatar": true,
+            "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
         "scanner": {
             "channel-id": "000000000000000000",
@@ -292,6 +295,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 | `regex-rules[x].regex`                        | `object`   |                                             |                                                                                                                                                                     |
 | `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `regex-rules[x].direct-message`               | `string`   | Direct message content (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
 | `regex-rules[x].exclude-roles`                | `object[]` |                                             |                                                                                                                                                                     |
 | `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
 | `regex-rules[x].exclude-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
@@ -306,6 +310,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
                 "pattern": "(?:)",
                 "flags": "g"
             },
+            "direct-message": "This type of text is not allowed in this channel!",
             "exclude-roles": [
                 {
                     "description": "Sample role",
@@ -440,6 +445,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 | `affiliate-links.links[x].website`              | `string`   | Name of the website                         |                                                                                                                                                                     |
 | `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `affiliate-links.direct-message`                | `string`   | Direct message content (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
 | `affiliate-links.excluded-roles`                | `object[]` |                                             |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
@@ -456,6 +462,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
                 }
             }
         ],
+        "direct-message": "Please do not send affiliate links!",
         "excluded-roles": [
             {
                 "description": "Sample role",

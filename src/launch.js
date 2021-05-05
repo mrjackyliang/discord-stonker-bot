@@ -125,7 +125,6 @@ client.login(configSettingsClientToken).catch((error) => {
  */
 client.on('ready', async () => {
   const guild = client.guilds.cache.get(configSettingsGuildId);
-  const hasClientUser = _.has(client, 'user');
   const logChannel = getTextBasedChannel(guild, configSettingsLogChannelId);
 
   /**
@@ -134,15 +133,14 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   if (
-    !guild
-    || !hasClientUser
-    || !logChannel
+    _.isUndefined(guild)
+    || _.isUndefined(logChannel)
     || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
     || !_.isString(configSettingsBotPrefix)
     || _.isEmpty(configSettingsBotPrefix)
     || _.size(configSettingsBotPrefix) > 3
   ) {
-    if (!guild) {
+    if (_.isUndefined(guild)) {
       console.error([
         chalk.red('Server failed to start!'),
         '"settings.guild-id" is not a valid guild',
@@ -150,15 +148,7 @@ client.on('ready', async () => {
       ].join(' '));
     }
 
-    if (!hasClientUser) {
-      console.error([
-        chalk.red('Server failed to start!'),
-        'Client Discord user is unavailable',
-        '...',
-      ].join(' '));
-    }
-
-    if (!logChannel) {
+    if (_.isUndefined(logChannel)) {
       console.error([
         chalk.red('Server failed to start!'),
         '"settings.log-channel-id" is not a valid text-based channel',
@@ -504,9 +494,12 @@ client.on('ready', async () => {
   client.on('guildMemberAdd', async (member) => {
     const memberGuildId = _.get(member, 'guild.id');
 
+    // If member is in the guild.
     if (guild.id === memberGuildId) {
-      const avatar = _.get(configAntiRaidAutoBan, 'avatar');
-      const username = _.get(configAntiRaidAutoBan, 'username');
+      const bannedAvatar = _.get(configAntiRaidAutoBan, 'avatar');
+      const bannedUsername = _.get(configAntiRaidAutoBan, 'username');
+      const memberAvatar = _.get(member, 'user.avatar');
+      const memberUsername = _.get(member, 'user.username');
 
       /**
        * Anti-raid auto-ban.
@@ -524,7 +517,7 @@ client.on('ready', async () => {
        *
        * @since 1.0.0
        */
-      if (!_.includes(avatar, member.user.avatar) && !_.includes(username, member.user.username)) {
+      if (!_.includes(bannedAvatar, memberAvatar) && !_.includes(bannedUsername, memberUsername)) {
         await antiRaidAutoKick(member, configAntiRaidAutoKick, sessionStorage.antiRaidAutoKick).catch((error) => generateLogMessage(
           'Failed to execute "antiRaidAutoKick" function',
           10,
@@ -542,6 +535,7 @@ client.on('ready', async () => {
   client.on('guildMemberUpdate', async (oldMember, newMember) => {
     const newMemberGuildId = _.get(newMember, 'guild.id');
 
+    // If member is in the guild.
     if (guild.id === newMemberGuildId) {
       /**
        * Remove roles if no roles.
@@ -586,6 +580,7 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   client.on('userUpdate', async (oldUser, newUser) => {
+    // If member is in the guild.
     if (guild.members.cache.has(newUser.id)) {
       /**
        * Change username notification.

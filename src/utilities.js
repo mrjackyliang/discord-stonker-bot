@@ -62,7 +62,7 @@ async function getGoogleCloudStorageObjects(message) {
     links.push(attachment.url);
   });
 
-  if (_.size(links)) {
+  if (_.size(links) > 0) {
     _.forEach(links, (attachmentsLink) => {
       axios.get(attachmentsLink).then((response) => {
         const responseStatusText = response.statusText;
@@ -97,7 +97,7 @@ async function getGoogleCloudStorageObjects(message) {
  */
 function getTextBasedChannel(guild, channelId) {
   const guildChannels = _.get(guild, 'channels.cache');
-  const textChannel = (guildChannels) ? guildChannels.get(channelId) : undefined;
+  const textChannel = (!_.isUndefined(guildChannels)) ? guildChannels.get(channelId) : undefined;
 
   // If channel is a text-based channel.
   if (textChannel !== undefined && textChannel.isText()) {

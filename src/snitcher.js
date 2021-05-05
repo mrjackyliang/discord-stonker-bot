@@ -184,7 +184,7 @@ async function userUploadAttachment(message, sendToChannel) {
     links.push(attachment.url);
   });
 
-  if (_.size(links)) {
+  if (_.size(links) > 0) {
     generateLogMessage(
       [
         'Message sent by',

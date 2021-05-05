@@ -18,7 +18,7 @@ const { splitStringChunks } = require('./utilities');
  * @since 1.0.0
  */
 function addEmbed(title, description, thumbnailUrl = null, fields = undefined, footer, color = '#808080') {
-  if (fields !== undefined) {
+  if (!_.isUndefined(fields)) {
     return new Discord.MessageEmbed()
       .setColor(color)
       .setTitle(title)

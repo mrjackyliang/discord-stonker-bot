@@ -27,7 +27,7 @@ async function antiRaidAutoBan(member, banList) {
 
   // If user has a banned avatar hash (and configuration is set).
   if (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))) {
-    if (userAvatar && _.includes(avatars, userAvatar)) {
+    if (userAvatar !== null && _.includes(avatars, userAvatar)) {
       await member.ban(
         {
           reason: `Member was detected with a banned avatar hash (${userAvatar})`,
@@ -87,29 +87,38 @@ async function antiRaidAutoBan(member, banList) {
  * @since 1.0.0
  */
 async function antiRaidAutoKick(member, settings, storage) {
-  const userCreatedTimestamp = member.user.createdTimestamp;
-  const userAge = Date.now() - userCreatedTimestamp;
+  const memberUserAvatar = member.user.avatar;
+  const memberUserCreatedTimestamp = member.user.createdTimestamp;
+  const userAge = Date.now() - memberUserCreatedTimestamp;
   const minimumAge = _.get(settings, 'minimum-age');
-  const message = _.get(settings, 'message');
+  const forceAvatar = _.get(settings, 'force-avatar');
+  const directMessage = _.get(settings, 'direct-message');
 
-  // Member does not meet minimum age requirements and is not excluded from auto-kick.
-  if (_.isFinite(minimumAge) && !(userAge >= minimumAge) && !_.includes(storage.whitelist, member.id)) {
-    // Set a tracker if anti-raid DM never sent to user.
-    if (_.get(storage, `dmTracker[${member.id}]`) === undefined) {
-      _.set(storage, `dmTracker[${member.id}]`, false);
-    }
+  // Set a direct message tracker.
+  if (_.get(storage, `dmTracker[${member.id}]`) === undefined) {
+    _.set(storage, `dmTracker[${member.id}]`, false);
+  }
 
-    // If bot has never sent an anti-raid DM to user (and message is set).
-    if (_.isString(message) && !_.isEmpty(message) && _.get(storage, `dmTracker[${member.id}]`) === false) {
+  // Member does not meet minimum age requirements or does not have an avatar and is not excluded from auto-kick.
+  if (
+    (_.isFinite(minimumAge) && !(userAge >= minimumAge) && !_.includes(storage.whitelist, member.id))
+    || (forceAvatar === true && memberUserAvatar === null && !_.includes(storage.whitelist, member.id))
+  ) {
+    // If user has never been sent an anti-raid direct message before.
+    if (
+      _.isString(directMessage)
+      && !_.isEmpty(directMessage)
+      && _.get(storage, `dmTracker[${member.id}]`) === false
+    ) {
       await member.createDM().then(async (dmChannel) => {
-        await dmChannel.send(message).then(() => {
+        await dmChannel.send(directMessage).then(() => {
           _.set(storage, `dmTracker[${member.id}]`, true);
 
           generateLogMessage(
             [
               'Sent direct message to',
               chalk.green(member.toString()),
-              'because member did not meet minimum age requirements',
+              'because member was kicked by anti-raid detection',
             ].join(' '),
             40,
           );
@@ -125,20 +134,42 @@ async function antiRaidAutoKick(member, settings, storage) {
       ));
     }
 
-    // Kick member after sending anti-raid message to user.
-    await member.kick('Member does not meet minimum age requirements').then(() => {
-      generateLogMessage(
-        [
-          chalk.red(member.toString()),
-          'was automatically kicked because member does not meet minimum age requirements',
-        ].join(' '),
-        40,
-      );
-    }).catch((error) => generateLogMessage(
-      'Failed to kick member',
-      10,
-      error,
-    ));
+    // Kick member because member does not meet minimum age requirements.
+    if (_.isFinite(minimumAge) && !(userAge >= minimumAge) && !_.includes(storage.whitelist, member.id)) {
+      await member.kick('Member does not meet minimum age requirements').then(() => {
+        generateLogMessage(
+          [
+            chalk.red(member.toString()),
+            'was automatically kicked because member does not meet minimum age requirements',
+          ].join(' '),
+          40,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to kick member',
+        10,
+        error,
+      ));
+
+      // No need to kick twice.
+      return;
+    }
+
+    // Kick member because member does not have avatar.
+    if (forceAvatar === true && memberUserAvatar === null && !_.includes(storage.whitelist, member.id)) {
+      await member.kick('Member does not have avatar').then(() => {
+        generateLogMessage(
+          [
+            chalk.red(member.toString()),
+            'was automatically kicked because member does not have avatar',
+          ].join(' '),
+          40,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to kick member',
+        10,
+        error,
+      ));
+    }
   }
 }
 
@@ -160,7 +191,7 @@ async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
 
   let lastSentMessage = 0;
 
-  if (!guild || !_.isString(message) || _.isEmpty(message) || !_.isFinite(messageInterval) || !sendToChannel) {
+  if (_.isUndefined(guild) || !_.isString(message) || _.isEmpty(message) || !_.isFinite(messageInterval) || _.isUndefined(sendToChannel)) {
     return;
   }
 
@@ -205,7 +236,7 @@ async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
       }
     });
 
-    if (_.size(finalList)) {
+    if (_.size(finalList) > 0) {
       generateLogMessage(
         `Duplicate members have been detected in the ${guild.name} guild`,
         40,
@@ -239,14 +270,15 @@ async function checkRegexChannels(message, regexRules) {
   const isTextBasedChannel = message.channel.isText();
   const regexRule = _.find(regexRules, { 'channel-id': message.channel.id });
   const regexRuleName = _.get(regexRule, 'name', 'Unknown');
-  const regexRulePattern = _.get(regexRule, 'regex.pattern', '(?:)');
-  const regexRuleFlags = _.get(regexRule, 'regex.flags', 'g');
-  const excludedRoles = _.get(regexRule, 'exclude-roles', []);
+  const regexRulePattern = _.get(regexRule, 'regex.pattern');
+  const regexRuleFlags = _.get(regexRule, 'regex.flags');
+  const directMessage = _.get(regexRule, 'direct-message');
+  const excludedRoles = _.get(regexRule, 'exclude-roles');
   const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id));
 
   let match;
 
-  if (!isTextBasedChannel || !regexRule) {
+  if (_.isUndefined(isTextBasedChannel) || _.isUndefined(regexRule)) {
     return;
   }
 
@@ -266,7 +298,30 @@ async function checkRegexChannels(message, regexRules) {
     return;
   }
 
-  if (!match && !hasExcludedRoles && !message.member.hasPermission('ADMINISTRATOR')) {
+  if (match === false && hasExcludedRoles === false && !message.member.hasPermission('ADMINISTRATOR')) {
+    if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
+      await message.member.createDM().then(async (dmChannel) => {
+        await dmChannel.send(directMessage).then(() => {
+          generateLogMessage(
+            [
+              'Sent direct message to',
+              chalk.green(message.member.toString()),
+              'because member did not follow regex rules',
+            ].join(' '),
+            40,
+          );
+        }).catch((error) => generateLogMessage(
+          'Failed to send direct message',
+          10,
+          error,
+        ));
+      }).catch((error) => generateLogMessage(
+        'Failed to create direct message channel',
+        10,
+        error,
+      ));
+    }
+
     await message.delete().catch((error) => generateLogMessage(
       'Failed to delete message',
       10,
@@ -309,14 +364,14 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
     const words = _.get(suspiciousWord, 'words', []);
 
     if (_.isArray(words) && !_.isEmpty(words) && _.every(words, (word) => _.isString(word) && !_.isEmpty(word))) {
-      if (new RegExp(`(?:[\\s]|^)(${words.join('|')})(?=[\\s]|$)`).test(theMessageClean)) {
+      if (new RegExp(`(?:[\\s]|^)(${words.join('|')})(?=[\\s]|$)`).test(theMessageClean) === true) {
         categories.push(category);
       }
     }
   });
 
   // If no suspicious words detected.
-  if (!_.size(categories)) {
+  if (_.size(categories) < 1) {
     return;
   }
 
@@ -360,15 +415,16 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
 async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   const websites = [];
   const theMessage = message.reactions.message.toString() || message.toString();
-  const links = _.get(affiliateLinks, 'links', []);
-  const excludedRoles = _.get(affiliateLinks, 'excluded-roles', []);
+  const links = _.get(affiliateLinks, 'links');
+  const directMessage = _.get(affiliateLinks, 'direct-message');
+  const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
   const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id));
 
   // Scan through list of affiliate links.
   _.forEach(links, (link) => {
     const website = _.get(link, 'website', 'Unknown');
-    const regexPattern = _.get(link, 'regex.pattern', '(?:)');
-    const regexFlags = _.get(link, 'regex.flags', 'g');
+    const regexPattern = _.get(link, 'regex.pattern');
+    const regexFlags = _.get(link, 'regex.flags');
 
     let match;
 
@@ -388,13 +444,13 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
       return;
     }
 
-    if (match) {
+    if (match === true) {
       websites.push(website);
     }
   });
 
   // If no websites detected.
-  if (!_.size(websites)) {
+  if (_.size(websites) < 1) {
     return;
   }
 
@@ -423,7 +479,30 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
     error,
   ));
 
-  if (!hasExcludedRoles && !message.member.hasPermission('ADMINISTRATOR')) {
+  if (hasExcludedRoles === false && !message.member.hasPermission('ADMINISTRATOR')) {
+    if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
+      await message.member.createDM().then(async (dmChannel) => {
+        await dmChannel.send(directMessage).then(() => {
+          generateLogMessage(
+            [
+              'Sent direct message to',
+              chalk.green(message.member.toString()),
+              'because member sent affiliate links',
+            ].join(' '),
+            40,
+          );
+        }).catch((error) => generateLogMessage(
+          'Failed to send direct message',
+          10,
+          error,
+        ));
+      }).catch((error) => generateLogMessage(
+        'Failed to create direct message channel',
+        10,
+        error,
+      ));
+    }
+
     await message.delete().catch((error) => generateLogMessage(
       'Failed to delete message',
       10,
