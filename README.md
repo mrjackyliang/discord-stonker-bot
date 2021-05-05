@@ -231,20 +231,20 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
 ### 5. Scheduled Posts
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance).
 
-| __Key__                                     | __Type__   | __Description__                     | __Accepted Values__                                                                                      |
-|---------------------------------------------|------------|-------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `schedule-posts`                            | `object[]` |                                     |                                                                                                          |
-| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post          |                                                                                                          |
-| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post | Discord channel ID                                                                                       |
-| `schedule-posts[x].message`                 | `string`   | Message content                     | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post        | Unicode emojis (custom emojis not supported)                                                             |
-| `schedule-posts[x].send-every`              | `object`   |                                     |                                                                                                          |
-| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone              | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
-| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week        | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
-| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day            | From `0` to `23`                                                                                         |
-| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day          | From `0` to `59`                                                                                         |
-| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day          | From `0` to `59`                                                                                         |
-| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days    | Date format is `YYYY-MM-DD`                                                                              |
+| __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                      |
+|---------------------------------------------|------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `schedule-posts`                            | `object[]` |                                             |                                                                                                          |
+| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post                  |                                                                                                          |
+| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post         | Discord channel ID                                                                                       |
+| `schedule-posts[x].message`                 | `string`   | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
+| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis (custom emojis not supported)                                                             |
+| `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                          |
+| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
+| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
+| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                         |
+| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                         |
+| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                         |
+| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
 
 ```json
 {

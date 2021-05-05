@@ -226,10 +226,11 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // Transform "string" command route input with quotes into query.
   if (commandArguments[1] === 'string' && new RegExp(/"(.+)"/g).test(messageText) === true) {
-    const stringArg = messageText.substring(messageText.lastIndexOf(' "') + 1);
+    const stringArg = messageText.substring(messageText.lastIndexOf('string "') + 7);
 
     if (stringArg !== '"') {
-      query = _.replace(stringArg, /"$/g, '');
+      // Remove the quotes.
+      query = _.replace(stringArg, /(")(.*)(")/g, '$2');
     } else {
       query = ' ';
     }
@@ -778,7 +779,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
           'to',
           commandArguments[2],
         ].join(' '),
-        30,
+        40,
       );
 
       await message.channel.send(createTogglePermsEmbed(

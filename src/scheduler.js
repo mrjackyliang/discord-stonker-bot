@@ -55,7 +55,7 @@ function schedulePost(event, sendToChannel) {
   }
 
   // If "reactions" is not string[].
-  if (!_.isArray(reactions) || !_.every(reactions, _.isString)) {
+  if (reactions && (!_.isArray(reactions) || !_.every(reactions, _.isString))) {
     generateLogMessage(
       [
         '"reactions" for',
@@ -69,7 +69,7 @@ function schedulePost(event, sendToChannel) {
   }
 
   // If "skip-days" does not match "YYYY-MM-DD"[].
-  if (!_.isArray(skipDays) || !_.every(skipDays, (skipDay) => new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/g).test(skipDay))) {
+  if (skipDays && (!_.isArray(skipDays) || !_.every(skipDays, (skipDay) => new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/g).test(skipDay)))) {
     generateLogMessage(
       [
         '"skip-days" for',
