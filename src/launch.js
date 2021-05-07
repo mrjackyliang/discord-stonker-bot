@@ -17,6 +17,7 @@ const { autoReply } = require('./messenger');
 const {
   antiRaidAutoBan,
   antiRaidAutoKick,
+  antiRaidMonitor,
   antiRaidScanner,
   checkRegexChannels,
   detectSuspiciousWords,
@@ -67,6 +68,7 @@ const configCommandsWhitelist = _.get(config, 'commands.whitelist');
 
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidAutoKick = _.get(config, 'anti-raid.auto-kick');
+const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configAntiRaidScanner = _.get(config, 'anti-raid.scanner');
 
 const configSchedulePosts = _.get(config, 'schedule-posts');
@@ -500,6 +502,8 @@ client.on('ready', async () => {
       const bannedUsername = _.get(configAntiRaidAutoBan, 'username');
       const memberAvatar = _.get(member, 'user.avatar');
       const memberUsername = _.get(member, 'user.username');
+      const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
+      const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
 
       /**
        * Anti-raid auto-ban.
@@ -524,6 +528,43 @@ client.on('ready', async () => {
           error,
         ));
       }
+
+      /**
+       * Anti-raid monitor.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidMonitor(member, 'join', guildJoinChannel).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidMonitor" function',
+        10,
+        error,
+      ));
+    }
+  });
+
+  /**
+   * When guild member is removed.
+   *
+   * @since 1.0.0
+   */
+  client.on('guildMemberRemove', async (member) => {
+    const memberGuildId = _.get(member, 'guild.id');
+
+    // If member is in the guild.
+    if (guild.id === memberGuildId) {
+      const guildLeaveChannelId = _.get(configAntiRaidMonitor, 'guild-leave.channel-id');
+      const guildLeaveChannel = getTextBasedChannel(guild, guildLeaveChannelId);
+
+      /**
+       * Anti-raid monitor.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidMonitor(member, 'leave', guildLeaveChannel).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidMonitor" function',
+        10,
+        error,
+      ));
     }
   });
 

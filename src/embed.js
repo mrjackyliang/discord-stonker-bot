@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const luxon = require('luxon');
 const _ = require('lodash');
 
 const { splitStringChunks } = require('./utilities');
@@ -333,6 +334,69 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
 }
 
 /**
+ * Create member monitor embed.
+ *
+ * @param {"join"|"leave"}           mode - Whether a user joined or left a guild.
+ * @param {module:"discord.js".User} user - User information.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createMemberMonitorEmbed(mode, user) {
+  const fields = [];
+  const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
+  const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
+  const dateNow = luxon.DateTime.now().toFormat('DDDD ttt');
+  const interval = luxon.Interval.fromDateTimes(user.createdAt, new Date()).toDuration(['years', 'months', 'days', 'hours', 'minutes']).toObject();
+  const years = (interval.years > 0) ? `${Math.round(interval.years)} year${(interval.years !== 1) ? 's' : ''}, ` : '';
+  const months = (interval.months > 0) ? `${Math.round(interval.months)} month${(interval.months !== 1) ? 's' : ''}, ` : '';
+  const days = (interval.days > 0) ? `${Math.round(interval.days)} day${(interval.days !== 1) ? 's' : ''}, ` : '';
+  const hours = (interval.hours > 0) ? `${Math.round(interval.hours)} hour${(interval.hours !== 1) ? 's' : ''}, ` : '';
+  const minutes = (interval.minutes > 0) ? `${Math.round(interval.minutes)} minute${(interval.minutes !== 1) ? 's' : ''}` : '';
+
+  if (user.avatar !== null) {
+    fields.push({
+      name: 'Avatar Hash',
+      value: `\`${user.avatar}\``,
+    });
+  }
+
+  fields.push({
+    name: 'User ID',
+    value: `\`${user.id}\``,
+    inline: true,
+  });
+
+  fields.push({
+    name: 'User Tag',
+    value: `\`${user.tag}\``,
+    inline: true,
+  });
+
+  if (user.presence.clientStatus !== null) {
+    fields.push({
+      name: 'User Client Status',
+      value: `\`${JSON.stringify(user.presence.clientStatus)}\``,
+    });
+  }
+
+  fields.push({
+    name: 'Account Age',
+    value: years + months + days + hours + minutes,
+  });
+
+  return addEmbed(
+    `Member ${serverJoin[0] || serverLeave[0]}`,
+    `${user.toString()} has ${serverJoin[1] || serverLeave[1]} the guild on **${dateNow}**`,
+    user.displayAvatarURL(),
+    fields,
+    `User ID: ${user.id}`,
+    '#eea942',
+  );
+}
+
+/**
  * Create no results embed.
  *
  * @param {string} message - The reason of no results.
@@ -609,6 +673,7 @@ module.exports = {
   createDeleteMessageEmbed,
   createHelpMenuEmbed,
   createListMembersEmbed,
+  createMemberMonitorEmbed,
   createNoResultsEmbed,
   createRemoveAffiliateLinksEmbed,
   createSuspiciousWordsEmbed,

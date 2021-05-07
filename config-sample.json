@@ -71,6 +71,14 @@
             "force-avatar": true,
             "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
+        "monitor": {
+            "guild-join": {
+                "channel-id": "000000000000000000"
+            },
+            "guild-leave": {
+                "channel-id": "000000000000000000"
+            }
+        },
         "scanner": {
             "channel-id": "000000000000000000",
             "message": "Raid Alert! Please run the `!find-duplicate-users` command.",

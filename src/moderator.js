@@ -4,6 +4,7 @@ const schedule = require('node-schedule');
 const _ = require('lodash');
 
 const {
+  createMemberMonitorEmbed,
   createRemoveAffiliateLinksEmbed,
   createSuspiciousWordsEmbed,
 } = require('./embed');
@@ -174,20 +175,46 @@ async function antiRaidAutoKick(member, settings, storage) {
 }
 
 /**
- * Anti-raid scanner.
+ * Anti-raid monitor.
  *
- * @param {module:"discord.js".Guild} guild           - Discord guild.
- * @param {object}                    scannerSettings - User scanner settings from configuration.
- * @param {TextBasedChannel}          sendToChannel   - Send message to channel.
+ * @param {module:"discord.js".GuildMember} member        - Member information.
+ * @param {"join"|"leave"}                  mode          - Whether a user joined or left a guild.
+ * @param {TextBasedChannel}                sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function antiRaidScanner(guild, scannerSettings, sendToChannel) {
-  const message = _.get(scannerSettings, 'message');
-  const messageInterval = _.get(scannerSettings, 'message-interval');
-  const whitelistedAvatars = _.get(scannerSettings, 'whitelisted-avatars');
+async function antiRaidMonitor(member, mode, sendToChannel) {
+  if (_.isUndefined(sendToChannel)) {
+    return;
+  }
+
+  sendToChannel.send(createMemberMonitorEmbed(
+    mode,
+    member.user,
+  )).catch((error) => generateLogMessage(
+    'Failed to send member monitor embed',
+    10,
+    error,
+  ));
+}
+
+/**
+ * Anti-raid scanner.
+ *
+ * @param {module:"discord.js".Guild} guild         - Discord guild.
+ * @param {object}                    settings      - User scanner settings from configuration.
+ * @param {TextBasedChannel}          sendToChannel - Send message to channel.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidScanner(guild, settings, sendToChannel) {
+  const message = _.get(settings, 'message');
+  const messageInterval = _.get(settings, 'message-interval');
+  const whitelistedAvatars = _.get(settings, 'whitelisted-avatars');
 
   let lastSentMessage = 0;
 
@@ -274,7 +301,7 @@ async function checkRegexChannels(message, regexRules) {
   const regexRuleFlags = _.get(regexRule, 'regex.flags');
   const directMessage = _.get(regexRule, 'direct-message');
   const excludedRoles = _.get(regexRule, 'exclude-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id));
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id) === true);
 
   let match;
 
@@ -418,7 +445,7 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
   const links = _.get(affiliateLinks, 'links');
   const directMessage = _.get(affiliateLinks, 'direct-message');
   const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id));
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id) === true);
 
   // Scan through list of affiliate links.
   _.forEach(links, (link) => {
@@ -514,6 +541,7 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
 module.exports = {
   antiRaidAutoBan,
   antiRaidAutoKick,
+  antiRaidMonitor,
   antiRaidScanner,
   checkRegexChannels,
   detectSuspiciousWords,

@@ -194,6 +194,11 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
 | `anti-raid.auto-kick.minimum-age`           | `number`   | Minimum age a user must have before joining server  | Calculate the [time in milliseconds](https://www.calculateme.com/time/days/to-milliseconds/) |
 | `anti-raid.auto-kick.force-avatar`          | `boolean`  | If a user must have an avatar before joining server | `true` or `false`                                                                            |
 | `anti-raid.auto-kick.direct-message`        | `string`   | Direct message content (optional)                   | Cannot be empty and cannot exceed 2000 characters                                            |
+| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                              |
+| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                              |
+| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                           |
+| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                              |
+| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                           |
 | `anti-raid.scanner`                         | `object`   |                                                     |                                                                                              |
 | `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                           |
 | `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                            |
@@ -215,6 +220,14 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
             "minimum-age": 0,
             "force-avatar": true,
             "direct-message": "Failed to join server. Please contact server owner for assistance."
+        },
+        "monitor": {
+            "guild-join": {
+                "channel-id": "000000000000000000"
+            },
+            "guild-leave": {
+                "channel-id": "000000000000000000"
+            }
         },
         "scanner": {
             "channel-id": "000000000000000000",
