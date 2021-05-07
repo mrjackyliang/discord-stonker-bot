@@ -186,9 +186,22 @@ async function antiRaidAutoKick(member, settings, storage) {
  * @since 1.0.0
  */
 async function antiRaidMonitor(member, mode, sendToChannel) {
+  const joined = (mode === 'join') ? 'joined' : undefined;
+  const left = (mode === 'leave') ? 'left' : undefined;
+
   if (_.isUndefined(sendToChannel)) {
     return;
   }
+
+  generateLogMessage(
+    [
+      chalk.yellow(member.toString()),
+      'has',
+      joined || left,
+      'the guild',
+    ].join(' '),
+    40,
+  );
 
   sendToChannel.send(createMemberMonitorEmbed(
     mode,
