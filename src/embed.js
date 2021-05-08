@@ -2,7 +2,12 @@ const Discord = require('discord.js');
 const luxon = require('luxon');
 const _ = require('lodash');
 
-const { splitStringChunks } = require('./utilities');
+const {
+  getReadableDuration,
+  splitStringChunks,
+} = require('./utilities');
+
+const config = require('../config.json');
 
 /**
  * Add embed.
@@ -336,62 +341,96 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
 /**
  * Create member monitor embed.
  *
- * @param {"join"|"leave"}           mode - Whether a user joined or left a guild.
- * @param {module:"discord.js".User} user - User information.
+ * @param {"join"|"leave"}                               mode         - Whether a user joined or left a guild.
+ * @param {string}                                       tag          - User tag.
+ * @param {string}                                       mention      - User mention.
+ * @param {null|string}                                  avatar       - User avatar.
+ * @param {string}                                       avatarUrl    - User avatar url.
+ * @param {Date}                                         createdAt    - User created at.
+ * @param {Date}                                         joinedAt     - User joined at.
+ * @param {module:"discord.js".ClientPresenceStatusData} clientStatus - User presence status data.
+ * @param {Collection<Snowflake, Role>}                  roles        - User roles.
  *
  * @returns {module:"discord.js".MessageEmbed}
  *
  * @since 1.0.0
  */
-function createMemberMonitorEmbed(mode, user) {
+function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, createdAt, joinedAt, clientStatus, roles) {
   const fields = [];
   const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
   const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
-  const dateNow = luxon.DateTime.now().toFormat('DDDD ttt');
-  const interval = luxon.Interval.fromDateTimes(user.createdAt, new Date()).toDuration(['years', 'months', 'days', 'hours', 'minutes']).toObject();
-  const years = (interval.years > 0) ? `${Math.round(interval.years)} year${(interval.years !== 1) ? 's' : ''}, ` : '';
-  const months = (interval.months > 0) ? `${Math.round(interval.months)} month${(interval.months !== 1) ? 's' : ''}, ` : '';
-  const days = (interval.days > 0) ? `${Math.round(interval.days)} day${(interval.days !== 1) ? 's' : ''}, ` : '';
-  const hours = (interval.hours > 0) ? `${Math.round(interval.hours)} hour${(interval.hours !== 1) ? 's' : ''}, ` : '';
-  const minutes = (interval.minutes > 0) ? `${Math.round(interval.minutes)} minute${(interval.minutes !== 1) ? 's' : ''}` : '';
+  const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
+  const dateNow = luxon.DateTime.now();
+  const accountAge = luxon.Interval.fromDateTimes(createdAt, dateNow).toDuration([
+    'years',
+    'months',
+    'days',
+    'hours',
+    'minutes',
+    'seconds',
+    'milliseconds',
+  ], {}).toObject();
+  const timeOfStay = luxon.Interval.fromDateTimes(joinedAt, dateNow).toDuration([
+    'years',
+    'months',
+    'days',
+    'hours',
+    'minutes',
+    'seconds',
+    'milliseconds',
+  ], {}).toObject();
 
-  if (user.avatar !== null) {
+  if (mention) {
     fields.push({
-      name: 'Avatar Hash',
-      value: `\`${user.avatar}\``,
+      name: '**ID**',
+      value: `\`${_.replace(mention, /[<@!>]/g, '')}\``,
+      inline: true,
+    });
+  }
+
+  if (tag) {
+    fields.push({
+      name: '**Tag**',
+      value: `\`@${tag}\``,
+      inline: true,
     });
   }
 
   fields.push({
-    name: 'User ID',
-    value: `\`${user.id}\``,
+    name: '**Avatar Hash**',
+    value: (avatar !== null) ? `\`${avatar}\`` : 'unavailable',
+  });
+
+  fields.push({
+    name: '**Account Age**',
+    value: (accountAge !== null) ? getReadableDuration(accountAge) : 'unavailable',
     inline: true,
   });
 
   fields.push({
-    name: 'User Tag',
-    value: `\`${user.tag}\``,
+    name: '**Client Statuses**',
+    value: (clientStatus !== null) ? _.map(clientStatus, (status, client) => `${client} (${status})`).join(', ') : 'unavailable',
     inline: true,
   });
 
-  if (user.presence.clientStatus !== null) {
+  if (mode === 'leave') {
+    const timeOfStayDuration = getReadableDuration(timeOfStay);
+    const assignedRoles = _.filter(roles.array(), (role) => role.name !== '@everyone');
+    const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
+    const displayRoles = (_.size(assignedRoles) > 0) ? `roles (${assignedRolesMention.join(', ')})` : 'no roles';
+
     fields.push({
-      name: 'User Client Status',
-      value: `\`${JSON.stringify(user.presence.clientStatus)}\``,
+      name: 'Additional Information',
+      value: `Member stayed in the guild for ${timeOfStayDuration} and has ${displayRoles}.`,
     });
   }
-
-  fields.push({
-    name: 'Account Age',
-    value: years + months + days + hours + minutes,
-  });
 
   return addEmbed(
-    `Member ${serverJoin[0] || serverLeave[0]}`,
-    `${user.toString()} has ${serverJoin[1] || serverLeave[1]} the guild on **${dateNow}**`,
-    user.displayAvatarURL(),
+    `Member ${serverJoin[0] || serverLeave[0]} the Guild`,
+    `${mention} has ${serverJoin[1] || serverLeave[1]} the guild on **${dateNow.setZone(timeZone).toFormat('DDDD ttt')}**`,
+    avatarUrl,
     fields,
-    `User ID: ${user.id}`,
+    `User ID: ${_.replace(mention, /[<@!>]/g, '')}`,
     '#eea942',
   );
 }
@@ -657,7 +696,7 @@ function createUploadAttachmentEmbed(userMention, channelMention, id, attachment
 function createWhitelistEmbed(potentialUserId, userTag) {
   return addEmbed(
     'Whitelisted',
-    `<@!${potentialUserId}> has been temporarily added into the anti-raid whitelist.`,
+    `User ID ${potentialUserId} has been temporarily added into the anti-raid whitelist.`,
     null,
     undefined,
     `Initiated by @${userTag}`,

@@ -123,7 +123,7 @@ function schedulePost(event, sendToChannel) {
               'post event to',
               chalk.green(sendToChannel.toString()),
             ].join(' '),
-            40,
+            30,
           );
 
           // React to message.

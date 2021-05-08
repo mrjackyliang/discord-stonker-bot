@@ -4,7 +4,8 @@
         "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
-        "bot-prefix": "!"
+        "bot-prefix": "!",
+        "time-zone": "Etc/UTC"
     },
     "notifications": {
         "change-nickname": true,
@@ -67,8 +68,9 @@
             ]
         },
         "auto-kick": {
-            "minimum-age": 0,
             "force-avatar": true,
+            "minimum-age": 86400,
+            "skip-app-client": true,
             "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
         "monitor": {

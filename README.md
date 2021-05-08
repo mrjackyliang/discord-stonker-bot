@@ -63,6 +63,7 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 | `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID                                                                                                                                                           |
 | `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 | `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed                                                                                                                                                 |
+| `settings.time-zone`      | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
 
 ```json
 {
@@ -71,7 +72,8 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
         "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
-        "bot-prefix": "!"
+        "bot-prefix": "!",
+        "time-zone": "Etc/UTC"
     }
 }
 ```
@@ -181,29 +183,32 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 A set of tools to ban or kick members that could potentially be marked as a bot. You can automatically ban, kick, and scan the server for potential bots.
 
 - Automatically ban a user based on their avatar hash or username
-- Automatically kick a user (and send a direct message) if they don't meet the minimum age criteria
+- Automatically kick a user (and send a direct message) if they don't meet the minimum age criteria or don't have an avatar set
 - Automatically scan and send a message if potential raid bots have entered your server
 
-| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                          |
-|---------------------------------------------|------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `anti-raid`                                 | `object`   |                                                     |                                                                                              |
-| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                              |
-| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                 |
-| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                             |
-| `anti-raid.auto-kick`                       | `object`   |                                                     |                                                                                              |
-| `anti-raid.auto-kick.minimum-age`           | `number`   | Minimum age a user must have before joining server  | Calculate the [time in milliseconds](https://www.calculateme.com/time/days/to-milliseconds/) |
-| `anti-raid.auto-kick.force-avatar`          | `boolean`  | If a user must have an avatar before joining server | `true` or `false`                                                                            |
-| `anti-raid.auto-kick.direct-message`        | `string`   | Direct message content (optional)                   | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                              |
-| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                              |
-| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                           |
-| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                              |
-| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                           |
-| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                              |
-| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                           |
-| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                            |
-| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)        |
-| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                 |
+**EXTRA:** You can allow a user to skip checks if they are logged into the Discord desktop or mobile app.
+
+| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                   |
+|---------------------------------------------|------------|-----------------------------------------------------|---------------------------------------------------------------------------------------|
+| `anti-raid`                                 | `object`   |                                                     |                                                                                       |
+| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                       |
+| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                          |
+| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                      |
+| `anti-raid.auto-kick`                       | `object`   |                                                     |                                                                                       |
+| `anti-raid.auto-kick.force-avatar`          | `boolean`  | User must have avatar before joining server         | `true` or `false`                                                                     |
+| `anti-raid.auto-kick.minimum-age`           | `number`   | User must have minimum age before joining server    | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/) |
+| `anti-raid.auto-kick.skip-app-client`       | `boolean`  | Skip checks if user logged in on Discord apps       | `true` or `false`                                                                     |
+| `anti-raid.auto-kick.direct-message`        | `string`   | Direct message content (optional)                   | Cannot be empty and cannot exceed 2000 characters                                     |
+| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                       |
+| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                       |
+| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                    |
+| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                       |
+| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                    |
+| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                       |
+| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                    |
+| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                     |
+| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/) |
+| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                          |
 
 ```json
 {
@@ -217,8 +222,9 @@ A set of tools to ban or kick members that could potentially be marked as a bot.
             ]
         },
         "auto-kick": {
-            "minimum-age": 0,
             "force-avatar": true,
+            "minimum-age": 86400,
+            "skip-app-client": true,
             "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
         "monitor": {

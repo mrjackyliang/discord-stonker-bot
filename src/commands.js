@@ -125,7 +125,7 @@ async function addRole(message, botPrefix, allowedRoles) {
             'role to',
             (!_.isError(error)) ? chalk.green(guildMember.toString()) : chalk.red(guildMember.toString()),
           ].join(' '),
-          (!_.isError(error)) ? 40 : 10,
+          (!_.isError(error)) ? 30 : 10,
           (_.isError(error)) ? error : undefined,
         );
 
@@ -779,7 +779,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
           'to',
           commandArguments[2],
         ].join(' '),
-        40,
+        30,
       );
 
       await message.channel.send(createTogglePermsEmbed(
@@ -944,7 +944,7 @@ async function voice(message, botPrefix, allowedRoles) {
               (!_.isError(error)) ? chalk.green(channelMention) : chalk.red(channelMention),
               'voice channel',
             ].join(' '),
-            (!_.isError(error)) ? 40 : 10,
+            (!_.isError(error)) ? 30 : 10,
             (_.isError(error)) ? error : undefined,
           );
 
@@ -1052,6 +1052,15 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
 
   // Set user ID into whitelist.
   storage.whitelist.push(potentialUserId);
+
+  generateLogMessage(
+    [
+      'User ID',
+      chalk.green(potentialUserId),
+      'has been temporarily added into the anti-raid whitelist',
+    ].join(' '),
+    30,
+  );
 
   // Send success message.
   await message.channel.send(createWhitelistEmbed(

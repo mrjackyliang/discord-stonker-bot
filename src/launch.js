@@ -51,6 +51,7 @@ const configSettingsGuildId = _.get(config, 'settings.guild-id');
 const configSettingsLogChannelId = _.get(config, 'settings.log-channel-id');
 const configSettingsLogLevel = _.get(config, 'settings.log-level');
 const configSettingsBotPrefix = _.get(config, 'settings.bot-prefix');
+const configSettingsTimeZone = _.get(config, 'settings.time-zone');
 
 const configNotificationsChangeNickname = _.get(config, 'notifications.change-nickname');
 const configNotificationsChangeUsername = _.get(config, 'notifications.change-username');
@@ -141,6 +142,8 @@ client.on('ready', async () => {
     || !_.isString(configSettingsBotPrefix)
     || _.isEmpty(configSettingsBotPrefix)
     || _.size(configSettingsBotPrefix) > 3
+    || !_.isString(configSettingsTimeZone)
+    || _.isEmpty(configSettingsTimeZone)
   ) {
     if (_.isUndefined(guild)) {
       console.error([
@@ -170,6 +173,14 @@ client.on('ready', async () => {
       console.error([
         chalk.red('Server failed to start!'),
         '"settings.bot-prefix" is not configured, is invalid, or too long',
+        '...',
+      ].join(' '));
+    }
+
+    if (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone)) {
+      console.error([
+        chalk.red('Server failed to start!'),
+        '"settings.time-zone" is not configured or is invalid',
         '...',
       ].join(' '));
     }
@@ -506,6 +517,17 @@ client.on('ready', async () => {
       const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
 
       /**
+       * Anti-raid monitor.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidMonitor(member, 'join', guildJoinChannel).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidMonitor" function',
+        10,
+        error,
+      ));
+
+      /**
        * Anti-raid auto-ban.
        *
        * @since 1.0.0
@@ -528,17 +550,6 @@ client.on('ready', async () => {
           error,
         ));
       }
-
-      /**
-       * Anti-raid monitor.
-       *
-       * @since 1.0.0
-       */
-      await antiRaidMonitor(member, 'join', guildJoinChannel).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidMonitor" function',
-        10,
-        error,
-      ));
     }
   });
 
@@ -622,7 +633,7 @@ client.on('ready', async () => {
    */
   client.on('userUpdate', async (oldUser, newUser) => {
     // If member is in the guild.
-    if (guild.members.cache.has(newUser.id)) {
+    if (guild.members.cache.has(newUser.id) === true) {
       /**
        * Change username notification.
        *

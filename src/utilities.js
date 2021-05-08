@@ -1,6 +1,6 @@
 const axios = require('axios').default;
 const chalk = require('chalk');
-const { DateTime } = require('luxon');
+const luxon = require('luxon');
 const _ = require('lodash');
 
 const config = require('../config.json');
@@ -16,7 +16,8 @@ const config = require('../config.json');
  */
 function generateLogMessage(message, priority, error = undefined) {
   const logLevel = _.get(config, 'settings.log-level', 30);
-  const currentTime = DateTime.now().toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
+  const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
+  const currentTime = luxon.DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
 
   if (logLevel >= priority) {
     // Messages will not be logged if priority is wrong.
@@ -83,6 +84,48 @@ async function getGoogleCloudStorageObjects(message) {
       ));
     });
   }
+}
+
+/**
+ * Generates a readable time duration.
+ *
+ * @param {object} durationObject - Duration object from Luxon.
+ *
+ * @returns {string}
+ *
+ * @since 1.0.0
+ */
+function getReadableDuration(durationObject) {
+  const intervals = [];
+
+  if (_.get(durationObject, 'years', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.years)} year${(durationObject.years !== 1) ? 's' : ''}`);
+  }
+
+  if (_.get(durationObject, 'months', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.months)} month${(durationObject.months !== 1) ? 's' : ''}`);
+  }
+
+  if (_.get(durationObject, 'days', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.days)} day${(durationObject.days !== 1) ? 's' : ''}`);
+  }
+
+  if (_.get(durationObject, 'hours', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.hours)} hour${(durationObject.hours !== 1) ? 's' : ''}`);
+  }
+
+  if (_.get(durationObject, 'minutes', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.minutes)} minute${(durationObject.minutes !== 1) ? 's' : ''}`);
+  }
+
+  if (_.get(durationObject, 'seconds', 0) > 0) {
+    intervals.push(`${Math.round(durationObject.seconds)} second${(durationObject.seconds !== 1) ? 's' : ''}`);
+  }
+
+  // Fallback in case others don't show.
+  intervals.push(`${Math.round(durationObject.milliseconds)} millisecond${(durationObject.milliseconds !== 1) ? 's' : ''}`);
+
+  return `${intervals[0] || ''}${(intervals[1]) ? ` and ${intervals[1]}` : ''}`;
 }
 
 /**
@@ -155,6 +198,7 @@ function splitStringChunks(string, maxSize) {
 module.exports = {
   generateLogMessage,
   getGoogleCloudStorageObjects,
+  getReadableDuration,
   getTextBasedChannel,
   splitStringChunks,
 };

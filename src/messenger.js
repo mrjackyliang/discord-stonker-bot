@@ -47,7 +47,7 @@ async function autoReply(message, replies) {
               'Sent auto-reply message for',
               chalk.green(replyName),
             ].join(' '),
-            40,
+            30,
           );
         }).catch((error) => generateLogMessage(
           [

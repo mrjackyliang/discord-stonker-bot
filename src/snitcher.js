@@ -32,7 +32,7 @@ async function userChangeNickname(oldMember, newMember, sendToChannel) {
         'to',
         chalk.blue(newMember.nickname),
       ].join(' '),
-      40,
+      30,
     );
 
     await sendToChannel.send(createChangeNicknameEmbed(
@@ -70,7 +70,7 @@ async function userChangeUsername(oldUser, newUser, sendToChannel) {
         'to',
         chalk.blue(`@${newUser.tag}`),
       ].join(' '),
-      40,
+      30,
     );
 
     await sendToChannel.send(createChangeUsernameEmbed(
@@ -106,7 +106,7 @@ async function userDeleteMessage(message, sendToChannel) {
         chalk.red(message.channel.toString()),
         'was deleted',
       ].join(' '),
-      40,
+      30,
     );
 
     await sendToChannel.send(createDeleteMessageEmbed(
@@ -147,7 +147,7 @@ async function userUpdateMessage(message, sendToChannel) {
         chalk.yellow(message.channel.toString()),
         'was updated',
       ].join(' '),
-      40,
+      30,
     );
 
     await sendToChannel.send(createUpdateMessageEmbed(
@@ -193,7 +193,7 @@ async function userUploadAttachment(message, sendToChannel) {
         chalk.yellow(message.channel.toString()),
         'includes attachments',
       ].join(' '),
-      40,
+      30,
     );
 
     await sendToChannel.send({
