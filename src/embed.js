@@ -696,7 +696,7 @@ function createUploadAttachmentEmbed(userMention, channelMention, id, attachment
 function createWhitelistEmbed(potentialUserId, userTag) {
   return addEmbed(
     'Whitelisted',
-    `User ID ${potentialUserId} has been temporarily added into the anti-raid whitelist.`,
+    `The user ID matching \`${potentialUserId}\` has been temporarily added into the anti-raid whitelist.`,
     null,
     undefined,
     `Initiated by @${userTag}`,

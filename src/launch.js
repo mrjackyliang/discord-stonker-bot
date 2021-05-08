@@ -228,10 +228,11 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   client.on('message', async (message) => {
+    const messageSystem = _.get(message, 'system');
     const messageAuthorBot = _.get(message, 'author.bot');
     const messageGuildId = _.get(message, 'guild.id');
 
-    if (guild.id === messageGuildId && messageAuthorBot === false) {
+    if (guild.id === messageGuildId && messageSystem === false && messageAuthorBot === false) {
       /**
        * Add role.
        *
@@ -406,10 +407,11 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   client.on('messageUpdate', async (message) => {
+    const messageSystem = _.get(message, 'system');
     const messageAuthorBot = _.get(message, 'author.bot');
     const messageGuildId = _.get(message, 'guild.id');
 
-    if (guild.id === messageGuildId && messageAuthorBot === false) {
+    if (guild.id === messageGuildId && messageSystem === false && messageAuthorBot === false) {
       /**
        * Detect suspicious words.
        *

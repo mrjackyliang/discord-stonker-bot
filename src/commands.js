@@ -576,7 +576,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
   ) {
     commands.push({
       queries: [
-        `${botPrefix}whitelist [@user]`,
+        `${botPrefix}whitelist [user id]`,
       ],
       description: 'Temporarily whitelist a user kicked by anti-raid measures',
     });
@@ -1012,7 +1012,6 @@ async function voice(message, botPrefix, allowedRoles) {
  */
 async function whitelist(message, botPrefix, allowedRoles, storage) {
   const commandArguments = message.toString().split(' ');
-  const potentialUserId = _.replace(commandArguments[1], /[<@!>]/g, '');
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
@@ -1030,14 +1029,14 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
     return;
   }
 
-  // If member is invalid.
-  if (potentialUserId === '' || new RegExp(/^\d+$/, 'g').test(potentialUserId) === false) {
+  // If user ID is invalid.
+  if (_.isUndefined(commandArguments[1]) || new RegExp(/^\d+$/, 'g').test(commandArguments[1]) === false) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The member (${commandArguments[1]}) is invalid. Try using the command by tagging a member or pasting in the user ID.\r\n`,
+        `The user ID (${commandArguments[1]}) is invalid. Try using the command by pasting a user ID.\r\n`,
         'Examples:',
         '```',
-        `${botPrefix}whitelist [@user]`,
+        `${botPrefix}whitelist [user id]`,
         '```',
       ].join('\r\n'),
       message.member.user.tag,
@@ -1051,12 +1050,12 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
   }
 
   // Set user ID into whitelist.
-  storage.whitelist.push(potentialUserId);
+  storage.whitelist.push(commandArguments[1]);
 
   generateLogMessage(
     [
-      'User ID',
-      chalk.green(potentialUserId),
+      'User ID matching',
+      chalk.green(commandArguments[1]),
       'has been temporarily added into the anti-raid whitelist',
     ].join(' '),
     30,
@@ -1064,7 +1063,7 @@ async function whitelist(message, botPrefix, allowedRoles, storage) {
 
   // Send success message.
   await message.channel.send(createWhitelistEmbed(
-    potentialUserId,
+    commandArguments[1],
     message.member.user.tag,
   )).catch((error) => generateLogMessage(
     'Failed to send whitelist embed',
