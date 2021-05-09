@@ -151,6 +151,19 @@ function getTextBasedChannel(guild, channelId) {
 }
 
 /**
+ * Pause execution.
+ *
+ * @param {number} ms - Time in milliseconds.
+ *
+ * @returns {Promise<unknown>}
+ *
+ * @since 1.0.0
+ */
+function pauseExecution(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * Split string into chunks.
  *
  * @param {string} string  - Original string.
@@ -200,5 +213,6 @@ module.exports = {
   getGoogleCloudStorageObjects,
   getReadableDuration,
   getTextBasedChannel,
+  pauseExecution,
   splitStringChunks,
 };

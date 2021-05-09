@@ -39,6 +39,7 @@ const {
   getGoogleCloudStorageObjects,
   getTextBasedChannel,
   generateLogMessage,
+  pauseExecution,
 } = require('./utilities');
 
 /**
@@ -509,6 +510,9 @@ client.on('ready', async () => {
   client.on('guildMemberAdd', async (member) => {
     const memberGuildId = _.get(member, 'guild.id');
 
+    // Wait for "member.presence.clientStatus" to become available.
+    await pauseExecution(100);
+
     // If member is in the guild.
     if (guild.id === memberGuildId) {
       const bannedAvatar = _.get(configAntiRaidAutoBan, 'avatar');
@@ -562,6 +566,9 @@ client.on('ready', async () => {
    */
   client.on('guildMemberRemove', async (member) => {
     const memberGuildId = _.get(member, 'guild.id');
+
+    // Wait for "member.presence.clientStatus" to become available.
+    await pauseExecution(100);
 
     // If member is in the guild.
     if (guild.id === memberGuildId) {

@@ -420,7 +420,7 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
     const displayRoles = (_.size(assignedRoles) > 0) ? `roles (${assignedRolesMention.join(', ')})` : 'no roles';
 
     fields.push({
-      name: 'Additional Information',
+      name: '**Additional Information**',
       value: `Member stayed in the guild for ${timeOfStayDuration} and has ${displayRoles}.`,
     });
   }
