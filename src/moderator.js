@@ -13,18 +13,18 @@ const { generateLogMessage } = require('./utilities');
 /**
  * Anti-raid auto-ban.
  *
- * @param {module:"discord.js".GuildMember} member  - Member information.
- * @param {object}                          banList - Banned users from configuration.
+ * @param {module:"discord.js".GuildMember} member   - Member information.
+ * @param {object}                          settings - Banned users from configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function antiRaidAutoBan(member, banList) {
+async function antiRaidAutoBan(member, settings) {
   const userAvatar = member.user.avatar;
   const userUsername = member.user.username;
-  const avatars = _.get(banList, 'avatar');
-  const usernames = _.get(banList, 'username');
+  const avatars = _.get(settings, 'avatar');
+  const usernames = _.get(settings, 'username');
 
   if (
     (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar)))
@@ -52,103 +52,6 @@ async function antiRaidAutoBan(member, banList) {
         );
       }).catch((error) => generateLogMessage(
         'Failed to ban member',
-        10,
-        error,
-      ));
-    }
-  }
-}
-
-/**
- * Anti-raid auto-kick.
- *
- * @param {module:"discord.js".GuildMember} member   - Member information.
- * @param {object}                          settings - Anti-raid settings from configuration.
- * @param {object}                          storage  - Anti-raid session storage.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function antiRaidAutoKick(member, settings, storage) {
-  const memberUserAvatar = member.user.avatar;
-  const memberUserCreatedTimestamp = member.user.createdTimestamp;
-  const memberUserPresenceClientStatus = member.user.presence.clientStatus;
-  const forceAvatar = _.get(settings, 'force-avatar');
-  const minimumAge = _.get(settings, 'minimum-age');
-  const skipAppClient = _.get(settings, 'skip-app-client');
-  const directMessage = _.get(settings, 'direct-message');
-  const userAge = Math.round((Date.now() - memberUserCreatedTimestamp) / 1000);
-
-  // Set a direct message tracker.
-  if (_.get(storage, `dmTracker[${member.id}]`) === undefined) {
-    _.set(storage, `dmTracker[${member.id}]`, false);
-  }
-
-  // If user is not whitelisted.
-  if (!_.includes(storage.whitelist, member.id)) {
-    if ((_.isFinite(minimumAge) && !(userAge >= minimumAge)) || (forceAvatar === true && memberUserAvatar === null)) {
-      const fragmentAvatar = (memberUserAvatar === null) ? 'have avatar' : undefined;
-      const fragmentMinAge = !(userAge >= minimumAge) ? 'meet minimum age requirements' : undefined;
-      const hasDesktopClient = _.has(memberUserPresenceClientStatus, 'desktop');
-      const hasMobileClient = _.has(memberUserPresenceClientStatus, 'mobile');
-
-      // Excludes users joining on app clients from being automatically kicked.
-      if (skipAppClient === true && (hasDesktopClient || hasMobileClient)) {
-        generateLogMessage(
-          [
-            chalk.green(member.toString()),
-            'failed anti-raid requirements, but spared because Discord app clients were detected',
-          ].join(' '),
-          30,
-        );
-
-        return;
-      }
-
-      // If user has never been sent an anti-raid direct message before.
-      if (
-        _.isString(directMessage)
-        && !_.isEmpty(directMessage)
-        && _.get(storage, `dmTracker[${member.id}]`) === false
-      ) {
-        await member.createDM().then(async (dmChannel) => {
-          await dmChannel.send(directMessage).then(() => {
-            _.set(storage, `dmTracker[${member.id}]`, true);
-
-            generateLogMessage(
-              [
-                'Sent direct message to',
-                chalk.green(member.toString()),
-                'because member does not',
-                fragmentAvatar || fragmentMinAge,
-              ].join(' '),
-              30,
-            );
-          }).catch((error) => generateLogMessage(
-            'Failed to send direct message',
-            10,
-            error,
-          ));
-        }).catch((error) => generateLogMessage(
-          'Failed to create direct message channel',
-          10,
-          error,
-        ));
-      }
-
-      // Member does not meet minimum age or avatar requirements.
-      await member.kick(`Member does not ${fragmentAvatar || fragmentMinAge}`).then(() => {
-        generateLogMessage(
-          [
-            chalk.red(member.toString()),
-            'was automatically kicked because member does not',
-            fragmentAvatar || fragmentMinAge,
-          ].join(' '),
-          30,
-        );
-      }).catch((error) => generateLogMessage(
-        'Failed to kick member',
         10,
         error,
       ));
@@ -284,6 +187,76 @@ async function antiRaidScanner(guild, settings, sendToChannel) {
 }
 
 /**
+ * Anti-raid verification notice.
+ *
+ * @param {module:"discord.js".GuildMember} member        - Member information.
+ * @param {object}                          settings      - Verification settings from configuration.
+ * @param {TextBasedChannel}                sendToChannel - Send message to channel.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidVerifyNotice(member, settings, sendToChannel) {
+  const message = _.get(settings, 'message');
+
+  let newMessage;
+
+  if (_.isUndefined(sendToChannel) || _.isUndefined(message)) {
+    return;
+  }
+
+  // Replace variables.
+  newMessage = _.replace(message, /%MEMBER_USERNAME%/g, member.user.username);
+  newMessage = _.replace(newMessage, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
+  newMessage = _.replace(newMessage, /%MEMBER_MENTION%/g, member.toString());
+
+  await sendToChannel.send(newMessage).catch((error) => generateLogMessage(
+    'Failed to send message',
+    10,
+    error,
+  ));
+}
+
+/**
+ * Anti-raid verification role.
+ *
+ * @param {module:"discord.js".Message} message  - Message object.
+ * @param {object}                      settings - Verification settings from configuration.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidVerifyRole(message, settings) {
+  const messageMemberDiscriminator = _.get(message, 'member.user.discriminator');
+  const messageChannelId = _.get(message, 'channel.id');
+  const settingsChannelId = _.get(settings, 'channel-id');
+  const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
+
+  if (!_.isString(settingsVerifiedRoleId) || _.isEmpty(settingsVerifiedRoleId) || settingsChannelId !== messageChannelId) {
+    return;
+  }
+
+  // If verification code is correct, assign role.
+  if (message.toString() === messageMemberDiscriminator) {
+    message.member.roles.add(settingsVerifiedRoleId).then(() => {
+      generateLogMessage(
+        [
+          chalk.green(message.member.toString()),
+          'has completed verification and was assigned the verified role',
+        ].join(' '),
+        30,
+      );
+    }).catch((error) => generateLogMessage(
+      'Failed to add verified role',
+      10,
+      error,
+    ));
+  }
+}
+
+/**
  * Check regex channels.
  *
  * @param {module:"discord.js".Message} message    - Message object.
@@ -360,7 +333,7 @@ async function checkRegexChannels(message, regexRules) {
 }
 
 /**
- * Detects suspicious words.
+ * Detect suspicious words.
  *
  * @param {module:"discord.js".Message} message         - Message object.
  * @param {object[]}                    suspiciousWords - Suspicious words from configuration.
@@ -542,9 +515,10 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
 
 module.exports = {
   antiRaidAutoBan,
-  antiRaidAutoKick,
   antiRaidMonitor,
   antiRaidScanner,
+  antiRaidVerifyNotice,
+  antiRaidVerifyRole,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,

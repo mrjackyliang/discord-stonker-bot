@@ -50,12 +50,6 @@
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
-        ],
-        "whitelist": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
         ]
     },
     "anti-raid": {
@@ -66,12 +60,6 @@
             "username": [
                 "Bad User"
             ]
-        },
-        "auto-kick": {
-            "force-avatar": true,
-            "minimum-age": 86400,
-            "skip-app-client": true,
-            "direct-message": "Failed to join server. Please contact server owner for assistance."
         },
         "monitor": {
             "guild-join": {
@@ -88,6 +76,11 @@
             "whitelisted-avatars": [
                 "00000000000000000000000000000000"
             ]
+        },
+        "verify": {
+            "channel-id": "000000000000000000",
+            "verified-role-id": "000000000000000000",
+            "message": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify."
         }
     },
     "schedule-posts": [

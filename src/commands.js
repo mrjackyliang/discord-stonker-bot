@@ -9,7 +9,6 @@ const {
   createNoResultsEmbed,
   createTogglePermsEmbed,
   createVoiceEmbed,
-  createWhitelistEmbed,
 } = require('./embed');
 const { generateLogMessage } = require('./utilities');
 
@@ -483,7 +482,6 @@ async function help(message, botPrefix, allowedRoles, settings) {
   const allowFindDuplicateUsersRoles = _.get(settings, 'configCommandsFindDuplicateUsers');
   const allowTogglePermsRoles = _.get(settings, 'configCommandsTogglePerms');
   const allowVoiceRoles = _.get(settings, 'configCommandsVoice');
-  const allowWhitelistRoles = _.get(settings, 'configCommandsWhitelist');
 
   const commands = [];
 
@@ -567,18 +565,6 @@ async function help(message, botPrefix, allowedRoles, settings) {
         `${botPrefix}voice unmute [#channel]`,
       ],
       description: 'Disconnect or unmute everyone in a voice channel',
-    });
-  }
-
-  if (
-    _.some(allowWhitelistRoles, (allowWhitelistRole) => message.member.roles.cache.has(allowWhitelistRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
-  ) {
-    commands.push({
-      queries: [
-        `${botPrefix}whitelist [user id]`,
-      ],
-      description: 'Temporarily whitelist a user kicked by anti-raid measures',
     });
   }
 
@@ -998,80 +984,6 @@ async function voice(message, botPrefix, allowedRoles) {
   ));
 }
 
-/**
- * Whitelist.
- *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
- * @param {object}                      storage      - Anti-raid session storage.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function whitelist(message, botPrefix, allowedRoles, storage) {
-  const commandArguments = message.toString().split(' ');
-
-  if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
-  ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}whitelist\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  // If user ID is invalid.
-  if (_.isUndefined(commandArguments[1]) || new RegExp(/^\d+$/, 'g').test(commandArguments[1]) === false) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The user ID (${commandArguments[1]}) is invalid. Try using the command by pasting a user ID.\r\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}whitelist [user id]`,
-        '```',
-      ].join('\r\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  // Set user ID into whitelist.
-  storage.whitelist.push(commandArguments[1]);
-
-  generateLogMessage(
-    [
-      'User ID matching',
-      chalk.green(commandArguments[1]),
-      'has been temporarily added into the anti-raid whitelist',
-    ].join(' '),
-    30,
-  );
-
-  // Send success message.
-  await message.channel.send(createWhitelistEmbed(
-    commandArguments[1],
-    message.member.user.tag,
-  )).catch((error) => generateLogMessage(
-    'Failed to send whitelist embed',
-    10,
-    error,
-  ));
-}
-
 module.exports = {
   addRole,
   fetchMembers,
@@ -1079,5 +991,4 @@ module.exports = {
   help,
   togglePerms,
   voice,
-  whitelist,
 };

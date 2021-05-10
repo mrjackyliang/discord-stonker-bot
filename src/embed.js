@@ -396,21 +396,16 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
     });
   }
 
-  fields.push({
-    name: '**Avatar Hash**',
-    value: (avatar !== null) ? `\`${avatar}\`` : 'unavailable',
-  });
+  if (avatar !== null) {
+    fields.push({
+      name: '**Avatar Hash**',
+      value: `\`${avatar}\``,
+    });
+  }
 
   fields.push({
     name: '**Account Age**',
-    value: (accountAge !== null) ? getReadableDuration(accountAge) : 'unavailable',
-    inline: true,
-  });
-
-  fields.push({
-    name: '**Client Statuses**',
-    value: (clientStatus !== null) ? _.map(clientStatus, (status, client) => `${client} (${status})`).join(', ') : 'unavailable',
-    inline: true,
+    value: getReadableDuration(accountAge),
   });
 
   if (mode === 'leave') {
@@ -683,27 +678,6 @@ function createUploadAttachmentEmbed(userMention, channelMention, id, attachment
   );
 }
 
-/**
- * Create whitelist embed.
- *
- * @param {string} potentialUserId - Potential user id.
- * @param {string} userTag         - User tag of initiator.
- *
- * @returns {module:"discord.js".MessageEmbed}
- *
- * @since 1.0.0
- */
-function createWhitelistEmbed(potentialUserId, userTag) {
-  return addEmbed(
-    'Whitelisted',
-    `The user ID matching \`${potentialUserId}\` has been temporarily added into the anti-raid whitelist.`,
-    null,
-    undefined,
-    `Initiated by @${userTag}`,
-    '#5fdc46',
-  );
-}
-
 module.exports = {
   createAddRoleEmbed,
   createChangeNicknameEmbed,
@@ -720,5 +694,4 @@ module.exports = {
   createUpdateMessageEmbed,
   createVoiceEmbed,
   createUploadAttachmentEmbed,
-  createWhitelistEmbed,
 };

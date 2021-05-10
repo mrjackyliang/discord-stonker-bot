@@ -11,14 +11,14 @@ const {
   help,
   togglePerms,
   voice,
-  whitelist,
 } = require('./commands');
 const { autoReply } = require('./messenger');
 const {
   antiRaidAutoBan,
-  antiRaidAutoKick,
   antiRaidMonitor,
   antiRaidScanner,
+  antiRaidVerifyNotice,
+  antiRaidVerifyRole,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
@@ -39,7 +39,6 @@ const {
   getGoogleCloudStorageObjects,
   getTextBasedChannel,
   generateLogMessage,
-  pauseExecution,
 } = require('./utilities');
 
 /**
@@ -66,12 +65,11 @@ const configCommandsFindDuplicateUsers = _.get(config, 'commands.find-duplicate-
 const configCommandsHelp = _.get(config, 'commands.help');
 const configCommandsTogglePerms = _.get(config, 'commands.toggle-perms');
 const configCommandsVoice = _.get(config, 'commands.voice');
-const configCommandsWhitelist = _.get(config, 'commands.whitelist');
 
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
-const configAntiRaidAutoKick = _.get(config, 'anti-raid.auto-kick');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configAntiRaidScanner = _.get(config, 'anti-raid.scanner');
+const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
 
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRegexRules = _.get(config, 'regex-rules');
@@ -80,18 +78,6 @@ const configRemoveRoles = _.get(config, 'remove-roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configTogglePerms = _.get(config, 'toggle-perms');
-
-/**
- * Bot session storage.
- *
- * @since 1.0.0
- */
-const sessionStorage = {
-  antiRaidAutoKick: {
-    dmTracker: {},
-    whitelist: [],
-  },
-};
 
 /**
  * Discord client.
@@ -173,7 +159,7 @@ client.on('ready', async () => {
     if (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3) {
       console.error([
         chalk.red('Server failed to start!'),
-        '"settings.bot-prefix" is not configured, is invalid, or too long',
+        '"settings.bot-prefix" is not configured or too long',
         '...',
       ].join(' '));
     }
@@ -181,7 +167,7 @@ client.on('ready', async () => {
     if (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone)) {
       console.error([
         chalk.red('Server failed to start!'),
-        '"settings.time-zone" is not configured or is invalid',
+        '"settings.time-zone" is not configured',
         '...',
       ].join(' '));
     }
@@ -248,6 +234,17 @@ client.on('ready', async () => {
       }
 
       /**
+       * Anti-raid verification role.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidVerifyRole(message, configAntiRaidVerify).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidVerifyRole" function',
+        10,
+        error,
+      ));
+
+      /**
        * Auto reply.
        *
        * @since 1.0.0
@@ -259,7 +256,7 @@ client.on('ready', async () => {
       ));
 
       /**
-       * Check regular expression restricted channels.
+       * Check regex channels.
        *
        * @since 1.0.0
        */
@@ -307,7 +304,7 @@ client.on('ready', async () => {
       }
 
       /**
-       * Cache attachments.
+       * Get Google Cloud Storage objects.
        *
        * @since 1.0.0
        */
@@ -329,7 +326,6 @@ client.on('ready', async () => {
           configCommandsFindDuplicateUsers,
           configCommandsTogglePerms,
           configCommandsVoice,
-          configCommandsWhitelist,
         }).catch((error) => generateLogMessage(
           'Failed to execute "help" function',
           10,
@@ -386,19 +382,6 @@ client.on('ready', async () => {
           error,
         ));
       }
-
-      /**
-       * Whitelist.
-       *
-       * @since 1.0.0
-       */
-      if (message.toString().startsWith(`${configSettingsBotPrefix}whitelist`)) {
-        await whitelist(message, configSettingsBotPrefix, configCommandsWhitelist, sessionStorage.antiRaidAutoKick).catch((error) => generateLogMessage(
-          'Failed to execute "whitelist" function',
-          10,
-          error,
-        ));
-      }
     }
   });
 
@@ -425,7 +408,7 @@ client.on('ready', async () => {
       ));
 
       /**
-       * Cache attachments.
+       * Get Google Cloud Storage objects.
        *
        * @since 1.0.0
        */
@@ -510,17 +493,12 @@ client.on('ready', async () => {
   client.on('guildMemberAdd', async (member) => {
     const memberGuildId = _.get(member, 'guild.id');
 
-    // Wait for "member.presence.clientStatus" to become available.
-    await pauseExecution(100);
-
     // If member is in the guild.
     if (guild.id === memberGuildId) {
-      const bannedAvatar = _.get(configAntiRaidAutoBan, 'avatar');
-      const bannedUsername = _.get(configAntiRaidAutoBan, 'username');
-      const memberAvatar = _.get(member, 'user.avatar');
-      const memberUsername = _.get(member, 'user.username');
       const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
       const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
+      const verifyChannelId = _.get(configAntiRaidVerify, 'channel-id');
+      const verifyChannel = getTextBasedChannel(guild, verifyChannelId);
 
       /**
        * Anti-raid monitor.
@@ -545,17 +523,15 @@ client.on('ready', async () => {
       ));
 
       /**
-       * Anti-raid auto-kick.
+       * Anti-raid verification notice.
        *
        * @since 1.0.0
        */
-      if (!_.includes(bannedAvatar, memberAvatar) && !_.includes(bannedUsername, memberUsername)) {
-        await antiRaidAutoKick(member, configAntiRaidAutoKick, sessionStorage.antiRaidAutoKick).catch((error) => generateLogMessage(
-          'Failed to execute "antiRaidAutoKick" function',
-          10,
-          error,
-        ));
-      }
+      await antiRaidVerifyNotice(member, configAntiRaidVerify, verifyChannel).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidVerifyNotice" function',
+        10,
+        error,
+      ));
     }
   });
 
@@ -566,9 +542,6 @@ client.on('ready', async () => {
    */
   client.on('guildMemberRemove', async (member) => {
     const memberGuildId = _.get(member, 'guild.id');
-
-    // Wait for "member.presence.clientStatus" to become available.
-    await pauseExecution(100);
 
     // If member is in the guild.
     if (guild.id === memberGuildId) {

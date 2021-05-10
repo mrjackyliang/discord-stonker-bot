@@ -11,7 +11,7 @@ const {
 const { generateLogMessage } = require('./utilities');
 
 /**
- * When user changes their nickname.
+ * Change nickname notification.
  *
  * @param {module:"discord.js".GuildMember} oldMember     - Member information (old).
  * @param {module:"discord.js".GuildMember} newMember     - Member information (new).
@@ -49,7 +49,7 @@ async function userChangeNickname(oldMember, newMember, sendToChannel) {
 }
 
 /**
- * When user changes their username.
+ * Change username notification.
  *
  * @param {module:"discord.js".User} oldUser       - User information (old).
  * @param {module:"discord.js".User} newUser       - User information (new).
@@ -87,7 +87,7 @@ async function userChangeUsername(oldUser, newUser, sendToChannel) {
 }
 
 /**
- * When user deletes the message.
+ * Delete message notification.
  *
  * @param {module:"discord.js".Message} message       - Message object.
  * @param {TextBasedChannel}            sendToChannel - Send message to channel.
@@ -125,7 +125,7 @@ async function userDeleteMessage(message, sendToChannel) {
 }
 
 /**
- * When user updates the message.
+ * Update message notification.
  *
  * @param {module:"discord.js".Message} message       - Message object.
  * @param {TextBasedChannel}            sendToChannel - Send message to channel.
@@ -167,7 +167,7 @@ async function userUpdateMessage(message, sendToChannel) {
 }
 
 /**
- * When user uploads attachments.
+ * Upload attachment notification.
  *
  * @param {module:"discord.js".Message} message       - Message object.
  * @param {TextBasedChannel}            sendToChannel - Send message to channel.
