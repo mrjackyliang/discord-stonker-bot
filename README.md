@@ -173,26 +173,29 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ### 4. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps implement a verification gate for those that just joined the server.
 
-| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                                                        |
-|---------------------------------------------|------------|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `anti-raid`                                 | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                                                               |
-| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                                                                           |
-| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                                                         |
-| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                                                         |
-| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                                                                         |
-| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                                                                          |
-| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)                                                      |
-| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                                                               |
-| `anti-raid.verify`                          | `object`   |                                                     |                                                                                                                                            |
-| `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                                                         |
-| `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                                                            |
-| `anti-raid.verify.message`                  | `string`   | Verification message                                | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_USERNAME%`, `%MEMBER_DISCRIMINATOR%`, and `%MEMBER_MENTION%` |
+| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                                   |
+|---------------------------------------------|------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| `anti-raid`                                 | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                                          |
+| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                                                      |
+| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                                    |
+| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                                    |
+| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                                                    |
+| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                                                     |
+| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)                                 |
+| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                                          |
+| `anti-raid.verify`                          | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                                    |
+| `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                                       |
+| `anti-raid.verify.messages`                 | `object`   |                                                     |                                                                                                                       |
+| `anti-raid.verify.messages.instructions`    | `string`   | Message sent when user joins the server             | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_DISCRIMINATOR%`, and `%MEMBER_MENTION%` |
+| `anti-raid.verify.messages.valid`           | `string`   | Message sent when verification is successful        | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                               |
+| `anti-raid.verify.messahes.invalid`         | `string`   | Message sent when verification failed               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                               |
 
 ```json
 {
@@ -224,7 +227,11 @@ A set of tools to ban members (based on their avatar hash or username), and help
         "verify": {
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
-            "message": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify."
+            "messages": {
+                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify.",
+                "valid": "%MEMBER_MENTION%, you have been verified.",
+                "invalid": "%MEMBER_MENTION%, invalid code."
+            }
         }
     }
 }

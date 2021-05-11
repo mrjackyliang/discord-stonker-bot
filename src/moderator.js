@@ -198,7 +198,7 @@ async function antiRaidScanner(guild, settings, sendToChannel) {
  * @since 1.0.0
  */
 async function antiRaidVerifyNotice(member, settings, sendToChannel) {
-  const message = _.get(settings, 'message');
+  const message = _.get(settings, 'messages.instructions');
 
   let newMessage;
 
@@ -207,8 +207,7 @@ async function antiRaidVerifyNotice(member, settings, sendToChannel) {
   }
 
   // Replace variables.
-  newMessage = _.replace(message, /%MEMBER_USERNAME%/g, member.user.username);
-  newMessage = _.replace(newMessage, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
+  newMessage = _.replace(message, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
   newMessage = _.replace(newMessage, /%MEMBER_MENTION%/g, member.toString());
 
   await sendToChannel.send(newMessage).catch((error) => generateLogMessage(
@@ -233,27 +232,64 @@ async function antiRaidVerifyRole(message, settings) {
   const messageChannelId = _.get(message, 'channel.id');
   const settingsChannelId = _.get(settings, 'channel-id');
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
+  const settingsMessageValid = _.get(settings, 'messages.valid');
+  const settingsMessageInvalid = _.get(settings, 'messages.invalid');
 
-  if (!_.isString(settingsVerifiedRoleId) || _.isEmpty(settingsVerifiedRoleId) || settingsChannelId !== messageChannelId) {
+  if (
+    !_.isString(settingsVerifiedRoleId)
+    || _.isEmpty(settingsVerifiedRoleId)
+    || !_.isString(settingsMessageValid)
+    || _.isEmpty(settingsMessageValid)
+    || !_.isString(settingsMessageInvalid)
+    || _.isEmpty(settingsMessageInvalid)
+    || settingsChannelId !== messageChannelId
+  ) {
     return;
   }
 
-  // If verification code is correct, assign role.
-  if (message.toString() === messageMemberDiscriminator) {
-    message.member.roles.add(settingsVerifiedRoleId).then(() => {
-      generateLogMessage(
-        [
-          chalk.green(message.member.toString()),
-          'has completed verification and was assigned the verified role',
-        ].join(' '),
-        30,
-      );
-    }).catch((error) => generateLogMessage(
-      'Failed to add verified role',
-      10,
-      error,
-    ));
-  }
+  // Delete message first.
+  await message.delete().then(async () => {
+    // If verification code is correct, assign role.
+    if (message.toString() === messageMemberDiscriminator) {
+      await message.channel.send(_.replace(
+        settingsMessageValid,
+        /%MEMBER_MENTION%/g,
+        message.member.toString(),
+      )).catch((error) => generateLogMessage(
+        'Failed to send message',
+        10,
+        error,
+      ));
+
+      await message.member.roles.add(settingsVerifiedRoleId).then(() => {
+        generateLogMessage(
+          [
+            chalk.green(message.member.toString()),
+            'has completed verification and was assigned the verified role',
+          ].join(' '),
+          30,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to add role',
+        10,
+        error,
+      ));
+    } else {
+      await message.channel.send(_.replace(
+        settingsMessageInvalid,
+        /%MEMBER_MENTION%/g,
+        message.member.toString(),
+      )).catch((error) => generateLogMessage(
+        'Failed to send message',
+        10,
+        error,
+      ));
+    }
+  }).catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
 }
 
 /**

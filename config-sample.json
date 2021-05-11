@@ -80,7 +80,11 @@
         "verify": {
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
-            "message": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify."
+            "messages": {
+                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify.",
+                "valid": "%MEMBER_MENTION%, you have been verified.",
+                "invalid": "%MEMBER_MENTION%, invalid code."
+            }
         }
     },
     "schedule-posts": [
