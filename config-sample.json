@@ -84,7 +84,13 @@
                 "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify.",
                 "valid": "%MEMBER_MENTION%, you have been verified.",
                 "invalid": "%MEMBER_MENTION%, invalid code."
-            }
+            },
+            "exclude-roles": [
+                {
+                    "description": "Sample role",
+                    "id": "000000000000000000"
+                }
+            ]
         }
     },
     "schedule-posts": [

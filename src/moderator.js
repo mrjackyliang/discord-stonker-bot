@@ -207,8 +207,8 @@ async function antiRaidVerifyNotice(member, settings, sendToChannel) {
   }
 
   // Replace variables.
-  newMessage = _.replace(message, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
-  newMessage = _.replace(newMessage, /%MEMBER_MENTION%/g, member.toString());
+  newMessage = _.replace(message, /%MEMBER_MENTION%/g, member.toString());
+  newMessage = _.replace(newMessage, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
 
   await sendToChannel.send(newMessage).catch((error) => generateLogMessage(
     'Failed to send message',
@@ -234,6 +234,7 @@ async function antiRaidVerifyRole(message, settings) {
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
   const settingsMessageValid = _.get(settings, 'messages.valid');
   const settingsMessageInvalid = _.get(settings, 'messages.invalid');
+  const settingsExcludeRoles = _.get(settings, 'exclude-roles');
 
   if (
     !_.isString(settingsVerifiedRoleId)
@@ -242,6 +243,8 @@ async function antiRaidVerifyRole(message, settings) {
     || _.isEmpty(settingsMessageValid)
     || !_.isString(settingsMessageInvalid)
     || _.isEmpty(settingsMessageInvalid)
+    || _.some(settingsExcludeRoles, (settingsExcludeRole) => message.member.roles.cache.has(settingsExcludeRole.id))
+    || message.member.hasPermission('ADMINISTRATOR')
     || settingsChannelId !== messageChannelId
   ) {
     return;
