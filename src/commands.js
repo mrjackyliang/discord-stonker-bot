@@ -357,7 +357,11 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
     message.channel.send(createListMembersEmbed(
       `${avatarTitle || roleTitle || stringTitle || usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
       matchedUsersChunk,
-      (_.has(member, 'user')) ? member.user.displayAvatarURL({ size: 256 }) : null,
+      (_.has(member, 'user')) ? member.user.displayAvatarURL({
+        format: 'webp',
+        dynamic: true,
+        size: 4096,
+      }) : null,
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send list members embed',
@@ -634,8 +638,8 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
       if (key < 10) {
         commands += [
           `${botPrefix}toggle-perms ${permsId} on`,
-          `${botPrefix}toggle-perms ${permsId} off\r\n`,
-        ].join('\r\n\r\n');
+          `${botPrefix}toggle-perms ${permsId} off\r\n\r\n`,
+        ].join('\r\n');
       }
     });
 
@@ -808,7 +812,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 async function voice(message, botPrefix, allowedRoles) {
   const commandArguments = message.toString().split(' ');
   const channel = message.channel.guild.channels.cache.get(_.replace(commandArguments[2], /[<#>]/g, ''));
-  const isVoiceChannel = (channel && channel.type === 'voice');
+  const isVoiceChannel = _.includes(['voice', 'stage'], _.get(channel, 'type'));
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)

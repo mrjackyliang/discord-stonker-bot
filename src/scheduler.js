@@ -40,13 +40,13 @@ function schedulePost(event, sendToChannel) {
     return;
   }
 
-  // If "message" is not a string, is empty, or is longer than 2000 characters.
-  if (!_.isString(message) || _.isEmpty(message) || _.size(message) > 2000) {
+  // If "message" is not a string, is not a plain object, and is empty.
+  if (!_.isString(message) && !_.isPlainObject(message) && _.isEmpty(message)) {
     generateLogMessage(
       [
         '"message" for',
         chalk.red(name),
-        'post event is not a string, is empty, or is longer than 2000 characters',
+        'post event is not a string, is not a plain object, and is empty',
       ].join(' '),
       10,
     );

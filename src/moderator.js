@@ -93,7 +93,11 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
     member.user.tag,
     member.user.toString(),
     member.user.avatar,
-    member.user.displayAvatarURL(),
+    member.user.displayAvatarURL({
+      format: 'webp',
+      dynamic: true,
+      size: 4096,
+    }),
     member.user.createdAt,
     member.joinedAt,
     member.user.presence.clientStatus,
@@ -198,19 +202,17 @@ async function antiRaidScanner(guild, settings, sendToChannel) {
  * @since 1.0.0
  */
 async function antiRaidVerifyNotice(member, settings, sendToChannel) {
-  const message = _.get(settings, 'messages.instructions');
+  const userId = _.get(member, 'user.id');
+  const memberCode = _.replace(userId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
+  const instructions = _.get(settings, 'messages.instructions', '')
+    .replace(/%MEMBER_MENTION%/g, member.toString())
+    .replace(/%MEMBER_CODE%/g, memberCode);
 
-  let newMessage;
-
-  if (_.isUndefined(sendToChannel) || _.isUndefined(message)) {
+  if (_.isUndefined(sendToChannel) || instructions === '') {
     return;
   }
 
-  // Replace variables.
-  newMessage = _.replace(message, /%MEMBER_MENTION%/g, member.toString());
-  newMessage = _.replace(newMessage, /%MEMBER_DISCRIMINATOR%/g, member.user.discriminator);
-
-  await sendToChannel.send(newMessage).catch((error) => generateLogMessage(
+  await sendToChannel.send(instructions).catch((error) => generateLogMessage(
     'Failed to send message',
     10,
     error,
@@ -228,13 +230,27 @@ async function antiRaidVerifyNotice(member, settings, sendToChannel) {
  * @since 1.0.0
  */
 async function antiRaidVerifyRole(message, settings) {
-  const messageMemberDiscriminator = _.get(message, 'member.user.discriminator');
+  const messageMemberUserId = _.get(message, 'member.user.id');
   const messageChannelId = _.get(message, 'channel.id');
   const settingsChannelId = _.get(settings, 'channel-id');
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
   const settingsMessageValid = _.get(settings, 'messages.valid');
   const settingsMessageInvalid = _.get(settings, 'messages.invalid');
   const settingsExcludeRoles = _.get(settings, 'exclude-roles');
+
+  const userCode = _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1$3');
+  const userInput = message.toString()
+    .replace(/[- –—−]/g, '')
+    .replace(/[０]/g, '0')
+    .replace(/[１]/g, '1')
+    .replace(/[２]/g, '2')
+    .replace(/[３]/g, '3')
+    .replace(/[４]/g, '4')
+    .replace(/[５]/g, '5')
+    .replace(/[６]/g, '6')
+    .replace(/[７]/g, '7')
+    .replace(/[８]/g, '8')
+    .replace(/[９]/g, '9');
 
   if (
     !_.isString(settingsVerifiedRoleId)
@@ -253,7 +269,8 @@ async function antiRaidVerifyRole(message, settings) {
   // Delete message first.
   await message.delete().then(async () => {
     // If verification code is correct, assign role.
-    if (message.toString() === messageMemberDiscriminator) {
+    if (userCode === userInput) {
+      // Send valid message.
       await message.channel.send(_.replace(
         settingsMessageValid,
         /%MEMBER_MENTION%/g,
@@ -264,6 +281,7 @@ async function antiRaidVerifyRole(message, settings) {
         error,
       ));
 
+      // Add verified role.
       await message.member.roles.add(settingsVerifiedRoleId).then(() => {
         generateLogMessage(
           [
@@ -278,6 +296,7 @@ async function antiRaidVerifyRole(message, settings) {
         error,
       ));
     } else {
+      // Send invalid message.
       await message.channel.send(_.replace(
         settingsMessageInvalid,
         /%MEMBER_MENTION%/g,

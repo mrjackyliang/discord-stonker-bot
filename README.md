@@ -173,29 +173,29 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ### 4. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps implement a verification gate for those that just joined the server.
 
-| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                                   |
-|---------------------------------------------|------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| `anti-raid`                                 | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                                          |
-| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                                                      |
-| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                                    |
-| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                                    |
-| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                                                    |
-| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                                                     |
-| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)                                 |
-| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                                          |
-| `anti-raid.verify`                          | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                                    |
-| `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                                       |
-| `anti-raid.verify.messages`                 | `object`   |                                                     |                                                                                                                       |
-| `anti-raid.verify.messages.instructions`    | `string`   | Message sent when user joins the server             | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_DISCRIMINATOR%`, and `%MEMBER_MENTION%` |
-| `anti-raid.verify.messages.valid`           | `string`   | Message sent when verification is successful        | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                               |
-| `anti-raid.verify.messahes.invalid`         | `string`   | Message sent when verification failed               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                               |
+| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                         |
+|---------------------------------------------|------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `anti-raid`                                 | `object`   |                                                     |                                                                                                             |
+| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                                             |
+| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                                |
+| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                                            |
+| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                                             |
+| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                                             |
+| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                          |
+| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                             |
+| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                          |
+| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                                             |
+| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                                          |
+| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                                           |
+| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)                       |
+| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                                |
+| `anti-raid.verify`                          | `object`   |                                                     |                                                                                                             |
+| `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                          |
+| `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                             |
+| `anti-raid.verify.messages`                 | `object`   |                                                     |                                                                                                             |
+| `anti-raid.verify.messages.instructions`    | `string`   | Message sent when user joins the server             | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.valid`           | `string`   | Message sent when verification is successful        | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messahes.invalid`         | `string`   | Message sent when verification failed               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
 
 ```json
 {
@@ -228,7 +228,7 @@ A set of tools to ban members (based on their avatar hash or username), and help
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
             "messages": {
-                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_DISCRIMINATOR%` to verify.",
+                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
                 "valid": "%MEMBER_MENTION%, you have been verified.",
                 "invalid": "%MEMBER_MENTION%, invalid code."
             }
@@ -240,20 +240,20 @@ A set of tools to ban members (based on their avatar hash or username), and help
 ### 5. Scheduled Posts
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance).
 
-| __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                      |
-|---------------------------------------------|------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `schedule-posts`                            | `object[]` |                                             |                                                                                                          |
-| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post                  |                                                                                                          |
-| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post         | Discord channel ID                                                                                       |
-| `schedule-posts[x].message`                 | `string`   | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis (custom emojis not supported)                                                             |
-| `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                          |
-| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
-| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
-| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                         |
-| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                         |
-| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                         |
-| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
+| __Key__                                     | __Type__             | __Description__                             | __Accepted Values__                                                                                      |
+|---------------------------------------------|----------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `schedule-posts`                            | `object[]`           |                                             |                                                                                                          |
+| `schedule-posts[x].name`                    | `string`             | Name of the scheduled post                  |                                                                                                          |
+| `schedule-posts[x].channel-id`              | `string`             | Channel used to send scheduled post         | Discord channel ID                                                                                       |
+| `schedule-posts[x].message`                 | `string` or `object` | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
+| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis (custom emojis not supported)                                                             |
+| `schedule-posts[x].send-every`              | `object`             |                                             |                                                                                                          |
+| `schedule-posts[x].send-every.time-zone`    | `string`             | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
+| `schedule-posts[x].send-every.days-of-week` | `number[]`           | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
+| `schedule-posts[x].send-every.hour`         | `number`             | Send post on hour of day                    | From `0` to `23`                                                                                         |
+| `schedule-posts[x].send-every.minute`       | `number`             | Send post on minute of day                  | From `0` to `59`                                                                                         |
+| `schedule-posts[x].send-every.second`       | `number`             | Send post on second of day                  | From `0` to `59`                                                                                         |
+| `schedule-posts[x].skip-days`               | `string[]`           | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
 
 ```json
 {

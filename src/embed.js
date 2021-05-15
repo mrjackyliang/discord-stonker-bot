@@ -55,7 +55,7 @@ function addEmbed(title, description, thumbnailUrl = null, fields = undefined, f
  * @since 1.0.0
  */
 function addMessageFields(message, fieldTitle = 'Message') {
-  const theMessages = splitStringChunks(message, 1020);
+  const theMessages = splitStringChunks(message, 1000);
   const fields = [];
 
   _.forEach(theMessages, (theMessage, key) => {

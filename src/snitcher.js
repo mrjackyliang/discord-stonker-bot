@@ -39,7 +39,11 @@ async function userChangeNickname(oldMember, newMember, sendToChannel) {
       oldMember.nickname,
       newMember.nickname,
       newMember.toString(),
-      newMember.user.displayAvatarURL(),
+      newMember.user.displayAvatarURL({
+        format: 'webp',
+        dynamic: true,
+        size: 4096,
+      }),
     )).catch((error) => generateLogMessage(
       'Failed to send change nickname embed',
       10,
@@ -77,7 +81,11 @@ async function userChangeUsername(oldUser, newUser, sendToChannel) {
       oldUser.tag,
       newUser.tag,
       newUser.toString(),
-      newUser.displayAvatarURL(),
+      newUser.displayAvatarURL({
+        format: 'webp',
+        dynamic: true,
+        size: 4096,
+      }),
     )).catch((error) => generateLogMessage(
       'Failed to send change username embed',
       10,
