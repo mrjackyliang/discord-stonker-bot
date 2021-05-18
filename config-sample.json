@@ -4,12 +4,14 @@
         "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
+        "mode": "all",
         "bot-prefix": "!",
         "time-zone": "Etc/UTC"
     },
     "notifications": {
         "change-nickname": true,
         "change-username": true,
+        "delete-bulk-messages": true,
         "delete-message": true,
         "update-message": true,
         "upload-attachment": true

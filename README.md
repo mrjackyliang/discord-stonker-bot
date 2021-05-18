@@ -62,7 +62,8 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 | `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
 | `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID                                                                                                                                                           |
 | `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
-| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed                                                                                                                                                 |
+| `settings.mode`           | `string` | Mode that the bot will work on                         | `feature`, `snitch`, or `all`                                                                                                                                                |
+| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for `feature` and `all` modes)                                                                                                        |
 | `settings.time-zone`      | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
 
 ```json
@@ -72,6 +73,7 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
         "guild-id": "",
         "log-channel-id": "000000000000000000",
         "log-level": 30,
+        "mode": "all",
         "bot-prefix": "!",
         "time-zone": "Etc/UTC"
     }
@@ -81,20 +83,22 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 ### 2. Notifications
 Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings).
 
-| __Key__                           | __Type__  | __Description__                             | __Accepted Values__ |
-|-----------------------------------|-----------|---------------------------------------------|---------------------|
-| `notifications`                   | `object`  |                                             |                     |
-| `notifications.change-nickname`   | `boolean` | Notify when a member changes their nickname | `true` or `false`   |
-| `notifications.change-username`   | `boolean` | Notify when a member changes their username | `true` or `false`   |
-| `notifications.delete-message`    | `boolean` | Notify when a message is deleted            | `true` or `false`   |
-| `notifications.update-message`    | `boolean` | Notify when a message is edited             | `true` or `false`   |
-| `notifications.upload-attachment` | `boolean` | Notify when an attachment is uploaded       | `true` or `false`   |
+| __Key__                              | __Type__  | __Description__                             | __Accepted Values__ |
+|--------------------------------------|-----------|---------------------------------------------|---------------------|
+| `notifications`                      | `object`  |                                             |                     |
+| `notifications.change-nickname`      | `boolean` | Notify when a member changes their nickname | `true` or `false`   |
+| `notifications.change-username`      | `boolean` | Notify when a member changes their username | `true` or `false`   |
+| `notifications.delete-bulk-messages` | `boolean` | Notify when bulk messages are deleted       | `true` or `false`   |
+| `notifications.delete-message`       | `boolean` | Notify when a message is deleted            | `true` or `false`   |
+| `notifications.update-message`       | `boolean` | Notify when a message is edited             | `true` or `false`   |
+| `notifications.upload-attachment`    | `boolean` | Notify when an attachment is uploaded       | `true` or `false`   |
 
 ```json
 {
     "notifications": {
         "change-nickname": true,
         "change-username": true,
+        "delete-bulk-messages": true,
         "delete-message": true,
         "update-message": true,
         "upload-attachment": true
@@ -246,7 +250,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 | `schedule-posts[x].name`                    | `string`             | Name of the scheduled post                  |                                                                                                          |
 | `schedule-posts[x].channel-id`              | `string`             | Channel used to send scheduled post         | Discord channel ID                                                                                       |
 | `schedule-posts[x].message`                 | `string` or `object` | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis (custom emojis not supported)                                                             |
+| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<a:name:id>`)                                       |
 | `schedule-posts[x].send-every`              | `object`             |                                             |                                                                                                          |
 | `schedule-posts[x].send-every.time-zone`    | `string`             | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
 | `schedule-posts[x].send-every.days-of-week` | `number[]`           | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |

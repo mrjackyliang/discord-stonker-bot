@@ -1,9 +1,8 @@
-const axios = require('axios').default;
 const chalk = require('chalk');
 const luxon = require('luxon');
 const _ = require('lodash');
 
-const config = require('../config.json');
+const config = require('../../config.json');
 
 /**
  * Generate log message.
@@ -46,44 +45,18 @@ function generateLogMessage(message, priority, error = undefined) {
 }
 
 /**
- * Get Google Cloud Storage objects.
+ * Generate server failed message.
  *
- * @param {module:"discord.js".Message} message - Discord message object.
- *
- * @returns {Promise<void>}
+ * @param {string} message - Message to log.
  *
  * @since 1.0.0
  */
-async function getGoogleCloudStorageObjects(message) {
-  const { attachments } = message;
-  const links = [];
-
-  // Throw attachment urls into array first.
-  _.forEach(attachments.array(), (attachment) => {
-    links.push(attachment.url);
-  });
-
-  if (_.size(links) > 0) {
-    _.forEach(links, (attachmentsLink) => {
-      axios.get(attachmentsLink).then((response) => {
-        const responseStatusText = response.statusText;
-        const responseConfigUrl = response.config.url;
-
-        if (responseStatusText !== 'OK') {
-          throw response;
-        }
-
-        generateLogMessage(
-          `Successfully cached attachment (${responseConfigUrl})`,
-          40,
-        );
-      }).catch((error) => generateLogMessage(
-        'Failed to cache attachment',
-        10,
-        error,
-      ));
-    });
-  }
+function generateServerFailedMessage(message) {
+  console.error([
+    chalk.red('Server failed to start!'),
+    message,
+    '...',
+  ].join(' '));
 }
 
 /**
@@ -197,7 +170,7 @@ function splitStringChunks(string, maxSize) {
 
 module.exports = {
   generateLogMessage,
-  getGoogleCloudStorageObjects,
+  generateServerFailedMessage,
   getReadableDuration,
   getTextBasedChannel,
   splitStringChunks,

@@ -7,8 +7,8 @@ const {
   createMemberMonitorEmbed,
   createRemoveAffiliateLinksEmbed,
   createSuspiciousWordsEmbed,
-} = require('./embed');
-const { generateLogMessage } = require('./utilities');
+} = require('../lib/embed');
+const { generateLogMessage } = require('../lib/utilities');
 
 /**
  * Anti-raid auto-ban.
@@ -62,9 +62,9 @@ async function antiRaidAutoBan(member, settings) {
 /**
  * Anti-raid monitor.
  *
- * @param {module:"discord.js".GuildMember} member        - Member information.
- * @param {"join"|"leave"}                  mode          - Whether a user joined or left a guild.
- * @param {TextBasedChannel}                sendToChannel - Send message to channel.
+ * @param {module:"discord.js".GuildMember}            member        - Member information.
+ * @param {"join"|"leave"}                             mode          - Whether a user joined or left a guild.
+ * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -100,7 +100,6 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
     }),
     member.user.createdAt,
     member.joinedAt,
-    member.user.presence.clientStatus,
     member.roles.cache,
   )).catch((error) => generateLogMessage(
     'Failed to send member monitor embed',
@@ -112,9 +111,9 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
 /**
  * Anti-raid scanner.
  *
- * @param {module:"discord.js".Guild} guild         - Discord guild.
- * @param {object}                    settings      - User scanner settings from configuration.
- * @param {TextBasedChannel}          sendToChannel - Send message to channel.
+ * @param {module:"discord.js".Guild}                  guild         - Discord guild.
+ * @param {object}                                     settings      - User scanner settings from configuration.
+ * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -193,9 +192,9 @@ async function antiRaidScanner(guild, settings, sendToChannel) {
 /**
  * Anti-raid verification notice.
  *
- * @param {module:"discord.js".GuildMember} member        - Member information.
- * @param {object}                          settings      - Verification settings from configuration.
- * @param {TextBasedChannel}                sendToChannel - Send message to channel.
+ * @param {module:"discord.js".GuildMember}            member        - Member information.
+ * @param {object}                                     settings      - Verification settings from configuration.
+ * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -393,9 +392,9 @@ async function checkRegexChannels(message, regexRules) {
 /**
  * Detect suspicious words.
  *
- * @param {module:"discord.js".Message} message         - Message object.
- * @param {object[]}                    suspiciousWords - Suspicious words from configuration.
- * @param {TextChannel}                 sendToChannel   - Send message to channel.
+ * @param {module:"discord.js".Message}                message         - Message object.
+ * @param {object[]}                                   suspiciousWords - Suspicious words from configuration.
+ * @param {module:"discord.js".TextBasedChannelFields} sendToChannel   - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -464,9 +463,9 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
 /**
  * Remove affiliate links.
  *
- * @param {module:"discord.js".Message} message        - Discord message object.
- * @param {object}                      affiliateLinks - Affiliate link regex from configuration.
- * @param {TextChannel}                 sendToChannel  - Send message to channel.
+ * @param {module:"discord.js".Message}                message        - Discord message object.
+ * @param {object}                                     affiliateLinks - Affiliate link regex from configuration.
+ * @param {module:"discord.js".TextBasedChannelFields} sendToChannel  - Send message to channel.
  *
  * @returns {Promise<void>}
  *

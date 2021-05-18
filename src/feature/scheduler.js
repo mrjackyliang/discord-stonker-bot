@@ -3,7 +3,7 @@ const luxon = require('luxon');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
-const { generateLogMessage } = require('./utilities');
+const { generateLogMessage } = require('../lib/utilities');
 
 /**
  * Schedule post.

@@ -7,7 +7,7 @@ const {
   splitStringChunks,
 } = require('./utilities');
 
-const config = require('../config.json');
+const config = require('../../config.json');
 
 /**
  * Add embed.
@@ -341,21 +341,20 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
 /**
  * Create member monitor embed.
  *
- * @param {"join"|"leave"}                               mode         - Whether a user joined or left a guild.
- * @param {string}                                       tag          - User tag.
- * @param {string}                                       mention      - User mention.
- * @param {null|string}                                  avatar       - User avatar.
- * @param {string}                                       avatarUrl    - User avatar url.
- * @param {Date}                                         createdAt    - User created at.
- * @param {Date}                                         joinedAt     - User joined at.
- * @param {module:"discord.js".ClientPresenceStatusData} clientStatus - User presence status data.
- * @param {Collection<Snowflake, Role>}                  roles        - User roles.
+ * @param {"join"|"leave"}              mode      - Whether a user joined or left a guild.
+ * @param {string}                      tag       - User tag.
+ * @param {string}                      mention   - User mention.
+ * @param {null|string}                 avatar    - User avatar.
+ * @param {string}                      avatarUrl - User avatar url.
+ * @param {Date}                        createdAt - User created at.
+ * @param {Date}                        joinedAt  - User joined at.
+ * @param {Collection<Snowflake, Role>} roles     - User roles.
  *
  * @returns {module:"discord.js".MessageEmbed}
  *
  * @since 1.0.0
  */
-function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, createdAt, joinedAt, clientStatus, roles) {
+function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, createdAt, joinedAt, roles) {
   const fields = [];
   const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
   const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];

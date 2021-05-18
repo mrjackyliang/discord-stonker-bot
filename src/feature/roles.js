@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const _ = require('lodash');
 
-const { generateLogMessage } = require('./utilities');
+const { generateLogMessage } = require('../lib/utilities');
 
 /**
  * Remove roles if no roles.

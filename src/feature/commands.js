@@ -9,8 +9,8 @@ const {
   createNoResultsEmbed,
   createTogglePermsEmbed,
   createVoiceEmbed,
-} = require('./embed');
-const { generateLogMessage } = require('./utilities');
+} = require('../lib/embed');
+const { generateLogMessage } = require('../lib/utilities');
 
 /**
  * Add role.
@@ -481,11 +481,11 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
  * @since 1.0.0
  */
 async function help(message, botPrefix, allowedRoles, settings) {
-  const allowAddRoleRoles = _.get(settings, 'configCommandsAddRole');
-  const allowFetchMembersRoles = _.get(settings, 'configCommandsFetchMembers');
-  const allowFindDuplicateUsersRoles = _.get(settings, 'configCommandsFindDuplicateUsers');
-  const allowTogglePermsRoles = _.get(settings, 'configCommandsTogglePerms');
-  const allowVoiceRoles = _.get(settings, 'configCommandsVoice');
+  const allowAddRoleRoles = _.get(settings, 'addRole');
+  const allowFetchMembersRoles = _.get(settings, 'fetchMembers');
+  const allowFindDuplicateUsersRoles = _.get(settings, 'findDuplicateUsers');
+  const allowTogglePermsRoles = _.get(settings, 'togglePerms');
+  const allowVoiceRoles = _.get(settings, 'voice');
 
   const commands = [];
 
