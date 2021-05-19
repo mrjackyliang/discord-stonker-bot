@@ -128,7 +128,15 @@ function schedulePost(event, sendToChannel) {
 
           // React to message.
           _.forEach(reactions, async (reaction) => {
-            await post.react(reaction).catch((error) => generateLogMessage(
+            await post.react(reaction).then(() => generateLogMessage(
+              [
+                'Successfully reacted',
+                chalk.green(name),
+                `post event with "${reaction}"`,
+                'emoji',
+              ].join(' '),
+              40,
+            )).catch((error) => generateLogMessage(
               [
                 'Failed to react',
                 chalk.red(name),

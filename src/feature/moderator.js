@@ -266,51 +266,51 @@ async function antiRaidVerifyRole(message, settings) {
   }
 
   // Delete message first.
-  await message.delete().then(async () => {
-    // If verification code is correct, assign role.
-    if (userCode === userInput) {
-      // Send valid message.
-      await message.channel.send(_.replace(
-        settingsMessageValid,
-        /%MEMBER_MENTION%/g,
-        message.member.toString(),
-      )).catch((error) => generateLogMessage(
-        'Failed to send message',
-        10,
-        error,
-      ));
-
-      // Add verified role.
-      await message.member.roles.add(settingsVerifiedRoleId).then(() => {
-        generateLogMessage(
-          [
-            chalk.green(message.member.toString()),
-            'has completed verification and was assigned the verified role',
-          ].join(' '),
-          30,
-        );
-      }).catch((error) => generateLogMessage(
-        'Failed to add role',
-        10,
-        error,
-      ));
-    } else {
-      // Send invalid message.
-      await message.channel.send(_.replace(
-        settingsMessageInvalid,
-        /%MEMBER_MENTION%/g,
-        message.member.toString(),
-      )).catch((error) => generateLogMessage(
-        'Failed to send message',
-        10,
-        error,
-      ));
-    }
-  }).catch((error) => generateLogMessage(
+  await message.delete().catch((error) => generateLogMessage(
     'Failed to delete message',
     10,
     error,
   ));
+
+  // If verification code is correct, assign role.
+  if (userCode === userInput) {
+    // Send valid message.
+    await message.channel.send(_.replace(
+      settingsMessageValid,
+      /%MEMBER_MENTION%/g,
+      message.member.toString(),
+    )).catch((error) => generateLogMessage(
+      'Failed to send message',
+      10,
+      error,
+    ));
+
+    // Add verified role.
+    await message.member.roles.add(settingsVerifiedRoleId).then(() => {
+      generateLogMessage(
+        [
+          chalk.green(message.member.toString()),
+          'has completed verification and was assigned the verified role',
+        ].join(' '),
+        30,
+      );
+    }).catch((error) => generateLogMessage(
+      'Failed to add role',
+      10,
+      error,
+    ));
+  } else {
+    // Send invalid message.
+    await message.channel.send(_.replace(
+      settingsMessageInvalid,
+      /%MEMBER_MENTION%/g,
+      message.member.toString(),
+    )).catch((error) => generateLogMessage(
+      'Failed to send message',
+      10,
+      error,
+    ));
+  }
 }
 
 /**

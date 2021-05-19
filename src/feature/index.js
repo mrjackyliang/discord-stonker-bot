@@ -3,10 +3,10 @@ const _ = require('lodash');
 const config = require('../../config.json');
 
 const {
-  addRole,
   fetchMembers,
   findDuplicateUsers,
   help,
+  role,
   togglePerms,
   voice,
 } = require('./commands');
@@ -21,25 +21,26 @@ const {
   detectSuspiciousWords,
   removeAffiliateLinks,
 } = require('./moderator');
-const {
-  removeRolesIfNoRoles,
-  removeRolesIfRoles,
-} = require('./roles');
+const { changeRoles } = require('./roles');
 const { schedulePost } = require('./scheduler');
 const {
   generateLogMessage,
   getTextBasedChannel,
 } = require('../lib/utilities');
 
+/**
+ * Bot configuration.
+ *
+ * @since 1.0.0
+ */
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configAntiRaidScanner = _.get(config, 'anti-raid.scanner');
 const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
-
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRegexRules = _.get(config, 'regex-rules');
 const configSuspiciousWords = _.get(config, 'suspicious-words');
-const configRemoveRoles = _.get(config, 'remove-roles');
+const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 
@@ -69,19 +70,6 @@ async function featureMode(client, guild, logChannel) {
       && _.get(message, 'author.bot') === false // If message is not sent by a bot.
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
-      /**
-       * Add role.
-       *
-       * @since 1.0.0
-       */
-      if (message.toString().startsWith(`${botPrefix}add-role`)) {
-        await addRole(message, botPrefix, _.get(config, 'commands.add-role')).catch((error) => generateLogMessage(
-          'Failed to execute "addRole" function',
-          10,
-          error,
-        ));
-      }
-
       /**
        * Fetch members.
        *
@@ -115,13 +103,26 @@ async function featureMode(client, guild, logChannel) {
        */
       if (message.toString().startsWith(`${botPrefix}help`)) {
         await help(message, botPrefix, _.get(config, 'commands.help'), {
-          addRole: _.get(config, 'commands.add-role'),
           fetchMembers: _.get(config, 'commands.fetch-members'),
           findDuplicateUsers: _.get(config, 'commands.find-duplicate-users'),
+          role: _.get(config, 'commands.role'),
           togglePerms: _.get(config, 'commands.toggle-perms'),
           voice: _.get(config, 'commands.voice'),
         }).catch((error) => generateLogMessage(
           'Failed to execute "help" function',
+          10,
+          error,
+        ));
+      }
+
+      /**
+       * Role.
+       *
+       * @since 1.0.0
+       */
+      if (message.toString().startsWith(`${botPrefix}role`)) {
+        await role(message, botPrefix, _.get(config, 'commands.role')).catch((error) => generateLogMessage(
+          'Failed to execute "role" function',
           10,
           error,
         ));
@@ -267,7 +268,8 @@ async function featureMode(client, guild, logChannel) {
    */
   client.on('guildMemberAdd', async (member) => {
     if (
-      _.get(member, 'guild.id') === guild.id // If member is in the guild.
+      guild.available === true // If guild is online.
+      && _.get(member, 'guild.id') === guild.id // If member is in the guild.
     ) {
       const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
       const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
@@ -316,7 +318,8 @@ async function featureMode(client, guild, logChannel) {
    */
   client.on('guildMemberRemove', async (member) => {
     if (
-      _.get(member, 'guild.id') === guild.id // If member is in the guild.
+      guild.available === true // If guild is online.
+      && _.get(member, 'guild.id') === guild.id // If member is in the guild.
     ) {
       const guildLeaveChannelId = _.get(configAntiRaidMonitor, 'guild-leave.channel-id');
       const guildLeaveChannel = getTextBasedChannel(guild, guildLeaveChannelId);
@@ -341,27 +344,17 @@ async function featureMode(client, guild, logChannel) {
    */
   client.on('guildMemberUpdate', async (oldMember, newMember) => {
     if (
-      _.get(oldMember, 'guild.id') === guild.id // If old member is in the guild.
+      guild.available === true // If guild is online.
+      && _.get(oldMember, 'guild.id') === guild.id // If old member is in the guild.
       && _.get(newMember, 'guild.id') === guild.id // If new member is in the guild.
     ) {
       /**
-       * Remove roles if no roles.
+       * Change roles.
        *
        * @since 1.0.0
        */
-      await removeRolesIfNoRoles(newMember, configRemoveRoles).catch((error) => generateLogMessage(
-        'Failed to execute "removeRolesIfNoRoles" function',
-        10,
-        error,
-      ));
-
-      /**
-       * Remove roles if roles.
-       *
-       * @since 1.0.0
-       */
-      await removeRolesIfRoles(newMember, configRemoveRoles).catch((error) => generateLogMessage(
-        'Failed to execute "removeRolesIfRoles" function',
+      await changeRoles(oldMember, newMember, configRoles).catch((error) => generateLogMessage(
+        'Failed to execute "changeRoles" function',
         10,
         error,
       ));

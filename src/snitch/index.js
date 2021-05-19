@@ -161,7 +161,8 @@ async function snitchMode(client, guild, logChannel) {
    */
   client.on('userUpdate', async (oldUser, newUser) => {
     if (
-      guild.members.cache.has(oldUser.id) === true // If old user is in the guild.
+      guild.available === true // If guild is online.
+      && guild.members.cache.has(oldUser.id) === true // If old user is in the guild.
       && guild.members.cache.has(newUser.id) === true // If new user is in the guild.
     ) {
       /**

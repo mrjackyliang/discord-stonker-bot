@@ -4,116 +4,106 @@ const _ = require('lodash');
 const { generateLogMessage } = require('../lib/utilities');
 
 /**
- * Remove roles if no roles.
+ * Change roles.
  *
- * @param {module:"discord.js".GuildMember} member      - Member information.
- * @param {object[]}                        removeRoles - Remove roles configuration.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function removeRolesIfNoRoles(member, removeRoles) {
-  const noRoles = _.filter(removeRoles, { type: 'if-no-roles' });
-
-  _.map(noRoles, async (noRole) => {
-    const name = _.get(noRole, 'name', 'Unknown');
-
-    /**
-     * No roles to detect.
-     *
-     * @type {RoleResolvable[]}
-     */
-    const noRolesToDetect = _.map(noRole['to-detect'], 'id');
-
-    /**
-     * No roles to remove.
-     *
-     * @type {RoleResolvable[]}
-     */
-    const noRolesToRemove = _.map(noRole['to-remove'], 'id');
-
-    if (
-      !_.some(noRolesToDetect, (noRoleToDetect) => member.roles.cache.has(noRoleToDetect) === true)
-      && _.some(noRolesToRemove, (noRoleToRemove) => member.roles.cache.has(noRoleToRemove) === true)
-    ) {
-      generateLogMessage(
-        [
-          'Removing roles for',
-          chalk.yellow(member.toString()),
-          `(name: ${name}, type: if-no-roles)`,
-        ].join(' '),
-        40,
-      );
-
-      await member.roles.remove(
-        noRolesToRemove,
-        `${name} (if-no-roles)`,
-      ).catch((error) => generateLogMessage(
-        'Failed to remove roles',
-        10,
-        error,
-      ));
-    }
-  });
-}
-
-/**
- * Remove roles if roles.
- *
- * @param {module:"discord.js".GuildMember} member      - Member information.
- * @param {object[]}                        removeRoles - Remove roles configuration.
+ * @param {module:"discord.js".GuildMember} oldMember - Member information (old).
+ * @param {module:"discord.js".GuildMember} newMember - Member information (new).
+ * @param {object[]}                        roles     - Change roles configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function removeRolesIfRoles(member, removeRoles) {
-  const roles = _.filter(removeRoles, { type: 'if-roles' });
-
+async function changeRoles(oldMember, newMember, roles) {
   _.map(roles, async (role) => {
     const name = _.get(role, 'name', 'Unknown');
-
-    /**
-     * Roles to detect.
-     *
-     * @type {RoleResolvable[]}
-     */
-    const rolesToDetect = _.map(role['to-detect'], 'id');
-
-    /**
-     * Roles to remove.
-     *
-     * @type {RoleResolvable[]}
-     */
-    const rolesToRemove = _.map(role['to-remove'], 'id');
+    const type = _.get(role, 'type');
+    const beforeRoles = _.map(_.get(role, 'before'), 'id');
+    const afterRoles = _.map(_.get(role, 'after'), 'id');
+    const toAdd = _.map(_.get(role, 'to-add'), 'id');
+    const toRemove = _.map(_.get(role, 'to-remove'), 'id');
 
     if (
-      _.some(rolesToDetect, (roleToDetect) => member.roles.cache.has(roleToDetect) === true)
-      && _.some(rolesToRemove, (roleToRemove) => member.roles.cache.has(roleToRemove) === true)
+      (
+        type === 'yes-to-yes'
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
+        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+      )
+      || (
+        type === 'no-to-no'
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
+        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+      )
+      || (
+        type === 'yes-to-no'
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
+        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+      )
+      || (
+        type === 'no-to-yes'
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
+        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+      )
     ) {
-      generateLogMessage(
-        [
-          'Removing roles for',
-          chalk.yellow(member.toString()),
-          `(name: ${name}, type: if-roles)`,
-        ].join(' '),
-        40,
-      );
+      // Add roles.
+      if (
+        _.size(toAdd) > 0
+        && !_.every(toAdd, _.isUndefined)
+        && !_.some(toAdd, (theRole) => oldMember.roles.cache.has(theRole))
+      ) {
+        generateLogMessage(
+          [
+            'Adding roles for',
+            chalk.green(newMember.toString()),
+            `(name: ${name}, type: ${type})`,
+          ].join(' '),
+          40,
+        );
 
-      await member.roles.remove(
-        rolesToRemove,
-        `${name} (if-roles)`,
-      ).catch((error) => generateLogMessage(
-        'Failed to remove roles',
-        10,
-        error,
-      ));
+        await newMember.roles.add(
+          /**
+           * @type {RoleResolvable[]}
+           */
+          toAdd,
+          `${name} (${type})`,
+        ).catch((error) => generateLogMessage(
+          'Failed to add roles',
+          10,
+          error,
+        ));
+      }
+
+      // Remove roles.
+      if (
+        _.size(toRemove) > 0
+        && !_.every(toRemove, _.isUndefined)
+        && _.some(toRemove, (theRole) => newMember.roles.cache.has(theRole))
+      ) {
+        generateLogMessage(
+          [
+            'Removing roles for',
+            chalk.yellow(newMember.toString()),
+            `(name: ${name}, type: ${type})`,
+          ].join(' '),
+          40,
+        );
+
+        await newMember.roles.remove(
+          /**
+           * @type {RoleResolvable[]}
+           */
+          toRemove,
+          `${name} (${type})`,
+        ).catch((error) => generateLogMessage(
+          'Failed to remove roles',
+          10,
+          error,
+        ));
+      }
     }
   });
 }
 
 module.exports = {
-  removeRolesIfNoRoles,
-  removeRolesIfRoles,
+  changeRoles,
 };

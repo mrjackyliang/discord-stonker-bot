@@ -17,12 +17,6 @@
         "upload-attachment": true
     },
     "commands": {
-        "add-role": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
         "fetch-members": [
             {
                 "description": "Sample role",
@@ -36,6 +30,12 @@
             }
         ],
         "help": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "role": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -152,35 +152,91 @@
             ]
         }
     ],
-    "remove-roles": [
+    "roles": [
         {
-            "name": "Remove Sample 2 role if member has Sample 1 role",
-            "type": "if-roles",
-            "to-detect": [
+            "name": "Remove B role if member is A",
+            "type": "yes-to-yes",
+            "before": [
                 {
-                    "description": "Sample 1 role",
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
                     "id": "000000000000000000"
                 }
             ],
             "to-remove": [
                 {
-                    "description": "Sample 2 role",
+                    "description": "B role",
                     "id": "000000000000000000"
                 }
             ]
         },
         {
-            "name": "Remove Sample 2 role if member does not have Sample 1 role",
-            "type": "if-no-roles",
-            "to-detect": [
+            "name": "Remove B role if member is not A",
+            "type": "no-to-no",
+            "before": [
                 {
-                    "description": "Sample 1 role",
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
                     "id": "000000000000000000"
                 }
             ],
             "to-remove": [
                 {
-                    "description": "Sample 2 role",
+                    "description": "B role",
+                    "id": "000000000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Add B role if member went from A to not A",
+            "type": "yes-to-no",
+            "before": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-add": [
+                {
+                    "description": "B role",
+                    "id": "000000000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Remove B role if member went from not A to A",
+            "type": "no-to-yes",
+            "before": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-remove": [
+                {
+                    "description": "B role",
                     "id": "000000000000000000"
                 }
             ]

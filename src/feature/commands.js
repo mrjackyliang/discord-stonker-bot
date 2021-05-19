@@ -2,205 +2,15 @@ const chalk = require('chalk');
 const _ = require('lodash');
 
 const {
-  createAddRoleEmbed,
   createCommandErrorEmbed,
   createHelpMenuEmbed,
   createListMembersEmbed,
   createNoResultsEmbed,
+  createRoleEmbed,
   createTogglePermsEmbed,
   createVoiceEmbed,
 } = require('../lib/embed');
 const { generateLogMessage } = require('../lib/utilities');
-
-/**
- * Add role.
- *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function addRole(message, botPrefix, allowedRoles) {
-  const commandArguments = message.toString().split(' ');
-  const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[1], /[<@&>]/g, ''));
-  const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
-  const guildMembers = message.channel.guild.members.cache.array();
-  const messageEveryone = (commandArguments[1] === 'everyone') ? 'members...' : '';
-  const messageNoRole = (commandArguments[1] === 'no-role') ? 'members with no roles...' : '';
-  const messageRole = (!_.isUndefined(roleOne)) ? `members with the ${roleOne.toString()} role...` : '';
-
-  if (
-    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
-  ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}add-role\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  if (
-    commandArguments[1] !== 'everyone'
-    && commandArguments[1] !== 'no-role'
-    && _.isUndefined(roleOne)
-  ) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The command selection (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a selection.\r\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}add-role everyone [@role to add]`,
-        `${botPrefix}add-role no-role [@role to add]`,
-        `${botPrefix}add-role [@role] [@role to add]`,
-        '```',
-      ].join('\r\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  if (_.isUndefined(roleTwo)) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The role (${commandArguments[2]}) is invalid or does not exist. Try using the command by tagging a role to add.\r\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}add-role ${commandArguments[1]} [@role to add]`,
-        '```',
-      ].join('\r\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  // Begin to perform add role actions.
-  await message.channel.send(createAddRoleEmbed(
-    [
-      'Please wait while',
-      message.guild.me.toString(),
-      'adds the',
-      roleTwo.toString(),
-      'role to all',
-      messageEveryone || messageNoRole || messageRole,
-    ].join(' '),
-    'in-progress',
-    message.member.user.tag,
-  )).then(async (theMessage) => {
-    const results = await _.map(guildMembers, async (guildMember) => {
-      /**
-       * Voice state result logger.
-       *
-       * @param {string}          word  - Beginning phrase.
-       * @param {undefined|Error} error - Error object.
-       *
-       * @returns {boolean}
-       *
-       * @since 1.0.0
-       */
-      const logger = (word, error = undefined) => {
-        generateLogMessage(
-          [
-            word,
-            (!_.isError(error)) ? chalk.green(roleTwo.toString()) : chalk.red(roleTwo.toString()),
-            'role to',
-            (!_.isError(error)) ? chalk.green(guildMember.toString()) : chalk.red(guildMember.toString()),
-          ].join(' '),
-          (!_.isError(error)) ? 30 : 10,
-          (_.isError(error)) ? error : undefined,
-        );
-
-        return (!_.isError(error));
-      };
-
-      let success = true;
-
-      // Make sure member doesn't have role first.
-      if (guildMember.roles.cache.has(roleTwo.id) === false) {
-        if (commandArguments[1] === 'everyone') {
-          await guildMember.roles.add(roleTwo).then(() => logger(
-            'Successfully added',
-          )).catch((error) => {
-            success = logger(
-              'Failed to add',
-              error,
-            );
-          });
-        } else if (commandArguments[1] === 'no-role') {
-          const roles = guildMember.roles.cache.array();
-
-          // Users with no roles always have the @everyone role.
-          if (_.size(roles) === 1) {
-            await guildMember.roles.add(roleTwo).then(() => logger(
-              'Successfully added',
-            )).catch((error) => {
-              success = logger(
-                'Failed to add',
-                error,
-              );
-            });
-          }
-        } else if (!_.isUndefined(roleOne)) {
-          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
-
-          // If user has role #1, add role #2.
-          if (hasRoleOne === true) {
-            await guildMember.roles.add(roleTwo).then(() => logger(
-              'Successfully added',
-            )).catch((error) => {
-              success = logger(
-                'Failed to add',
-                error,
-              );
-            });
-          }
-        }
-      }
-
-      return success;
-    });
-
-    Promise.all(results).then(async (responses) => {
-      const success = _.every(responses, (response) => response === true);
-
-      await theMessage.edit(createAddRoleEmbed(
-        [
-          roleTwo.toString(),
-          (success === true) ? 'was successfully added to all' : 'could not be added to all',
-          messageEveryone || messageNoRole || messageRole,
-        ].join(' '),
-        (success === true) ? 'complete' : 'fail',
-        message.member.user.tag,
-      )).catch((error) => generateLogMessage(
-        'Failed to edit add role embed',
-        10,
-        error,
-      ));
-    });
-  }).catch((error) => generateLogMessage(
-    'Failed to send add role embed',
-    10,
-    error,
-  ));
-}
 
 /**
  * Fetch members.
@@ -216,8 +26,8 @@ async function addRole(message, botPrefix, allowedRoles) {
 async function fetchMembers(message, botPrefix, allowedRoles) {
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
-  const member = message.channel.guild.members.cache.get(_.replace(commandArguments[2], /[<@!>]/g, ''));
-  const role = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
+  const theMember = message.channel.guild.members.cache.get(_.replace(commandArguments[2], /[<@!>]/g, ''));
+  const theRole = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
   const guildMembers = message.channel.guild.members.cache.array();
   const matchedUsers = [];
 
@@ -276,10 +86,10 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // If member or role is invalid.
   if (
-    (commandArguments[1] === 'avatar' && _.isUndefined(member))
-    || (commandArguments[1] === 'role' && _.isUndefined(role))
+    (commandArguments[1] === 'avatar' && _.isUndefined(theMember))
+    || (commandArguments[1] === 'role' && _.isUndefined(theRole))
     || (commandArguments[1] === 'string' && _.isUndefined(query))
-    || (commandArguments[1] === 'username' && _.isUndefined(member))
+    || (commandArguments[1] === 'username' && _.isUndefined(theMember))
   ) {
     const userMode = (_.includes(['avatar', 'username'], commandArguments[1])) ? [`The member (${query}) is invalid`, 'tagging a member', '@user'] : [];
     const roleMode = (_.includes(['role'], commandArguments[1])) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
@@ -304,9 +114,9 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   }
 
   // If user does not have an avatar.
-  if (commandArguments[1] === 'avatar' && member.user.avatar === null) {
+  if (commandArguments[1] === 'avatar' && theMember.user.avatar === null) {
     await message.channel.send(createCommandErrorEmbed(
-      `Cannot compare members. ${member.toString()} does not have an avatar to compare from.`,
+      `Cannot compare members. ${theMember.toString()} does not have an avatar to compare from.`,
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -317,6 +127,13 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
     return;
   }
 
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
+
   _.forEach(guildMembers, (guildMember) => {
     const memberNickname = guildMember.nickname;
     const userAvatar = guildMember.user.avatar;
@@ -324,10 +141,10 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
     const hasRole = guildMember.roles.cache.has(_.replace(commandArguments[2], /[<@&>]/g, ''));
 
     if (
-      (commandArguments[1] === 'avatar' && userAvatar === member.user.avatar)
+      (commandArguments[1] === 'avatar' && userAvatar === theMember.user.avatar)
       || (commandArguments[1] === 'role' && hasRole === true)
       || (commandArguments[1] === 'string' && (_.includes(memberNickname, query) || _.includes(userUsername, query) || (userAvatar !== null && userAvatar === query)))
-      || (commandArguments[1] === 'username' && userUsername === member.user.username)
+      || (commandArguments[1] === 'username' && userUsername === theMember.user.username)
     ) {
       matchedUsers.push(guildMember.toString());
     }
@@ -349,15 +166,15 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // Send a message embed for every 80 members.
   _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
-    const avatarTitle = (commandArguments[1] === 'avatar') ? `Avatars Matching @${member.user.tag}` : undefined;
-    const roleTitle = (commandArguments[1] === 'role') ? `${role.name} Members` : undefined;
+    const avatarTitle = (commandArguments[1] === 'avatar') ? `Avatars Matching @${theMember.user.tag}` : undefined;
+    const roleTitle = (commandArguments[1] === 'role') ? `${theRole.name} Members` : undefined;
     const stringTitle = (commandArguments[1] === 'string') ? `Members Matching \`${query}\`` : undefined;
-    const usernameTitle = (commandArguments[1] === 'username') ? `Usernames Matching @${member.user.tag}` : undefined;
+    const usernameTitle = (commandArguments[1] === 'username') ? `Usernames Matching @${theMember.user.tag}` : undefined;
 
     message.channel.send(createListMembersEmbed(
       `${avatarTitle || roleTitle || stringTitle || usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
       matchedUsersChunk,
-      (_.has(member, 'user')) ? member.user.displayAvatarURL({
+      (_.has(theMember, 'user')) ? theMember.user.displayAvatarURL({
         format: 'webp',
         dynamic: true,
         size: 4096,
@@ -403,6 +220,13 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
 
     return;
   }
+
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
 
   // Remap users based on their avatar.
   _.forEach(guildMembers, (guildMember) => {
@@ -481,9 +305,9 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
  * @since 1.0.0
  */
 async function help(message, botPrefix, allowedRoles, settings) {
-  const allowAddRoleRoles = _.get(settings, 'addRole');
   const allowFetchMembersRoles = _.get(settings, 'fetchMembers');
   const allowFindDuplicateUsersRoles = _.get(settings, 'findDuplicateUsers');
+  const allowRoleRoles = _.get(settings, 'role');
   const allowTogglePermsRoles = _.get(settings, 'togglePerms');
   const allowVoiceRoles = _.get(settings, 'voice');
 
@@ -505,19 +329,12 @@ async function help(message, botPrefix, allowedRoles, settings) {
     return;
   }
 
-  if (
-    _.some(allowAddRoleRoles, (allowAddRoleRole) => message.member.roles.cache.has(allowAddRoleRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
-  ) {
-    commands.push({
-      queries: [
-        `${botPrefix}add-role everyone [@role to add]`,
-        `${botPrefix}add-role no-role [@role to add]`,
-        `${botPrefix}add-role [@role] [@role to add]`,
-      ],
-      description: 'Add role to everyone, users with no roles, or users with a specific role',
-    });
-  }
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
 
   if (
     _.some(allowFetchMembersRoles, (allowFetchMembersRole) => message.member.roles.cache.has(allowFetchMembersRole.id) === true)
@@ -543,6 +360,22 @@ async function help(message, botPrefix, allowedRoles, settings) {
         `${botPrefix}find-duplicate-users`,
       ],
       description: 'Find duplicate users that have the same avatar',
+    });
+  }
+
+  if (
+    _.some(allowRoleRoles, (allowRoleRole) => message.member.roles.cache.has(allowRoleRole.id) === true)
+    || message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    commands.push({
+      queries: [
+        `${botPrefix}role add everyone [@role to add]`,
+        `${botPrefix}role add no-role [@role to add]`,
+        `${botPrefix}role add [@role] [@role to add]`,
+        `${botPrefix}role remove everyone [@role to remove]`,
+        `${botPrefix}role remove [@role] [@role to remove]`,
+      ],
+      description: 'Add or remove roles from everyone, users with no roles (add only), or users with a specific role',
     });
   }
 
@@ -591,6 +424,266 @@ async function help(message, botPrefix, allowedRoles, settings) {
       error,
     ));
   }
+}
+
+/**
+ * Role.
+ *
+ * @param {module:"discord.js".Message} message      - Message object.
+ * @param {string}                      botPrefix    - Command prefix.
+ * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function role(message, botPrefix, allowedRoles) {
+  const commandArguments = message.toString().split(' ');
+  const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
+  const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[3], /[<@&>]/g, ''));
+  const guildMembers = message.channel.guild.members.cache.array();
+  const messageEveryone = (commandArguments[2] === 'everyone') ? 'members...' : undefined;
+  const messageNoRole = (commandArguments[2] === 'no-role') ? 'members with no roles...' : undefined;
+  const messageRole = (!_.isUndefined(roleOne)) ? `members with the ${roleOne.toString()} role...` : undefined;
+  const messageAdded = (commandArguments[1] === 'add') ? 'added to' : undefined;
+  const messageRemoved = (commandArguments[1] === 'remove') ? 'removed from' : undefined;
+
+  if (
+    !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
+    && !message.member.hasPermission('ADMINISTRATOR')
+  ) {
+    await message.channel.send(createCommandErrorEmbed(
+      `You do not have enough permissions to use the \`${botPrefix}role\` command.`,
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  if (!_.includes(['add', 'remove'], commandArguments[1])) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a route.\r\n`,
+        'Examples:',
+        '```',
+        `${botPrefix}role add everyone [@role to add]`,
+        `${botPrefix}role add no-role [@role to add]`,
+        `${botPrefix}role add [@role] [@role to add]`,
+        `${botPrefix}role remove everyone [@role to remove]`,
+        `${botPrefix}role remove [@role] [@role to remove]`,
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  if (
+    (commandArguments[1] === 'add' && commandArguments[2] !== 'everyone' && commandArguments[2] !== 'no-role' && _.isUndefined(roleOne))
+    || (commandArguments[1] === 'remove' && commandArguments[2] !== 'everyone' && _.isUndefined(roleOne))
+  ) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The command selection (${commandArguments[2]}) is invalid or does not exist. Try using the command by inputting a selection.\r\n`,
+        'Examples:',
+        '```',
+        ...[
+          `${botPrefix}role ${commandArguments[1]} everyone [@role to ${commandArguments[1]}]`,
+          ...(commandArguments[1] === 'add') ? [`${botPrefix}role add no-role [@role to add]`] : [],
+          `${botPrefix}role ${commandArguments[1]} [@role] [@role to ${commandArguments[1]}]`,
+        ],
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  if (_.isUndefined(roleTwo)) {
+    await message.channel.send(createCommandErrorEmbed(
+      [
+        `The role (${commandArguments[3]}) is invalid or does not exist. Try using the command by tagging a role to add.\r\n`,
+        'Examples:',
+        '```',
+        `${botPrefix}role ${commandArguments[1]} ${commandArguments[2]} [@role to ${commandArguments[1]}]`,
+        '```',
+      ].join('\r\n'),
+      message.member.user.tag,
+    )).catch((error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
+
+  // Begin to perform add role actions.
+  await message.channel.send(createRoleEmbed(
+    commandArguments[1],
+    [
+      'Please wait while',
+      message.guild.me.toString(),
+      `${commandArguments[1]}s the`,
+      roleTwo.toString(),
+      'role',
+      ...(commandArguments[1] === 'add') ? ['to'] : [],
+      ...(commandArguments[1] === 'remove') ? ['from'] : [],
+      'all',
+      messageEveryone || messageNoRole || messageRole,
+    ].join(' '),
+    'in-progress',
+    message.member.user.tag,
+  )).then(async (theMessage) => {
+    const results = await _.map(guildMembers, async (guildMember) => {
+      /**
+       * Voice state result logger.
+       *
+       * @param {string}          word  - Beginning phrase.
+       * @param {undefined|Error} error - Error object.
+       *
+       * @returns {boolean}
+       *
+       * @since 1.0.0
+       */
+      const logger = (word, error = undefined) => {
+        generateLogMessage(
+          [
+            word,
+            (!_.isError(error)) ? chalk.green(roleTwo.toString()) : chalk.red(roleTwo.toString()),
+            'role',
+            ...(commandArguments[1] === 'add') ? ['to'] : [],
+            ...(commandArguments[1] === 'remove') ? ['from'] : [],
+            (!_.isError(error)) ? chalk.green(guildMember.toString()) : chalk.red(guildMember.toString()),
+          ].join(' '),
+          (!_.isError(error)) ? 30 : 10,
+          (_.isError(error)) ? error : undefined,
+        );
+
+        return (!_.isError(error));
+      };
+
+      let success = true;
+
+      if (
+        commandArguments[1] === 'add'
+        && guildMember.roles.cache.has(roleTwo.id) === false // Make sure member doesn't have role first.
+      ) {
+        if (commandArguments[2] === 'everyone') {
+          await guildMember.roles.add(roleTwo).then(() => logger(
+            'Successfully added',
+          )).catch((error) => {
+            success = logger(
+              'Failed to add',
+              error,
+            );
+          });
+        } else if (commandArguments[2] === 'no-role') {
+          const roles = guildMember.roles.cache.array();
+
+          // Users with no roles always have the @everyone role.
+          if (_.size(roles) === 1) {
+            await guildMember.roles.add(roleTwo).then(() => logger(
+              'Successfully added',
+            )).catch((error) => {
+              success = logger(
+                'Failed to add',
+                error,
+              );
+            });
+          }
+        } else if (!_.isUndefined(roleOne)) {
+          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
+
+          // If user has role #1, add role #2.
+          if (hasRoleOne === true) {
+            await guildMember.roles.add(roleTwo).then(() => logger(
+              'Successfully added',
+            )).catch((error) => {
+              success = logger(
+                'Failed to add',
+                error,
+              );
+            });
+          }
+        }
+      } else if (
+        commandArguments[1] === 'remove'
+        && guildMember.roles.cache.has(roleTwo.id) === true // Make sure member has role first.
+      ) {
+        if (commandArguments[2] === 'everyone') {
+          await guildMember.roles.remove(roleTwo).then(() => logger(
+            'Successfully removed',
+          )).catch((error) => {
+            success = logger(
+              'Failed to remove',
+              error,
+            );
+          });
+        } else if (!_.isUndefined(roleOne)) {
+          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
+
+          // If user has role #1, remove role #2.
+          if (hasRoleOne === true) {
+            await guildMember.roles.remove(roleTwo).then(() => logger(
+              'Successfully removed',
+            )).catch((error) => {
+              success = logger(
+                'Failed to remove',
+                error,
+              );
+            });
+          }
+        }
+      }
+
+      return success;
+    });
+
+    Promise.all(results).then(async (responses) => {
+      const success = _.every(responses, (response) => response === true);
+
+      await theMessage.edit(createRoleEmbed(
+        commandArguments[1],
+        [
+          roleTwo.toString(),
+          (success === true) ? `was successfully ${messageAdded || messageRemoved} all` : `could not be ${messageAdded || messageRemoved} all`,
+          messageEveryone || messageNoRole || messageRole,
+        ].join(' '),
+        (success === true) ? 'complete' : 'fail',
+        message.member.user.tag,
+      )).catch((error) => generateLogMessage(
+        'Failed to edit role embed',
+        10,
+        error,
+      ));
+    });
+  }).catch((error) => generateLogMessage(
+    'Failed to send role embed',
+    10,
+    error,
+  ));
 }
 
 /**
@@ -686,6 +779,13 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 
     return;
   }
+
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
 
   /**
    * Toggle permissions per channel.
@@ -900,6 +1000,13 @@ async function voice(message, botPrefix, allowedRoles) {
     return;
   }
 
+  // Delete message with command.
+  await message.delete().catch((error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
+
   // Begin to perform voice channel actions.
   await message.channel.send(createVoiceEmbed(
     commandArguments[1],
@@ -989,10 +1096,10 @@ async function voice(message, botPrefix, allowedRoles) {
 }
 
 module.exports = {
-  addRole,
   fetchMembers,
   findDuplicateUsers,
   help,
+  role,
   togglePerms,
   voice,
 };

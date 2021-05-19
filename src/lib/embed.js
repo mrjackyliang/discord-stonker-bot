@@ -97,47 +97,6 @@ function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
 }
 
 /**
- * Create add role embed.
- *
- * @param {string}                          message - Embed message.
- * @param {"complete"|"fail"|"in-progress"} status  - Status of add role command.
- * @param {string}                          userTag - User tag of initiator.
- *
- * @returns {module:"discord.js".MessageEmbed}
- *
- * @since 1.0.0
- */
-function createAddRoleEmbed(message, status, userTag) {
-  let title;
-  let color;
-
-  switch (status) {
-    case 'complete':
-      title = 'Roles Added';
-      color = '#5fdc46';
-      break;
-    case 'fail':
-      title = 'Failed to Add Roles';
-      color = '#de564f';
-      break;
-    case 'in-progress':
-    default:
-      title = 'Adding Roles';
-      color = '#eea942';
-      break;
-  }
-
-  return addEmbed(
-    title,
-    message,
-    null,
-    undefined,
-    `Initiated by @${userTag}`,
-    color,
-  );
-}
-
-/**
  * Create change nickname embed.
  *
  * @param {null|string} oldNickname - Old nickname.
@@ -493,6 +452,56 @@ function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, conten
 }
 
 /**
+ * Create role embed.
+ *
+ * @param {"add"|"remove"}                  route   - Role command route.
+ * @param {string}                          message - Embed message.
+ * @param {"complete"|"fail"|"in-progress"} status  - Status of role command.
+ * @param {string}                          userTag - User tag of initiator.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createRoleEmbed(route, message, status, userTag) {
+  let titleAdd;
+  let titleRemove;
+  let title;
+  let color;
+
+  switch (status) {
+    case 'complete':
+      titleAdd = (route === 'add') ? 'Roles Added' : undefined;
+      titleRemove = (route === 'remove') ? 'Roles Removed' : undefined;
+      title = titleAdd || titleRemove;
+      color = '#5fdc46';
+      break;
+    case 'fail':
+      titleAdd = (route === 'add') ? 'Failed to Add Roles' : undefined;
+      titleRemove = (route === 'remove') ? 'Failed to Remove Roles' : undefined;
+      title = titleAdd || titleRemove;
+      color = '#de564f';
+      break;
+    case 'in-progress':
+    default:
+      titleAdd = (route === 'add') ? 'Adding Roles' : undefined;
+      titleRemove = (route === 'remove') ? 'Removing Roles' : undefined;
+      title = titleAdd || titleRemove;
+      color = '#eea942';
+      break;
+  }
+
+  return addEmbed(
+    title,
+    message,
+    null,
+    undefined,
+    `Initiated by @${userTag}`,
+    color,
+  );
+}
+
+/**
  * Create suspicious words embed.
  *
  * @param {string}                                   userMention    - User mention.
@@ -678,7 +687,6 @@ function createUploadAttachmentEmbed(userMention, channelMention, id, attachment
 }
 
 module.exports = {
-  createAddRoleEmbed,
   createChangeNicknameEmbed,
   createChangeUsernameEmbed,
   createCommandErrorEmbed,
@@ -688,6 +696,7 @@ module.exports = {
   createMemberMonitorEmbed,
   createNoResultsEmbed,
   createRemoveAffiliateLinksEmbed,
+  createRoleEmbed,
   createSuspiciousWordsEmbed,
   createTogglePermsEmbed,
   createUpdateMessageEmbed,

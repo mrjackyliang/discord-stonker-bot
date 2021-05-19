@@ -47,7 +47,7 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 5. [Scheduled Posts](#5-scheduled-posts)
 6. [Regex Channels](#6-regex-channels)
 7. [Detect Suspicious Words](#7-detect-suspicious-words)
-8. [Remove Member Roles](#8-remove-member-roles)
+8. [Role Manager](#8-role-manager)
 9. [Auto Reply](#9-auto-reply)
 10. [Remove Affiliate Links](#10-remove-affiliate-links)
 11. [Toggle Preset Permissions](#11-toggle-preset-permissions)
@@ -112,9 +112,6 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 | __Key__                                        | __Type__   | __Description__                            | __Accepted Values__ |
 |------------------------------------------------|------------|--------------------------------------------|---------------------|
 | `commands`                                     | `object`   |                                            |                     |
-| `commands.add-role`                            | `object[]` |                                            |                     |
-| `commands.add-role[x].description`             | `string`   | Description of the allowed role (optional) |                     |
-| `commands.add-role[x].id`                      | `string`   | Allowed role                               | Discord role ID     |
 | `commands.fetch-members`                       | `object[]` |                                            |                     |
 | `commands.fetch-members[x].description`        | `string`   | Description of the allowed role (optional) |                     |
 | `commands.fetch-members[x].id`                 | `string`   | Allowed role                               | Discord role ID     |
@@ -124,6 +121,9 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 | `commands.help`                                | `object[]` |                                            |                     |
 | `commands.help[x].description`                 | `string`   | Description of the allowed role (optional) |                     |
 | `commands.help[x].id`                          | `string`   | Allowed role                               | Discord role ID     |
+| `commands.role`                                | `object[]` |                                            |                     |
+| `commands.role[x].description`                 | `string`   | Description of the allowed role (optional) |                     |
+| `commands.role[x].id`                          | `string`   | Allowed role                               | Discord role ID     |
 | `commands.toggle-perms`                        | `object[]` |                                            |                     |
 | `commands.toggle-perms[x].description`         | `string`   | Description of the allowed role (optional) |                     |
 | `commands.toggle-perms[x].id`                  | `string`   | Allowed role                               | Discord role ID     |
@@ -134,12 +134,6 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ```json
 {
     "commands": {
-        "add-role": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
         "fetch-members": [
             {
                 "description": "Sample role",
@@ -153,6 +147,12 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
             }
         ],
         "help": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "role": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -250,7 +250,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 | `schedule-posts[x].name`                    | `string`             | Name of the scheduled post                  |                                                                                                          |
 | `schedule-posts[x].channel-id`              | `string`             | Channel used to send scheduled post         | Discord channel ID                                                                                       |
 | `schedule-posts[x].message`                 | `string` or `object` | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<a:name:id>`)                                       |
+| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated) |
 | `schedule-posts[x].send-every`              | `object`             |                                             |                                                                                                          |
 | `schedule-posts[x].send-every.time-zone`    | `string`             | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
 | `schedule-posts[x].send-every.days-of-week` | `number[]`           | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
@@ -358,52 +358,116 @@ Detect words in a message that may require attention. Useful when a member menti
 }
 ```
 
-### 8. Remove Member Roles
-Clear selected roles from members if it meets a condition (`if-roles` or `if-no-roles`). Useful when a member has _write access roles_ but is Muted (`if-roles`) or if a member loses their Premium status and alert roles should be removed (`if-no-roles`).
+### 8. Role Manager
+Add or remove selected roles from members if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
 
-| __Key__                                    | __Type__   | __Description__                               | __Accepted Values__          |
-|--------------------------------------------|------------|-----------------------------------------------|------------------------------|
-| `remove-roles`                             | `object[]` |                                               |                              |
-| `remove-roles[x].name`                     | `string`   | Name of the role removal task                 |                              |
-| `remove-roles[x].type`                     | `string`   | Condition to remove roles                     | `if-roles` or `if-not-roles` |
-| `remove-roles[x].to-detect`                | `object[]` |                                               |                              |
-| `remove-roles[x].to-detect[x].description` | `string`   | Description of the roles to detect (optional) |                              |
-| `remove-roles[x].to-detect[x].id`          | `string`   | Role to detect                                | Discord role ID              |
-| `remove-roles[x].to-remove`                | `object[]` |                                               |                              |
-| `remove-roles[x].to-remove[x].description` | `string`   | Description of the roles to remove (optional) |                              |
-| `remove-roles[x].to-remove[x].id`          | `string`   | Role to remove                                | Discord role ID              |
+Useful for many scenarios like when members lose a Premium role or when they get muted, and you need to remove _write access_ roles.
+
+| __Key__                             | __Type__   | __Description__                               | __Accepted Values__                                   |
+|-------------------------------------|------------|-----------------------------------------------|-------------------------------------------------------|
+| `roles`                             | `object[]` |                                               |                                                       |
+| `roles[x].name`                     | `string`   | Name of the role task                         |                                                       |
+| `roles[x].type`                     | `string`   | Condition to remove roles                     | `yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes` |
+| `roles[x].before`                   | `object[]` |                                               |                                                       |
+| `roles[x].before[x].description`    | `string`   | Description of the roles before (optional)    |                                                       |
+| `roles[x].before[x].id`             | `string`   | Role before                                   | Discord role ID                                       |
+| `roles[x].after`                    | `object[]` |                                               |                                                       |
+| `roles[x].after[x].description`     | `string`   | Description of the roles after (optional)     |                                                       |
+| `roles[x].after[x].id`              | `string`   | Role after                                    | Discord role ID                                       |
+| `roles[x].to-add`                   | `object[]` |                                               |                                                       |
+| `roles[x].to-add[x].description`    | `string`   | Description of the roles to add (optional)    |                                                       |
+| `roles[x].to-add[x].id`             | `string`   | Role to add                                   | Discord role ID                                       |
+| `roles[x].to-remove`                | `object[]` |                                               |                                                       |
+| `roles[x].to-remove[x].description` | `string`   | Description of the roles to remove (optional) |                                                       |
+| `roles[x].to-remove[x].id`          | `string`   | Role to remove                                | Discord role ID                                       |
 
 ```json
 {
-    "remove-roles": [
+    "roles": [
         {
-            "name": "Remove Sample 2 role if member has Sample 1 role",
-            "type": "if-roles",
-            "to-detect": [
+            "name": "Remove B role if member is A",
+            "type": "yes-to-yes",
+            "before": [
                 {
-                    "description": "Sample 1 role",
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
                     "id": "000000000000000000"
                 }
             ],
             "to-remove": [
                 {
-                    "description": "Sample 2 role",
+                    "description": "B role",
                     "id": "000000000000000000"
                 }
             ]
         },
         {
-            "name": "Remove Sample 2 role if member does not have Sample 1 role",
-            "type": "if-no-roles",
-            "to-detect": [
+            "name": "Remove B role if member is not A",
+            "type": "no-to-no",
+            "before": [
                 {
-                    "description": "Sample 1 role",
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
                     "id": "000000000000000000"
                 }
             ],
             "to-remove": [
                 {
-                    "description": "Sample 2 role",
+                    "description": "B role",
+                    "id": "000000000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Add B role if member went from A to not A",
+            "type": "yes-to-no",
+            "before": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-add": [
+                {
+                    "description": "B role",
+                    "id": "000000000000000000"
+                }
+            ]
+        },
+        {
+            "name": "Remove B role if member went from not A to A",
+            "type": "no-to-yes",
+            "before": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "after": [
+                {
+                    "description": "A role",
+                    "id": "000000000000000000"
+                }
+            ],
+            "to-remove": [
+                {
+                    "description": "B role",
                     "id": "000000000000000000"
                 }
             ]
