@@ -22,16 +22,25 @@ async function autoReply(message, replies) {
 
   _.map(replies, async (reply) => {
     const replyName = _.get(reply, 'name', 'Unknown');
-    const replyChannelId = _.get(reply, 'channel-id');
+    const replyChannelIds = _.get(reply, 'channel-ids');
     const replyTagAuthor = _.get(reply, 'tag-author');
     const replyRegexPattern = _.get(reply, 'regex.pattern');
     const replyRegexFlags = _.get(reply, 'regex.flags');
     const replyMessages = _.get(reply, 'messages');
 
-    // If auto-reply is limited to a channel or messages is not defined.
+    // If auto-reply is limited to specific channels or messages is not defined.
     if (
-      (replyChannelId && replyChannelId !== message.channel.id)
-      || (!_.isArray(replyMessages) || _.isEmpty(replyMessages) || !_.every(replyMessages, (replyMessage) => _.isString(replyMessage) && !_.isEmpty(replyMessage)))
+      (
+        _.isArray(replyChannelIds)
+        && !_.isEmpty(replyChannelIds)
+        && _.every(replyChannelIds, (replyChannelId) => _.isString(replyChannelId) && !_.isEmpty(replyChannelId))
+        && !_.includes(replyChannelIds, message.channel.id)
+      )
+      || (
+        !_.isArray(replyMessages)
+        || _.isEmpty(replyMessages)
+        || !_.every(replyMessages, (replyMessage) => _.isString(replyMessage) && !_.isEmpty(replyMessage))
+      )
     ) {
       return;
     }

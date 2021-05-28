@@ -43,7 +43,11 @@ async function userUploadAttachment(message, sendToChannel) {
         message.attachments,
         message.url,
       ),
-    });
+    }).catch((error) => generateLogMessage(
+      'Failed to send upload attachment embed',
+      10,
+      error,
+    ));
   }
 }
 

@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const luxon = require('luxon');
+const { DateTime } = require('luxon');
 const _ = require('lodash');
 
 const config = require('../../config.json');
@@ -16,7 +16,7 @@ const config = require('../../config.json');
 function generateLogMessage(message, priority, error = undefined) {
   const logLevel = _.get(config, 'settings.log-level', 30);
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
-  const currentTime = luxon.DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
+  const currentTime = DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
 
   if (logLevel >= priority) {
     // Messages will not be logged if priority is wrong.

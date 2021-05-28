@@ -6,6 +6,7 @@ const { generateLogMessage } = require('../lib/utilities');
 const { userChangeNickname } = require('./change-nickname');
 const { userChangeUsername } = require('./change-username');
 const { userDeleteMessage } = require('./delete-message');
+const { userIncludesLink } = require('./includes-link');
 const { userUpdateMessage } = require('./update-message');
 const { userUploadAttachment } = require('./upload-attachment');
 
@@ -33,6 +34,19 @@ async function snitchMode(client, guild, logChannel) {
       && _.get(message, 'author.bot') === false // If message is not sent by a bot.
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
+      /**
+       * Includes link notification.
+       *
+       * @since 1.0.0
+       */
+      if (_.get(config, 'notifications.includes-link') === true) {
+        await userIncludesLink(message, logChannel).catch((error) => generateLogMessage(
+          'Failed to execute "userIncludesLink" function',
+          10,
+          error,
+        ));
+      }
+
       /**
        * Upload attachment notification.
        *
@@ -68,6 +82,19 @@ async function snitchMode(client, guild, logChannel) {
       if (_.get(config, 'notifications.update-message') === true) {
         await userUpdateMessage(message, logChannel).catch((error) => generateLogMessage(
           'Failed to execute "userUpdateMessage" function',
+          10,
+          error,
+        ));
+      }
+
+      /**
+       * Includes link notification.
+       *
+       * @since 1.0.0
+       */
+      if (_.get(config, 'notifications.includes-link') === true) {
+        await userIncludesLink(message, logChannel).catch((error) => generateLogMessage(
+          'Failed to execute "userIncludesLink" function',
           10,
           error,
         ));

@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const Discord = require('discord.js');
+const { Client, Intents } = require('discord.js');
 const _ = require('lodash');
 
 const config = require('../config.json');
@@ -30,12 +30,22 @@ const configSettingsTimeZone = _.get(config, 'settings.time-zone');
  *
  * @since 1.0.0
  */
-const client = new Discord.Client({
+const client = new Client({
   messageCacheMaxSize: Infinity,
   messageCacheLifetime: 2592000, // 30 days.
   messageSweepInterval: 60, // 1 minute.
   messageEditHistoryMaxSize: -1,
   fetchAllMembers: true,
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_BANS,
+    Intents.FLAGS.GUILD_VOICE_STATES,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    Intents.FLAGS.DIRECT_MESSAGES,
+  ],
 });
 
 /**
@@ -141,13 +151,6 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   switch (configSettingsMode) {
-    case 'feature':
-      await featureMode(client, guild, logChannel).catch((error) => generateLogMessage(
-        'Failed to execute "featureMode" function',
-        10,
-        error,
-      ));
-      break;
     case 'snitch':
       await snitchMode(client, guild, logChannel).catch((error) => generateLogMessage(
         'Failed to execute "snitchMode" function',
@@ -155,15 +158,22 @@ client.on('ready', async () => {
         error,
       ));
       break;
-    case 'all':
-    default:
+    case 'feature':
       await featureMode(client, guild, logChannel).catch((error) => generateLogMessage(
         'Failed to execute "featureMode" function',
         10,
         error,
       ));
+      break;
+    case 'all':
+    default:
       await snitchMode(client, guild, logChannel).catch((error) => generateLogMessage(
         'Failed to execute "snitchMode" function',
+        10,
+        error,
+      ));
+      await featureMode(client, guild, logChannel).catch((error) => generateLogMessage(
+        'Failed to execute "featureMode" function',
         10,
         error,
       ));

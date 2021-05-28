@@ -1,6 +1,4 @@
 const chalk = require('chalk');
-const luxon = require('luxon');
-const schedule = require('node-schedule');
 const _ = require('lodash');
 
 const {
@@ -109,87 +107,6 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
 }
 
 /**
- * Anti-raid scanner.
- *
- * @param {module:"discord.js".Guild}                  guild         - Discord guild.
- * @param {object}                                     settings      - User scanner settings from configuration.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function antiRaidScanner(guild, settings, sendToChannel) {
-  const message = _.get(settings, 'message');
-  const messageInterval = _.get(settings, 'message-interval');
-  const whitelistedAvatars = _.get(settings, 'whitelisted-avatars');
-
-  let lastSentMessage = 0;
-
-  if (_.isUndefined(guild) || !_.isString(message) || _.isEmpty(message) || !_.isFinite(messageInterval) || _.isUndefined(sendToChannel)) {
-    return;
-  }
-
-  schedule.scheduleJob('* * * * *', () => {
-    const guildMembers = guild.members.cache.array();
-    const nowInSeconds = luxon.DateTime.now().toSeconds();
-    const finalList = [];
-
-    let avatars = {};
-
-    generateLogMessage(
-      `Scanning for duplicate members in the ${guild.name} guild`,
-      40,
-    );
-
-    // Remap users based on their avatar.
-    _.forEach(guildMembers, (guildMember) => {
-      const { avatar } = guildMember.user;
-
-      if (avatar !== null && !_.includes(whitelistedAvatars, avatar)) {
-        // Create entry for avatar hash if it does not exist.
-        if (avatars[avatar] === undefined) {
-          avatars[avatar] = [];
-        }
-
-        avatars[avatar].push(guildMember.toString());
-      }
-    });
-
-    /**
-     * Convert object to array for loop later.
-     *
-     * @type {[string, string[]][]}
-     */
-    avatars = Object.entries(avatars);
-
-    _.forEach(avatars, (avatar) => {
-      const ids = avatar[1];
-
-      if (_.size(ids) > 1) {
-        finalList.push(...ids);
-      }
-    });
-
-    // Send message if duplicate members found and not sent recently.
-    if (_.size(finalList) > 0 && (nowInSeconds - lastSentMessage) > messageInterval) {
-      generateLogMessage(
-        `Duplicate members have been detected in the ${guild.name} guild`,
-        30,
-      );
-
-      sendToChannel.send(message).then(() => {
-        lastSentMessage = nowInSeconds;
-      }).catch((error) => generateLogMessage(
-        'Failed to send message',
-        10,
-        error,
-      ));
-    }
-  });
-}
-
-/**
  * Anti-raid verification notice.
  *
  * @param {module:"discord.js".GuildMember}            member        - Member information.
@@ -201,21 +118,33 @@ async function antiRaidScanner(guild, settings, sendToChannel) {
  * @since 1.0.0
  */
 async function antiRaidVerifyNotice(member, settings, sendToChannel) {
+  const userCreatedTimestamp = _.get(member, 'user.createdTimestamp');
   const userId = _.get(member, 'user.id');
   const memberCode = _.replace(userId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
-  const instructions = _.get(settings, 'messages.instructions', '')
+  const normal = _.get(settings, 'messages.normal', '')
     .replace(/%MEMBER_MENTION%/g, member.toString())
     .replace(/%MEMBER_CODE%/g, memberCode);
+  const suspicious = _.get(settings, 'messages.suspicious', '')
+    .replace(/%MEMBER_MENTION%/g, member.toString());
 
-  if (_.isUndefined(sendToChannel) || instructions === '') {
+  if (_.isUndefined(sendToChannel) || normal === '' || suspicious === '') {
     return;
   }
 
-  await sendToChannel.send(instructions).catch((error) => generateLogMessage(
-    'Failed to send message',
-    10,
-    error,
-  ));
+  // If user was created less than 7 days ago.
+  if ((Date.now() - userCreatedTimestamp) < 604800000) {
+    await sendToChannel.send(suspicious).catch((error) => generateLogMessage(
+      'Failed to send message',
+      10,
+      error,
+    ));
+  } else {
+    await sendToChannel.send(normal).catch((error) => generateLogMessage(
+      'Failed to send message',
+      10,
+      error,
+    ));
+  }
 }
 
 /**
@@ -573,7 +502,6 @@ async function removeAffiliateLinks(message, affiliateLinks, sendToChannel) {
 module.exports = {
   antiRaidAutoBan,
   antiRaidMonitor,
-  antiRaidScanner,
   antiRaidVerifyNotice,
   antiRaidVerifyRole,
   checkRegexChannels,

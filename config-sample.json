@@ -13,6 +13,7 @@
         "change-username": true,
         "delete-bulk-messages": true,
         "delete-message": true,
+        "includes-link": true,
         "update-message": true,
         "upload-attachment": true
     },
@@ -71,19 +72,12 @@
                 "channel-id": "000000000000000000"
             }
         },
-        "scanner": {
-            "channel-id": "000000000000000000",
-            "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
-            "message-interval": 0,
-            "whitelisted-avatars": [
-                "00000000000000000000000000000000"
-            ]
-        },
         "verify": {
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
             "messages": {
-                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
+                "normal": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
+                "suspicious": "Hey %MEMBER_MENTION%, please contact the server owner to verify.",
                 "valid": "%MEMBER_MENTION%, you have been verified.",
                 "invalid": "%MEMBER_MENTION%, invalid code."
             },
@@ -245,7 +239,9 @@
     "auto-reply": [
         {
             "name": "Sample",
-            "channel-id": "000000000000000000",
+            "channel-ids": [
+                "000000000000000000"
+            ],
             "tag-author": true,
             "regex": {
                 "pattern": "(?:)",

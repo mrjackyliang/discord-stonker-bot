@@ -14,7 +14,6 @@ const { autoReply } = require('./messenger');
 const {
   antiRaidAutoBan,
   antiRaidMonitor,
-  antiRaidScanner,
   antiRaidVerifyNotice,
   antiRaidVerifyRole,
   checkRegexChannels,
@@ -35,7 +34,6 @@ const {
  */
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
-const configAntiRaidScanner = _.get(config, 'anti-raid.scanner');
 const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRegexRules = _.get(config, 'regex-rules');
@@ -63,19 +61,21 @@ async function featureMode(client, guild, logChannel) {
    */
   client.on('message', async (message) => {
     const botPrefix = _.get(config, 'settings.bot-prefix');
+    const messageContent = message.toString();
 
     if (
       guild.available === true // If guild is online.
       && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
       && _.get(message, 'author.bot') === false // If message is not sent by a bot.
       && _.get(message, 'system') === false // If message is not sent by system.
+      && messageContent.startsWith(botPrefix) // If message starts with the bot prefix.
     ) {
       /**
        * Fetch members.
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}fetch-members`)) {
+      if (messageContent.startsWith(`${botPrefix}fetch-members`)) {
         await fetchMembers(message, botPrefix, _.get(config, 'commands.fetch-members')).catch((error) => generateLogMessage(
           'Failed to execute "fetchMembers" function',
           10,
@@ -88,7 +88,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}find-duplicate-users`)) {
+      if (messageContent.startsWith(`${botPrefix}find-duplicate-users`)) {
         await findDuplicateUsers(message, botPrefix, _.get(config, 'commands.find-duplicate-users')).catch((error) => generateLogMessage(
           'Failed to execute "findDuplicateUsers" function',
           10,
@@ -101,7 +101,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}help`)) {
+      if (messageContent.startsWith(`${botPrefix}help`)) {
         await help(message, botPrefix, _.get(config, 'commands.help'), {
           fetchMembers: _.get(config, 'commands.fetch-members'),
           findDuplicateUsers: _.get(config, 'commands.find-duplicate-users'),
@@ -120,7 +120,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}role`)) {
+      if (messageContent.startsWith(`${botPrefix}role`)) {
         await role(message, botPrefix, _.get(config, 'commands.role')).catch((error) => generateLogMessage(
           'Failed to execute "role" function',
           10,
@@ -133,7 +133,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}toggle-perms`)) {
+      if (messageContent.startsWith(`${botPrefix}toggle-perms`)) {
         await togglePerms(message, botPrefix, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms')).catch((error) => generateLogMessage(
           'Failed to execute "togglePerms" function',
           10,
@@ -146,7 +146,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      if (message.toString().startsWith(`${botPrefix}voice`)) {
+      if (messageContent.startsWith(`${botPrefix}voice`)) {
         await voice(message, botPrefix, _.get(config, 'commands.voice')).catch((error) => generateLogMessage(
           'Failed to execute "voice" function',
           10,
@@ -288,23 +288,23 @@ async function featureMode(client, guild, logChannel) {
       ));
 
       /**
-       * Anti-raid auto-ban.
-       *
-       * @since 1.0.0
-       */
-      await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidAutoBan" function',
-        10,
-        error,
-      ));
-
-      /**
        * Anti-raid verification notice.
        *
        * @since 1.0.0
        */
       await antiRaidVerifyNotice(member, configAntiRaidVerify, verifyChannel).catch((error) => generateLogMessage(
         'Failed to execute "antiRaidVerifyNotice" function',
+        10,
+        error,
+      ));
+
+      /**
+       * Anti-raid auto-ban.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidAutoBan" function',
         10,
         error,
       ));
@@ -372,21 +372,6 @@ async function featureMode(client, guild, logChannel) {
 
       schedulePost(configSchedulePost, channel);
     });
-  }
-
-  /**
-   * Anti-raid scanner.
-   *
-   * @since 1.0.0
-   */
-  if (_.isPlainObject(configAntiRaidScanner) && !_.isEmpty(configAntiRaidScanner)) {
-    const channel = getTextBasedChannel(guild, configAntiRaidScanner['channel-id']);
-
-    await antiRaidScanner(guild, configAntiRaidScanner, channel).catch((error) => generateLogMessage(
-      'Failed to execute "antiRaidScanner" function',
-      10,
-      error,
-    ));
   }
 }
 

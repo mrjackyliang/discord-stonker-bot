@@ -1,5 +1,5 @@
-const Discord = require('discord.js');
-const luxon = require('luxon');
+const { DateTime, Interval } = require('luxon');
+const { MessageEmbed } = require('discord.js');
 const _ = require('lodash');
 
 const {
@@ -25,7 +25,7 @@ const config = require('../../config.json');
  */
 function addEmbed(title, description, thumbnailUrl = null, fields = undefined, footer, color = '#808080') {
   if (!_.isUndefined(fields)) {
-    return new Discord.MessageEmbed()
+    return new MessageEmbed()
       .setColor(color)
       .setTitle(title)
       .setDescription(description)
@@ -35,7 +35,7 @@ function addEmbed(title, description, thumbnailUrl = null, fields = undefined, f
       .setFooter(footer);
   }
 
-  return new Discord.MessageEmbed()
+  return new MessageEmbed()
     .setColor(color)
     .setTitle(title)
     .setDescription(description)
@@ -55,7 +55,7 @@ function addEmbed(title, description, thumbnailUrl = null, fields = undefined, f
  * @since 1.0.0
  */
 function addMessageFields(message, fieldTitle = 'Message') {
-  const theMessages = splitStringChunks(message, 1000);
+  const theMessages = splitStringChunks(message, 1020);
   const fields = [];
 
   _.forEach(theMessages, (theMessage, key) => {
@@ -275,6 +275,41 @@ function createHelpMenuEmbed(commands, userTag) {
 }
 
 /**
+ * Create includes link embed.
+ *
+ * @param {string}                                   userMention    - User mention.
+ * @param {string}                                   channelMention - Channel mention.
+ * @param {string}                                   id             - Message id.
+ * @param {string}                                   content        - Message content.
+ * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
+ * @param {string}                                   url            - Message url.
+ *
+ * @returns {module:"discord.js".MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+function createIncludesLinkEmbed(userMention, channelMention, id, content, attachments, url) {
+  const fields = [];
+
+  if (content) {
+    fields.push(...addMessageFields(content));
+  }
+
+  if (attachments) {
+    fields.push(...addAttachmentFields(attachments));
+  }
+
+  return addEmbed(
+    'Links Detected',
+    `:link: [Message](${url}) sent by ${userMention} includes links in ${channelMention}`,
+    null,
+    fields,
+    `Message ID: ${id}`,
+    '#4798e0',
+  );
+}
+
+/**
  * Create list members embed.
  *
  * @param {string}      title     - The embed title.
@@ -318,8 +353,8 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
   const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
   const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
-  const dateNow = luxon.DateTime.now();
-  const accountAge = luxon.Interval.fromDateTimes(createdAt, dateNow).toDuration([
+  const dateNow = DateTime.now();
+  const accountAge = Interval.fromDateTimes(createdAt, dateNow).toDuration([
     'years',
     'months',
     'days',
@@ -328,7 +363,7 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
     'seconds',
     'milliseconds',
   ], {}).toObject();
-  const timeOfStay = luxon.Interval.fromDateTimes(joinedAt, dateNow).toDuration([
+  const timeOfStay = Interval.fromDateTimes(joinedAt, dateNow).toDuration([
     'years',
     'months',
     'days',
@@ -692,6 +727,7 @@ module.exports = {
   createCommandErrorEmbed,
   createDeleteMessageEmbed,
   createHelpMenuEmbed,
+  createIncludesLinkEmbed,
   createListMembersEmbed,
   createMemberMonitorEmbed,
   createNoResultsEmbed,

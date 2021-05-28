@@ -90,6 +90,7 @@ Get notifications from user actions surrounding your server. When a nickname cha
 | `notifications.change-username`      | `boolean` | Notify when a member changes their username | `true` or `false`   |
 | `notifications.delete-bulk-messages` | `boolean` | Notify when bulk messages are deleted       | `true` or `false`   |
 | `notifications.delete-message`       | `boolean` | Notify when a message is deleted            | `true` or `false`   |
+| `notifications.includes-link`        | `boolean` | Notify when a message includes links        | `true` or `false`   |
 | `notifications.update-message`       | `boolean` | Notify when a message is edited             | `true` or `false`   |
 | `notifications.upload-attachment`    | `boolean` | Notify when an attachment is uploaded       | `true` or `false`   |
 
@@ -100,6 +101,7 @@ Get notifications from user actions surrounding your server. When a nickname cha
         "change-username": true,
         "delete-bulk-messages": true,
         "delete-message": true,
+        "includes-link": true,
         "update-message": true,
         "upload-attachment": true
     }
@@ -177,6 +179,8 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ### 4. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps implement a verification gate for those that just joined the server.
 
+Account age of less than 7 days will be shown the `suspicious` message.
+
 | __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                         |
 |---------------------------------------------|------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | `anti-raid`                                 | `object`   |                                                     |                                                                                                             |
@@ -188,16 +192,12 @@ A set of tools to ban members (based on their avatar hash or username), and help
 | `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                          |
 | `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                             |
 | `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                          |
-| `anti-raid.scanner`                         | `object`   |                                                     |                                                                                                             |
-| `anti-raid.scanner.channel-id`              | `string`   | Channel to post in when duplicate users are found   | Discord channel ID                                                                                          |
-| `anti-raid.scanner.message`                 | `string`   | Message content                                     | Cannot be empty and cannot exceed 2000 characters                                                           |
-| `anti-raid.scanner.message-interval`        | `number`   | Alert interval when duplicate users are found       | Calculate the [time in seconds](https://www.calculateme.com/time/minutes/to-seconds/)                       |
-| `anti-raid.scanner.whitelisted-avatars`     | `string[]` | List of whitelisted avatar hashes                   | File name of avatar (without file extension)                                                                |
 | `anti-raid.verify`                          | `object`   |                                                     |                                                                                                             |
 | `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                          |
 | `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                             |
 | `anti-raid.verify.messages`                 | `object`   |                                                     |                                                                                                             |
-| `anti-raid.verify.messages.instructions`    | `string`   | Message sent when user joins the server             | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.normal`          | `string`   | Message sent when normal user joins the server      | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.suspicious`      | `string`   | Message sent when suspicious user joins the server  | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
 | `anti-raid.verify.messages.valid`           | `string`   | Message sent when verification is successful        | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
 | `anti-raid.verify.messahes.invalid`         | `string`   | Message sent when verification failed               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
 
@@ -220,19 +220,12 @@ A set of tools to ban members (based on their avatar hash or username), and help
                 "channel-id": "000000000000000000"
             }
         },
-        "scanner": {
-            "channel-id": "000000000000000000",
-            "message": "Raid Alert! Please run the `!find-duplicate-users` command.",
-            "message-interval": 0,
-            "whitelisted-avatars": [
-                "00000000000000000000000000000000"
-            ]
-        },
         "verify": {
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
             "messages": {
-                "instructions": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
+                "normal": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
+                "suspicious": "Hey %MEMBER_MENTION%, please contact the server owner to verify.",
                 "valid": "%MEMBER_MENTION%, you have been verified.",
                 "invalid": "%MEMBER_MENTION%, invalid code."
             }
@@ -479,23 +472,25 @@ Useful for many scenarios like when members lose a Premium role or when they get
 ### 9. Auto Reply
 Reply to a message without requiring human interaction. Great for automated customer service or surprise members with hidden Easter eggs!
 
-| __Key__                       | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                 |
-|-------------------------------|------------|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `auto-reply`                  | `object[]` |                                            |                                                                                                                                                                     |
-| `auto-reply[x].name`          | `string`   | Name of the auto-reply task                |                                                                                                                                                                     |
-| `auto-reply[x].channel-id`    | `string`   | Channel monitored for the reply (optional) | Discord channel ID                                                                                                                                                  |
-| `auto-reply[x].tag-author`    | `boolean`  | Tag the author when replying               | `true` or `false`                                                                                                                                                   |
-| `auto-reply[x].regex`         | `object`   |                                            |                                                                                                                                                                     |
-| `auto-reply[x].regex.pattern` | `string`   | Regex pattern for matching message content | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `auto-reply[x].regex.flags`   | `string`   | Regex flags                                | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `auto-reply[x].messages`      | `string[]` | Message contents                           | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
+| __Key__                        | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
+|--------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `auto-reply`                   | `object[]` |                                             |                                                                                                                                                                     |
+| `auto-reply[x].name`           | `string`   | Name of the auto-reply task                 |                                                                                                                                                                     |
+| `auto-reply[x].channel-ids`    | `string[]` | Channels monitored for the reply (optional) | Discord channel IDs                                                                                                                                                 |
+| `auto-reply[x].tag-author`     | `boolean`  | Tag the author when replying                | `true` or `false`                                                                                                                                                   |
+| `auto-reply[x].regex`          | `object`   |                                             |                                                                                                                                                                     |
+| `auto-reply[x].regex.pattern`  | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `auto-reply[x].regex.flags`    | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `auto-reply[x].messages`       | `string[]` | Message contents                            | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
 
 ```json
 {
     "auto-reply": [
         {
             "name": "Sample",
-            "channel-id": "000000000000000000",
+            "channel-ids": [
+                "000000000000000000"
+            ],
             "tag-author": true,
             "regex": {
                 "pattern": "(?:)",
