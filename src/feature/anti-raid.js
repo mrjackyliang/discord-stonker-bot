@@ -116,8 +116,8 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
 async function antiRaidVerifyNotice(member, settings, sendToChannel) {
   const userCreatedTimestamp = _.get(member, 'user.createdTimestamp');
   const userId = _.get(member, 'user.id');
-  const memberCode = _.replace(userId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
   const minimumAge = _.get(settings, 'minimum-age');
+  const memberCode = _.replace(userId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
 
   let welcomeNormal = _.get(settings, 'messages.welcome.normal');
   let welcomeSuspicious = _.get(settings, 'messages.welcome.suspicious');
@@ -170,7 +170,11 @@ async function antiRaidVerifyRole(message, settings) {
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
   const settingsMinimumAge = _.get(settings, 'minimum-age');
   const settingsExcludeRoles = _.get(settings, 'exclude-roles');
+  const displayCode = _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
+  const messageContent = message.toString().toLowerCase();
 
+  let welcomeNormal = _.get(settings, 'messages.welcome.normal');
+  let welcomeSuspicious = _.get(settings, 'messages.welcome.suspicious');
   let validNormal = _.get(settings, 'messages.valid.normal');
   let validSuspicious = _.get(settings, 'messages.valid.suspicious');
   let invalidNormal = _.get(settings, 'messages.invalid.normal');
@@ -183,6 +187,10 @@ async function antiRaidVerifyRole(message, settings) {
     || !_.isFinite(settingsMinimumAge)
     || _.some(settingsExcludeRoles, (settingsExcludeRole) => message.member.roles.cache.has(settingsExcludeRole.id))
     || message.member.permissions.has('ADMINISTRATOR')
+    || !_.isString(welcomeNormal)
+    || _.isEmpty(welcomeNormal)
+    || !_.isString(welcomeSuspicious)
+    || _.isEmpty(welcomeSuspicious)
     || !_.isString(validNormal)
     || _.isEmpty(validNormal)
     || !_.isString(validSuspicious)
@@ -196,24 +204,30 @@ async function antiRaidVerifyRole(message, settings) {
   }
 
   // Replace variables.
+  welcomeNormal = welcomeNormal
+    .replace(/%MEMBER_MENTION%/g, message.member.toString())
+    .replace(/%MEMBER_CODE%/g, displayCode);
+  welcomeSuspicious = welcomeSuspicious
+    .replace(/%MEMBER_MENTION%/g, message.member.toString());
   validNormal = validNormal
     .replace(/%MEMBER_MENTION%/g, message.member.toString());
   validSuspicious = validSuspicious
     .replace(/%MEMBER_MENTION%/g, message.member.toString());
   invalidNormal = invalidNormal
     .replace(/%MEMBER_MENTION%/g, message.member.toString())
-    .replace(/%MEMBER_CODE%/g, _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3'));
+    .replace(/%MEMBER_CODE%/g, displayCode);
   invalidSuspicious = invalidSuspicious
     .replace(/%MEMBER_MENTION%/g, message.member.toString());
 
   // Use normal or suspicious message.
   const isMinimumAge = (((Date.now() - messageMemberUserCreatedTimestamp) / 1000) >= settingsMinimumAge);
+  const welcomeMessage = (isMinimumAge) ? welcomeNormal : welcomeSuspicious;
   const validMessage = (isMinimumAge) ? validNormal : validSuspicious;
   const invalidMessage = (isMinimumAge) ? invalidNormal : invalidSuspicious;
 
   // Compare user code with user input.
   const userCode = _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1$3');
-  const userInput = message.toString()
+  const userInput = messageContent
     .replace(/[- –—−]/g, '')
     .replace(/[０]/g, '0')
     .replace(/[１]/g, '1')
@@ -233,8 +247,15 @@ async function antiRaidVerifyRole(message, settings) {
     error,
   ));
 
-  // If verification code is correct, assign role.
-  if (userCode === userInput) {
+  // If message includes "verify", or is a user code.
+  if (_.includes(messageContent, 'verify')) {
+    // Send welcome message.
+    await message.channel.send(welcomeMessage).catch((error) => generateLogMessage(
+      'Failed to send message',
+      10,
+      error,
+    ));
+  } else if (userCode === userInput) {
     // Send valid message.
     await message.channel.send(validMessage).catch((error) => generateLogMessage(
       'Failed to send message',
