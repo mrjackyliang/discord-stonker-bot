@@ -3,6 +3,12 @@ const _ = require('lodash');
 const config = require('../../config.json');
 
 const {
+  antiRaidAutoBan,
+  antiRaidMonitor,
+  antiRaidVerifyNotice,
+  antiRaidVerifyRole,
+} = require('./anti-raid');
+const {
   fetchMembers,
   findDuplicateUsers,
   help,
@@ -12,10 +18,6 @@ const {
 } = require('./commands');
 const { autoReply } = require('./messenger');
 const {
-  antiRaidAutoBan,
-  antiRaidMonitor,
-  antiRaidVerifyNotice,
-  antiRaidVerifyRole,
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,

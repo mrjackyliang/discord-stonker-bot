@@ -76,11 +76,20 @@
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
             "messages": {
-                "normal": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
-                "suspicious": "Hey %MEMBER_MENTION%, please contact the server owner to verify.",
-                "valid": "%MEMBER_MENTION%, you have been verified.",
-                "invalid": "%MEMBER_MENTION%, invalid code."
+                "welcome": {
+                    "normal": "Hey %MEMBER_MENTION%! Type `%MEMBER_CODE%` to verify.",
+                    "suspicious": "Hey %MEMBER_MENTION%! Please contact the server owner to verify."
+                },
+                "valid": {
+                    "normal": "%MEMBER_MENTION%, you have been verified.",
+                    "suspicious": "%MEMBER_MENTION%, you have been manually verified."
+                },
+                "invalid": {
+                    "normal": "Oops, %MEMBER_MENTION%! Invalid code. Type `%MEMBER_CODE%` to verify.",
+                    "suspicious": "Oops, %MEMBER_MENTION%! Invalid code. Please contact the server owner to verify."
+                }
             },
+            "minimum-age": 86400,
             "exclude-roles": [
                 {
                     "description": "Sample role",

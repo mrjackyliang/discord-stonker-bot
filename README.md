@@ -181,25 +181,34 @@ A set of tools to ban members (based on their avatar hash or username), and help
 
 Account age of less than 7 days will be shown the `suspicious` message.
 
-| __Key__                                     | __Type__   | __Description__                                     | __Accepted Values__                                                                                         |
-|---------------------------------------------|------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `anti-raid`                                 | `object`   |                                                     |                                                                                                             |
-| `anti-raid.auto-ban`                        | `object`   |                                                     |                                                                                                             |
-| `anti-raid.auto-ban.avatar`                 | `string[]` | List of banned avatar hashes                        | File name of avatar (without file extension)                                                                |
-| `anti-raid.auto-ban.username`               | `string[]` | List of banned usernames                            | Username of user                                                                                            |
-| `anti-raid.monitor`                         | `object`   |                                                     |                                                                                                             |
-| `anti-raid.monitor.guild-join `             | `object`   |                                                     |                                                                                                             |
-| `anti-raid.monitor.guild-join.channel-id`   | `string`   | Channel to post in when a user joins a guild        | Discord channel ID                                                                                          |
-| `anti-raid.monitor.guild-leave`             | `object`   |                                                     |                                                                                                             |
-| `anti-raid.monitor.guild-leave.channel-id`  | `string`   | Channel to post in when a user leaves a guild       | Discord channel ID                                                                                          |
-| `anti-raid.verify`                          | `object`   |                                                     |                                                                                                             |
-| `anti-raid.verify.channel-id`               | `string`   | Channel to post the verification message            | Discord channel ID                                                                                          |
-| `anti-raid.verify.verified-role-id`         | `string`   | Role to assign when a user completes verification   | Discord role ID                                                                                             |
-| `anti-raid.verify.messages`                 | `object`   |                                                     |                                                                                                             |
-| `anti-raid.verify.messages.normal`          | `string`   | Message sent when normal user joins the server      | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.suspicious`      | `string`   | Message sent when suspicious user joins the server  | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
-| `anti-raid.verify.messages.valid`           | `string`   | Message sent when verification is successful        | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
-| `anti-raid.verify.messahes.invalid`         | `string`   | Message sent when verification failed               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| __Key__                                         | __Type__   | __Description__                                       | __Accepted Values__                                                                                         |
+|-------------------------------------------------|------------|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `anti-raid`                                     | `object`   |                                                       |                                                                                                             |
+| `anti-raid.auto-ban`                            | `object`   |                                                       |                                                                                                             |
+| `anti-raid.auto-ban.avatar`                     | `string[]` | List of banned avatar hashes                          | File name of avatar (without file extension)                                                                |
+| `anti-raid.auto-ban.username`                   | `string[]` | List of banned usernames                              | Username of user                                                                                            |
+| `anti-raid.monitor`                             | `object`   |                                                       |                                                                                                             |
+| `anti-raid.monitor.guild-join`                  | `object`   |                                                       |                                                                                                             |
+| `anti-raid.monitor.guild-join.channel-id`       | `string`   | Channel to post in when a user joins a guild          | Discord channel ID                                                                                          |
+| `anti-raid.monitor.guild-leave`                 | `object`   |                                                       |                                                                                                             |
+| `anti-raid.monitor.guild-leave.channel-id`      | `string`   | Channel to post in when a user leaves a guild         | Discord channel ID                                                                                          |
+| `anti-raid.verify`                              | `object`   |                                                       |                                                                                                             |
+| `anti-raid.verify.channel-id`                   | `string`   | Channel to post the verification message              | Discord channel ID                                                                                          |
+| `anti-raid.verify.verified-role-id`             | `string`   | Role to assign when a user completes verification     | Discord role ID                                                                                             |
+| `anti-raid.verify.messages`                     | `object`   |                                                       |                                                                                                             |
+| `anti-raid.verify.messages.welcome`             | `object`   |                                                       |                                                                                                             |
+| `anti-raid.verify.messages.welcome.normal`      | `string`   | Message sent when normal user joins                   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.welcome.suspicious`  | `string`   | Message sent when suspicious user joins               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.valid`               | `object`   |                                                       |                                                                                                             |
+| `anti-raid.verify.messages.valid.normal`        | `string`   | Message sent when normal user enters valid code       | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.valid.suspicious`    | `string`   | Message sent when suspicious user enters valid code   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.invalid`             | `object`   |                                                       |                                                                                                             |
+| `anti-raid.verify.messages.invalid.normal`      | `string`   | Message sent when normal user enters invalid code     | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.invalid.suspicious`  | `string`   | Message sent when suspicious user enters invalid code | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.minimum-age`                  | `number`   | Minimum age required to show `normal` message         | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
+| `anti-raid.verify.exclude-roles`                | `object[]` |                                                       |                                                                                                             |
+| `anti-raid.verify.exclude-roles[x].description` | `string`   | Description of the excluded role (optional)           |                                                                                                             |
+| `anti-raid.verify.exclude-roles[x].id`          | `string`   | Excluded role                                         | Discord role ID                                                                                             |
 
 ```json
 {
@@ -224,11 +233,26 @@ Account age of less than 7 days will be shown the `suspicious` message.
             "channel-id": "000000000000000000",
             "verified-role-id": "000000000000000000",
             "messages": {
-                "normal": "Hey %MEMBER_MENTION%, type `%MEMBER_CODE%` to verify.",
-                "suspicious": "Hey %MEMBER_MENTION%, please contact the server owner to verify.",
-                "valid": "%MEMBER_MENTION%, you have been verified.",
-                "invalid": "%MEMBER_MENTION%, invalid code."
-            }
+                "welcome": {
+                    "normal": "Hey %MEMBER_MENTION%! Type `%MEMBER_CODE%` to verify.",
+                    "suspicious": "Hey %MEMBER_MENTION%! Please contact the server owner to verify."
+                },
+                "valid": {
+                    "normal": "%MEMBER_MENTION%, you have been verified.",
+                    "suspicious": "%MEMBER_MENTION%, you have been manually verified."
+                },
+                "invalid": {
+                    "normal": "Oops, %MEMBER_MENTION%! Invalid code. Type `%MEMBER_CODE%` to verify.",
+                    "suspicious": "Oops, %MEMBER_MENTION%! Invalid code. Please contact the server owner to verify."
+                }
+            },
+            "minimum-age": 86400,
+            "exclude-roles": [
+                {
+                    "description": "Sample role",
+                    "id": "000000000000000000"
+                }
+            ]
         }
     }
 }

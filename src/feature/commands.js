@@ -47,7 +47,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}fetch-members\` command.`,
@@ -207,7 +207,7 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}find-duplicate-users\` command.`,
@@ -315,7 +315,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}help\` command.`,
@@ -338,7 +338,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowFetchMembersRoles, (allowFetchMembersRole) => message.member.roles.cache.has(allowFetchMembersRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
+    || message.member.permissions.has('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
@@ -353,7 +353,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowFindDuplicateUsersRoles, (allowFindDuplicateUsersRole) => message.member.roles.cache.has(allowFindDuplicateUsersRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
+    || message.member.permissions.has('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
@@ -365,7 +365,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowRoleRoles, (allowRoleRole) => message.member.roles.cache.has(allowRoleRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
+    || message.member.permissions.has('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
@@ -381,7 +381,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowTogglePermsRoles, (allowTogglePermsRole) => message.member.roles.cache.has(allowTogglePermsRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
+    || message.member.permissions.has('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
@@ -394,7 +394,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowVoiceRoles, (allowVoiceRole) => message.member.roles.cache.has(allowVoiceRole.id) === true)
-    || message.member.hasPermission('ADMINISTRATOR')
+    || message.member.permissions.has('ADMINISTRATOR')
   ) {
     commands.push({
       queries: [
@@ -450,7 +450,7 @@ async function role(message, botPrefix, allowedRoles) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}role\` command.`,
@@ -706,7 +706,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}toggle-perms\` command.`,
@@ -912,11 +912,12 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 async function voice(message, botPrefix, allowedRoles) {
   const commandArguments = message.toString().split(' ');
   const channel = message.channel.guild.channels.cache.get(_.replace(commandArguments[2], /[<#>]/g, ''));
-  const isVoiceChannel = _.includes(['voice', 'stage'], _.get(channel, 'type'));
+  const channelType = _.get(channel, 'type');
+  const isVoiceOrStageChannel = _.includes(['voice', 'stage'], channelType);
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.hasPermission('ADMINISTRATOR')
+    && !message.member.permissions.has('ADMINISTRATOR')
   ) {
     await message.channel.send(createCommandErrorEmbed(
       `You do not have enough permissions to use the \`${botPrefix}voice\` command.`,
@@ -951,11 +952,11 @@ async function voice(message, botPrefix, allowedRoles) {
     return;
   }
 
-  // If voice channel is invalid or does not exist.
-  if (_.isUndefined(channel) || _.isUndefined(isVoiceChannel)) {
+  // If voice or stage channel is invalid or does not exist.
+  if (_.isUndefined(channel) || isVoiceOrStageChannel !== true) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The voice channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
+        `The voice or stage channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
         'Example:',
         '```',
         `${botPrefix}voice ${commandArguments[1]} [#channel]`,
@@ -973,8 +974,8 @@ async function voice(message, botPrefix, allowedRoles) {
 
   // If bot does not have enough permissions.
   if (
-    (commandArguments[1] === 'disconnect' && !message.guild.me.hasPermission('MOVE_MEMBERS'))
-    || (commandArguments[1] === 'unmute' && !message.guild.me.hasPermission('MUTE_MEMBERS'))
+    (commandArguments[1] === 'disconnect' && !message.guild.me.permissions.has('MOVE_MEMBERS'))
+    || (commandArguments[1] === 'unmute' && !message.guild.me.permissions.has('MUTE_MEMBERS'))
   ) {
     const disconnect = (commandArguments[1] === 'disconnect') ? 'Move Members' : undefined;
     const unmute = (commandArguments[1] === 'unmute') ? 'Mute Members' : undefined;
@@ -988,7 +989,8 @@ async function voice(message, botPrefix, allowedRoles) {
         commandArguments[1],
         'members from the',
         channel.toString(),
-        'voice channel.',
+        channelType,
+        'channel.',
       ].join(' '),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
@@ -1007,10 +1009,10 @@ async function voice(message, botPrefix, allowedRoles) {
     error,
   ));
 
-  // Begin to perform voice channel actions.
+  // Begin to perform voice or stage channel actions.
   await message.channel.send(createVoiceEmbed(
     commandArguments[1],
-    `Please wait while ${message.guild.me.toString()} ${commandArguments[1]}s all members connected to the ${channel.toString()} voice channel...`,
+    `Please wait while ${message.guild.me.toString()} ${commandArguments[1]}s all members connected to the ${channel.toString()} ${channelType} channel...`,
     'in-progress',
     message.member.user.tag,
   )).then(async (theMessage) => {
@@ -1039,7 +1041,8 @@ async function voice(message, botPrefix, allowedRoles) {
               (!_.isError(error)) ? chalk.green(memberMention) : chalk.red(memberMention),
               'from',
               (!_.isError(error)) ? chalk.green(channelMention) : chalk.red(channelMention),
-              'voice channel',
+              channelType,
+              'channel',
             ].join(' '),
             (!_.isError(error)) ? 30 : 10,
             (_.isError(error)) ? error : undefined,
@@ -1078,7 +1081,8 @@ async function voice(message, botPrefix, allowedRoles) {
           disconnect || unmute,
           'from the',
           channel.toString(),
-          'voice channel.',
+          channelType,
+          'channel.',
         ].join(' '),
         (success === true) ? 'complete' : 'fail',
         message.member.user.tag,
