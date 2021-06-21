@@ -4,9 +4,9 @@ const config = require('../../config.json');
 
 const {
   antiRaidAutoBan,
+  antiRaidAutoVerify,
   antiRaidMonitor,
-  antiRaidVerifyNotice,
-  antiRaidVerifyRole,
+  antiRaidVerify,
 } = require('./anti-raid');
 const {
   fetchMembers,
@@ -171,12 +171,12 @@ async function featureMode(client, guild, logChannel) {
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
       /**
-       * Anti-raid verification role.
+       * Anti-raid verification.
        *
        * @since 1.0.0
        */
-      await antiRaidVerifyRole(message, configAntiRaidVerify).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidVerifyRole" function',
+      await antiRaidVerify(message, configAntiRaidVerify).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidVerify" function',
         10,
         error,
       ));
@@ -275,8 +275,6 @@ async function featureMode(client, guild, logChannel) {
     ) {
       const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
       const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
-      const verifyChannelId = _.get(configAntiRaidVerify, 'channel-id');
-      const verifyChannel = getTextBasedChannel(guild, verifyChannelId);
 
       /**
        * Anti-raid monitor.
@@ -290,23 +288,23 @@ async function featureMode(client, guild, logChannel) {
       ));
 
       /**
-       * Anti-raid verification notice.
-       *
-       * @since 1.0.0
-       */
-      await antiRaidVerifyNotice(member, configAntiRaidVerify, verifyChannel).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidVerifyNotice" function',
-        10,
-        error,
-      ));
-
-      /**
        * Anti-raid auto-ban.
        *
        * @since 1.0.0
        */
       await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
         'Failed to execute "antiRaidAutoBan" function',
+        10,
+        error,
+      ));
+
+      /**
+       * Anti-raid auto-verify.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidAutoVerify(member, configAntiRaidVerify).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidAutoVerify" function',
         10,
         error,
       ));

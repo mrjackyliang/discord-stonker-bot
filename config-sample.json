@@ -90,6 +90,7 @@
                 }
             },
             "minimum-age": 86400,
+            "trusted-age": 604800,
             "exclude-roles": [
                 {
                     "description": "Sample role",

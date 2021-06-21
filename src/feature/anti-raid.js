@@ -33,7 +33,7 @@ async function antiRaidAutoBan(member, settings) {
     if (bannedAvatar || bannedUsername) {
       await member.ban(
         {
-          reason: `Member has a banned ${fragmentAvatar || fragmentUsername}`,
+          reason: `Member has a forbidden ${fragmentAvatar || fragmentUsername}`,
         },
       ).then(() => {
         generateLogMessage(
@@ -50,6 +50,47 @@ async function antiRaidAutoBan(member, settings) {
         error,
       ));
     }
+  }
+}
+
+/**
+ * Anti-raid auto-verify.
+ *
+ * @param {module:"discord.js".GuildMember} member   - Member information.
+ * @param {object}                          settings - Verification settings from configuration.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+async function antiRaidAutoVerify(member, settings) {
+  const memberUserCreatedTimestamp = member.user.createdTimestamp;
+  const settingsTrustedAge = _.get(settings, 'trusted-age');
+  const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
+  const isTrustedAge = (((Date.now() - memberUserCreatedTimestamp) / 1000) >= settingsTrustedAge);
+
+  if (!_.isFinite(settingsTrustedAge)) {
+    return;
+  }
+
+  // If user meets trusted age requirement, automatically add verify role.
+  if (isTrustedAge) {
+    await member.roles.add(
+      settingsVerifiedRoleId,
+      'Member was auto-assigned the verified role',
+    ).then(() => {
+      generateLogMessage(
+        [
+          chalk.green(member.toString()),
+          'was auto-assigned the verified role',
+        ].join(' '),
+        30,
+      );
+    }).catch((error) => generateLogMessage(
+      'Failed to add role',
+      10,
+      error,
+    ));
   }
 }
 
@@ -103,57 +144,7 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
 }
 
 /**
- * Anti-raid verification notice.
- *
- * @param {module:"discord.js".GuildMember}            member        - Member information.
- * @param {object}                                     settings      - Verification settings from configuration.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function antiRaidVerifyNotice(member, settings, sendToChannel) {
-  const userCreatedTimestamp = _.get(member, 'user.createdTimestamp');
-  const userId = _.get(member, 'user.id');
-  const minimumAge = _.get(settings, 'minimum-age');
-  const memberCode = _.replace(userId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
-
-  let welcomeNormal = _.get(settings, 'messages.welcome.normal');
-  let welcomeSuspicious = _.get(settings, 'messages.welcome.suspicious');
-
-  if (
-    _.isUndefined(sendToChannel)
-    || !_.isFinite(minimumAge)
-    || !_.isString(welcomeNormal)
-    || _.isEmpty(welcomeNormal)
-    || !_.isString(welcomeSuspicious)
-    || _.isEmpty(welcomeSuspicious)
-  ) {
-    return;
-  }
-
-  // Replace variables.
-  welcomeNormal = welcomeNormal
-    .replace(/%MEMBER_MENTION%/g, member.toString())
-    .replace(/%MEMBER_CODE%/g, memberCode);
-  welcomeSuspicious = welcomeSuspicious
-    .replace(/%MEMBER_MENTION%/g, member.toString());
-
-  // Use normal or suspicious message.
-  const isMinimumAge = (((Date.now() - userCreatedTimestamp) / 1000) >= minimumAge);
-  const normalOrSuspicious = (isMinimumAge) ? welcomeNormal : welcomeSuspicious;
-
-  // Send verify notice.
-  await sendToChannel.send(normalOrSuspicious).catch((error) => generateLogMessage(
-    'Failed to send message',
-    10,
-    error,
-  ));
-}
-
-/**
- * Anti-raid verification role.
+ * Anti-raid verification.
  *
  * @param {module:"discord.js".Message} message  - Message object.
  * @param {object}                      settings - Verification settings from configuration.
@@ -162,74 +153,67 @@ async function antiRaidVerifyNotice(member, settings, sendToChannel) {
  *
  * @since 1.0.0
  */
-async function antiRaidVerifyRole(message, settings) {
+async function antiRaidVerify(message, settings) {
+  const messageMemberUserAvatar = _.get(message, 'member.user.avatar');
   const messageMemberUserCreatedTimestamp = _.get(message, 'member.user.createdTimestamp');
   const messageMemberUserId = _.get(message, 'member.user.id');
-  const messageChannelId = _.get(message, 'channel.id');
+
+  const currentChannelId = _.get(message, 'channel.id');
   const settingsChannelId = _.get(settings, 'channel-id');
+
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
   const settingsMinimumAge = _.get(settings, 'minimum-age');
   const settingsExcludeRoles = _.get(settings, 'exclude-roles');
-  const displayCode = _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1-$3');
-  const messageContent = message.toString().toLowerCase();
 
-  let welcomeNormal = _.get(settings, 'messages.welcome.normal');
-  let welcomeSuspicious = _.get(settings, 'messages.welcome.suspicious');
-  let validNormal = _.get(settings, 'messages.valid.normal');
-  let validSuspicious = _.get(settings, 'messages.valid.suspicious');
-  let invalidNormal = _.get(settings, 'messages.invalid.normal');
-  let invalidSuspicious = _.get(settings, 'messages.invalid.suspicious');
+  const generateCode = (display) => _.replace(
+    messageMemberUserId,
+    /^([0-9]{4})(.*)([0-9]{4})$/g,
+    (display) ? '$1-$3' : '$1$3',
+  );
+  const replaceVariables = (rawMessage) => {
+    if (_.isString(rawMessage) && !_.isEmpty(rawMessage)) {
+      return rawMessage
+        .replace(/%MEMBER_MENTION%/g, message.member.toString())
+        .replace(/%MEMBER_CODE%/g, generateCode(true));
+    }
+
+    return undefined;
+  };
+
+  const welcomeNormal = replaceVariables(_.get(settings, 'messages.welcome.normal'));
+  const welcomeSuspicious = replaceVariables(_.get(settings, 'messages.welcome.suspicious'));
+  const validNormal = replaceVariables(_.get(settings, 'messages.valid.normal'));
+  const validSuspicious = replaceVariables(_.get(settings, 'messages.valid.suspicious'));
+  const invalidNormal = replaceVariables(_.get(settings, 'messages.invalid.normal'));
+  const invalidSuspicious = replaceVariables(_.get(settings, 'messages.invalid.suspicious'));
 
   if (
-    messageChannelId !== settingsChannelId
-    || !_.isString(settingsVerifiedRoleId)
-    || _.isEmpty(settingsVerifiedRoleId)
+    currentChannelId !== settingsChannelId
+    || !message.guild.roles.cache.has(settingsVerifiedRoleId)
     || !_.isFinite(settingsMinimumAge)
     || _.some(settingsExcludeRoles, (settingsExcludeRole) => message.member.roles.cache.has(settingsExcludeRole.id))
     || message.member.permissions.has('ADMINISTRATOR')
-    || !_.isString(welcomeNormal)
-    || _.isEmpty(welcomeNormal)
-    || !_.isString(welcomeSuspicious)
-    || _.isEmpty(welcomeSuspicious)
-    || !_.isString(validNormal)
-    || _.isEmpty(validNormal)
-    || !_.isString(validSuspicious)
-    || _.isEmpty(validSuspicious)
-    || !_.isString(invalidNormal)
-    || _.isEmpty(invalidNormal)
-    || !_.isString(invalidSuspicious)
-    || _.isEmpty(invalidSuspicious)
+    || _.isUndefined(welcomeNormal)
+    || _.isUndefined(welcomeSuspicious)
+    || _.isUndefined(validNormal)
+    || _.isUndefined(validSuspicious)
+    || _.isUndefined(invalidNormal)
+    || _.isUndefined(invalidSuspicious)
   ) {
     return;
   }
 
-  // Replace variables.
-  welcomeNormal = welcomeNormal
-    .replace(/%MEMBER_MENTION%/g, message.member.toString())
-    .replace(/%MEMBER_CODE%/g, displayCode);
-  welcomeSuspicious = welcomeSuspicious
-    .replace(/%MEMBER_MENTION%/g, message.member.toString());
-  validNormal = validNormal
-    .replace(/%MEMBER_MENTION%/g, message.member.toString());
-  validSuspicious = validSuspicious
-    .replace(/%MEMBER_MENTION%/g, message.member.toString());
-  invalidNormal = invalidNormal
-    .replace(/%MEMBER_MENTION%/g, message.member.toString())
-    .replace(/%MEMBER_CODE%/g, displayCode);
-  invalidSuspicious = invalidSuspicious
-    .replace(/%MEMBER_MENTION%/g, message.member.toString());
-
-  // Use normal or suspicious message.
+  // Use welcome, valid, or invalid message.
+  const isAvatar = (_.isString(messageMemberUserAvatar));
   const isMinimumAge = (((Date.now() - messageMemberUserCreatedTimestamp) / 1000) >= settingsMinimumAge);
-  const welcomeMessage = (isMinimumAge) ? welcomeNormal : welcomeSuspicious;
-  const validMessage = (isMinimumAge) ? validNormal : validSuspicious;
-  const invalidMessage = (isMinimumAge) ? invalidNormal : invalidSuspicious;
+  const welcomeMessage = (isAvatar && isMinimumAge) ? welcomeNormal : welcomeSuspicious;
+  const validMessage = (isAvatar && isMinimumAge) ? validNormal : validSuspicious;
+  const invalidMessage = (isAvatar && isMinimumAge) ? invalidNormal : invalidSuspicious;
 
   // Compare user code with user input.
-  const userCode = _.replace(messageMemberUserId, /^([0-9]{4})(.*)([0-9]{4})$/g, '$1$3');
-  const userInput = messageContent
+  const userCode = generateCode(false);
+  const userInput = message.toString().toLowerCase()
     .replace(/[- –—−]/g, '')
-    .replace(/[０]/g, '0')
     .replace(/[１]/g, '1')
     .replace(/[２]/g, '2')
     .replace(/[３]/g, '3')
@@ -238,7 +222,8 @@ async function antiRaidVerifyRole(message, settings) {
     .replace(/[６]/g, '6')
     .replace(/[７]/g, '7')
     .replace(/[８]/g, '8')
-    .replace(/[９]/g, '9');
+    .replace(/[９]/g, '9')
+    .replace(/[０o]/g, '0');
 
   // Delete message first.
   await message.delete().catch((error) => generateLogMessage(
@@ -247,18 +232,48 @@ async function antiRaidVerifyRole(message, settings) {
     error,
   ));
 
-  // If message includes "verify", or is a user code.
-  if (_.includes(messageContent, 'verify')) {
+  // Verify member unlock code.
+  if (userInput === '0') {
     // Send welcome message.
-    await message.channel.send(welcomeMessage).catch((error) => generateLogMessage(
-      'Failed to send message',
+    await message.member.createDM().then(async (dmChannel) => {
+      await dmChannel.send(welcomeMessage).then(() => {
+        generateLogMessage(
+          [
+            'Sent direct message to',
+            chalk.green(message.member.toString()),
+            'because member requested a verification code',
+          ].join(' '),
+          30,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to send direct message',
+        10,
+        error,
+      ));
+    }).catch((error) => generateLogMessage(
+      'Failed to create direct message channel',
       10,
       error,
     ));
   } else if (userCode === userInput) {
     // Send valid message.
-    await message.channel.send(validMessage).catch((error) => generateLogMessage(
-      'Failed to send message',
+    await message.member.createDM().then(async (dmChannel) => {
+      await dmChannel.send(validMessage).then(() => {
+        generateLogMessage(
+          [
+            'Sent direct message to',
+            chalk.green(message.member.toString()),
+            'because member completed validation',
+          ].join(' '),
+          30,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to send direct message',
+        10,
+        error,
+      ));
+    }).catch((error) => generateLogMessage(
+      'Failed to create direct message channel',
       10,
       error,
     ));
@@ -266,12 +281,12 @@ async function antiRaidVerifyRole(message, settings) {
     // Add verified role.
     await message.member.roles.add(
       settingsVerifiedRoleId,
-      'Member completed verification and was assigned the verified role',
+      'Member was assigned the verified role',
     ).then(() => {
       generateLogMessage(
         [
           chalk.green(message.member.toString()),
-          'has completed verification and was assigned the verified role',
+          'was assigned the verified role',
         ].join(' '),
         30,
       );
@@ -282,8 +297,23 @@ async function antiRaidVerifyRole(message, settings) {
     ));
   } else {
     // Send invalid message.
-    await message.channel.send(invalidMessage).catch((error) => generateLogMessage(
-      'Failed to send message',
+    await message.member.createDM().then(async (dmChannel) => {
+      await dmChannel.send(invalidMessage).then(() => {
+        generateLogMessage(
+          [
+            'Sent direct message to',
+            chalk.green(message.member.toString()),
+            'because member failed validation',
+          ].join(' '),
+          30,
+        );
+      }).catch((error) => generateLogMessage(
+        'Failed to send direct message',
+        10,
+        error,
+      ));
+    }).catch((error) => generateLogMessage(
+      'Failed to create direct message channel',
       10,
       error,
     ));
@@ -292,7 +322,7 @@ async function antiRaidVerifyRole(message, settings) {
 
 module.exports = {
   antiRaidAutoBan,
+  antiRaidAutoVerify,
   antiRaidMonitor,
-  antiRaidVerifyNotice,
-  antiRaidVerifyRole,
+  antiRaidVerify,
 };

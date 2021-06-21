@@ -198,14 +198,15 @@ Account age of less than 7 days will be shown the `suspicious` message.
 | `anti-raid.verify.messages`                     | `object`   |                                                       |                                                                                                             |
 | `anti-raid.verify.messages.welcome`             | `object`   |                                                       |                                                                                                             |
 | `anti-raid.verify.messages.welcome.normal`      | `string`   | Message sent when normal user joins                   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.welcome.suspicious`  | `string`   | Message sent when suspicious user joins               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.welcome.suspicious`  | `string`   | Message sent when suspicious user joins               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
 | `anti-raid.verify.messages.valid`               | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.messages.valid.normal`        | `string`   | Message sent when normal user enters valid code       | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
-| `anti-raid.verify.messages.valid.suspicious`    | `string`   | Message sent when suspicious user enters valid code   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.valid.normal`        | `string`   | Message sent when normal user enters valid code       | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
+| `anti-raid.verify.messages.valid.suspicious`    | `string`   | Message sent when suspicious user enters valid code   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
 | `anti-raid.verify.messages.invalid`             | `object`   |                                                       |                                                                                                             |
 | `anti-raid.verify.messages.invalid.normal`      | `string`   | Message sent when normal user enters invalid code     | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.invalid.suspicious`  | `string`   | Message sent when suspicious user enters invalid code | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%`                     |
+| `anti-raid.verify.messages.invalid.suspicious`  | `string`   | Message sent when suspicious user enters invalid code | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
 | `anti-raid.verify.minimum-age`                  | `number`   | Minimum age required to show `normal` message         | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
+| `anti-raid.verify.trusted-age`                  | `number`   | Trusted age required to automatically verify          | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
 | `anti-raid.verify.exclude-roles`                | `object[]` |                                                       |                                                                                                             |
 | `anti-raid.verify.exclude-roles[x].description` | `string`   | Description of the excluded role (optional)           |                                                                                                             |
 | `anti-raid.verify.exclude-roles[x].id`          | `string`   | Excluded role                                         | Discord role ID                                                                                             |
@@ -247,6 +248,7 @@ Account age of less than 7 days will be shown the `suspicious` message.
                 }
             },
             "minimum-age": 86400,
+            "trusted-age": 604800,
             "exclude-roles": [
                 {
                     "description": "Sample role",
