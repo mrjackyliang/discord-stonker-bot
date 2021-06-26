@@ -27,7 +27,7 @@ Here are the instructions on how you can create an application and connect this 
 1. First go to the [Discord Developer Portal](https://discord.com/developers/applications)
 2. In the top right corner, click __New Application__
 3. Under the __Name__ field, type "Stonker Bot"
-4. When the application is created, click the __Bot__ menu item
+4. Once the application initializes, click the __Bot__ menu item
 5. Click __Add Bot__ and then click __Yes, do it!__
 6. Under __Privileged Gateway Intents__, turn on these options:
     - __PRESENCE INTENT__
@@ -50,7 +50,8 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 8. [Role Manager](#8-role-manager)
 9. [Auto Reply](#9-auto-reply)
 10. [Remove Affiliate Links](#10-remove-affiliate-links)
-11. [Toggle Preset Permissions](#11-toggle-preset-permissions)
+11. [Stocktwits Trending](#11-stocktwits-trending)
+12. [Toggle Preset Permissions](#12-toggle-preset-permissions)
 
 ### 1. Base Settings
 This section is required for Stonker Bot to start. A text-based channel ID for `log-channel-id` is required. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
@@ -532,7 +533,7 @@ Reply to a message without requiring human interaction. Great for automated cust
 ```
 
 ### 10. Remove Affiliate Links
-Affiliate links are commonly posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
+Easily remove affiliate links posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
 
 _This feature can be extended with the [delete message](#2-notifications) notification._
 
@@ -571,7 +572,55 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 }
 ```
 
-### 11. Toggle Preset Permissions
+### 11. Stocktwits Trending
+Get the latest trending tickers pulled in from Stocktwits automatically. Schedule multiple retrievals throughout the day and set your own message.
+
+| __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                      |
+|-----------------------------------------|------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `stocktwits`                            | `object[]` |                                             |                                                                                                          |
+| `stocktwits[x].name`                    | `string`   | Name of the Stocktwits post                 |                                                                                                          |
+| `stocktwits[x].channel-id`              | `string`   | Channel used to send Stocktwits post        | Discord channel ID                                                                                       |
+| `stocktwits[x].message`                 | `string`   | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
+| `stocktwits[x].limit`                   | `number`   | The amount of tickers in a post             | Cannot exceed 25 tickers                                                                                 |
+| `stocktwits[x].send-every`              | `object`   |                                             |                                                                                                          |
+| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
+| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
+| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                         |
+| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                         |
+| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                         |
+| `stocktwits[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
+
+```json
+{
+    "stocktwits": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "message": "This is a sample Stocktwits post",
+            "limit": 24,
+            "send-every": {
+                "time-zone": "Etc/UTC",
+                "days-of-week": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "hour": 0,
+                "minute": 0,
+                "second": 0
+            },
+            "skip-days": [
+                "2021-01-01",
+                "2021-02-01"
+            ]
+        }
+    ]
+}
+```
+
+### 12. Toggle Preset Permissions
 Configure channel permissions with a single command without touching them! Great for quickly enabling and disabling features during special events.
 
 | __Key__                                                      | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                    |

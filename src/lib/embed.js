@@ -262,12 +262,12 @@ function createHelpMenuEmbed(commands, userTag) {
   const fields = [];
 
   _.forEach(commands, (command) => {
-    fields.push(`\`${command.queries.join('`\r\n`')}\`\r\n${command.description}`);
+    fields.push(`\`${command.queries.join('`\n`')}\`\n${command.description}`);
   });
 
   return addEmbed(
     'Command Help Menu',
-    fields.join('\r\n\r\n'),
+    fields.join('\n\n'),
     null,
     undefined,
     `Initiated by @${userTag}`,

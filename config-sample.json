@@ -91,6 +91,9 @@
             },
             "minimum-age": 86400,
             "trusted-age": 604800,
+            "secret-codes": [
+                "secret"
+            ],
             "exclude-roles": [
                 {
                     "description": "Sample role",
@@ -281,6 +284,31 @@
             }
         ]
     },
+    "stocktwits": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "message": "This is a sample Stocktwits post",
+            "limit": 24,
+            "send-every": {
+                "time-zone": "Etc/UTC",
+                "days-of-week": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "hour": 0,
+                "minute": 0,
+                "second": 0
+            },
+            "skip-days": [
+                "2021-01-01",
+                "2021-02-01"
+            ]
+        }
+    ],
     "toggle-perms": [
         {
             "name": "Sample",

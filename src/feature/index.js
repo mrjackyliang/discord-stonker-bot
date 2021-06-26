@@ -16,6 +16,7 @@ const {
   togglePerms,
   voice,
 } = require('./commands');
+const { schedulePost, stocktwitsTrending } = require('./content');
 const { autoReply } = require('./messenger');
 const {
   checkRegexChannels,
@@ -23,7 +24,6 @@ const {
   removeAffiliateLinks,
 } = require('./moderator');
 const { changeRoles } = require('./roles');
-const { schedulePost } = require('./scheduler');
 const {
   generateLogMessage,
   getTextBasedChannel,
@@ -43,6 +43,7 @@ const configSuspiciousWords = _.get(config, 'suspicious-words');
 const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
+const configStocktwits = _.get(config, 'stocktwits');
 
 /**
  * Feature mode.
@@ -362,7 +363,7 @@ async function featureMode(client, guild, logChannel) {
   });
 
   /**
-   * Schedule posts to publish.
+   * Schedule post.
    *
    * @since 1.0.0
    */
@@ -371,6 +372,19 @@ async function featureMode(client, guild, logChannel) {
       const channel = getTextBasedChannel(guild, configSchedulePost['channel-id']);
 
       schedulePost(configSchedulePost, channel);
+    });
+  }
+
+  /**
+   * Stocktwits trending.
+   *
+   * @since 1.0.0
+   */
+  if (_.isArray(configStocktwits) && !_.isEmpty(configStocktwits)) {
+    _.forEach(configStocktwits, (configStocktwit) => {
+      const channel = getTextBasedChannel(guild, configStocktwit['channel-id']);
+
+      stocktwitsTrending(configStocktwit, channel);
     });
   }
 }

@@ -1,7 +1,7 @@
 {
     "name": "discord-stocker-bot",
     "displayName": "Discord Stonker Bot",
-    "version": "1.6.9",
+    "version": "1.7.0",
     "description": "A Discord bot built for finance-related servers",
     "main": "src/index.js",
     "scripts": {
@@ -37,6 +37,7 @@
         "node": ">=10.0.0"
     },
     "dependencies": {
+        "axios": "^0.21.1",
         "chalk": "^4.1.0",
         "discord.js": "^12.5.3",
         "lodash": "^4.17.21",

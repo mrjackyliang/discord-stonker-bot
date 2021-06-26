@@ -65,8 +65,8 @@ async function antiRaidAutoBan(member, settings) {
  */
 async function antiRaidAutoVerify(member, settings) {
   const memberUserCreatedTimestamp = member.user.createdTimestamp;
-  const settingsTrustedAge = _.get(settings, 'trusted-age');
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
+  const settingsTrustedAge = _.get(settings, 'trusted-age');
   const isTrustedAge = (((Date.now() - memberUserCreatedTimestamp) / 1000) >= settingsTrustedAge);
 
   if (!_.isFinite(settingsTrustedAge)) {
@@ -163,6 +163,7 @@ async function antiRaidVerify(message, settings) {
 
   const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
   const settingsMinimumAge = _.get(settings, 'minimum-age');
+  const settingsSecretCodes = _.get(settings, 'secret-codes');
   const settingsExcludeRoles = _.get(settings, 'exclude-roles');
 
   const generateCode = (display) => _.replace(
@@ -212,7 +213,7 @@ async function antiRaidVerify(message, settings) {
 
   // Compare user code with user input.
   const userCode = generateCode(false);
-  const userInput = message.toString().toLowerCase()
+  const userInput = message.toString()
     .replace(/[- –—−]/g, '')
     .replace(/[１]/g, '1')
     .replace(/[２]/g, '2')
@@ -223,7 +224,7 @@ async function antiRaidVerify(message, settings) {
     .replace(/[７]/g, '7')
     .replace(/[８]/g, '8')
     .replace(/[９]/g, '9')
-    .replace(/[０o]/g, '0');
+    .replace(/[０Oo]/g, '0');
 
   // Delete message first.
   await message.delete().catch((error) => generateLogMessage(
@@ -255,7 +256,7 @@ async function antiRaidVerify(message, settings) {
       10,
       error,
     ));
-  } else if (userCode === userInput) {
+  } else if (userCode === userInput || _.some(settingsSecretCodes, (settingsSecretCode) => settingsSecretCode === userInput)) {
     // Send valid message.
     await message.member.createDM().then(async (dmChannel) => {
       await dmChannel.send(validMessage).then(() => {

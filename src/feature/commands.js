@@ -65,7 +65,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   if (!_.includes(['avatar', 'role', 'string', 'username'], commandArguments[1])) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
         'Examples:',
         '```',
         `${botPrefix}fetch-members avatar [@user]`,
@@ -73,7 +73,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
         `${botPrefix}fetch-members string [text]`,
         `${botPrefix}fetch-members username [@user]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -97,12 +97,12 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
     await message.channel.send(createCommandErrorEmbed(
       [
-        `${userMode[0] || roleMode[0] || stringMode[0]}. Try using the command by ${userMode[1] || roleMode[1] || stringMode[1]}.\r\n`,
+        `${userMode[0] || roleMode[0] || stringMode[0]}. Try using the command by ${userMode[1] || roleMode[1] || stringMode[1]}.\n`,
         'Example:',
         '```',
         `${botPrefix}fetch-members ${commandArguments[1]} [${userMode[2] || roleMode[2] || stringMode[2]}]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -467,7 +467,7 @@ async function role(message, botPrefix, allowedRoles) {
   if (!_.includes(['add', 'remove'], commandArguments[1])) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a route.\r\n`,
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a route.\n`,
         'Examples:',
         '```',
         `${botPrefix}role add everyone [@role to add]`,
@@ -476,7 +476,7 @@ async function role(message, botPrefix, allowedRoles) {
         `${botPrefix}role remove everyone [@role to remove]`,
         `${botPrefix}role remove [@role] [@role to remove]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -493,7 +493,7 @@ async function role(message, botPrefix, allowedRoles) {
   ) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command selection (${commandArguments[2]}) is invalid or does not exist. Try using the command by inputting a selection.\r\n`,
+        `The command selection (${commandArguments[2]}) is invalid or does not exist. Try using the command by inputting a selection.\n`,
         'Examples:',
         '```',
         ...[
@@ -502,7 +502,7 @@ async function role(message, botPrefix, allowedRoles) {
           `${botPrefix}role ${commandArguments[1]} [@role] [@role to ${commandArguments[1]}]`,
         ],
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -516,12 +516,12 @@ async function role(message, botPrefix, allowedRoles) {
   if (_.isUndefined(roleTwo)) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The role (${commandArguments[3]}) is invalid or does not exist. Try using the command by tagging a role to add.\r\n`,
+        `The role (${commandArguments[3]}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
         'Examples:',
         '```',
         `${botPrefix}role ${commandArguments[1]} ${commandArguments[2]} [@role to ${commandArguments[1]}]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -731,19 +731,19 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
       if (key < 10) {
         commands += [
           `${botPrefix}toggle-perms ${permsId} on`,
-          `${botPrefix}toggle-perms ${permsId} off\r\n\r\n`,
-        ].join('\r\n');
+          `${botPrefix}toggle-perms ${permsId} off\n\n`,
+        ].join('\n');
       }
     });
 
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The toggle group (${commandArguments[1]}) is invalid. Please type your command with the correct group and try again.\r\n`,
+        `The toggle group (${commandArguments[1]}) is invalid. Please type your command with the correct group and try again.\n`,
         'Example(s):',
         '```',
         commands,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -763,13 +763,13 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
   ) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The toggle direction (${commandArguments[2]}) is invalid or not configured. Please type your command with the correct direction and try again.\r\n`,
+        `The toggle direction (${commandArguments[2]}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
         'Example:',
         '```',
         `${botPrefix}toggle-perms ${commandArguments[1]} on`,
         `${botPrefix}toggle-perms ${commandArguments[1]} off`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -935,13 +935,13 @@ async function voice(message, botPrefix, allowedRoles) {
   if (!_.includes(['disconnect', 'unmute'], commandArguments[1])) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\r\n`,
+        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
         'Examples:',
         '```',
         `${botPrefix}voice disconnect [#channel]`,
         `${botPrefix}voice unmute [#channel]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
@@ -956,12 +956,12 @@ async function voice(message, botPrefix, allowedRoles) {
   if (_.isUndefined(channel) || isVoiceOrStageChannel !== true) {
     await message.channel.send(createCommandErrorEmbed(
       [
-        `The voice or stage channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\r\n`,
+        `The voice or stage channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
         'Example:',
         '```',
         `${botPrefix}voice ${commandArguments[1]} [#channel]`,
         '```',
-      ].join('\r\n'),
+      ].join('\n'),
       message.member.user.tag,
     )).catch((error) => generateLogMessage(
       'Failed to send command error embed',
