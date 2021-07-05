@@ -6,9 +6,17 @@ const { generateLogMessage } = require('../lib/utilities');
 const { userChangeNickname } = require('./change-nickname');
 const { userChangeUsername } = require('./change-username');
 const { userDeleteMessage } = require('./delete-message');
+const { detectSuspiciousWords } = require('./detect-suspicious-words');
 const { userIncludesLink } = require('./includes-link');
 const { userUpdateMessage } = require('./update-message');
 const { userUploadAttachment } = require('./upload-attachment');
+
+/**
+ * Bot configuration.
+ *
+ * @since 1.0.0
+ */
+const configSuspiciousWords = _.get(config, 'suspicious-words');
 
 /**
  * Snitch mode.
@@ -34,6 +42,17 @@ async function snitchMode(client, guild, logChannel) {
       && _.get(message, 'author.bot') === false // If message is not sent by a bot.
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
+      /**
+       * Detect suspicious words.
+       *
+       * @since 1.0.0
+       */
+      await detectSuspiciousWords(message, configSuspiciousWords, logChannel).catch((error) => generateLogMessage(
+        'Failed to execute "detectSuspiciousWords" function',
+        10,
+        error,
+      ));
+
       /**
        * Includes link notification.
        *
@@ -88,6 +107,17 @@ async function snitchMode(client, guild, logChannel) {
       }
 
       /**
+       * Detect suspicious words.
+       *
+       * @since 1.0.0
+       */
+      await detectSuspiciousWords(message, configSuspiciousWords, logChannel).catch((error) => generateLogMessage(
+        'Failed to execute "detectSuspiciousWords" function',
+        10,
+        error,
+      ));
+
+      /**
        * Includes link notification.
        *
        * @since 1.0.0
@@ -134,26 +164,26 @@ async function snitchMode(client, guild, logChannel) {
    * @since 1.0.0
    */
   client.on('messageDeleteBulk', async (messages) => {
-    _.forEach(messages.array(), async (message) => {
-      if (
-        guild.available === true // If guild is online.
-        && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
-        && _.get(message, 'author.id') !== _.get(client, 'user.id') // If message was not sent by Stonker Bot.
-      ) {
-        /**
-         * Delete message notification.
-         *
-         * @since 1.0.0
-         */
-        if (_.get(config, 'notifications.delete-bulk-messages') === true) {
+    if (_.get(config, 'notifications.delete-bulk-messages') === true) {
+      _.forEach(messages.array(), async (message) => {
+        if (
+          guild.available === true // If guild is online.
+          && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
+          && _.get(message, 'author.id') !== _.get(client, 'user.id') // If message was not sent by Stonker Bot.
+        ) {
+          /**
+           * Delete message notification.
+           *
+           * @since 1.0.0
+           */
           await userDeleteMessage(message, logChannel).catch((error) => generateLogMessage(
             'Failed to execute "userDeleteMessage" function',
             10,
             error,
           ));
         }
-      }
-    });
+      });
+    }
   });
 
   /**

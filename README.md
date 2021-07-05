@@ -49,12 +49,13 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 7. [Detect Suspicious Words](#7-detect-suspicious-words)
 8. [Role Manager](#8-role-manager)
 9. [Auto Reply](#9-auto-reply)
-10. [Remove Affiliate Links](#10-remove-affiliate-links)
-11. [Stocktwits Trending](#11-stocktwits-trending)
-12. [Toggle Preset Permissions](#12-toggle-preset-permissions)
+10. [Message Copier](#10-message-copier)
+11. [Remove Affiliate Links](#11-remove-affiliate-links)
+12. [Stocktwits Trending](#12-stocktwits-trending)
+13. [Toggle Preset Permissions](#13-toggle-preset-permissions)
 
 ### 1. Base Settings
-This section is required for Stonker Bot to start. A text-based channel ID for `log-channel-id` is required. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
+For Stonker Bot to start, these settings should be filled. A text-based channel ID for `log-channel-id` is only required for `snitch` and `all` modes. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
 
 | __Key__                   | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                          |
 |---------------------------|----------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -82,7 +83,7 @@ This section is required for Stonker Bot to start. A text-based channel ID for `
 ```
 
 ### 2. Notifications
-Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings).
+Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings). This feature will work under `all` and `snitch` modes only.
 
 | __Key__                              | __Type__  | __Description__                             | __Accepted Values__ |
 |--------------------------------------|-----------|---------------------------------------------|---------------------|
@@ -207,7 +208,6 @@ Account age of less than 7 days will be shown the `suspicious` message.
 | `anti-raid.verify.messages.invalid.normal`      | `string`   | Message sent when normal user enters invalid code     | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
 | `anti-raid.verify.messages.invalid.suspicious`  | `string`   | Message sent when suspicious user enters invalid code | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
 | `anti-raid.verify.minimum-age`                  | `number`   | Minimum age required to show `normal` message         | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
-| `anti-raid.verify.trusted-age`                  | `number`   | Trusted age required to automatically verify          | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
 | `anti-raid.verify.exclude-roles`                | `object[]` |                                                       |                                                                                                             |
 | `anti-raid.verify.exclude-roles[x].description` | `string`   | Description of the excluded role (optional)           |                                                                                                             |
 | `anti-raid.verify.exclude-roles[x].id`          | `string`   | Excluded role                                         | Discord role ID                                                                                             |
@@ -249,7 +249,6 @@ Account age of less than 7 days will be shown the `suspicious` message.
                 }
             },
             "minimum-age": 86400,
-            "trusted-age": 604800,
             "exclude-roles": [
                 {
                     "description": "Sample role",
@@ -356,7 +355,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 ```
 
 ### 7. Detect Suspicious Words
-Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often does not require warnings or deletion.
+Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often does not require warnings or deletion. This feature will work under `all` and `snitch` modes only.
 
 | __Key__                        | __Type__   | __Description__                          |
 |--------------------------------|------------|------------------------------------------|
@@ -532,7 +531,44 @@ Reply to a message without requiring human interaction. Great for automated cust
 }
 ```
 
-### 10. Remove Affiliate Links
+### 10. Message Copier
+Automatically copy the original message that matches the regular expression into another channel.
+
+| __Key__                             | __Type__   | __Description__                                   | __Accepted Values__                                                                                                                                                 |
+|-------------------------------------|------------|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `message-copier`                    | `object[]` |                                                   |                                                                                                                                                                     |
+| `message-copier[x].name`            | `string`   | Name of the message copier task                   |                                                                                                                                                                     |
+| `message-copier[x].channel-id`      | `string`   | The channel that the message should be posted to  | Discord channel ID                                                                                                                                                  |
+| `message-copier[x].regex`           | `object`   |                                                   |                                                                                                                                                                     |
+| `message-copier[x].regex.pattern`   | `string`   | Regex pattern for matching message content        | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `message-copier[x].regex.flags`     | `string`   | Regex flags                                       | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `message-copier[x].remove-mentions` | `boolean`  | Remove all mentions from the original message     | `true` or `false`                                                                                                                                                   |
+| `message-copier[x].prefix`          | `string`   | Prefix of the copied message (optional)           | Keep the prefix as short as possible. Messages exceeding 2000 characters will fail to send. Variables include `%MESSAGE_AUTHOR%`.                                   |
+| `message-copier[x].suffix`          | `string`   | Suffix of the copied message (optional)           | Keep the suffix as short as possible. Messages exceeding 2000 characters will fail to send. Variables include `%MESSAGE_AUTHOR%`.                                   |
+| `message-copier[x].allowed-users`   | `string[]` | Only copy messages sent by these users (optional) | Discord user IDs                                                                                                                                                    |
+
+```json
+{
+    "message-copier": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "regex": {
+                "pattern": "(?:)",
+                "flags": "g"
+            },
+            "remove-mentions": true,
+            "prefix": "Message sent by %MESSAGE_AUTHOR% - ",
+            "suffix": " - The Footer",
+            "allowed-users": [
+                "000000000000000000"
+            ]
+        }
+    ],
+}
+```
+
+### 11. Remove Affiliate Links
 Easily remove affiliate links posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
 
 _This feature can be extended with the [delete message](#2-notifications) notification._
@@ -544,7 +580,8 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 | `affiliate-links.links[x].website`              | `string`   | Name of the website                         |                                                                                                                                                                     |
 | `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `affiliate-links.direct-message`                | `string`   | Direct message content (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
+| `affiliate-links.channel-id`                    | `string`   | Channel used to report affiliate links      | Discord channel ID                                                                                                                                                  |
+| `affiliate-links.direct-message`                | `string`   | Direct message warning (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
 | `affiliate-links.excluded-roles`                | `object[]` |                                             |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
@@ -561,6 +598,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
                 }
             }
         ],
+        "channel-id": "000000000000000000",
         "direct-message": "Please do not send affiliate links!",
         "excluded-roles": [
             {
@@ -572,7 +610,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 }
 ```
 
-### 11. Stocktwits Trending
+### 12. Stocktwits Trending
 Get the latest trending tickers pulled in from Stocktwits automatically. Schedule multiple retrievals throughout the day and set your own message.
 
 | __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                      |
@@ -620,7 +658,7 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
 }
 ```
 
-### 12. Toggle Preset Permissions
+### 13. Toggle Preset Permissions
 Configure channel permissions with a single command without touching them! Great for quickly enabling and disabling features during special events.
 
 | __Key__                                                      | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                    |

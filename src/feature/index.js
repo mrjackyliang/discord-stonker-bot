@@ -4,7 +4,6 @@ const config = require('../../config.json');
 
 const {
   antiRaidAutoBan,
-  antiRaidAutoVerify,
   antiRaidMonitor,
   antiRaidVerify,
 } = require('./anti-raid');
@@ -17,10 +16,9 @@ const {
   voice,
 } = require('./commands');
 const { schedulePost, stocktwitsTrending } = require('./content');
-const { autoReply } = require('./messenger');
+const { autoReply, messageCopier } = require('./messenger');
 const {
   checkRegexChannels,
-  detectSuspiciousWords,
   removeAffiliateLinks,
 } = require('./moderator');
 const { changeRoles } = require('./roles');
@@ -39,24 +37,23 @@ const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRegexRules = _.get(config, 'regex-rules');
-const configSuspiciousWords = _.get(config, 'suspicious-words');
 const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
+const configMessageCopier = _.get(config, 'message-copier');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configStocktwits = _.get(config, 'stocktwits');
 
 /**
  * Feature mode.
  *
- * @param {module:"discord.js".Client}                 client     - Discord client.
- * @param {module:"discord.js".Guild}                  guild      - Discord guild.
- * @param {module:"discord.js".TextBasedChannelFields} logChannel - Send message to channel.
+ * @param {module:"discord.js".Client} client - Discord client.
+ * @param {module:"discord.js".Guild}  guild  - Discord guild.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function featureMode(client, guild, logChannel) {
+async function featureMode(client, guild) {
   /**
    * When user sends a command.
    *
@@ -205,12 +202,12 @@ async function featureMode(client, guild, logChannel) {
       ));
 
       /**
-       * Detect suspicious words.
+       * Message copier.
        *
        * @since 1.0.0
        */
-      await detectSuspiciousWords(message, configSuspiciousWords, logChannel).catch((error) => generateLogMessage(
-        'Failed to execute "detectSuspiciousWords" function',
+      await messageCopier(message, configMessageCopier).catch((error) => generateLogMessage(
+        'Failed to execute "messageCopier" function',
         10,
         error,
       ));
@@ -220,7 +217,7 @@ async function featureMode(client, guild, logChannel) {
        *
        * @since 1.0.0
        */
-      await removeAffiliateLinks(message, configAffiliateLinks, logChannel).catch((error) => generateLogMessage(
+      await removeAffiliateLinks(message, configAffiliateLinks).catch((error) => generateLogMessage(
         'Failed to execute "removeAffiliateLinks" function',
         10,
         error,
@@ -241,22 +238,11 @@ async function featureMode(client, guild, logChannel) {
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
       /**
-       * Detect suspicious words.
-       *
-       * @since 1.0.0
-       */
-      await detectSuspiciousWords(message, configSuspiciousWords, logChannel).catch((error) => generateLogMessage(
-        'Failed to execute "detectSuspiciousWords" function',
-        10,
-        error,
-      ));
-
-      /**
        * Remove affiliate links.
        *
        * @since 1.0.0
        */
-      await removeAffiliateLinks(message, configAffiliateLinks, logChannel).catch((error) => generateLogMessage(
+      await removeAffiliateLinks(message, configAffiliateLinks).catch((error) => generateLogMessage(
         'Failed to execute "removeAffiliateLinks" function',
         10,
         error,
@@ -295,17 +281,6 @@ async function featureMode(client, guild, logChannel) {
        */
       await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
         'Failed to execute "antiRaidAutoBan" function',
-        10,
-        error,
-      ));
-
-      /**
-       * Anti-raid auto-verify.
-       *
-       * @since 1.0.0
-       */
-      await antiRaidAutoVerify(member, configAntiRaidVerify).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidAutoVerify" function',
         10,
         error,
       ));

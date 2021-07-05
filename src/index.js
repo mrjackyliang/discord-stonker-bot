@@ -76,7 +76,7 @@ client.on('ready', async () => {
    */
   if (
     _.isUndefined(guild)
-    || _.isUndefined(logChannel)
+    || (_.includes(['snitch', 'all'], configSettingsMode) && _.isUndefined(logChannel))
     || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
     || (!_.includes(['feature', 'snitch', 'all'], configSettingsMode))
     || (configSettingsMode !== 'snitch' && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
@@ -86,7 +86,7 @@ client.on('ready', async () => {
       generateServerFailedMessage('"settings.guild-id" is not a valid guild');
     }
 
-    if (_.isUndefined(logChannel)) {
+    if (_.includes(['snitch', 'all'], configSettingsMode) && _.isUndefined(logChannel)) {
       generateServerFailedMessage('"settings.log-channel-id" is not a valid text-based channel');
     }
 
@@ -159,7 +159,7 @@ client.on('ready', async () => {
       ));
       break;
     case 'feature':
-      await featureMode(client, guild, logChannel).catch((error) => generateLogMessage(
+      await featureMode(client, guild).catch((error) => generateLogMessage(
         'Failed to execute "featureMode" function',
         10,
         error,
@@ -172,7 +172,7 @@ client.on('ready', async () => {
         10,
         error,
       ));
-      await featureMode(client, guild, logChannel).catch((error) => generateLogMessage(
+      await featureMode(client, guild).catch((error) => generateLogMessage(
         'Failed to execute "featureMode" function',
         10,
         error,

@@ -54,47 +54,6 @@ async function antiRaidAutoBan(member, settings) {
 }
 
 /**
- * Anti-raid auto-verify.
- *
- * @param {module:"discord.js".GuildMember} member   - Member information.
- * @param {object}                          settings - Verification settings from configuration.
- *
- * @returns {Promise<void>}
- *
- * @since 1.0.0
- */
-async function antiRaidAutoVerify(member, settings) {
-  const memberUserCreatedTimestamp = member.user.createdTimestamp;
-  const settingsVerifiedRoleId = _.get(settings, 'verified-role-id');
-  const settingsTrustedAge = _.get(settings, 'trusted-age');
-  const isTrustedAge = (((Date.now() - memberUserCreatedTimestamp) / 1000) >= settingsTrustedAge);
-
-  if (!_.isFinite(settingsTrustedAge)) {
-    return;
-  }
-
-  // If user meets trusted age requirement, automatically add verify role.
-  if (isTrustedAge) {
-    await member.roles.add(
-      settingsVerifiedRoleId,
-      'Member was auto-assigned the verified role',
-    ).then(() => {
-      generateLogMessage(
-        [
-          chalk.green(member.toString()),
-          'was auto-assigned the verified role',
-        ].join(' '),
-        30,
-      );
-    }).catch((error) => generateLogMessage(
-      'Failed to add role',
-      10,
-      error,
-    ));
-  }
-}
-
-/**
  * Anti-raid monitor.
  *
  * @param {module:"discord.js".GuildMember}            member        - Member information.
@@ -154,7 +113,6 @@ async function antiRaidMonitor(member, mode, sendToChannel) {
  * @since 1.0.0
  */
 async function antiRaidVerify(message, settings) {
-  const messageMemberUserAvatar = _.get(message, 'member.user.avatar');
   const messageMemberUserCreatedTimestamp = _.get(message, 'member.user.createdTimestamp');
   const messageMemberUserId = _.get(message, 'member.user.id');
 
@@ -205,11 +163,10 @@ async function antiRaidVerify(message, settings) {
   }
 
   // Use welcome, valid, or invalid message.
-  const isAvatar = (_.isString(messageMemberUserAvatar));
   const isMinimumAge = (((Date.now() - messageMemberUserCreatedTimestamp) / 1000) >= settingsMinimumAge);
-  const welcomeMessage = (isAvatar && isMinimumAge) ? welcomeNormal : welcomeSuspicious;
-  const validMessage = (isAvatar && isMinimumAge) ? validNormal : validSuspicious;
-  const invalidMessage = (isAvatar && isMinimumAge) ? invalidNormal : invalidSuspicious;
+  const welcomeMessage = (isMinimumAge) ? welcomeNormal : welcomeSuspicious;
+  const validMessage = (isMinimumAge) ? validNormal : validSuspicious;
+  const invalidMessage = (isMinimumAge) ? invalidNormal : invalidSuspicious;
 
   // Compare user code with user input.
   const userCode = generateCode(false);
@@ -224,7 +181,7 @@ async function antiRaidVerify(message, settings) {
     .replace(/[７]/g, '7')
     .replace(/[８]/g, '8')
     .replace(/[９]/g, '9')
-    .replace(/[０Oo]/g, '0');
+    .replace(/[０]/g, '0');
 
   // Delete message first.
   await message.delete().catch((error) => generateLogMessage(
@@ -323,7 +280,6 @@ async function antiRaidVerify(message, settings) {
 
 module.exports = {
   antiRaidAutoBan,
-  antiRaidAutoVerify,
   antiRaidMonitor,
   antiRaidVerify,
 };

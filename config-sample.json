@@ -90,7 +90,6 @@
                 }
             },
             "minimum-age": 86400,
-            "trusted-age": 604800,
             "secret-codes": [
                 "secret"
             ],
@@ -266,6 +265,22 @@
             ]
         }
     ],
+    "message-copier": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "regex": {
+                "pattern": "(?:)",
+                "flags": "g"
+            },
+            "remove-mentions": true,
+            "prefix": "Message sent by %MESSAGE_AUTHOR% - ",
+            "suffix": " - The Footer",
+            "allowed-users": [
+                "000000000000000000"
+            ]
+        }
+    ],
     "affiliate-links": {
         "links": [
             {
@@ -276,6 +291,7 @@
                 }
             }
         ],
+        "channel-id": "000000000000000000",
         "direct-message": "Please do not send affiliate links!",
         "excluded-roles": [
             {

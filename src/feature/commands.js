@@ -795,7 +795,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
   const channelToggles = await _.map(selectedToggleDirection, async (channelToggle) => {
     const channelToggleId = _.get(channelToggle, 'channel-id');
     const channelTogglePerms = _.get(channelToggle, 'channel-perms');
-    const channelToggleChannel = message.channel.guild.channels.cache.get(channelToggleId);
+    const channelToggleChannel = message.guild.channels.cache.get(channelToggleId);
 
     if (_.isUndefined(channelToggleChannel)) {
       generateLogMessage(

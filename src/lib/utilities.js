@@ -107,7 +107,7 @@ function getReadableDuration(durationObject) {
  * @param {module:"discord.js".Guild} guild     - Discord guild.
  * @param {string}                    channelId - The channel id.
  *
- * @returns {undefined|module:"discord.js".GuildChannel}
+ * @returns {undefined|module:"discord.js".TextBasedChannel}
  *
  * @since 1.0.0
  */
