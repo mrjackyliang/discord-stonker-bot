@@ -83,7 +83,7 @@ client.on('ready', async () => {
     || (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone))
   ) {
     if (_.isUndefined(guild)) {
-      generateServerFailedMessage('"settings.guild-id" is not a valid guild');
+      generateServerFailedMessage('"settings.guild-id" is not a valid guild or is unavailable');
     }
 
     if (_.includes(['snitch', 'all'], configSettingsMode) && _.isUndefined(logChannel)) {
@@ -98,7 +98,7 @@ client.on('ready', async () => {
       generateServerFailedMessage('"settings.mode" is not configured or is invalid');
     }
 
-    if (configSettingsMode !== 'snitch' && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
+    if (_.includes(['feature', 'all'], configSettingsMode) && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
       generateServerFailedMessage('"settings.bot-prefix" is not configured or longer than 3 characters');
     }
 
@@ -109,7 +109,7 @@ client.on('ready', async () => {
     // Kills the process with error.
     process.exit(1);
   } else {
-    if (configSettingsMode !== 'snitch') {
+    if (_.includes(['feature', 'all'], configSettingsMode)) {
       await client.user.setStatus('online').catch((error) => generateLogMessage(
         'Failed to set user status to "online"',
         10,

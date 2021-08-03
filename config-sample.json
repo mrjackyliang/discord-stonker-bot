@@ -132,6 +132,15 @@
             ]
         }
     ],
+    "rss-feeds": [
+        {
+            "name": "Sample",
+            "channel-id": "000000000000000000",
+            "interval": "* * * * *",
+            "url": "https://www.example.com/feed",
+            "message": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
+        }
+    ],
     "regex-rules": [
         {
             "name": "Sample Regex",
@@ -273,9 +282,14 @@
                 "pattern": "(?:)",
                 "flags": "g"
             },
-            "remove-mentions": true,
-            "prefix": "Message sent by %MESSAGE_AUTHOR% - ",
-            "suffix": " - The Footer",
+            "replacements": [
+                {
+                    "pattern": "",
+                    "flags": "",
+                    "replace-with": ""
+                }
+            ],
+            "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
             "allowed-users": [
                 "000000000000000000"
             ]

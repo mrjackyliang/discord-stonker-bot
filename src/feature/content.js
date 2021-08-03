@@ -1,6 +1,7 @@
 const axios = require('axios').default;
 const chalk = require('chalk');
 const { DateTime } = require('luxon');
+const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
 const _ = require('lodash');
 
@@ -41,6 +42,150 @@ function createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second) {
   }
 
   return rule;
+}
+
+/**
+ * RSS feed.
+ *
+ * @param {object}           event         - Post event.
+ * @param {TextBasedChannel} sendToChannel - Send message to channel.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+function rssFeed(event, sendToChannel) {
+  const name = _.get(event, 'name', 'Unknown');
+  const interval = _.get(event, 'interval', '* * * * *');
+  const url = _.get(event, 'url');
+  const message = _.get(event, 'message');
+  const sentItems = [];
+
+  // If "channel-id" is not a text-based channel.
+  if (_.isUndefined(sendToChannel)) {
+    generateLogMessage(
+      [
+        '"channel-id" for',
+        chalk.red(name),
+        'RSS feed is not a valid text-based channel',
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "message" is not a string or is empty.
+  if (!_.isString(message) || _.isEmpty(message)) {
+    generateLogMessage(
+      [
+        '"message" for',
+        chalk.red(name),
+        'RSS feed is not a string or is empty',
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // Create a new RSS parser instance.
+  const rssParser = new RssParser();
+
+  try {
+    schedule.scheduleJob(interval, async () => {
+      await rssParser.parseURL(url).then((response) => {
+        const items = _.get(response, 'items');
+        const cleanItemLink = (link) => {
+          if (_.isString(link)) {
+            return link
+              .replace(/(&?utm_(.*?)|#(.*?))=[^&]+/g, '')
+              .replace(/\?&/g, '?')
+              .replace(/\?$/g, '');
+          }
+
+          return '';
+        };
+
+        // Prevents bot from spamming same item after reboot.
+        if (_.isEmpty(sentItems)) {
+          _.forEach(items, (item) => {
+            const itemLink = _.get(item, 'link');
+
+            sentItems.push(cleanItemLink(itemLink));
+          });
+        }
+
+        _.map(items, async (item) => {
+          const itemTitle = _.get(item, 'title', 'No Title');
+          const itemLink = _.get(item, 'link', '');
+          const replaceVariables = (rawMessage) => {
+            if (_.isString(rawMessage) && !_.isEmpty(rawMessage)) {
+              return rawMessage
+                .replace(/%ITEM_TITLE%/, itemTitle)
+                .replace(/%ITEM_LINK%/, cleanItemLink(itemLink));
+            }
+
+            return '';
+          };
+
+          // Only send when there is an update to the feed.
+          if (_.every(sentItems, (sentItem) => !_.isEqual(sentItem, itemLink))) {
+            await sendToChannel.send(replaceVariables(message)).then(() => {
+              generateLogMessage(
+                [
+                  'Sent',
+                  chalk.green(name),
+                  'RSS feed item to',
+                  chalk.green(sendToChannel.toString()),
+                ].join(' '),
+                30,
+              );
+
+              // Update the sent items array.
+              sentItems.push(itemLink);
+            }).catch((error) => generateLogMessage(
+              [
+                'Failed to send',
+                chalk.red(name),
+                'RSS feed item to',
+                chalk.red(sendToChannel.toString()),
+              ].join(' '),
+              10,
+              error,
+            ));
+          }
+        });
+      }).catch((error) => generateLogMessage(
+        [
+          'Failed to parse',
+          chalk.red(name),
+          'RSS feed',
+        ].join(' '),
+        10,
+        error,
+      ));
+    });
+
+    generateLogMessage(
+      [
+        'Scheduled',
+        chalk.green(name),
+        'RSS feed',
+      ].join(' '),
+      40,
+    );
+  } catch (error) {
+    generateLogMessage(
+      [
+        'Failed to schedule',
+        chalk.red(name),
+        'RSS feed',
+      ].join(' '),
+      10,
+      error,
+    );
+  }
 }
 
 /**
@@ -179,7 +324,7 @@ function schedulePost(event, sendToChannel) {
             'post event to',
             chalk.yellow(sendToChannel.toString()),
           ].join(' '),
-          20,
+          30,
         );
       }
     });
@@ -208,7 +353,7 @@ function schedulePost(event, sendToChannel) {
 /**
  * Stocktwits trending.
  *
- * @param {object}           event         - When to send post.
+ * @param {object}           event         - Post event.
  * @param {TextBasedChannel} sendToChannel - Send message to channel.
  *
  * @since 1.0.0
@@ -385,6 +530,7 @@ function stocktwitsTrending(event, sendToChannel) {
 }
 
 module.exports = {
+  rssFeed,
   schedulePost,
   stocktwitsTrending,
 };

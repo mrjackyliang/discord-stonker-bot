@@ -15,7 +15,7 @@ const {
   togglePerms,
   voice,
 } = require('./commands');
-const { schedulePost, stocktwitsTrending } = require('./content');
+const { rssFeed, schedulePost, stocktwitsTrending } = require('./content');
 const { autoReply, messageCopier } = require('./messenger');
 const {
   checkRegexChannels,
@@ -36,6 +36,7 @@ const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
 const configSchedulePosts = _.get(config, 'schedule-posts');
+const configRssFeeds = _.get(config, 'rss-feeds');
 const configRegexRules = _.get(config, 'regex-rules');
 const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
@@ -347,6 +348,19 @@ async function featureMode(client, guild) {
       const channel = getTextBasedChannel(guild, configSchedulePost['channel-id']);
 
       schedulePost(configSchedulePost, channel);
+    });
+  }
+
+  /**
+   * RSS feed.
+   *
+   * @since 1.0.0
+   */
+  if (_.isArray(configRssFeeds) && !_.isEmpty(configRssFeeds)) {
+    _.forEach(configRssFeeds, (configRssFeed) => {
+      const channel = getTextBasedChannel(guild, configRssFeed['channel-id']);
+
+      rssFeed(configRssFeed, channel);
     });
   }
 

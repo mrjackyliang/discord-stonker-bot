@@ -96,14 +96,44 @@ async function autoReply(message, replies) {
  */
 async function messageCopier(message, copiers) {
   const messageContent = message.toString();
-  const replaceVariables = (rawMessage) => {
-    if (_.isString(rawMessage) && !_.isEmpty(rawMessage)) {
-      return rawMessage
-        .replace(/%AUTHOR_MENTION%/g, message.author.toString())
-        .replace(/%AUTHOR_TAG%/g, message.author.tag);
+  const replaceText = (rawText, name, replacements) => {
+    let editedText = rawText;
+
+    // Makes sure the "replace-text" configuration is correct.
+    if (_.isArray(replacements) && _.every(replacements, (replacement) => _.isPlainObject(replacement))) {
+      _.forEach(replacements, (replacement, key) => {
+        const pattern = _.get(replacement, 'pattern');
+        const flags = _.get(replacement, 'flags');
+        const replaceWith = _.get(replacement, 'replace-with');
+
+        try {
+          editedText = editedText.replace(new RegExp(pattern, flags), replaceWith);
+        } catch (error) {
+          generateLogMessage(
+            [
+              `"replace-text[${key}]" for`,
+              chalk.red(name),
+              'is invalid',
+            ].join(' '),
+            10,
+            error,
+          );
+        }
+      });
     }
 
-    return '';
+    return editedText.trim();
+  };
+  const replaceVariables = (rawText, name, replacements) => {
+    if (_.isString(rawText) && !_.isEmpty(rawText)) {
+      return rawText
+        .replace(/%AUTHOR_MENTION%/g, message.author.toString())
+        .replace(/%AUTHOR_TAG%/g, message.author.tag)
+        .replace(/%MESSAGE_CONTENT%/g, replaceText(messageContent, name, replacements))
+        .replace(/%MESSAGE_URL%/g, message.url);
+    }
+
+    return replaceText(messageContent, name, replacements);
   };
 
   if (!_.isArray(copiers) || _.isEmpty(copiers) || !_.every(copiers, _.isPlainObject)) {
@@ -115,9 +145,8 @@ async function messageCopier(message, copiers) {
     const channelId = _.get(copier, 'channel-id');
     const regexPattern = _.get(copier, 'regex.pattern');
     const regexFlags = _.get(copier, 'regex.flags');
-    const removeMentions = _.get(copier, 'remove-mentions');
-    const prefix = _.get(copier, 'prefix', '');
-    const suffix = _.get(copier, 'suffix', '');
+    const replacements = _.get(copier, 'replacements');
+    const format = _.get(copier, 'format');
     const allowedUsers = _.get(copier, 'allowed-users');
 
     // If message copier is limited to specific users.
@@ -137,11 +166,7 @@ async function messageCopier(message, copiers) {
 
     try {
       if (new RegExp(regexPattern, regexFlags).test(messageContent) && !_.isUndefined(channel)) {
-        await channel.send([
-          replaceVariables(prefix),
-          (removeMentions === true) ? _.replace(messageContent, /<@.?[0-9]*?>/g, '') : messageContent,
-          replaceVariables(suffix),
-        ].join('')).then(() => {
+        await channel.send(replaceVariables(format, name, replacements)).then(() => {
           generateLogMessage(
             [
               'Copied message for',
