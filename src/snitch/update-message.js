@@ -7,8 +7,8 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Update message notification.
  *
- * @param {module:"discord.js".Message}                message       - Message object.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {Message}     message       - Message object.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -30,15 +30,19 @@ async function userUpdateMessage(message, sendToChannel) {
       30,
     );
 
-    await sendToChannel.send(createUpdateMessageEmbed(
-      message.author.toString(),
-      message.channel.toString(),
-      message.id,
-      message.toString(),
-      message.reactions.message.toString(),
-      message.attachments,
-      message.url,
-    )).catch((error) => generateLogMessage(
+    await sendToChannel.send({
+      embeds: [
+        createUpdateMessageEmbed(
+          message.author.toString(),
+          message.channel.toString(),
+          message.id,
+          message.toString(),
+          message.reactions.message.toString(),
+          message.attachments,
+          message.url,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send update message embed',
       10,
       error,

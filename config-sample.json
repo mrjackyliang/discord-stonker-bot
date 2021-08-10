@@ -64,6 +64,9 @@
                 "Bad User"
             ]
         },
+        "membership-gate": {
+            "verified-role-id": "000000000000000000"
+        },
         "monitor": {
             "guild-join": {
                 "channel-id": "000000000000000000"
@@ -71,41 +74,15 @@
             "guild-leave": {
                 "channel-id": "000000000000000000"
             }
-        },
-        "verify": {
-            "channel-id": "000000000000000000",
-            "verified-role-id": "000000000000000000",
-            "messages": {
-                "welcome": {
-                    "normal": "Hey %MEMBER_MENTION%! Type `%MEMBER_CODE%` to verify.",
-                    "suspicious": "Hey %MEMBER_MENTION%! Please contact the server owner to verify."
-                },
-                "valid": {
-                    "normal": "%MEMBER_MENTION%, you have been verified.",
-                    "suspicious": "%MEMBER_MENTION%, you have been manually verified."
-                },
-                "invalid": {
-                    "normal": "Oops, %MEMBER_MENTION%! Invalid code. Type `%MEMBER_CODE%` to verify.",
-                    "suspicious": "Oops, %MEMBER_MENTION%! Invalid code. Please contact the server owner to verify."
-                }
-            },
-            "minimum-age": 86400,
-            "secret-codes": [
-                "secret"
-            ],
-            "exclude-roles": [
-                {
-                    "description": "Sample role",
-                    "id": "000000000000000000"
-                }
-            ]
         }
     },
     "schedule-posts": [
         {
             "name": "Sample",
             "channel-id": "000000000000000000",
-            "message": "This is a sample scheduled post",
+            "message": {
+                "content": "This is a sample scheduled post"
+            },
             "reactions": [
                 "🟢",
                 "🟡",
@@ -263,7 +240,7 @@
             "channel-ids": [
                 "000000000000000000"
             ],
-            "tag-author": true,
+            "reply": true,
             "regex": {
                 "pattern": "(?:)",
                 "flags": "gi"
@@ -292,6 +269,9 @@
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
             "allowed-users": [
                 "000000000000000000"
+            ],
+            "allowed-channels": [
+                "000000000000000000"
             ]
         }
     ],
@@ -318,7 +298,8 @@
         {
             "name": "Sample",
             "channel-id": "000000000000000000",
-            "message": "This is a sample Stocktwits post",
+            "message": "This is a sample Stocktwits post - %TICKERS%",
+            "show-embed": true,
             "limit": 24,
             "send-every": {
                 "time-zone": "Etc/UTC",

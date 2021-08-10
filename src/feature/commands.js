@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const { Permissions } = require('discord.js');
 const _ = require('lodash');
 
 const {
@@ -15,9 +16,9 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Fetch members.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
@@ -28,7 +29,7 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
   const commandArguments = messageText.split(' ');
   const theMember = message.channel.guild.members.cache.get(_.replace(commandArguments[2], /[<@!>]/g, ''));
   const theRole = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
-  const guildMembers = message.channel.guild.members.cache.array();
+  const guildMembers = [...message.channel.guild.members.cache.values()];
   const matchedUsers = [];
 
   let query = commandArguments[2];
@@ -47,12 +48,16 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}fetch-members\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}fetch-members\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -63,19 +68,23 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // If command route is invalid.
   if (!_.includes(['avatar', 'role', 'string', 'username'], commandArguments[1])) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}fetch-members avatar [@user]`,
-        `${botPrefix}fetch-members role [@role]`,
-        `${botPrefix}fetch-members string [text]`,
-        `${botPrefix}fetch-members username [@user]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
+            'Examples:',
+            '```',
+            `${botPrefix}fetch-members avatar [@user]`,
+            `${botPrefix}fetch-members role [@role]`,
+            `${botPrefix}fetch-members string [text]`,
+            `${botPrefix}fetch-members username [@user]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -95,16 +104,20 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
     const roleMode = (_.includes(['role'], commandArguments[1])) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
     const stringMode = (_.includes(['string'], commandArguments[1])) ? ['There is nothing specified', 'specifying a string (with or without quotes)', 'text'] : [];
 
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `${userMode[0] || roleMode[0] || stringMode[0]}. Try using the command by ${userMode[1] || roleMode[1] || stringMode[1]}.\n`,
-        'Example:',
-        '```',
-        `${botPrefix}fetch-members ${commandArguments[1]} [${userMode[2] || roleMode[2] || stringMode[2]}]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `${userMode[0] ?? roleMode[0] ?? stringMode[0]}. Try using the command by ${userMode[1] ?? roleMode[1] ?? stringMode[1]}.\n`,
+            'Example:',
+            '```',
+            `${botPrefix}fetch-members ${commandArguments[1]} [${userMode[2] ?? roleMode[2] ?? stringMode[2]}]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -115,10 +128,14 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // If user does not have an avatar.
   if (commandArguments[1] === 'avatar' && theMember.user.avatar === null) {
-    await message.channel.send(createCommandErrorEmbed(
-      `Cannot compare members. ${theMember.toString()} does not have an avatar to compare from.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `Cannot compare members. ${theMember.toString()} does not have an avatar to compare from.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -152,10 +169,14 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 
   // No results for "string".
   if (commandArguments[1] === 'string' && _.size(matchedUsers) < 1) {
-    await message.channel.send(createNoResultsEmbed(
-      `No results were found using \`${query}\`.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createNoResultsEmbed(
+          `No results were found using \`${query}\`.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send no results embed',
       10,
       error,
@@ -171,16 +192,20 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
     const stringTitle = (commandArguments[1] === 'string') ? `Members Matching \`${query}\`` : undefined;
     const usernameTitle = (commandArguments[1] === 'username') ? `Usernames Matching @${theMember.user.tag}` : undefined;
 
-    message.channel.send(createListMembersEmbed(
-      `${avatarTitle || roleTitle || stringTitle || usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
-      matchedUsersChunk,
-      (_.has(theMember, 'user')) ? theMember.user.displayAvatarURL({
-        format: 'webp',
-        dynamic: true,
-        size: 4096,
-      }) : null,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    message.channel.send({
+      embeds: [
+        createListMembersEmbed(
+          `${avatarTitle ?? roleTitle ?? stringTitle ?? usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
+          matchedUsersChunk,
+          (_.has(theMember, 'user')) ? theMember.user.displayAvatarURL({
+            format: 'webp',
+            dynamic: true,
+            size: 4096,
+          }) : null,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send list members embed',
       10,
       error,
@@ -191,28 +216,32 @@ async function fetchMembers(message, botPrefix, allowedRoles) {
 /**
  * Find duplicate users.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
 async function findDuplicateUsers(message, botPrefix, allowedRoles) {
-  const guildMembers = message.channel.guild.members.cache.array();
+  const guildMembers = [...message.channel.guild.members.cache.values()];
 
   let users = {};
   let empty = true;
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}find-duplicate-users\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}find-duplicate-users\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -262,16 +291,20 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
 
       // Send a message embed for every 80 members.
       _.forEach(userIdsChunks, async (userIdsChunk, key) => {
-        await message.channel.send(createListMembersEmbed(
-          [
-            'Duplicate Members for',
-            `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
-            (key > 0) ? `(Page ${key + 1})` : '',
-          ].join(' '),
-          userIdsChunk,
-          null,
-          message.member.user.tag,
-        )).catch((error) => generateLogMessage(
+        await message.channel.send({
+          embeds: [
+            createListMembersEmbed(
+              [
+                'Duplicate Members for',
+                `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
+                (key > 0) ? `(Page ${key + 1})` : '',
+              ].join(' '),
+              userIdsChunk,
+              null,
+              message.member.user.tag,
+            ),
+          ],
+        }).catch((error) => generateLogMessage(
           'Failed to send list members embed',
           10,
           error,
@@ -281,10 +314,14 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
   });
 
   if (empty === true) {
-    await message.channel.send(createNoResultsEmbed(
-      `There are no duplicate users found in the **${message.channel.guild.toString()}** guild.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createNoResultsEmbed(
+          `There are no duplicate users found in the **${message.channel.guild.toString()}** guild.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send no results embed',
       10,
       error,
@@ -295,10 +332,10 @@ async function findDuplicateUsers(message, botPrefix, allowedRoles) {
 /**
  * Help.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
- * @param {object}                      settings     - Command settings.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
+ * @param {object}   settings     - Command settings.
  *
  * @returns {Promise<void>}
  *
@@ -315,12 +352,16 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}help\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}help\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -338,7 +379,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowFetchMembersRoles, (allowFetchMembersRole) => message.member.roles.cache.has(allowFetchMembersRole.id) === true)
-    || message.member.permissions.has('ADMINISTRATOR')
+    || message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
@@ -353,7 +394,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowFindDuplicateUsersRoles, (allowFindDuplicateUsersRole) => message.member.roles.cache.has(allowFindDuplicateUsersRole.id) === true)
-    || message.member.permissions.has('ADMINISTRATOR')
+    || message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
@@ -365,7 +406,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowRoleRoles, (allowRoleRole) => message.member.roles.cache.has(allowRoleRole.id) === true)
-    || message.member.permissions.has('ADMINISTRATOR')
+    || message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
@@ -381,7 +422,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowTogglePermsRoles, (allowTogglePermsRole) => message.member.roles.cache.has(allowTogglePermsRole.id) === true)
-    || message.member.permissions.has('ADMINISTRATOR')
+    || message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
@@ -394,7 +435,7 @@ async function help(message, botPrefix, allowedRoles, settings) {
 
   if (
     _.some(allowVoiceRoles, (allowVoiceRole) => message.member.roles.cache.has(allowVoiceRole.id) === true)
-    || message.member.permissions.has('ADMINISTRATOR')
+    || message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
@@ -406,19 +447,27 @@ async function help(message, botPrefix, allowedRoles, settings) {
   }
 
   if (_.size(commands) > 0) {
-    await message.channel.send(createHelpMenuEmbed(
-      commands,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createHelpMenuEmbed(
+          commands,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send help menu embed',
       10,
       error,
     ));
   } else {
-    await message.channel.send(createCommandErrorEmbed(
-      'You do not have available commands currently assigned for your use.',
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          'You do not have available commands currently assigned for your use.',
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -429,9 +478,9 @@ async function help(message, botPrefix, allowedRoles, settings) {
 /**
  * Role.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
@@ -441,7 +490,7 @@ async function role(message, botPrefix, allowedRoles) {
   const commandArguments = message.toString().split(' ');
   const roleOne = message.channel.guild.roles.cache.get(_.replace(commandArguments[2], /[<@&>]/g, ''));
   const roleTwo = message.channel.guild.roles.cache.get(_.replace(commandArguments[3], /[<@&>]/g, ''));
-  const guildMembers = message.channel.guild.members.cache.array();
+  const guildMembers = [...message.channel.guild.members.cache.values()];
   const messageEveryone = (commandArguments[2] === 'everyone') ? 'members...' : undefined;
   const messageNoRole = (commandArguments[2] === 'no-role') ? 'members with no roles...' : undefined;
   const messageRole = (!_.isUndefined(roleOne)) ? `members with the ${roleOne.toString()} role...` : undefined;
@@ -450,12 +499,16 @@ async function role(message, botPrefix, allowedRoles) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}role\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}role\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -465,20 +518,24 @@ async function role(message, botPrefix, allowedRoles) {
   }
 
   if (!_.includes(['add', 'remove'], commandArguments[1])) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a route.\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}role add everyone [@role to add]`,
-        `${botPrefix}role add no-role [@role to add]`,
-        `${botPrefix}role add [@role] [@role to add]`,
-        `${botPrefix}role remove everyone [@role to remove]`,
-        `${botPrefix}role remove [@role] [@role to remove]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by inputting a route.\n`,
+            'Examples:',
+            '```',
+            `${botPrefix}role add everyone [@role to add]`,
+            `${botPrefix}role add no-role [@role to add]`,
+            `${botPrefix}role add [@role] [@role to add]`,
+            `${botPrefix}role remove everyone [@role to remove]`,
+            `${botPrefix}role remove [@role] [@role to remove]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -491,20 +548,24 @@ async function role(message, botPrefix, allowedRoles) {
     (commandArguments[1] === 'add' && commandArguments[2] !== 'everyone' && commandArguments[2] !== 'no-role' && _.isUndefined(roleOne))
     || (commandArguments[1] === 'remove' && commandArguments[2] !== 'everyone' && _.isUndefined(roleOne))
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The command selection (${commandArguments[2]}) is invalid or does not exist. Try using the command by inputting a selection.\n`,
-        'Examples:',
-        '```',
-        ...[
-          `${botPrefix}role ${commandArguments[1]} everyone [@role to ${commandArguments[1]}]`,
-          ...(commandArguments[1] === 'add') ? [`${botPrefix}role add no-role [@role to add]`] : [],
-          `${botPrefix}role ${commandArguments[1]} [@role] [@role to ${commandArguments[1]}]`,
-        ],
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The command selection (${commandArguments[2]}) is invalid or does not exist. Try using the command by inputting a selection.\n`,
+            'Examples:',
+            '```',
+            ...[
+              `${botPrefix}role ${commandArguments[1]} everyone [@role to ${commandArguments[1]}]`,
+              ...(commandArguments[1] === 'add') ? [`${botPrefix}role add no-role [@role to add]`] : [],
+              `${botPrefix}role ${commandArguments[1]} [@role] [@role to ${commandArguments[1]}]`,
+            ],
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -514,16 +575,20 @@ async function role(message, botPrefix, allowedRoles) {
   }
 
   if (_.isUndefined(roleTwo)) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The role (${commandArguments[3]}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}role ${commandArguments[1]} ${commandArguments[2]} [@role to ${commandArguments[1]}]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The role (${commandArguments[3]}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
+            'Examples:',
+            '```',
+            `${botPrefix}role ${commandArguments[1]} ${commandArguments[2]} [@role to ${commandArguments[1]}]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -540,25 +605,29 @@ async function role(message, botPrefix, allowedRoles) {
   ));
 
   // Begin to perform add role actions.
-  await message.channel.send(createRoleEmbed(
-    commandArguments[1],
-    [
-      'Please wait while',
-      message.guild.me.toString(),
-      `${commandArguments[1]}s the`,
-      roleTwo.toString(),
-      'role',
-      ...(commandArguments[1] === 'add') ? ['to'] : [],
-      ...(commandArguments[1] === 'remove') ? ['from'] : [],
-      'all',
-      messageEveryone || messageNoRole || messageRole,
-    ].join(' '),
-    'in-progress',
-    message.member.user.tag,
-  )).then(async (theMessage) => {
-    const results = await _.map(guildMembers, async (guildMember) => {
+  await message.channel.send({
+    embeds: [
+      createRoleEmbed(
+        commandArguments[1],
+        [
+          'Please wait while',
+          message.guild.me.toString(),
+          `${commandArguments[1]}s the`,
+          roleTwo.toString(),
+          'role',
+          ...(commandArguments[1] === 'add') ? ['to'] : [],
+          ...(commandArguments[1] === 'remove') ? ['from'] : [],
+          'all',
+          messageEveryone ?? messageNoRole ?? messageRole,
+        ].join(' '),
+        'in-progress',
+        message.member.user.tag,
+      ),
+    ],
+  }).then(async (theMessage) => {
+    const results = _.map(guildMembers, async (guildMember) => {
       /**
-       * Voice state result logger.
+       * Role assignment result logger.
        *
        * @param {string}          word  - Beginning phrase.
        * @param {undefined|Error} error - Error object.
@@ -600,7 +669,7 @@ async function role(message, botPrefix, allowedRoles) {
             );
           });
         } else if (commandArguments[2] === 'no-role') {
-          const roles = guildMember.roles.cache.array();
+          const roles = [...guildMember.roles.cache.values()];
 
           // Users with no roles always have the @everyone role.
           if (_.size(roles) === 1) {
@@ -664,16 +733,20 @@ async function role(message, botPrefix, allowedRoles) {
     Promise.all(results).then(async (responses) => {
       const success = _.every(responses, (response) => response === true);
 
-      await theMessage.edit(createRoleEmbed(
-        commandArguments[1],
-        [
-          roleTwo.toString(),
-          (success === true) ? `was successfully ${messageAdded || messageRemoved} all` : `could not be ${messageAdded || messageRemoved} all`,
-          messageEveryone || messageNoRole || messageRole,
-        ].join(' '),
-        (success === true) ? 'complete' : 'fail',
-        message.member.user.tag,
-      )).catch((error) => generateLogMessage(
+      await theMessage.edit({
+        embeds: [
+          createRoleEmbed(
+            commandArguments[1],
+            [
+              roleTwo.toString(),
+              (success === true) ? `was successfully ${messageAdded ?? messageRemoved} all` : `could not be ${messageAdded ?? messageRemoved} all`,
+              messageEveryone ?? messageNoRole ?? messageRole,
+            ].join(' '),
+            (success === true) ? 'complete' : 'fail',
+            message.member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
         'Failed to edit role embed',
         10,
         error,
@@ -689,10 +762,10 @@ async function role(message, botPrefix, allowedRoles) {
 /**
  * Toggle permissions.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
- * @param {object[]}                    settings     - Command settings.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
+ * @param {object[]} settings     - Command settings.
  *
  * @returns {Promise<void>}
  *
@@ -706,12 +779,16 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}toggle-perms\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}toggle-perms\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -736,16 +813,20 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
       }
     });
 
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The toggle group (${commandArguments[1]}) is invalid. Please type your command with the correct group and try again.\n`,
-        'Example(s):',
-        '```',
-        commands,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The toggle group (${commandArguments[1]}) is invalid. Please type your command with the correct group and try again.\n`,
+            'Example(s):',
+            '```',
+            commands,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -761,17 +842,21 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
     || !_.every(selectedToggleDirection, _.isPlainObject)
     || (commandArguments[2] !== 'on' && commandArguments[2] !== 'off')
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The toggle direction (${commandArguments[2]}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
-        'Example:',
-        '```',
-        `${botPrefix}toggle-perms ${commandArguments[1]} on`,
-        `${botPrefix}toggle-perms ${commandArguments[1]} off`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The toggle direction (${commandArguments[2]}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
+            'Example:',
+            '```',
+            `${botPrefix}toggle-perms ${commandArguments[1]} on`,
+            `${botPrefix}toggle-perms ${commandArguments[1]} off`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -792,7 +877,7 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
    *
    * @type {[boolean, boolean[]]}
    */
-  const channelToggles = await _.map(selectedToggleDirection, async (channelToggle) => {
+  const channelToggles = _.map(selectedToggleDirection, async (channelToggle) => {
     const channelToggleId = _.get(channelToggle, 'channel-id');
     const channelTogglePerms = _.get(channelToggle, 'channel-perms');
     const channelToggleChannel = message.guild.channels.cache.get(channelToggleId);
@@ -817,22 +902,24 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
      *
      * @type {boolean[]}
      */
-    const userToggles = await _.map(channelTogglePerms, async (userToggle) => {
+    const userToggles = _.map(channelTogglePerms, async (userToggle) => {
       const theId = userToggle['user-or-role-id'];
       const thePerms = userToggle['user-or-role-perms'];
 
       let isSuccess = true;
 
-      await channelToggleChannel.updateOverwrite(
+      await channelToggleChannel.permissionOverwrites.edit(
         theId,
         thePerms,
-        [
-          `@${message.member.user.tag}`,
-          'toggled preset permissions for',
-          selectedToggleName,
-          'to',
-          commandArguments[2],
-        ].join(' '),
+        {
+          reason: [
+            `@${message.member.user.tag}`,
+            'toggled preset permissions for',
+            selectedToggleName,
+            'to',
+            commandArguments[2],
+          ].join(' '),
+        },
       ).catch((error) => {
         isSuccess = false;
 
@@ -872,24 +959,32 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
         30,
       );
 
-      await message.channel.send(createTogglePermsEmbed(
-        `Successfully toggled preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
-        true,
-        message.member.user.tag,
-      )).catch((error) => generateLogMessage(
+      await message.channel.send({
+        embeds: [
+          createTogglePermsEmbed(
+            `Successfully toggled preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
+            true,
+            message.member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
         'Failed to send toggle perms embed',
         10,
         error,
       ));
     } else {
-      await message.channel.send(createTogglePermsEmbed(
-        [
-          `Failed to toggle one or more preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
-          'Please check the logs and configuration then try again.',
-        ].join(' '),
-        false,
-        message.member.user.tag,
-      )).catch((error) => generateLogMessage(
+      await message.channel.send({
+        embeds: [
+          createTogglePermsEmbed(
+            [
+              `Failed to toggle one or more preset permissions for **${selectedToggleName}** to ${commandArguments[2]}.`,
+              'Please check the logs and configuration then try again.',
+            ].join(' '),
+            false,
+            message.member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
         'Failed to send toggle perms embed',
         10,
         error,
@@ -901,9 +996,9 @@ async function togglePerms(message, botPrefix, allowedRoles, settings) {
 /**
  * Voice.
  *
- * @param {module:"discord.js".Message} message      - Message object.
- * @param {string}                      botPrefix    - Command prefix.
- * @param {object[]}                    allowedRoles - Roles allowed to use this command.
+ * @param {Message}  message      - Message object.
+ * @param {string}   botPrefix    - Command prefix.
+ * @param {object[]} allowedRoles - Roles allowed to use this command.
  *
  * @returns {Promise<void>}
  *
@@ -913,16 +1008,20 @@ async function voice(message, botPrefix, allowedRoles) {
   const commandArguments = message.toString().split(' ');
   const channel = message.channel.guild.channels.cache.get(_.replace(commandArguments[2], /[<#>]/g, ''));
   const channelType = _.get(channel, 'type');
-  const isVoiceOrStageChannel = _.includes(['voice', 'stage'], channelType);
+  const isVoiceOrStageChannel = _.includes(['GUILD_VOICE', 'GUILD_STAGE_VOICE'], channelType);
 
   if (
     !_.some(allowedRoles, (allowedRole) => message.member.roles.cache.has(allowedRole.id) === true)
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    await message.channel.send(createCommandErrorEmbed(
-      `You do not have enough permissions to use the \`${botPrefix}voice\` command.`,
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${botPrefix}voice\` command.`,
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -933,17 +1032,21 @@ async function voice(message, botPrefix, allowedRoles) {
 
   // If command route is invalid.
   if (!_.includes(['disconnect', 'unmute'], commandArguments[1])) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
-        'Examples:',
-        '```',
-        `${botPrefix}voice disconnect [#channel]`,
-        `${botPrefix}voice unmute [#channel]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The command route (${commandArguments[1]}) is invalid or does not exist. Try using the command by selecting a route.\n`,
+            'Examples:',
+            '```',
+            `${botPrefix}voice disconnect [#channel]`,
+            `${botPrefix}voice unmute [#channel]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -954,16 +1057,20 @@ async function voice(message, botPrefix, allowedRoles) {
 
   // If voice or stage channel is invalid or does not exist.
   if (_.isUndefined(channel) || isVoiceOrStageChannel !== true) {
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        `The voice or stage channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
-        'Example:',
-        '```',
-        `${botPrefix}voice ${commandArguments[1]} [#channel]`,
-        '```',
-      ].join('\n'),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            `The voice or stage channel (${commandArguments[2]}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
+            'Example:',
+            '```',
+            `${botPrefix}voice ${commandArguments[1]} [#channel]`,
+            '```',
+          ].join('\n'),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -974,26 +1081,30 @@ async function voice(message, botPrefix, allowedRoles) {
 
   // If bot does not have enough permissions.
   if (
-    (commandArguments[1] === 'disconnect' && !message.guild.me.permissions.has('MOVE_MEMBERS'))
-    || (commandArguments[1] === 'unmute' && !message.guild.me.permissions.has('MUTE_MEMBERS'))
+    (commandArguments[1] === 'disconnect' && !message.guild.me.permissions.has(Permissions.FLAGS.MOVE_MEMBERS))
+    || (commandArguments[1] === 'unmute' && !message.guild.me.permissions.has(Permissions.FLAGS.MUTE_MEMBERS))
   ) {
     const disconnect = (commandArguments[1] === 'disconnect') ? 'Move Members' : undefined;
     const unmute = (commandArguments[1] === 'unmute') ? 'Mute Members' : undefined;
 
-    await message.channel.send(createCommandErrorEmbed(
-      [
-        message.guild.me.toString(),
-        'requires the',
-        `**${disconnect || unmute}**`,
-        'permission to',
-        commandArguments[1],
-        'members from the',
-        channel.toString(),
-        channelType,
-        'channel.',
-      ].join(' '),
-      message.member.user.tag,
-    )).catch((error) => generateLogMessage(
+    await message.channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          [
+            message.guild.me.toString(),
+            'requires the',
+            `**${disconnect ?? unmute}**`,
+            'permission to',
+            commandArguments[1],
+            'members from the',
+            channel.toString(),
+            channelType,
+            'channel.',
+          ].join(' '),
+          message.member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send command error embed',
       10,
       error,
@@ -1010,17 +1121,21 @@ async function voice(message, botPrefix, allowedRoles) {
   ));
 
   // Begin to perform voice or stage channel actions.
-  await message.channel.send(createVoiceEmbed(
-    commandArguments[1],
-    `Please wait while ${message.guild.me.toString()} ${commandArguments[1]}s all members connected to the ${channel.toString()} ${channelType} channel...`,
-    'in-progress',
-    message.member.user.tag,
-  )).then(async (theMessage) => {
-    const voiceStates = channel.guild.voiceStates.cache.array();
-    const usersResults = await _.map(voiceStates, async (voiceState) => {
+  await message.channel.send({
+    embeds: [
+      createVoiceEmbed(
+        commandArguments[1],
+        `Please wait while ${message.guild.me.toString()} ${commandArguments[1]}s all members connected to the ${channel.toString()} channel...`,
+        'in-progress',
+        message.member.user.tag,
+      ),
+    ],
+  }).then(async (theMessage) => {
+    const voiceStates = [...channel.guild.voiceStates.cache.values()];
+    const usersResults = _.map(voiceStates, async (voiceState) => {
       let success = true;
 
-      if (voiceState.channelID === channel.id) {
+      if (voiceState.channelId === channel.id) {
         const memberMention = voiceState.member.toString();
         const channelMention = voiceState.channel.toString();
 
@@ -1052,7 +1167,7 @@ async function voice(message, botPrefix, allowedRoles) {
         };
 
         if (commandArguments[1] === 'disconnect') {
-          await voiceState.kick().then(() => logger(
+          await voiceState.disconnect().then(() => logger(
             'Disconnected',
           )).catch((error) => {
             success = logger('Failed to disconnect', error);
@@ -1071,22 +1186,28 @@ async function voice(message, botPrefix, allowedRoles) {
 
     Promise.all(usersResults).then(async (responses) => {
       const success = _.every(responses, (response) => response === true);
-      const disconnect = (commandArguments[1] === 'disconnect') ? 'disconnected' : undefined;
-      const unmute = (commandArguments[1] === 'unmute') ? 'unmuted' : undefined;
+      const disconnect = (commandArguments[1] === 'disconnect') ? 'disconnected from' : undefined;
+      const unmuteVoice = (commandArguments[1] === 'unmute' && channelType === 'GUILD_VOICE') ? 'unmuted from' : undefined;
+      const unmuteStage = (commandArguments[1] === 'unmute' && channelType === 'GUILD_STAGE_VOICE') ? 'invited to speak in' : undefined;
 
-      await theMessage.edit(createVoiceEmbed(
-        commandArguments[1],
-        [
-          (success === true) ? 'All members have been' : 'One or more members could not be',
-          disconnect || unmute,
-          'from the',
-          channel.toString(),
-          channelType,
-          'channel.',
-        ].join(' '),
-        (success === true) ? 'complete' : 'fail',
-        message.member.user.tag,
-      )).catch((error) => generateLogMessage(
+      console.log('done');
+
+      await theMessage.edit({
+        embeds: [
+          createVoiceEmbed(
+            commandArguments[1],
+            [
+              (success === true) ? 'All members have been' : 'One or more members could not be',
+              disconnect ?? unmuteVoice ?? unmuteStage,
+              'the',
+              channel.toString(),
+              'channel.',
+            ].join(' '),
+            (success === true) ? 'complete' : 'fail',
+            message.member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
         'Failed to edit voice embed',
         10,
         error,

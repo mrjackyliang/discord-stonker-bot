@@ -6,9 +6,9 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Change username notification.
  *
- * @param {module:"discord.js".User}                   oldUser       - User information (old).
- * @param {module:"discord.js".User}                   newUser       - User information (new).
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {User}        oldUser       - User information (old).
+ * @param {User}        newUser       - User information (new).
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -28,16 +28,20 @@ async function userChangeUsername(oldUser, newUser, sendToChannel) {
       30,
     );
 
-    await sendToChannel.send(createChangeUsernameEmbed(
-      oldUser.tag,
-      newUser.tag,
-      newUser.toString(),
-      newUser.displayAvatarURL({
-        format: 'webp',
-        dynamic: true,
-        size: 4096,
-      }),
-    )).catch((error) => generateLogMessage(
+    await sendToChannel.send({
+      embeds: [
+        createChangeUsernameEmbed(
+          oldUser.tag,
+          newUser.tag,
+          newUser.toString(),
+          newUser.displayAvatarURL({
+            format: 'webp',
+            dynamic: true,
+            size: 4096,
+          }),
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send change username embed',
       10,
       error,

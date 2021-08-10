@@ -7,9 +7,9 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Detect suspicious words.
  *
- * @param {module:"discord.js".Message}                message         - Message object.
- * @param {object[]}                                   suspiciousWords - Suspicious words from configuration.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel   - Send message to channel.
+ * @param {Message}     message         - Message object.
+ * @param {object[]}    suspiciousWords - Suspicious words from configuration.
+ * @param {TextChannel} sendToChannel   - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -60,15 +60,19 @@ async function detectSuspiciousWords(message, suspiciousWords, sendToChannel) {
     30,
   );
 
-  await sendToChannel.send(createSuspiciousWordsEmbed(
-    message.author.toString(),
-    message.channel.toString(),
-    message.id,
-    theMessage,
-    message.attachments,
-    message.url,
-    categories,
-  )).catch((error) => generateLogMessage(
+  await sendToChannel.send({
+    embeds: [
+      createSuspiciousWordsEmbed(
+        message.author.toString(),
+        message.channel.toString(),
+        message.id,
+        theMessage,
+        message.attachments,
+        message.url,
+        categories,
+      ),
+    ],
+  }).catch((error) => generateLogMessage(
     'Failed to send suspicious words embed',
     10,
     error,

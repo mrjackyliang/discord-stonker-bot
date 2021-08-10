@@ -188,34 +188,19 @@ A set of tools to ban members (based on their avatar hash or username), and help
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                                         | __Type__   | __Description__                                       | __Accepted Values__                                                                                         |
-|-------------------------------------------------|------------|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `anti-raid`                                     | `object`   |                                                       |                                                                                                             |
-| `anti-raid.auto-ban`                            | `object`   |                                                       |                                                                                                             |
-| `anti-raid.auto-ban.avatar`                     | `string[]` | List of banned avatar hashes                          | File name of avatar (without file extension)                                                                |
-| `anti-raid.auto-ban.username`                   | `string[]` | List of banned usernames                              | Username of user                                                                                            |
-| `anti-raid.monitor`                             | `object`   |                                                       |                                                                                                             |
-| `anti-raid.monitor.guild-join`                  | `object`   |                                                       |                                                                                                             |
-| `anti-raid.monitor.guild-join.channel-id`       | `string`   | Channel to post in when a user joins a guild          | Discord channel ID                                                                                          |
-| `anti-raid.monitor.guild-leave`                 | `object`   |                                                       |                                                                                                             |
-| `anti-raid.monitor.guild-leave.channel-id`      | `string`   | Channel to post in when a user leaves a guild         | Discord channel ID                                                                                          |
-| `anti-raid.verify`                              | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.channel-id`                   | `string`   | Channel to post the verification message              | Discord channel ID                                                                                          |
-| `anti-raid.verify.verified-role-id`             | `string`   | Role to assign when a user completes verification     | Discord role ID                                                                                             |
-| `anti-raid.verify.messages`                     | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.messages.welcome`             | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.messages.welcome.normal`      | `string`   | Message sent when normal user joins                   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.welcome.suspicious`  | `string`   | Message sent when suspicious user joins               | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.valid`               | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.messages.valid.normal`        | `string`   | Message sent when normal user enters valid code       | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.valid.suspicious`    | `string`   | Message sent when suspicious user enters valid code   | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.invalid`             | `object`   |                                                       |                                                                                                             |
-| `anti-raid.verify.messages.invalid.normal`      | `string`   | Message sent when normal user enters invalid code     | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.messages.invalid.suspicious`  | `string`   | Message sent when suspicious user enters invalid code | Cannot be empty and cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` and `%MEMBER_CODE%` |
-| `anti-raid.verify.minimum-age`                  | `number`   | Minimum age required to show `normal` message         | Calculate the [time in seconds](https://www.calculateme.com/time/days/to-seconds/)                          |
-| `anti-raid.verify.exclude-roles`                | `object[]` |                                                       |                                                                                                             |
-| `anti-raid.verify.exclude-roles[x].description` | `string`   | Description of the excluded role (optional)           |                                                                                                             |
-| `anti-raid.verify.exclude-roles[x].id`          | `string`   | Excluded role                                         | Discord role ID                                                                                             |
+| __Key__                                         | __Type__   | __Description__                                       | __Accepted Values__                          |
+|-------------------------------------------------|------------|-------------------------------------------------------|----------------------------------------------|
+| `anti-raid`                                     | `object`   |                                                       |                                              |
+| `anti-raid.auto-ban`                            | `object`   |                                                       |                                              |
+| `anti-raid.auto-ban.avatar`                     | `string[]` | List of banned avatar hashes                          | File name of avatar (without file extension) |
+| `anti-raid.auto-ban.username`                   | `string[]` | List of banned usernames                              | Username of user                             |
+| `anti-raid.membership-gate`                     | `object`   |                                                       |                                              |
+| `anti-raid.membership-gate.verified-role-id`    | `string`   | Role to assign when a user passes the membership gate | Discord role ID                              |
+| `anti-raid.monitor`                             | `object`   |                                                       |                                              |
+| `anti-raid.monitor.guild-join`                  | `object`   |                                                       |                                              |
+| `anti-raid.monitor.guild-join.channel-id`       | `string`   | Channel to post in when a user joins a guild          | Discord channel ID                           |
+| `anti-raid.monitor.guild-leave`                 | `object`   |                                                       |                                              |
+| `anti-raid.monitor.guild-leave.channel-id`      | `string`   | Channel to post in when a user leaves a guild         | Discord channel ID                           |
 
 ```json
 {
@@ -228,6 +213,9 @@ _This feature will work under `feature` and `all` modes only._
                 "Bad User"
             ]
         },
+        "membership-gate": {
+            "verified-role-id": "000000000000000000"
+        },
         "monitor": {
             "guild-join": {
                 "channel-id": "000000000000000000"
@@ -235,31 +223,6 @@ _This feature will work under `feature` and `all` modes only._
             "guild-leave": {
                 "channel-id": "000000000000000000"
             }
-        },
-        "verify": {
-            "channel-id": "000000000000000000",
-            "verified-role-id": "000000000000000000",
-            "messages": {
-                "welcome": {
-                    "normal": "Hey %MEMBER_MENTION%! Type `%MEMBER_CODE%` to verify.",
-                    "suspicious": "Hey %MEMBER_MENTION%! Please contact the server owner to verify."
-                },
-                "valid": {
-                    "normal": "%MEMBER_MENTION%, you have been verified.",
-                    "suspicious": "%MEMBER_MENTION%, you have been manually verified."
-                },
-                "invalid": {
-                    "normal": "Oops, %MEMBER_MENTION%! Invalid code. Type `%MEMBER_CODE%` to verify.",
-                    "suspicious": "Oops, %MEMBER_MENTION%! Invalid code. Please contact the server owner to verify."
-                }
-            },
-            "minimum-age": 86400,
-            "exclude-roles": [
-                {
-                    "description": "Sample role",
-                    "id": "000000000000000000"
-                }
-            ]
         }
     }
 }
@@ -270,20 +233,20 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                                     | __Type__             | __Description__                             | __Accepted Values__                                                                                      |
-|---------------------------------------------|----------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `schedule-posts`                            | `object[]`           |                                             |                                                                                                          |
-| `schedule-posts[x].name`                    | `string`             | Name of the scheduled post                  |                                                                                                          |
-| `schedule-posts[x].channel-id`              | `string`             | Channel used to send scheduled post         | Discord channel ID                                                                                       |
-| `schedule-posts[x].message`                 | `string` or `object` | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `schedule-posts[x].reactions`               | `string[]`           | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated) |
-| `schedule-posts[x].send-every`              | `object`             |                                             |                                                                                                          |
-| `schedule-posts[x].send-every.time-zone`    | `string`             | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
-| `schedule-posts[x].send-every.days-of-week` | `number[]`           | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
-| `schedule-posts[x].send-every.hour`         | `number`             | Send post on hour of day                    | From `0` to `23`                                                                                         |
-| `schedule-posts[x].send-every.minute`       | `number`             | Send post on minute of day                  | From `0` to `59`                                                                                         |
-| `schedule-posts[x].send-every.second`       | `number`             | Send post on second of day                  | From `0` to `59`                                                                                         |
-| `schedule-posts[x].skip-days`               | `string[]`           | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
+| __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                       |
+|---------------------------------------------|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `schedule-posts`                            | `object[]` |                                             |                                                                                                                                                           |
+| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post                  |                                                                                                                                                           |
+| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post         | Discord channel ID                                                                                                                                        |
+| `schedule-posts[x].message`                 | `object`   | Message content                             | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
+| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated)                                                  |
+| `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                                                                           |
+| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
+| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
+| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                                                                          |
+| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                                                               |
 
 ```json
 {
@@ -291,7 +254,9 @@ _This feature will work under `feature` and `all` modes only._
         {
             "name": "Sample",
             "channel-id": "000000000000000000",
-            "message": "This is a sample scheduled post",
+            "message": {
+                "content": "This is a sample scheduled post"
+            },
             "reactions": [
                 "🟢",
                 "🟡",
@@ -544,7 +509,7 @@ _This feature will work under `feature` and `all` modes only._
 | `auto-reply`                   | `object[]` |                                             |                                                                                                                                                                     |
 | `auto-reply[x].name`           | `string`   | Name of the auto-reply task                 |                                                                                                                                                                     |
 | `auto-reply[x].channel-ids`    | `string[]` | Channels monitored for the reply (optional) | Discord channel IDs                                                                                                                                                 |
-| `auto-reply[x].tag-author`     | `boolean`  | Tag the author when replying                | `true` or `false`                                                                                                                                                   |
+| `auto-reply[x].reply`          | `boolean`  | Reply to the author                         | `true` or `false`                                                                                                                                                   |
 | `auto-reply[x].regex`          | `object`   |                                             |                                                                                                                                                                     |
 | `auto-reply[x].regex.pattern`  | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `auto-reply[x].regex.flags`    | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
@@ -558,7 +523,7 @@ _This feature will work under `feature` and `all` modes only._
             "channel-ids": [
                 "000000000000000000"
             ],
-            "tag-author": true,
+            "reply": true,
             "regex": {
                 "pattern": "(?:)",
                 "flags": "gi"
@@ -577,21 +542,22 @@ Automatically copy the original message that matches the regular expression into
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                                          | __Type__   | __Description__                                   | __Accepted Values__                                                                                                                                                                               |
-|--------------------------------------------------|------------|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `message-copier`                                 | `object[]` |                                                   |                                                                                                                                                                                                   |
-| `message-copier[x].name`                         | `string`   | Name of the message copier task                   |                                                                                                                                                                                                   |
-| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to  | Discord channel ID                                                                                                                                                                                |
-| `message-copier[x].regex`                        | `object`   |                                                   |                                                                                                                                                                                                   |
-| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content        | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                       | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].remove-mentions`              | `boolean`  | Remove all mentions from the original message     | `true` or `false`                                                                                                                                                                                 |
-| `message-copier[x].replacements`                 | `object[]` |                                                   |                                                                                                                                                                                                   |
-| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content       | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                       | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                      | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
-| `message-copier[x].format`                       | `string`   | Format the copied message                         | Messages exceeding 2000 characters will fail to send. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                             |
-| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional) | Discord user IDs                                                                                                                                                                                  |
+| __Key__                                          | __Type__   | __Description__                                      | __Accepted Values__                                                                                                                                                                               |
+|--------------------------------------------------|------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `message-copier`                                 | `object[]` |                                                      |                                                                                                                                                                                                   |
+| `message-copier[x].name`                         | `string`   | Name of the message copier task                      |                                                                                                                                                                                                   |
+| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to     | Discord channel ID                                                                                                                                                                                |
+| `message-copier[x].regex`                        | `object`   |                                                      |                                                                                                                                                                                                   |
+| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                          | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].remove-mentions`              | `boolean`  | Remove all mentions from the original message        | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].replacements`                 | `object[]` |                                                      |                                                                                                                                                                                                   |
+| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                          | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                         | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
+| `message-copier[x].format`                       | `string`   | Format the copied message                            | Cannot be empty and cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                |
+| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
+| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                                  |
 
 ```json
 {
@@ -612,6 +578,9 @@ _This feature will work under `feature` and `all` modes only._
             ],
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
             "allowed-users": [
+                "000000000000000000"
+            ],
+            "allowed-channels": [
                 "000000000000000000"
             ]
         }
@@ -666,20 +635,21 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                      |
-|-----------------------------------------|------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `stocktwits`                            | `object[]` |                                             |                                                                                                          |
-| `stocktwits[x].name`                    | `string`   | Name of the Stocktwits post                 |                                                                                                          |
-| `stocktwits[x].channel-id`              | `string`   | Channel used to send Stocktwits post        | Discord channel ID                                                                                       |
-| `stocktwits[x].message`                 | `string`   | Message content                             | Cannot be empty and cannot exceed 2000 characters                                                        |
-| `stocktwits[x].limit`                   | `number`   | The amount of tickers in a post             | Cannot exceed 25 tickers                                                                                 |
-| `stocktwits[x].send-every`              | `object`   |                                             |                                                                                                          |
-| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
-| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday) |
-| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                         |
-| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                         |
-| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                         |
-| `stocktwits[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                              |
+| __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                               |
+|-----------------------------------------|------------|---------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `stocktwits`                            | `object[]` |                                             |                                                                                                                   |
+| `stocktwits[x].name`                    | `string`   | Name of the Stocktwits post                 |                                                                                                                   |
+| `stocktwits[x].channel-id`              | `string`   | Channel used to send Stocktwits post        | Discord channel ID                                                                                                |
+| `stocktwits[x].message`                 | `string`   | Message content                             | Cannot be empty if `show-embed` is set to false and cannot exceed 2000 characters. Variables include `%TICKERS%`. |
+| `stocktwits[x].show-embed`              | `boolean`  | Show tickers in addition to a message       | `true` or `false`                                                                                                 |
+| `stocktwits[x].limit`                   | `number`   | The amount of tickers in a post             | Cannot exceed 25 tickers                                                                                          |
+| `stocktwits[x].send-every`              | `object`   |                                             |                                                                                                                   |
+| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)          |
+| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)          |
+| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                                  |
+| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                                  |
+| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                                  |
+| `stocktwits[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                       |
 
 ```json
 {
@@ -687,7 +657,8 @@ _This feature will work under `feature` and `all` modes only._
         {
             "name": "Sample",
             "channel-id": "000000000000000000",
-            "message": "This is a sample Stocktwits post",
+            "message": "This is a sample Stocktwits post - %TICKERS%",
+            "show-embed": true,
             "limit": 24,
             "send-every": {
                 "time-zone": "Etc/UTC",

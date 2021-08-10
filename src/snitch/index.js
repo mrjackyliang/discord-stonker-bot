@@ -21,9 +21,9 @@ const configSuspiciousWords = _.get(config, 'suspicious-words');
 /**
  * Snitch mode.
  *
- * @param {module:"discord.js".Client}                 client     - Discord client.
- * @param {module:"discord.js".Guild}                  guild      - Discord guild.
- * @param {module:"discord.js".TextBasedChannelFields} logChannel - Send message to channel.
+ * @param {Client}      client     - Discord client.
+ * @param {Guild}       guild      - Discord guild.
+ * @param {TextChannel} logChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -35,7 +35,7 @@ async function snitchMode(client, guild, logChannel) {
    *
    * @since 1.0.0
    */
-  client.on('message', async (message) => {
+  client.on('messageCreate', async (message) => {
     if (
       guild.available === true // If guild is online.
       && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
@@ -165,7 +165,7 @@ async function snitchMode(client, guild, logChannel) {
    */
   client.on('messageDeleteBulk', async (messages) => {
     if (_.get(config, 'notifications.delete-bulk-messages') === true) {
-      _.forEach(messages.array(), async (message) => {
+      _.forEach([...messages.values()], async (message) => {
         if (
           guild.available === true // If guild is online.
           && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.

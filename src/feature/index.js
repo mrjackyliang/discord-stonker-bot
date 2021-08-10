@@ -4,8 +4,8 @@ const config = require('../../config.json');
 
 const {
   antiRaidAutoBan,
+  antiRaidMembershipGate,
   antiRaidMonitor,
-  antiRaidVerify,
 } = require('./anti-raid');
 const {
   fetchMembers,
@@ -33,8 +33,8 @@ const {
  * @since 1.0.0
  */
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
+const configAntiRaidMembershipGate = _.get(config, 'anti-raid.membership-gate');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
-const configAntiRaidVerify = _.get(config, 'anti-raid.verify');
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRssFeeds = _.get(config, 'rss-feeds');
 const configRegexRules = _.get(config, 'regex-rules');
@@ -47,8 +47,8 @@ const configStocktwits = _.get(config, 'stocktwits');
 /**
  * Feature mode.
  *
- * @param {module:"discord.js".Client} client - Discord client.
- * @param {module:"discord.js".Guild}  guild  - Discord guild.
+ * @param {Client} client - Discord client.
+ * @param {Guild}  guild  - Discord guild.
  *
  * @returns {Promise<void>}
  *
@@ -60,7 +60,7 @@ async function featureMode(client, guild) {
    *
    * @since 1.0.0
    */
-  client.on('message', async (message) => {
+  client.on('messageCreate', async (message) => {
     const botPrefix = _.get(config, 'settings.bot-prefix');
     const messageContent = message.toString();
 
@@ -162,24 +162,13 @@ async function featureMode(client, guild) {
    *
    * @since 1.0.0
    */
-  client.on('message', async (message) => {
+  client.on('messageCreate', async (message) => {
     if (
       guild.available === true // If guild is online.
       && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
       && _.get(message, 'author.bot') === false // If message is not sent by a bot.
       && _.get(message, 'system') === false // If message is not sent by system.
     ) {
-      /**
-       * Anti-raid verification.
-       *
-       * @since 1.0.0
-       */
-      await antiRaidVerify(message, configAntiRaidVerify).catch((error) => generateLogMessage(
-        'Failed to execute "antiRaidVerify" function',
-        10,
-        error,
-      ));
-
       /**
        * Auto reply.
        *
@@ -325,6 +314,17 @@ async function featureMode(client, guild) {
       && _.get(oldMember, 'guild.id') === guild.id // If old member is in the guild.
       && _.get(newMember, 'guild.id') === guild.id // If new member is in the guild.
     ) {
+      /**
+       * Anti-raid membership gate.
+       *
+       * @since 1.0.0
+       */
+      await antiRaidMembershipGate(oldMember, newMember, configAntiRaidMembershipGate).catch((error) => generateLogMessage(
+        'Failed to execute "antiRaidMembershipGate" function',
+        10,
+        error,
+      ));
+
       /**
        * Change roles.
        *

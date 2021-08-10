@@ -47,8 +47,8 @@ function createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second) {
 /**
  * RSS feed.
  *
- * @param {object}           event         - Post event.
- * @param {TextBasedChannel} sendToChannel - Send message to channel.
+ * @param {object}      event         - Post event.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
@@ -130,8 +130,10 @@ function rssFeed(event, sendToChannel) {
           };
 
           // Only send when there is an update to the feed.
-          if (_.every(sentItems, (sentItem) => !_.isEqual(sentItem, itemLink))) {
-            await sendToChannel.send(replaceVariables(message)).then(() => {
+          if (_.every(sentItems, (sentItem) => !_.isEqual(sentItem, cleanItemLink(itemLink)))) {
+            await sendToChannel.send({
+              content: replaceVariables(message),
+            }).then(() => {
               generateLogMessage(
                 [
                   'Sent',
@@ -143,7 +145,7 @@ function rssFeed(event, sendToChannel) {
               );
 
               // Update the sent items array.
-              sentItems.push(itemLink);
+              sentItems.push(cleanItemLink(itemLink));
             }).catch((error) => generateLogMessage(
               [
                 'Failed to send',
@@ -191,8 +193,8 @@ function rssFeed(event, sendToChannel) {
 /**
  * Schedule post.
  *
- * @param {object}           event         - Post event.
- * @param {TextBasedChannel} sendToChannel - Send message to channel.
+ * @param {object}      event         - Post event.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
@@ -223,13 +225,13 @@ function schedulePost(event, sendToChannel) {
     return;
   }
 
-  // If "message" is not a string, is not a plain object, or is empty.
-  if ((!_.isString(message) && !_.isPlainObject(message)) || _.isEmpty(message)) {
+  // If "message" is not a plain object, or is empty.
+  if (!_.isPlainObject(message) || _.isEmpty(message)) {
     generateLogMessage(
       [
         '"message" for',
         chalk.red(name),
-        'post event is not a string and is not a plain object or is empty',
+        'post event is not a plain object or is empty',
       ].join(' '),
       10,
     );
@@ -353,14 +355,15 @@ function schedulePost(event, sendToChannel) {
 /**
  * Stocktwits trending.
  *
- * @param {object}           event         - Post event.
- * @param {TextBasedChannel} sendToChannel - Send message to channel.
+ * @param {object}      event         - Post event.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @since 1.0.0
  */
 function stocktwitsTrending(event, sendToChannel) {
   const name = _.get(event, 'name', 'Unknown');
   const message = _.get(event, 'message');
+  const showEmbed = _.get(event, 'show-embed');
   const limit = _.get(event, 'limit');
   const timeZone = _.get(event, 'send-every.time-zone', 'Etc/UTC');
   const daysOfWeek = _.get(event, 'send-every.days-of-week');
@@ -449,28 +452,35 @@ function stocktwitsTrending(event, sendToChannel) {
         }).then(async (responseData) => {
           const symbols = _.get(responseData, 'symbols', []);
           const sortedSymbols = _.orderBy(symbols, ['watchlist_count'], ['desc']);
-          const mappedSymbols = _.map(sortedSymbols, (symbol) => {
-            const symbolSymbol = _.get(symbol, 'symbol');
-            const symbolTitle = _.get(symbol, 'title');
-            const symbolWatchlistCount = _.get(symbol, 'watchlist_count');
+          const content = {
+            content: message.replace(/%TICKERS%/g, _.map(sortedSymbols, (sortedSymbol) => `**${sortedSymbol.symbol}**`).join(', ')),
+          };
 
-            return {
-              name: `**$${symbolSymbol}** - ${symbolTitle}`,
-              value: `:eye: ${symbolWatchlistCount.toLocaleString()}\n:link: [More info](https://stocktwits.com/symbol/${symbolSymbol})`,
-              inline: true,
-            };
-          });
+          if (showEmbed === true) {
+            _.assign(content, {
+              embeds: [
+                {
+                  title: `Stocktwits Top ${symbolLimit} Tickers`,
+                  type: 'rich',
+                  description: `Here are the top ${symbolLimit} trending tickers happening right now. This list includes equities and non-equities (e.g. futures and forex) and is sorted based on popularity.`,
+                  fields: _.map(sortedSymbols, (sortedSymbol) => {
+                    const sortedSymbolSymbol = _.get(sortedSymbol, 'symbol');
+                    const sortedSymbolTitle = _.get(sortedSymbol, 'title');
+                    const sortedSymbolWatchlistCount = _.get(sortedSymbol, 'watchlist_count');
 
-          await sendToChannel.send({
-            content: message,
-            embed: {
-              title: `Stocktwits Top ${symbolLimit} Tickers`,
-              type: 'rich',
-              description: `Here are the top ${symbolLimit} trending tickers happening right now. This list includes equities and non-equities (e.g. futures and forex) and is sorted based on popularity.`,
-              fields: mappedSymbols,
-              color: 2264315,
-            },
-          }).then(() => {
+                    return {
+                      name: `**$${sortedSymbolSymbol}** - ${sortedSymbolTitle}`,
+                      value: `:eye: ${sortedSymbolWatchlistCount.toLocaleString()}\n:link: [More info](https://stocktwits.com/symbol/${sortedSymbolSymbol})`,
+                      inline: true,
+                    };
+                  }),
+                  color: 2264315,
+                },
+              ],
+            });
+          }
+
+          await sendToChannel.send(content).then(() => {
             generateLogMessage(
               [
                 'Sent Stocktwits post',

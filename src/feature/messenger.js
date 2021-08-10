@@ -9,8 +9,8 @@ const {
 /**
  * Auto reply.
  *
- * @param {module:"discord.js".Message} message - Message object.
- * @param {object[]}                    replies - Auto reply rules from configuration.
+ * @param {Message}  message - Message object.
+ * @param {object[]} replies - Auto reply rules from configuration.
  *
  * @returns {Promise<void>}
  *
@@ -26,7 +26,7 @@ async function autoReply(message, replies) {
   _.map(replies, async (reply) => {
     const replyName = _.get(reply, 'name', 'Unknown');
     const replyChannelIds = _.get(reply, 'channel-ids');
-    const replyTagAuthor = _.get(reply, 'tag-author');
+    const replyReply = _.get(reply, 'reply');
     const replyRegexPattern = _.get(reply, 'regex.pattern');
     const replyRegexFlags = _.get(reply, 'regex.flags');
     const replyMessages = _.get(reply, 'messages');
@@ -38,8 +38,7 @@ async function autoReply(message, replies) {
         && !_.isEmpty(replyChannelIds)
         && _.every(replyChannelIds, (replyChannelId) => _.isString(replyChannelId) && !_.isEmpty(replyChannelId))
         && !_.includes(replyChannelIds, message.channel.id)
-      )
-      || (
+      ) || (
         !_.isArray(replyMessages)
         || _.isEmpty(replyMessages)
         || !_.every(replyMessages, (replyMessage) => _.isString(replyMessage) && !_.isEmpty(replyMessage))
@@ -50,8 +49,17 @@ async function autoReply(message, replies) {
 
     try {
       if (new RegExp(replyRegexPattern, replyRegexFlags).test(messageContent)) {
-        const userTag = (replyTagAuthor === true) ? `${message.author.toString()}, ` : '';
-        const content = `${userTag}${_.sample(replyMessages)}`;
+        const content = {
+          content: _.sample(replyMessages),
+        };
+
+        if (replyReply === true) {
+          _.assign(content, {
+            reply: {
+              messageReference: message.id,
+            },
+          });
+        }
 
         await message.channel.send(content).then(() => {
           generateLogMessage(
@@ -87,8 +95,8 @@ async function autoReply(message, replies) {
 /**
  * Message copier.
  *
- * @param {module:"discord.js".Message} message - Message object.
- * @param {object[]}                    copiers - Message copier rules from configuration.
+ * @param {Message}  message - Message object.
+ * @param {object[]} copiers - Message copier rules from configuration.
  *
  * @returns {Promise<void>}
  *
@@ -148,25 +156,32 @@ async function messageCopier(message, copiers) {
     const replacements = _.get(copier, 'replacements');
     const format = _.get(copier, 'format');
     const allowedUsers = _.get(copier, 'allowed-users');
+    const allowedChannels = _.get(copier, 'allowed-channels');
 
-    // If message copier is limited to specific users.
+    // If message copier is limited to specific users or is limited to specific channels.
     if (
-      _.isArray(allowedUsers)
+      (
+        _.isArray(allowedUsers)
       && !_.isEmpty(allowedUsers)
-      && _.every(allowedUsers, (replyChannelId) => _.isString(replyChannelId) && !_.isEmpty(replyChannelId))
+      && _.every(allowedUsers, (allowedUser) => _.isString(allowedUser) && !_.isEmpty(allowedUser))
       && !_.includes(allowedUsers, message.author.id)
+      ) || (
+        _.isArray(allowedChannels)
+        && !_.isEmpty(allowedChannels)
+        && _.every(allowedChannels, (allowedChannel) => _.isString(allowedChannel) && !_.isEmpty(allowedChannel))
+        && !_.includes(allowedChannels, message.channel.id)
+      )
     ) {
       return;
     }
 
-    /**
-     * @type {undefined|TextBasedChannel}
-     */
     const channel = getTextBasedChannel(message.guild, channelId);
 
     try {
       if (new RegExp(regexPattern, regexFlags).test(messageContent) && !_.isUndefined(channel)) {
-        await channel.send(replaceVariables(format, name, replacements)).then(() => {
+        await channel.send({
+          content: replaceVariables(format, name, replacements),
+        }).then(() => {
           generateLogMessage(
             [
               'Copied message for',

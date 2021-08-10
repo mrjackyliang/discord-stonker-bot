@@ -1,4 +1,5 @@
 const chalk = require('chalk');
+const { Permissions } = require('discord.js');
 const _ = require('lodash');
 
 const { createRemoveAffiliateLinksEmbed } = require('../lib/embed');
@@ -10,8 +11,8 @@ const {
 /**
  * Check regex channels.
  *
- * @param {module:"discord.js".Message} message    - Message object.
- * @param {object[]}                    regexRules - Regex rules from configuration.
+ * @param {Message}  message    - Message object.
+ * @param {object[]} regexRules - Regex rules from configuration.
  *
  * @returns {Promise<void>}
  *
@@ -52,12 +53,14 @@ async function checkRegexChannels(message, regexRules) {
   if (
     match === false
     && hasExcludedRoles === false
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     // Send direct message.
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
       await message.member.createDM().then(async (dmChannel) => {
-        await dmChannel.send(directMessage).then(() => {
+        await dmChannel.send({
+          content: directMessage,
+        }).then(() => {
           generateLogMessage(
             [
               'Sent direct message to',
@@ -90,8 +93,8 @@ async function checkRegexChannels(message, regexRules) {
 /**
  * Remove affiliate links.
  *
- * @param {module:"discord.js".Message} message        - Discord message object.
- * @param {object}                      affiliateLinks - Affiliate link regex from configuration.
+ * @param {Message} message        - Discord message object.
+ * @param {object}  affiliateLinks - Affiliate link regex from configuration.
  *
  * @returns {Promise<void>}
  *
@@ -106,9 +109,6 @@ async function removeAffiliateLinks(message, affiliateLinks) {
   const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
   const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => message.member.roles.cache.has(excludedRole.id) === true);
 
-  /**
-   * @type {undefined|TextBasedChannel}
-   */
   const channel = getTextBasedChannel(message.guild, channelId);
 
   // Scan through list of affiliate links.
@@ -157,15 +157,19 @@ async function removeAffiliateLinks(message, affiliateLinks) {
   );
 
   if (!_.isUndefined(channel)) {
-    await channel.send(createRemoveAffiliateLinksEmbed(
-      message.author.toString(),
-      message.channel.toString(),
-      message.id,
-      theMessage,
-      message.attachments,
-      message.url,
-      websites,
-    )).catch((error) => generateLogMessage(
+    await channel.send({
+      embeds: [
+        createRemoveAffiliateLinksEmbed(
+          message.author.toString(),
+          message.channel.toString(),
+          message.id,
+          theMessage,
+          message.attachments,
+          message.url,
+          websites,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send remove affiliate links embed',
       10,
       error,
@@ -174,11 +178,13 @@ async function removeAffiliateLinks(message, affiliateLinks) {
 
   if (
     hasExcludedRoles === false
-    && !message.member.permissions.has('ADMINISTRATOR')
+    && !message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
       await message.member.createDM().then(async (dmChannel) => {
-        await dmChannel.send(directMessage).then(() => {
+        await dmChannel.send({
+          content: directMessage,
+        }).then(() => {
           generateLogMessage(
             [
               'Sent direct message to',

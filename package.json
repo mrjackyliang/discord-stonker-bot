@@ -1,7 +1,7 @@
 {
     "name": "discord-stocker-bot",
     "displayName": "Discord Stonker Bot",
-    "version": "1.7.2",
+    "version": "1.7.5",
     "description": "A Discord bot built for finance-related servers",
     "main": "src/index.js",
     "scripts": {
@@ -34,23 +34,24 @@
     ],
     "homepage": "https://github.com/mrjackyliang/discord-stonker-bot#readme",
     "engines": {
-        "node": ">=10.0.0"
+        "node": ">=16.6.0",
+        "npm": ">=7.0.0"
     },
     "dependencies": {
         "axios": "^0.21.1",
         "bufferutil": "^4.0.3",
         "chalk": "^4.1.0",
-        "discord.js": "^12.5.3",
+        "discord.js": "^13.0.1",
         "lodash": "^4.17.21",
-        "luxon": "^1.26.0",
+        "luxon": "^2.0.2",
         "node-schedule": "^2.0.0",
         "rss-parser": "^3.12.0",
         "utf-8-validate": "^5.0.5",
         "zlib-sync": "^0.1.7"
     },
     "devDependencies": {
-        "eslint": "^7.21.0",
+        "eslint": "^7.32.0",
         "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-plugin-import": "^2.22.1"
+        "eslint-plugin-import": "^2.24.0"
     }
 }

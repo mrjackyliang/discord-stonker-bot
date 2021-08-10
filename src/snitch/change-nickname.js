@@ -6,9 +6,9 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Change nickname notification.
  *
- * @param {module:"discord.js".GuildMember}            oldMember     - Member information (old).
- * @param {module:"discord.js".GuildMember}            newMember     - Member information (new).
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {GuildMember} oldMember     - Member information (old).
+ * @param {GuildMember} newMember     - Member information (new).
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -28,16 +28,20 @@ async function userChangeNickname(oldMember, newMember, sendToChannel) {
       30,
     );
 
-    await sendToChannel.send(createChangeNicknameEmbed(
-      oldMember.nickname,
-      newMember.nickname,
-      newMember.toString(),
-      newMember.user.displayAvatarURL({
-        format: 'webp',
-        dynamic: true,
-        size: 4096,
-      }),
-    )).catch((error) => generateLogMessage(
+    await sendToChannel.send({
+      embeds: [
+        createChangeNicknameEmbed(
+          oldMember.nickname,
+          newMember.nickname,
+          newMember.toString(),
+          newMember.user.displayAvatarURL({
+            format: 'webp',
+            dynamic: true,
+            size: 4096,
+          }),
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send change nickname embed',
       10,
       error,

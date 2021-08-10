@@ -1,5 +1,10 @@
 const chalk = require('chalk');
-const { Client, Intents } = require('discord.js');
+const {
+  Client,
+  Intents,
+  Options,
+  LimitedCollection,
+} = require('discord.js');
 const _ = require('lodash');
 
 const config = require('../config.json');
@@ -31,11 +36,15 @@ const configSettingsTimeZone = _.get(config, 'settings.time-zone');
  * @since 1.0.0
  */
 const client = new Client({
-  messageCacheMaxSize: Infinity,
-  messageCacheLifetime: 2592000, // 30 days.
-  messageSweepInterval: 60, // 1 minute.
-  messageEditHistoryMaxSize: -1,
-  fetchAllMembers: true,
+  makeCache: Options.cacheWithLimits({
+    MessageManager: {
+      sweepFilter: LimitedCollection.filterByLifetime({
+        lifetime: 2592000,
+        getComparisonTimestamp: (e) => e.editedTimestamp ?? e.createdTimestamp,
+      }),
+      sweepInterval: 60,
+    },
+  }),
   intents: [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MEMBERS,
@@ -110,20 +119,11 @@ client.on('ready', async () => {
     process.exit(1);
   } else {
     if (_.includes(['feature', 'all'], configSettingsMode)) {
-      await client.user.setStatus('online').catch((error) => generateLogMessage(
-        'Failed to set user status to "online"',
-        10,
-        error,
-      ));
-
-      await client.user.setActivity(
-        `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
-        { type: 'LISTENING' },
-      ).catch((error) => generateLogMessage(
-        'Failed to set user activity',
-        10,
-        error,
-      ));
+      await client.user.setStatus('online');
+      await client.user.setActivity({
+        name: `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
+        type: 'LISTENING',
+      });
     }
 
     console.log(
@@ -139,7 +139,7 @@ client.on('ready', async () => {
         'has',
         chalk.cyan(guild.members.cache.size),
         'member(s) and',
-        chalk.cyan(guild.channels.cache.filter((channel) => channel.type !== 'category').size),
+        chalk.cyan(guild.channels.cache.filter((channel) => channel.type !== 'GUILD_CATEGORY').size),
         'channel(s) ...',
       ].join(' '),
     );
@@ -188,11 +188,7 @@ client.on('ready', async () => {
  */
 process.on('SIGINT', async () => {
   if (configSettingsMode !== 'snitch') {
-    await client.user.setStatus('invisible').catch((error) => generateLogMessage(
-      'Failed to set user status to "invisible"',
-      10,
-      error,
-    ));
+    await client.user.setStatus('invisible');
   }
 
   console.log('Stopping server ...');

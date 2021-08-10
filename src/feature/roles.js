@@ -6,9 +6,9 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Change roles.
  *
- * @param {module:"discord.js".GuildMember} oldMember - Member information (old).
- * @param {module:"discord.js".GuildMember} newMember - Member information (new).
- * @param {object[]}                        roles     - Change roles configuration.
+ * @param {GuildMember} oldMember - Member information (old).
+ * @param {GuildMember} newMember - Member information (new).
+ * @param {object[]}    roles     - Change roles configuration.
  *
  * @returns {Promise<void>}
  *
@@ -61,9 +61,6 @@ async function changeRoles(oldMember, newMember, roles) {
         );
 
         await newMember.roles.add(
-          /**
-           * @type {RoleResolvable[]}
-           */
           toAdd,
           `${name} (${type})`,
         ).catch((error) => generateLogMessage(
@@ -89,9 +86,6 @@ async function changeRoles(oldMember, newMember, roles) {
         );
 
         await newMember.roles.remove(
-          /**
-           * @type {RoleResolvable[]}
-           */
           toRemove,
           `${name} (${type})`,
         ).catch((error) => generateLogMessage(

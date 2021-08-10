@@ -7,8 +7,8 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Delete message notification.
  *
- * @param {module:"discord.js".Message}                message       - Message object.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {Message}     message       - Message object.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -27,14 +27,18 @@ async function userDeleteMessage(message, sendToChannel) {
       30,
     );
 
-    await sendToChannel.send(createDeleteMessageEmbed(
-      message.author.toString(),
-      message.channel.toString(),
-      message.id,
-      message.toString(),
-      message.attachments,
-      message.url,
-    )).catch((error) => generateLogMessage(
+    await sendToChannel.send({
+      embeds: [
+        createDeleteMessageEmbed(
+          message.author.toString(),
+          message.channel.toString(),
+          message.id,
+          message.toString(),
+          message.attachments,
+          message.url,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
       'Failed to send delete message embed',
       10,
       error,

@@ -12,14 +12,14 @@ const config = require('../../config.json');
 /**
  * Add embed.
  *
- * @param {string}      title        - Embed title.
- * @param {string}      description  - Embed description.
- * @param {null|string} thumbnailUrl - Embed thumbnail url.
- * @param {any}         fields       - Embed fields.
- * @param {string}      footer       - Embed footer message.
- * @param {string}      color        - Embed hex color.
+ * @param {string}          title        - Embed title.
+ * @param {string}          description  - Embed description.
+ * @param {null|string}     thumbnailUrl - Embed thumbnail url.
+ * @param {any}             fields       - Embed fields.
+ * @param {string}          footer       - Embed footer message.
+ * @param {ColorResolvable} color        - Embed hex color.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -82,7 +82,7 @@ function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
   const theAttachments = [];
   const fields = [];
 
-  _.forEach(attachments.array(), (attachment) => {
+  _.forEach([...attachments.values()], (attachment) => {
     theAttachments.push(attachment.url);
   });
 
@@ -104,7 +104,7 @@ function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
  * @param {string}      userMention - User mention.
  * @param {string}      avatarUrl   - Avatar url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -159,7 +159,7 @@ function createChangeNicknameEmbed(oldNickname, newNickname, userMention, avatar
  * @param {string} userMention - User mention.
  * @param {string} avatarUrl   - Avatar url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -198,7 +198,7 @@ function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
  * @param {string} reason  - The reason of the command error.
  * @param {string} userTag - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -223,7 +223,7 @@ function createCommandErrorEmbed(reason, userTag) {
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -254,7 +254,7 @@ function createDeleteMessageEmbed(userMention, channelMention, id, content, atta
  * @param {object[]} commands - Array of commands.
  * @param {string}   userTag  - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -284,7 +284,7 @@ function createHelpMenuEmbed(commands, userTag) {
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -317,7 +317,7 @@ function createIncludesLinkEmbed(userMention, channelMention, id, content, attac
  * @param {null|string} thumbnail - The thumbnail url.
  * @param {string}      userTag   - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -344,7 +344,7 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
  * @param {Date}                        joinedAt  - User joined at.
  * @param {Collection<Snowflake, Role>} roles     - User roles.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -403,7 +403,7 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
 
   if (mode === 'leave') {
     const timeOfStayDuration = getReadableDuration(timeOfStay);
-    const assignedRoles = _.filter(roles.array(), (role) => role.name !== '@everyone');
+    const assignedRoles = _.filter([...roles.values()], (role) => role.name !== '@everyone');
     const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
     const displayRoles = (_.size(assignedRoles) > 0) ? `roles (${assignedRolesMention.join(', ')})` : 'no roles';
 
@@ -429,7 +429,7 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
  * @param {string} message - The reason of no results.
  * @param {string} userTag - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -454,7 +454,7 @@ function createNoResultsEmbed(message, userTag) {
  * @param {string}                                   url            - Message url.
  * @param {string[]}                                 websites       - Websites match.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -494,7 +494,7 @@ function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, conten
  * @param {"complete"|"fail"|"in-progress"} status  - Status of role command.
  * @param {string}                          userTag - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -547,7 +547,7 @@ function createRoleEmbed(route, message, status, userTag) {
  * @param {string}                                   url            - Message url.
  * @param {string[]}                                 categories     - Categories match.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -586,7 +586,7 @@ function createSuspiciousWordsEmbed(userMention, channelMention, id, content, at
  * @param {boolean} success - Is toggle perms task completed.
  * @param {string}  userTag - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -612,7 +612,7 @@ function createTogglePermsEmbed(message, success, userTag) {
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -649,7 +649,7 @@ function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, n
  * @param {"complete"|"fail"|"in-progress"} status  - Status of voice command.
  * @param {string}                          userTag - User tag of initiator.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
@@ -700,7 +700,7 @@ function createVoiceEmbed(route, message, status, userTag) {
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
  *
- * @returns {module:"discord.js".MessageEmbed}
+ * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */

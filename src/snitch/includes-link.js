@@ -9,8 +9,8 @@ const storedMessages = [];
 /**
  * Includes link notification.
  *
- * @param {module:"discord.js".Message}                message       - Message object.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {Message}     message       - Message object.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -41,14 +41,18 @@ async function userIncludesLink(message, sendToChannel) {
         30,
       );
 
-      await sendToChannel.send(createIncludesLinkEmbed(
-        message.author.toString(),
-        message.channel.toString(),
-        message.id,
-        theMessage,
-        message.attachments,
-        message.url,
-      )).catch((error) => generateLogMessage(
+      await sendToChannel.send({
+        embeds: [
+          createIncludesLinkEmbed(
+            message.author.toString(),
+            message.channel.toString(),
+            message.id,
+            theMessage,
+            message.attachments,
+            message.url,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
         'Failed to send includes links embed',
         10,
         error,

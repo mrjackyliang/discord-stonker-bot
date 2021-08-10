@@ -7,8 +7,8 @@ const { generateLogMessage } = require('../lib/utilities');
 /**
  * Upload attachment notification.
  *
- * @param {module:"discord.js".Message}                message       - Message object.
- * @param {module:"discord.js".TextBasedChannelFields} sendToChannel - Send message to channel.
+ * @param {Message}     message       - Message object.
+ * @param {TextChannel} sendToChannel - Send message to channel.
  *
  * @returns {Promise<void>}
  *
@@ -18,7 +18,7 @@ async function userUploadAttachment(message, sendToChannel) {
   const links = [];
 
   // Throw attachment urls into array first.
-  _.forEach(message.attachments.array(), (attachment) => {
+  _.forEach([...message.attachments.values()], (attachment) => {
     links.push(attachment.url);
   });
 
@@ -36,13 +36,15 @@ async function userUploadAttachment(message, sendToChannel) {
 
     await sendToChannel.send({
       files: links,
-      embed: createUploadAttachmentEmbed(
-        message.author.toString(),
-        message.channel.toString(),
-        message.id,
-        message.attachments,
-        message.url,
-      ),
+      embeds: [
+        createUploadAttachmentEmbed(
+          message.author.toString(),
+          message.channel.toString(),
+          message.id,
+          message.attachments,
+          message.url,
+        ),
+      ],
     }).catch((error) => generateLogMessage(
       'Failed to send upload attachment embed',
       10,
