@@ -1,20 +1,22 @@
-const chalk = require('chalk');
-const _ = require('lodash');
+import chalk from 'chalk';
+import { GuildMember, PartialGuildMember } from 'discord.js';
+import _ from 'lodash';
 
-const { generateLogMessage } = require('../lib/utilities');
+import { generateLogMessage } from '../lib/utilities';
+import { ChangeRoles } from '../typings';
 
 /**
  * Change roles.
  *
- * @param {GuildMember} oldMember - Member information (old).
- * @param {GuildMember} newMember - Member information (new).
- * @param {object[]}    roles     - Change roles configuration.
+ * @param {GuildMember|PartialGuildMember} oldMember - Member information (old).
+ * @param {GuildMember|PartialGuildMember} newMember - Member information (new).
+ * @param {ChangeRoles}                    roles     - Change roles configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function changeRoles(oldMember, newMember, roles) {
+export default async function changeRoles(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, roles: ChangeRoles): Promise<void> {
   _.map(roles, async (role) => {
     const name = _.get(role, 'name', 'Unknown');
     const type = _.get(role, 'type');
@@ -26,23 +28,23 @@ async function changeRoles(oldMember, newMember, roles) {
     if (
       (
         type === 'yes-to-yes'
-        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
-        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
+        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
       )
       || (
         type === 'no-to-no'
-        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
-        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
+        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
       )
       || (
         type === 'yes-to-no'
-        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
-        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
+        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
       )
       || (
         type === 'no-to-yes'
-        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole) === true)
-        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole) === true)
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
+        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
       )
     ) {
       // Add roles.
@@ -63,7 +65,7 @@ async function changeRoles(oldMember, newMember, roles) {
         await newMember.roles.add(
           toAdd,
           `${name} (${type})`,
-        ).catch((error) => generateLogMessage(
+        ).catch((error: Error) => generateLogMessage(
           'Failed to add roles',
           10,
           error,
@@ -88,7 +90,7 @@ async function changeRoles(oldMember, newMember, roles) {
         await newMember.roles.remove(
           toRemove,
           `${name} (${type})`,
-        ).catch((error) => generateLogMessage(
+        ).catch((error: Error) => generateLogMessage(
           'Failed to remove roles',
           10,
           error,
@@ -97,7 +99,3 @@ async function changeRoles(oldMember, newMember, roles) {
     }
   });
 }
-
-module.exports = {
-  changeRoles,
-};

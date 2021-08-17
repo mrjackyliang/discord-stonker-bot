@@ -1,47 +1,56 @@
-const { DateTime, Interval } = require('luxon');
-const { MessageEmbed } = require('discord.js');
-const _ = require('lodash');
+import {
+  Collection,
+  ColorResolvable,
+  EmbedFieldData,
+  MessageAttachment,
+  MessageEmbed,
+  Role,
+  Snowflake,
+} from 'discord.js';
+import _ from 'lodash';
+import { DateTime, DurationUnit, Interval } from 'luxon';
 
-const {
-  getReadableDuration,
-  splitStringChunks,
-} = require('./utilities');
+import config from '../../config.json';
 
-const config = require('../../config.json');
+import { getReadableDuration, splitStringChunks } from './utilities';
+import {
+  EmbedStatus,
+  MemberMonitorMode,
+  RoleRoute,
+  VoiceRoute,
+} from '../typings';
 
 /**
  * Add embed.
  *
- * @param {string}          title        - Embed title.
- * @param {string}          description  - Embed description.
- * @param {null|string}     thumbnailUrl - Embed thumbnail url.
- * @param {any}             fields       - Embed fields.
- * @param {string}          footer       - Embed footer message.
- * @param {ColorResolvable} color        - Embed hex color.
+ * @param {string}                     title        - Embed title.
+ * @param {string}                     description  - Embed description.
+ * @param {string|undefined}           thumbnailUrl - Embed thumbnail url.
+ * @param {EmbedFieldData[]|undefined} fields       - Embed fields.
+ * @param {string}                     footer       - Embed footer message.
+ * @param {ColorResolvable}            color        - Embed hex color.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function addEmbed(title, description, thumbnailUrl = null, fields = undefined, footer, color = '#808080') {
-  if (!_.isUndefined(fields)) {
-    return new MessageEmbed()
-      .setColor(color)
-      .setTitle(title)
-      .setDescription(description)
-      .setThumbnail(thumbnailUrl)
-      .addFields(fields)
-      .setTimestamp()
-      .setFooter(footer);
-  }
-
-  return new MessageEmbed()
+function addEmbed(title: string, description: string, thumbnailUrl: string | undefined, fields: EmbedFieldData[] | undefined, footer: string, color: ColorResolvable = '#808080'): MessageEmbed {
+  const embed = new MessageEmbed()
     .setColor(color)
     .setTitle(title)
     .setDescription(description)
-    .setThumbnail(thumbnailUrl)
     .setTimestamp()
     .setFooter(footer);
+
+  if (thumbnailUrl !== undefined) {
+    embed.setThumbnail(thumbnailUrl);
+  }
+
+  if (fields !== undefined) {
+    embed.addFields(fields);
+  }
+
+  return embed;
 }
 
 /**
@@ -50,13 +59,13 @@ function addEmbed(title, description, thumbnailUrl = null, fields = undefined, f
  * @param {string} message    - Message content.
  * @param {string} fieldTitle - Field title.
  *
- * @returns {object[]}
+ * @returns {EmbedFieldData[]}
  *
  * @since 1.0.0
  */
-function addMessageFields(message, fieldTitle = 'Message') {
+export function addMessageFields(message: string, fieldTitle: string = 'Message'): EmbedFieldData[] {
   const theMessages = splitStringChunks(message, 1020);
-  const fields = [];
+  const fields: EmbedFieldData[] = [];
 
   _.forEach(theMessages, (theMessage, key) => {
     fields.push({
@@ -74,22 +83,17 @@ function addMessageFields(message, fieldTitle = 'Message') {
  * @param {Collection<Snowflake, MessageAttachment>} attachments - The attachments.
  * @param {string}                                   fieldTitle  - Field title.
  *
- * @returns {object[]}
+ * @returns {EmbedFieldData[]}
  *
  * @since 1.0.0
  */
-function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
-  const theAttachments = [];
-  const fields = [];
+export function addAttachmentFields(attachments: Collection<Snowflake, MessageAttachment>, fieldTitle: string = 'Attachment'): EmbedFieldData[] {
+  const fields: EmbedFieldData[] = [];
 
-  _.forEach([...attachments.values()], (attachment) => {
-    theAttachments.push(attachment.url);
-  });
-
-  _.forEach(theAttachments, (theAttachment, key) => {
+  _.forEach([...attachments.values()], (attachment, key) => {
     fields.push({
       name: `**${fieldTitle} ${key + 1}**`,
-      value: theAttachment,
+      value: attachment.url,
     });
   });
 
@@ -99,16 +103,16 @@ function addAttachmentFields(attachments, fieldTitle = 'Attachment') {
 /**
  * Create change nickname embed.
  *
- * @param {null|string} oldNickname - Old nickname.
- * @param {null|string} newNickname - New nickname.
- * @param {string}      userMention - User mention.
- * @param {string}      avatarUrl   - Avatar url.
+ * @param {string|null}      oldNickname - Old nickname.
+ * @param {string|null}      newNickname - New nickname.
+ * @param {string}           userMention - User mention.
+ * @param {string|undefined} avatarUrl   - Avatar url.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createChangeNicknameEmbed(oldNickname, newNickname, userMention, avatarUrl) {
+export function createChangeNicknameEmbed(oldNickname: string | null, newNickname: string | null, userMention: string, avatarUrl: string | undefined): MessageEmbed {
   const fields = [];
 
   let actionTitle;
@@ -146,7 +150,7 @@ function createChangeNicknameEmbed(oldNickname, newNickname, userMention, avatar
     `:clown: ${userMention} ${actionDescription}`,
     avatarUrl,
     fields,
-    `User ID: ${(_.isString(userMention)) ? userMention.replace(/[<@!>]/g, '') : userMention}`,
+    `User ID: ${_.replace(userMention, /[<@!>]/g, '')}`,
     '#4798e0',
   );
 }
@@ -154,16 +158,16 @@ function createChangeNicknameEmbed(oldNickname, newNickname, userMention, avatar
 /**
  * Create change username embed.
  *
- * @param {string} oldTag      - Old tag.
- * @param {string} newTag      - New tag.
- * @param {string} userMention - User mention.
- * @param {string} avatarUrl   - Avatar url.
+ * @param {string|null} oldTag      - Old tag.
+ * @param {string|null} newTag      - New tag.
+ * @param {string}      userMention - User mention.
+ * @param {string}      avatarUrl   - Avatar url.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
+export function createChangeUsernameEmbed(oldTag: string | null, newTag: string | null, userMention: string, avatarUrl: string): MessageEmbed {
   const fields = [];
 
   if (oldTag) {
@@ -187,7 +191,7 @@ function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
     `:clown: ${userMention} changed their username`,
     avatarUrl,
     fields,
-    `User ID: ${(_.isString(userMention)) ? userMention.replace(/[<@!>]/g, '') : userMention}`,
+    `User ID: ${_.replace(userMention, /[<@!>]/g, '')}`,
     '#4798e0',
   );
 }
@@ -202,11 +206,11 @@ function createChangeUsernameEmbed(oldTag, newTag, userMention, avatarUrl) {
  *
  * @since 1.0.0
  */
-function createCommandErrorEmbed(reason, userTag) {
+export function createCommandErrorEmbed(reason: string, userTag: string): MessageEmbed {
   return addEmbed(
     'Error',
     reason,
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
     '#de564f',
@@ -218,7 +222,7 @@ function createCommandErrorEmbed(reason, userTag) {
  *
  * @param {string}                                   userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {string}                                   content        - Message content.
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
@@ -227,7 +231,7 @@ function createCommandErrorEmbed(reason, userTag) {
  *
  * @since 1.0.0
  */
-function createDeleteMessageEmbed(userMention, channelMention, id, content, attachments, url) {
+export function createDeleteMessageEmbed(userMention: string, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
   const fields = [];
 
   if (content) {
@@ -241,7 +245,7 @@ function createDeleteMessageEmbed(userMention, channelMention, id, content, atta
   return addEmbed(
     'Message Deleted',
     `:wastebasket: [Message](${url}) sent by ${userMention} was deleted in ${channelMention}`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#de564f',
@@ -251,15 +255,15 @@ function createDeleteMessageEmbed(userMention, channelMention, id, content, atta
 /**
  * Create help menu embed.
  *
- * @param {object[]} commands - Array of commands.
- * @param {string}   userTag  - User tag of initiator.
+ * @param {{ queries: string[]; description: string; }[]} commands - Array of commands.
+ * @param {string}                                        userTag  - User tag of initiator.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createHelpMenuEmbed(commands, userTag) {
-  const fields = [];
+export function createHelpMenuEmbed(commands: { queries: string[]; description: string; }[], userTag: string): MessageEmbed {
+  const fields: string[] = [];
 
   _.forEach(commands, (command) => {
     fields.push(`\`${command.queries.join('`\n`')}\`\n${command.description}`);
@@ -268,7 +272,7 @@ function createHelpMenuEmbed(commands, userTag) {
   return addEmbed(
     'Command Help Menu',
     fields.join('\n\n'),
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
   );
@@ -277,9 +281,9 @@ function createHelpMenuEmbed(commands, userTag) {
 /**
  * Create includes link embed.
  *
- * @param {string}                                   userMention    - User mention.
+ * @param {string|undefined}                         userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {string}                                   content        - Message content.
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
@@ -288,7 +292,7 @@ function createHelpMenuEmbed(commands, userTag) {
  *
  * @since 1.0.0
  */
-function createIncludesLinkEmbed(userMention, channelMention, id, content, attachments, url) {
+export function createIncludesLinkEmbed(userMention: string | undefined, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
   const fields = [];
 
   if (content) {
@@ -302,7 +306,7 @@ function createIncludesLinkEmbed(userMention, channelMention, id, content, attac
   return addEmbed(
     'Links Detected',
     `:link: [Message](${url}) sent by ${userMention} includes links in ${channelMention}`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#4798e0',
@@ -312,16 +316,16 @@ function createIncludesLinkEmbed(userMention, channelMention, id, content, attac
 /**
  * Create list members embed.
  *
- * @param {string}      title     - The embed title.
- * @param {string[]}    mentions  - List of member mentions.
- * @param {null|string} thumbnail - The thumbnail url.
- * @param {string}      userTag   - User tag of initiator.
+ * @param {string}           title     - The embed title.
+ * @param {string[]}         mentions  - List of member mentions.
+ * @param {string|undefined} thumbnail - The thumbnail url.
+ * @param {string}           userTag   - User tag of initiator.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
+export function createListMembersEmbed(title: string, mentions: string[], thumbnail: string | undefined, userTag: string): MessageEmbed {
   return addEmbed(
     title,
     mentions.join(', '),
@@ -335,10 +339,10 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
 /**
  * Create member monitor embed.
  *
- * @param {"join"|"leave"}              mode      - Whether a user joined or left a guild.
+ * @param {MemberMonitorMode}           mode      - Whether a user joined or left a guild.
  * @param {string}                      tag       - User tag.
  * @param {string}                      mention   - User mention.
- * @param {null|string}                 avatar    - User avatar.
+ * @param {string|null}                 avatar    - User avatar.
  * @param {string}                      avatarUrl - User avatar url.
  * @param {Date}                        createdAt - User created at.
  * @param {Date}                        joinedAt  - User joined at.
@@ -348,13 +352,13 @@ function createListMembersEmbed(title, mentions, thumbnail = null, userTag) {
  *
  * @since 1.0.0
  */
-function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, createdAt, joinedAt, roles) {
+export function createMemberMonitorEmbed(mode: MemberMonitorMode, tag: string, mention: string, avatar: string | null, avatarUrl: string, createdAt: Date, joinedAt: Date, roles: Collection<Snowflake, Role>): MessageEmbed {
   const fields = [];
   const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
   const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
   const dateNow = DateTime.now();
-  const accountAge = Interval.fromDateTimes(createdAt, dateNow).toDuration([
+  const toDurationUnit: DurationUnit[] = [
     'years',
     'months',
     'days',
@@ -362,16 +366,9 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
     'minutes',
     'seconds',
     'milliseconds',
-  ], {}).toObject();
-  const timeOfStay = Interval.fromDateTimes(joinedAt, dateNow).toDuration([
-    'years',
-    'months',
-    'days',
-    'hours',
-    'minutes',
-    'seconds',
-    'milliseconds',
-  ], {}).toObject();
+  ];
+  const accountAge = Interval.fromDateTimes(createdAt, dateNow).toDuration(toDurationUnit).toObject();
+  const timeOfStay = Interval.fromDateTimes(joinedAt, dateNow).toDuration(toDurationUnit).toObject();
 
   if (mention) {
     fields.push({
@@ -433,11 +430,11 @@ function createMemberMonitorEmbed(mode, tag, mention, avatar, avatarUrl, created
  *
  * @since 1.0.0
  */
-function createNoResultsEmbed(message, userTag) {
+export function createNoResultsEmbed(message: string, userTag: string): MessageEmbed {
   return addEmbed(
     'No Results',
     message,
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
   );
@@ -448,7 +445,7 @@ function createNoResultsEmbed(message, userTag) {
  *
  * @param {string}                                   userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {string}                                   content        - Message content.
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
@@ -458,7 +455,7 @@ function createNoResultsEmbed(message, userTag) {
  *
  * @since 1.0.0
  */
-function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, content, attachments, url, websites) {
+export function createRemoveAffiliateLinksEmbed(userMention: string, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string, websites: string[]): MessageEmbed {
   const fields = [];
 
   if (websites) {
@@ -479,7 +476,7 @@ function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, conten
   return addEmbed(
     'Affiliate Link Detected',
     `:rotating_light: [Message](${url}) sent by ${userMention} includes affiliate links in ${channelMention}.`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#eea942',
@@ -489,59 +486,64 @@ function createRemoveAffiliateLinksEmbed(userMention, channelMention, id, conten
 /**
  * Create role embed.
  *
- * @param {"add"|"remove"}                  route   - Role command route.
- * @param {string}                          message - Embed message.
- * @param {"complete"|"fail"|"in-progress"} status  - Status of role command.
- * @param {string}                          userTag - User tag of initiator.
+ * @param {RoleRoute}   route   - Role command route.
+ * @param {string}      message - Embed message.
+ * @param {EmbedStatus} status  - Status of role command.
+ * @param {string}      userTag - User tag of initiator.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createRoleEmbed(route, message, status, userTag) {
-  let titleAdd;
-  let titleRemove;
-  let title;
-  let color;
+export function createRoleEmbed(route: RoleRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
+  const generateTitle = (theRoute: RoleRoute, theStatus: EmbedStatus): string => {
+    const mode = `${theRoute}-${theStatus}`;
 
-  switch (status) {
-    case 'complete':
-      titleAdd = (route === 'add') ? 'Roles Added' : undefined;
-      titleRemove = (route === 'remove') ? 'Roles Removed' : undefined;
-      title = titleAdd || titleRemove;
-      color = '#5fdc46';
-      break;
-    case 'fail':
-      titleAdd = (route === 'add') ? 'Failed to Add Roles' : undefined;
-      titleRemove = (route === 'remove') ? 'Failed to Remove Roles' : undefined;
-      title = titleAdd || titleRemove;
-      color = '#de564f';
-      break;
-    case 'in-progress':
-    default:
-      titleAdd = (route === 'add') ? 'Adding Roles' : undefined;
-      titleRemove = (route === 'remove') ? 'Removing Roles' : undefined;
-      title = titleAdd || titleRemove;
-      color = '#eea942';
-      break;
-  }
+    switch (mode) {
+      case 'add-complete':
+        return 'Roles Added';
+      case 'remove-complete':
+        return 'Roles Removed';
+      case 'add-fail':
+        return 'Failed to Add Roles';
+      case 'remove-fail':
+        return 'Failed to Add Roles';
+      case 'add-in-progress':
+        return 'Adding Roles';
+      case 'remove-in-progress':
+        return 'Removing Roles';
+      default:
+        return 'Unknown';
+    }
+  };
+  const generateColor = (theStatus: 'complete' | 'fail' | 'in-progress'): ColorResolvable => {
+    switch (theStatus) {
+      case 'complete':
+        return '#5fdc46';
+      case 'fail':
+        return '#de564f';
+      case 'in-progress':
+      default:
+        return '#eea942';
+    }
+  };
 
   return addEmbed(
-    title,
+    generateTitle(route, status),
     message,
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
-    color,
+    generateColor(status),
   );
 }
 
 /**
  * Create suspicious words embed.
  *
- * @param {string}                                   userMention    - User mention.
+ * @param {string|undefined}                         userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {string}                                   content        - Message content.
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
@@ -551,7 +553,7 @@ function createRoleEmbed(route, message, status, userTag) {
  *
  * @since 1.0.0
  */
-function createSuspiciousWordsEmbed(userMention, channelMention, id, content, attachments, url, categories) {
+export function createSuspiciousWordsEmbed(userMention: string | undefined, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string, categories: string[]): MessageEmbed {
   const fields = [];
 
   if (categories) {
@@ -572,7 +574,7 @@ function createSuspiciousWordsEmbed(userMention, channelMention, id, content, at
   return addEmbed(
     'Suspicious Word Detected',
     `:detective: [Message](${url}) sent by ${userMention} includes suspicious words in ${channelMention}`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#4798e0',
@@ -590,11 +592,11 @@ function createSuspiciousWordsEmbed(userMention, channelMention, id, content, at
  *
  * @since 1.0.0
  */
-function createTogglePermsEmbed(message, success, userTag) {
+export function createTogglePermsEmbed(message: string, success: boolean, userTag: string): MessageEmbed {
   return addEmbed(
     'Toggle Permissions',
     message,
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
     (success) ? '#5fdc46' : '#de564f',
@@ -604,9 +606,9 @@ function createTogglePermsEmbed(message, success, userTag) {
 /**
  * Create update message embed.
  *
- * @param {string}                                   userMention    - User mention.
+ * @param {undefined|string}                         userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {string}                                   oldContent     - Message content (old).
  * @param {string}                                   newContent     - Message content (new).
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
@@ -616,7 +618,7 @@ function createTogglePermsEmbed(message, success, userTag) {
  *
  * @since 1.0.0
  */
-function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, newContent, attachments, url) {
+export function createUpdateMessageEmbed(userMention: undefined | string, channelMention: string, id: Snowflake, oldContent: string, newContent: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
   const fields = [];
 
   if (oldContent) {
@@ -634,7 +636,7 @@ function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, n
   return addEmbed(
     'Message Updated',
     `:pencil: [Message](${url}) sent by ${userMention} was updated in ${channelMention}`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#eea942',
@@ -644,59 +646,64 @@ function createUpdateMessageEmbed(userMention, channelMention, id, oldContent, n
 /**
  * Create voice embed.
  *
- * @param {"disconnect"|"unmute"}           route   - Voice command route.
- * @param {string}                          message - Embed message.
- * @param {"complete"|"fail"|"in-progress"} status  - Status of voice command.
- * @param {string}                          userTag - User tag of initiator.
+ * @param {VoiceRoute}  route   - Voice command route.
+ * @param {string}      message - Embed message.
+ * @param {EmbedStatus} status  - Status of voice command.
+ * @param {string}      userTag - User tag of initiator.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-function createVoiceEmbed(route, message, status, userTag) {
-  let titleDisconnect;
-  let titleUnmute;
-  let title;
-  let color;
+export function createVoiceEmbed(route: VoiceRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
+  const generateTitle = (theRoute: VoiceRoute, theStatus: EmbedStatus): string => {
+    const mode = `${theRoute}-${theStatus}`;
 
-  switch (status) {
-    case 'complete':
-      titleDisconnect = (route === 'disconnect') ? 'Disconnected' : undefined;
-      titleUnmute = (route === 'unmute') ? 'Unmuted' : undefined;
-      title = titleDisconnect || titleUnmute;
-      color = '#5fdc46';
-      break;
-    case 'fail':
-      titleDisconnect = (route === 'disconnect') ? 'Failed to Disconnect' : undefined;
-      titleUnmute = (route === 'unmute') ? 'Failed to Unmute' : undefined;
-      title = titleDisconnect || titleUnmute;
-      color = '#de564f';
-      break;
-    case 'in-progress':
-    default:
-      titleDisconnect = (route === 'disconnect') ? 'Disconnecting' : undefined;
-      titleUnmute = (route === 'unmute') ? 'Unmuting' : undefined;
-      title = titleDisconnect || titleUnmute;
-      color = '#eea942';
-      break;
-  }
+    switch (mode) {
+      case 'disconnect-complete':
+        return 'Disconnected';
+      case 'unmute-complete':
+        return 'Unmuted';
+      case 'disconnect-fail':
+        return 'Failed to Disconnect';
+      case 'unmute-fail':
+        return 'Failed to Unmute';
+      case 'disconnect-in-progress':
+        return 'Disconnecting';
+      case 'unmute-in-progress':
+        return 'Unmuting';
+      default:
+        return 'Unknown';
+    }
+  };
+  const generateColor = (theStatus: 'complete' | 'fail' | 'in-progress'): ColorResolvable => {
+    switch (theStatus) {
+      case 'complete':
+        return '#5fdc46';
+      case 'fail':
+        return '#de564f';
+      case 'in-progress':
+      default:
+        return '#eea942';
+    }
+  };
 
   return addEmbed(
-    title,
+    generateTitle(route, status),
     message,
-    null,
+    undefined,
     undefined,
     `Initiated by @${userTag}`,
-    color,
+    generateColor(status),
   );
 }
 
 /**
  * Create upload attachment embed.
  *
- * @param {string}                                   userMention    - User mention.
+ * @param {undefined|string}                         userMention    - User mention.
  * @param {string}                                   channelMention - Channel mention.
- * @param {string}                                   id             - Message id.
+ * @param {Snowflake}                                id             - Message id.
  * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
  * @param {string}                                   url            - Message url.
  *
@@ -704,7 +711,7 @@ function createVoiceEmbed(route, message, status, userTag) {
  *
  * @since 1.0.0
  */
-function createUploadAttachmentEmbed(userMention, channelMention, id, attachments, url) {
+export function createUploadAttachmentEmbed(userMention: undefined | string, channelMention: string, id: Snowflake, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
   const fields = [];
 
   if (attachments) {
@@ -714,28 +721,9 @@ function createUploadAttachmentEmbed(userMention, channelMention, id, attachment
   return addEmbed(
     'Attachment Uploaded',
     `:dividers: [Message](${url}) sent by ${userMention} includes attachments in ${channelMention}`,
-    null,
+    undefined,
     fields,
     `Message ID: ${id}`,
     '#4798e0',
   );
 }
-
-module.exports = {
-  createChangeNicknameEmbed,
-  createChangeUsernameEmbed,
-  createCommandErrorEmbed,
-  createDeleteMessageEmbed,
-  createHelpMenuEmbed,
-  createIncludesLinkEmbed,
-  createListMembersEmbed,
-  createMemberMonitorEmbed,
-  createNoResultsEmbed,
-  createRemoveAffiliateLinksEmbed,
-  createRoleEmbed,
-  createSuspiciousWordsEmbed,
-  createTogglePermsEmbed,
-  createUpdateMessageEmbed,
-  createVoiceEmbed,
-  createUploadAttachmentEmbed,
-};

@@ -2,11 +2,11 @@
     "settings": {
         "client-token": "",
         "guild-id": "",
-        "log-channel-id": "000000000000000000",
-        "log-level": 30,
         "mode": "all",
+        "log-channel-id": "000000000000000000",
         "bot-prefix": "!",
-        "time-zone": "Etc/UTC"
+        "time-zone": "Etc/UTC",
+        "log-level": 30
     },
     "notifications": {
         "change-nickname": true,
@@ -65,7 +65,9 @@
             ]
         },
         "membership-gate": {
-            "verified-role-id": "000000000000000000"
+            "role-id": "000000000000000000",
+            "channel-id": "000000000000000000",
+            "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
         },
         "monitor": {
             "guild-join": {
@@ -135,15 +137,18 @@
             ]
         }
     ],
-    "suspicious-words": [
-        {
-            "category": "Sample",
-            "words": [
-                "suspicious",
-                "really suspicious"
-            ]
-        }
-    ],
+    "suspicious-words": {
+        "channel-id": "000000000000000000",
+        "categories": [
+            {
+                "category": "Sample",
+                "words": [
+                    "suspicious",
+                    "really suspicious"
+                ]
+            }
+        ]
+    },
     "roles": [
         {
             "name": "Remove B role if member is A",
@@ -355,5 +360,13 @@
                 }
             ]
         }
-    ]
+    ],
+    "threads": {
+        "bumper": [
+            {
+                "description": "#sample-channel",
+                "channel-id": "000000000000000000"
+            }
+        ]
+    }
 }

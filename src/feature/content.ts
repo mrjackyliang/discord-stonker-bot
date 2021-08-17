@@ -1,25 +1,34 @@
-const axios = require('axios').default;
-const chalk = require('chalk');
-const { DateTime } = require('luxon');
-const RssParser = require('rss-parser');
-const schedule = require('node-schedule');
-const _ = require('lodash');
+import axios from 'axios';
+import chalk from 'chalk';
+import { TextBasedChannels } from 'discord.js';
+import _ from 'lodash';
+import { DateTime } from 'luxon';
+import {
+  Recurrence,
+  RecurrenceRule,
+  scheduleJob,
+  Timezone,
+} from 'node-schedule';
+import RssParser from 'rss-parser';
 
-const { generateLogMessage } = require('../lib/utilities');
+import { generateLogMessage } from '../lib/utilities';
+import { RssFeed, SchedulePost, Stocktwit } from '../typings';
 
 /**
  * Create re-occurring schedule.
  *
- * @param {string}   timeZone   - Time zone.
- * @param {number[]} daysOfWeek - Days of the week.
- * @param {number}   hour       - Hour.
- * @param {number}   minute     - Minute.
- * @param {number}   second     - Second.
+ * @param {Timezone}     timeZone   - Time zone.
+ * @param {Recurrence[]} daysOfWeek - Days of the week.
+ * @param {Recurrence}   hour       - Hour.
+ * @param {Recurrence}   minute     - Minute.
+ * @param {Recurrence}   second     - Second.
+ *
+ * @returns {RecurrenceRule}
  *
  * @since 1.0.0
  */
-function createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second) {
-  const rule = new schedule.RecurrenceRule();
+export function createReoccurringSchedule(timeZone: Timezone, daysOfWeek: Recurrence[], hour: Recurrence, minute: Recurrence, second: Recurrence): RecurrenceRule {
+  const rule = new RecurrenceRule();
 
   rule.tz = timeZone;
 
@@ -47,22 +56,22 @@ function createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second) {
 /**
  * RSS feed.
  *
- * @param {object}      event         - Post event.
- * @param {TextChannel} sendToChannel - Send message to channel.
+ * @param {RssFeed}                     event         - Post event.
+ * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-function rssFeed(event, sendToChannel) {
+export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const interval = _.get(event, 'interval', '* * * * *');
   const url = _.get(event, 'url');
   const message = _.get(event, 'message');
-  const sentItems = [];
+  const sentItems: string[] = [];
 
   // If "channel-id" is not a text-based channel.
-  if (_.isUndefined(sendToChannel)) {
+  if (sendToChannel === undefined) {
     generateLogMessage(
       [
         '"channel-id" for',
@@ -93,10 +102,10 @@ function rssFeed(event, sendToChannel) {
   const rssParser = new RssParser();
 
   try {
-    schedule.scheduleJob(interval, async () => {
+    scheduleJob(interval, async () => {
       await rssParser.parseURL(url).then((response) => {
-        const items = _.get(response, 'items');
-        const cleanItemLink = (link) => {
+        const { items } = response;
+        const cleanItemLink = (link: string | undefined): string | undefined => {
           if (_.isString(link)) {
             return link
               .replace(/(&?utm_(.*?)|#(.*?))=[^&]+/g, '')
@@ -104,33 +113,45 @@ function rssFeed(event, sendToChannel) {
               .replace(/\?$/g, '');
           }
 
-          return '';
+          return undefined;
         };
 
         // Prevents bot from spamming same item after reboot.
         if (_.isEmpty(sentItems)) {
           _.forEach(items, (item) => {
-            const itemLink = _.get(item, 'link');
+            const itemLink = cleanItemLink(item.link);
 
-            sentItems.push(cleanItemLink(itemLink));
+            if (itemLink) {
+              sentItems.push(itemLink);
+            }
           });
         }
 
         _.map(items, async (item) => {
           const itemTitle = _.get(item, 'title', 'No Title');
-          const itemLink = _.get(item, 'link', '');
-          const replaceVariables = (rawMessage) => {
-            if (_.isString(rawMessage) && !_.isEmpty(rawMessage)) {
-              return rawMessage
+          const itemLink = _.get(item, 'link');
+          const itemLinkCleaned = cleanItemLink(itemLink);
+          /**
+           * Replace variables.
+           *
+           * @param {string} configMessage - Message from configuration.
+           *
+           * @return {string}
+           *
+           * @since 1.0.0
+           */
+          const replaceVariables = (configMessage: string): string => {
+            if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
+              return configMessage
                 .replace(/%ITEM_TITLE%/, itemTitle)
-                .replace(/%ITEM_LINK%/, cleanItemLink(itemLink));
+                .replace(/%ITEM_LINK%/, `${itemLinkCleaned}`);
             }
 
             return '';
           };
 
           // Only send when there is an update to the feed.
-          if (_.every(sentItems, (sentItem) => !_.isEqual(sentItem, cleanItemLink(itemLink)))) {
+          if (itemLinkCleaned && _.every(sentItems, (sentItem) => sentItem !== itemLinkCleaned)) {
             await sendToChannel.send({
               content: replaceVariables(message),
             }).then(() => {
@@ -145,8 +166,8 @@ function rssFeed(event, sendToChannel) {
               );
 
               // Update the sent items array.
-              sentItems.push(cleanItemLink(itemLink));
-            }).catch((error) => generateLogMessage(
+              sentItems.push(itemLinkCleaned);
+            }).catch((error: Error) => generateLogMessage(
               [
                 'Failed to send',
                 chalk.red(name),
@@ -158,7 +179,7 @@ function rssFeed(event, sendToChannel) {
             ));
           }
         });
-      }).catch((error) => generateLogMessage(
+      }).catch((error: Error) => generateLogMessage(
         [
           'Failed to parse',
           chalk.red(name),
@@ -193,14 +214,14 @@ function rssFeed(event, sendToChannel) {
 /**
  * Schedule post.
  *
- * @param {object}      event         - Post event.
- * @param {TextChannel} sendToChannel - Send message to channel.
+ * @param {SchedulePost}                event         - Post event.
+ * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-function schedulePost(event, sendToChannel) {
+export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChannels | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const message = _.get(event, 'message');
   const reactions = _.get(event, 'reactions');
@@ -212,7 +233,7 @@ function schedulePost(event, sendToChannel) {
   const skipDays = _.get(event, 'skip-days');
 
   // If "channel-id" is not a text-based channel.
-  if (_.isUndefined(sendToChannel)) {
+  if (sendToChannel === undefined) {
     generateLogMessage(
       [
         '"channel-id" for',
@@ -271,7 +292,7 @@ function schedulePost(event, sendToChannel) {
   const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
 
   try {
-    schedule.scheduleJob(rule, async () => {
+    scheduleJob(rule, async () => {
       const todayDate = DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
@@ -297,7 +318,7 @@ function schedulePost(event, sendToChannel) {
                 'emoji',
               ].join(' '),
               40,
-            )).catch((error) => generateLogMessage(
+            )).catch((error: Error) => generateLogMessage(
               [
                 'Failed to react',
                 chalk.red(name),
@@ -308,7 +329,7 @@ function schedulePost(event, sendToChannel) {
               error,
             ));
           });
-        }).catch((error) => generateLogMessage(
+        }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send',
             chalk.red(name),
@@ -355,12 +376,14 @@ function schedulePost(event, sendToChannel) {
 /**
  * Stocktwits trending.
  *
- * @param {object}      event         - Post event.
- * @param {TextChannel} sendToChannel - Send message to channel.
+ * @param {Stocktwit}                   event         - Post event.
+ * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
+ *
+ * @returns {void}
  *
  * @since 1.0.0
  */
-function stocktwitsTrending(event, sendToChannel) {
+export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedChannels | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const message = _.get(event, 'message');
   const showEmbed = _.get(event, 'show-embed');
@@ -373,7 +396,7 @@ function stocktwitsTrending(event, sendToChannel) {
   const skipDays = _.get(event, 'skip-days');
 
   // If "channel-id" is not a text-based channel.
-  if (_.isUndefined(sendToChannel)) {
+  if (sendToChannel === undefined) {
     generateLogMessage(
       [
         '"channel-id" for Stocktwits post',
@@ -432,7 +455,7 @@ function stocktwitsTrending(event, sendToChannel) {
   const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
 
   try {
-    schedule.scheduleJob(rule, async () => {
+    scheduleJob(rule, async () => {
       const todayDate = DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
@@ -442,9 +465,7 @@ function stocktwitsTrending(event, sendToChannel) {
         await axios.get(
           `https://api.stocktwits.com/api/2/trending/symbols.json?limit=${symbolLimit}`,
         ).then((response) => {
-          const responseStatus = _.get(response, 'status');
-
-          if (responseStatus !== 200) {
+          if (response.status !== 200) {
             throw response;
           }
 
@@ -490,7 +511,7 @@ function stocktwitsTrending(event, sendToChannel) {
               ].join(' '),
               30,
             );
-          }).catch((error) => generateLogMessage(
+          }).catch((error: Error) => generateLogMessage(
             [
               'Failed to send Stocktwits post',
               `(${chalk.red(name)})`,
@@ -500,7 +521,7 @@ function stocktwitsTrending(event, sendToChannel) {
             10,
             error,
           ));
-        }).catch((error) => {
+        }).catch((error: Error) => {
           generateLogMessage(
             'Failed to retrieve Stocktwits data',
             10,
@@ -538,9 +559,3 @@ function stocktwitsTrending(event, sendToChannel) {
     );
   }
 }
-
-module.exports = {
-  rssFeed,
-  schedulePost,
-  stocktwitsTrending,
-};

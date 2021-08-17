@@ -1,22 +1,28 @@
-const chalk = require('chalk');
-const _ = require('lodash');
+import chalk from 'chalk';
+import { Message } from 'discord.js';
+import _ from 'lodash';
 
-const {
+import {
   generateLogMessage,
   getTextBasedChannel,
-} = require('../lib/utilities');
+} from '../lib/utilities';
+import {
+  MessageCopiers,
+  RegularExpressionReplacements,
+  Replies,
+} from '../typings';
 
 /**
  * Auto reply.
  *
- * @param {Message}  message - Message object.
- * @param {object[]} replies - Auto reply rules from configuration.
+ * @param {Message} message - Message object.
+ * @param {Replies} replies - Auto reply rules from configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function autoReply(message, replies) {
+export async function autoReply(message: Message, replies: Replies): Promise<void> {
   const messageContent = message.toString();
 
   if (!_.isArray(replies) || _.isEmpty(replies) || !_.every(replies, _.isPlainObject)) {
@@ -31,7 +37,7 @@ async function autoReply(message, replies) {
     const replyRegexFlags = _.get(reply, 'regex.flags');
     const replyMessages = _.get(reply, 'messages');
 
-    // If auto-reply is limited to specific channels or if messages are not defined.
+    // If auto-reply is limited to specific channels or if reply messages are not defined correctly.
     if (
       (
         _.isArray(replyChannelIds)
@@ -69,7 +75,7 @@ async function autoReply(message, replies) {
             ].join(' '),
             30,
           );
-        }).catch((error) => generateLogMessage(
+        }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send auto-reply message for',
             chalk.red(replyName),
@@ -95,17 +101,34 @@ async function autoReply(message, replies) {
 /**
  * Message copier.
  *
- * @param {Message}  message - Message object.
- * @param {object[]} copiers - Message copier rules from configuration.
+ * @param {Message}        message - Message object.
+ * @param {MessageCopiers} copiers - Message copier rules from configuration.
  *
  * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-async function messageCopier(message, copiers) {
+export async function messageCopier(message: Message, copiers: MessageCopiers): Promise<void> {
+  if (!message.guild) {
+    return;
+  }
+
+  const { attachments, guild } = message;
   const messageContent = message.toString();
-  const replaceText = (rawText, name, replacements) => {
-    let editedText = rawText;
+  const links: string[] = [];
+  /**
+   * Replace text.
+   *
+   * @param {string}                        originalMessage - Original message.
+   * @param {string}                        name            - Message copier name.
+   * @param {RegularExpressionReplacements} replacements    - Text replacements from configuration.
+   *
+   * @return {string}
+   *
+   * @since 1.0.0
+   */
+  const replaceText = (originalMessage: string, name: string, replacements: RegularExpressionReplacements): string => {
+    let editedText = originalMessage;
 
     // Makes sure the "replace-text" configuration is correct.
     if (_.isArray(replacements) && _.every(replacements, (replacement) => _.isPlainObject(replacement))) {
@@ -132,9 +155,20 @@ async function messageCopier(message, copiers) {
 
     return editedText.trim();
   };
-  const replaceVariables = (rawText, name, replacements) => {
-    if (_.isString(rawText) && !_.isEmpty(rawText)) {
-      return rawText
+  /**
+   * Replace variables.
+   *
+   * @param {string}                        configFormat - Format from configuration.
+   * @param {string}                        name         - Message copier name.
+   * @param {RegularExpressionReplacements} replacements - Text replacements from configuration.
+   *
+   * @return {string}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configFormat: string, name: string, replacements: RegularExpressionReplacements): string => {
+    if (_.isString(configFormat) && !_.isEmpty(configFormat)) {
+      return configFormat
         .replace(/%AUTHOR_MENTION%/g, message.author.toString())
         .replace(/%AUTHOR_TAG%/g, message.author.tag)
         .replace(/%MESSAGE_CONTENT%/g, replaceText(messageContent, name, replacements))
@@ -162,9 +196,9 @@ async function messageCopier(message, copiers) {
     if (
       (
         _.isArray(allowedUsers)
-      && !_.isEmpty(allowedUsers)
-      && _.every(allowedUsers, (allowedUser) => _.isString(allowedUser) && !_.isEmpty(allowedUser))
-      && !_.includes(allowedUsers, message.author.id)
+        && !_.isEmpty(allowedUsers)
+        && _.every(allowedUsers, (allowedUser) => _.isString(allowedUser) && !_.isEmpty(allowedUser))
+        && !_.includes(allowedUsers, message.author.id)
       ) || (
         _.isArray(allowedChannels)
         && !_.isEmpty(allowedChannels)
@@ -175,28 +209,42 @@ async function messageCopier(message, copiers) {
       return;
     }
 
-    const channel = getTextBasedChannel(message.guild, channelId);
+    const sendToChannel = getTextBasedChannel(guild, channelId);
 
     try {
-      if (new RegExp(regexPattern, regexFlags).test(messageContent) && !_.isUndefined(channel)) {
-        await channel.send({
+      if (new RegExp(regexPattern, regexFlags).test(messageContent) && sendToChannel) {
+        const content = {
           content: replaceVariables(format, name, replacements),
-        }).then(() => {
+        };
+
+        // Throw attachment urls into array first.
+        _.forEach([...attachments.values()], (attachment) => {
+          links.push(attachment.url);
+        });
+
+        // If there are attachments, add them into the content.
+        if (_.size(links) > 0) {
+          _.assign(content, {
+            files: links,
+          });
+        }
+
+        await sendToChannel.send(content).then(() => {
           generateLogMessage(
             [
               'Copied message for',
               chalk.green(name),
               'to',
-              chalk.green(channel.toString()),
+              chalk.green(sendToChannel.toString()),
             ].join(' '),
             30,
           );
-        }).catch((error) => generateLogMessage(
+        }).catch((error: Error) => generateLogMessage(
           [
             'Failed to copy message for',
             chalk.red(name),
             'to',
-            chalk.red(channel.toString()),
+            chalk.red(sendToChannel.toString()),
           ].join(' '),
           10,
           error,
@@ -215,8 +263,3 @@ async function messageCopier(message, copiers) {
     }
   });
 }
-
-module.exports = {
-  autoReply,
-  messageCopier,
-};

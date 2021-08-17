@@ -1,19 +1,22 @@
-const chalk = require('chalk');
-const { DateTime } = require('luxon');
-const _ = require('lodash');
+import chalk from 'chalk';
+import { Guild, Snowflake, TextBasedChannels } from 'discord.js';
+import _ from 'lodash';
+import { DateTime, DurationObject } from 'luxon';
 
-const config = require('../../config.json');
+import config from '../../config.json';
+
+import { LogMessagePriority } from '../typings';
 
 /**
  * Generate log message.
  *
- * @param {any}              message  - Message to log.
- * @param {number}           priority - Can be 10 (error), 20 (warn), 30 (info), or 40 (debug).
- * @param {undefined|Error}  error    - The error object.
+ * @param {string}             message  - Message to log.
+ * @param {LogMessagePriority} priority - Can be 10 (error), 20 (warn), 30 (info), or 40 (debug).
+ * @param {Error}              error    - The error object.
  *
  * @since 1.0.0
  */
-function generateLogMessage(message, priority, error = undefined) {
+export function generateLogMessage(message: string, priority: LogMessagePriority, error?: Error): void {
   const logLevel = _.get(config, 'settings.log-level', 30);
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
   const currentTime = DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
@@ -38,7 +41,7 @@ function generateLogMessage(message, priority, error = undefined) {
     }
 
     // Logs the error stack if available.
-    if (_.isError(error) && _.has(error, 'stack')) {
+    if (_.isError(error) && error.stack) {
       console.log(error.stack);
     }
   }
@@ -51,7 +54,7 @@ function generateLogMessage(message, priority, error = undefined) {
  *
  * @since 1.0.0
  */
-function generateServerFailedMessage(message) {
+export function generateServerFailedMessage(message: string): void {
   console.error([
     chalk.red('Server failed to start!'),
     message,
@@ -62,58 +65,68 @@ function generateServerFailedMessage(message) {
 /**
  * Generates a readable time duration.
  *
- * @param {object} durationObject - Duration object from Luxon.
+ * @param {DurationObject} duration - Duration object from Luxon.
  *
  * @returns {string}
  *
  * @since 1.0.0
  */
-function getReadableDuration(durationObject) {
+export function getReadableDuration(duration: DurationObject): string {
   const intervals = [];
 
-  if (_.get(durationObject, 'years', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.years)} year${(durationObject.years !== 1) ? 's' : ''}`);
+  if (duration.years && duration.years > 0) {
+    intervals.push(`${Math.round(duration.years)} year${(duration.years !== 1) ? 's' : ''}`);
   }
 
-  if (_.get(durationObject, 'months', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.months)} month${(durationObject.months !== 1) ? 's' : ''}`);
+  if (duration.months && duration.months > 0) {
+    intervals.push(`${Math.round(duration.months)} month${(duration.months !== 1) ? 's' : ''}`);
   }
 
-  if (_.get(durationObject, 'days', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.days)} day${(durationObject.days !== 1) ? 's' : ''}`);
+  if (duration.days && duration.days > 0) {
+    intervals.push(`${Math.round(duration.days)} day${(duration.days !== 1) ? 's' : ''}`);
   }
 
-  if (_.get(durationObject, 'hours', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.hours)} hour${(durationObject.hours !== 1) ? 's' : ''}`);
+  if (duration.hours && duration.hours > 0) {
+    intervals.push(`${Math.round(duration.hours)} hour${(duration.hours !== 1) ? 's' : ''}`);
   }
 
-  if (_.get(durationObject, 'minutes', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.minutes)} minute${(durationObject.minutes !== 1) ? 's' : ''}`);
+  if (duration.minutes && duration.minutes > 0) {
+    intervals.push(`${Math.round(duration.minutes)} minute${(duration.minutes !== 1) ? 's' : ''}`);
   }
 
-  if (_.get(durationObject, 'seconds', 0) > 0) {
-    intervals.push(`${Math.round(durationObject.seconds)} second${(durationObject.seconds !== 1) ? 's' : ''}`);
+  if (duration.seconds && duration.seconds > 0) {
+    intervals.push(`${Math.round(duration.seconds)} second${(duration.seconds !== 1) ? 's' : ''}`);
   }
 
-  // Fallback in case others don't show.
-  intervals.push(`${Math.round(durationObject.milliseconds)} millisecond${(durationObject.milliseconds !== 1) ? 's' : ''}`);
+  if (duration.milliseconds && duration.milliseconds > 0) {
+    intervals.push(`${Math.round(duration.milliseconds)} millisecond${(duration.milliseconds !== 1) ? 's' : ''}`);
+  }
 
-  return `${intervals[0] || ''}${(intervals[1]) ? ` and ${intervals[1]}` : ''}`;
+  // Returns the duration if there is any.
+  if (intervals[0]) {
+    return `${intervals[0]}${(intervals[1]) ? ` and ${intervals[1]}` : ''}`;
+  }
+
+  return 'Unknown';
 }
 
 /**
  * Get text-based channel.
  *
- * @param {Guild}  guild     - Discord guild.
- * @param {string} channelId - The channel id.
+ * @param {Guild|undefined}     guild     - Discord guild.
+ * @param {Snowflake|undefined} channelId - The channel id.
  *
- * @returns {undefined|TextChannel|DMChannel|NewsChannel|ThreadChannel}
+ * @returns {TextBasedChannels|undefined}
  *
  * @since 1.0.0
  */
-function getTextBasedChannel(guild, channelId) {
-  const guildChannels = _.get(guild, 'channels.cache');
-  const textChannel = (!_.isUndefined(guildChannels)) ? guildChannels.get(channelId) : undefined;
+export function getTextBasedChannel(guild: Guild | undefined, channelId: Snowflake | undefined): TextBasedChannels | undefined {
+  if (!guild || !channelId) {
+    return undefined;
+  }
+
+  const guildChannels = guild.channels.cache;
+  const textChannel = (guildChannels !== undefined) ? guildChannels.get(channelId) : undefined;
 
   // If channel is a text-based channel.
   if (textChannel !== undefined && textChannel.isText()) {
@@ -133,7 +146,7 @@ function getTextBasedChannel(guild, channelId) {
  *
  * @since 1.0.0
  */
-function splitStringChunks(string, maxSize) {
+export function splitStringChunks(string: string, maxSize: number) {
   const spacePieces = string.split(' ');
 
   return spacePieces.reduce((chunks, piece, index) => {
@@ -167,11 +180,3 @@ function splitStringChunks(string, maxSize) {
     return theChunks;
   }, ['']);
 }
-
-module.exports = {
-  generateLogMessage,
-  generateServerFailedMessage,
-  getReadableDuration,
-  getTextBasedChannel,
-  splitStringChunks,
-};

@@ -1,21 +1,17 @@
-const chalk = require('chalk');
-const {
+import chalk from 'chalk';
+import {
   Client,
   Intents,
   Options,
   LimitedCollection,
-} = require('discord.js');
-const _ = require('lodash');
+} from 'discord.js';
+import _ from 'lodash';
 
-const config = require('../config.json');
+import config from '../config.json';
 
-const { featureMode } = require('./feature/index');
-const {
-  getTextBasedChannel,
-  generateLogMessage,
-  generateServerFailedMessage,
-} = require('./lib/utilities');
-const { snitchMode } = require('./snitch/index');
+import featureMode from './feature';
+import { getTextBasedChannel, generateLogMessage, generateServerFailedMessage } from './lib/utilities';
+import snitchMode from './snitch';
 
 /**
  * Bot configuration.
@@ -40,7 +36,7 @@ const client = new Client({
     MessageManager: {
       sweepFilter: LimitedCollection.filterByLifetime({
         lifetime: 2592000,
-        getComparisonTimestamp: (e) => e.editedTimestamp ?? e.createdTimestamp,
+        getComparisonTimestamp: (message) => message.editedTimestamp ?? message.createdTimestamp,
       }),
       sweepInterval: 60,
     },
@@ -62,7 +58,7 @@ const client = new Client({
  *
  * @since 1.0.0
  */
-client.login(configSettingsClientToken).catch((error) => {
+client.login(configSettingsClientToken).catch((error: Error) => {
   generateServerFailedMessage(error.message.replace(/\.$/, ''));
 
   // Kills the process with error.
@@ -84,30 +80,26 @@ client.on('ready', async () => {
    * @since 1.0.0
    */
   if (
-    _.isUndefined(guild)
-    || (_.includes(['snitch', 'all'], configSettingsMode) && _.isUndefined(logChannel))
-    || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
-    || (!_.includes(['feature', 'snitch', 'all'], configSettingsMode))
-    || (configSettingsMode !== 'snitch' && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
+    guild === undefined
+    || (configSettingsMode !== 'snitch' && configSettingsMode !== 'feature' && configSettingsMode !== 'all')
+    || ((configSettingsMode === 'snitch' || configSettingsMode === 'all') && logChannel === undefined)
+    || ((configSettingsMode === 'feature' || configSettingsMode === 'all') && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
     || (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone))
+    || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
   ) {
-    if (_.isUndefined(guild)) {
+    if (guild === undefined) {
       generateServerFailedMessage('"settings.guild-id" is not a valid guild or is unavailable');
     }
 
-    if (_.includes(['snitch', 'all'], configSettingsMode) && _.isUndefined(logChannel)) {
-      generateServerFailedMessage('"settings.log-channel-id" is not a valid text-based channel');
-    }
-
-    if (!_.includes([10, 20, 30, 40], configSettingsLogLevel)) {
-      generateServerFailedMessage('"settings.log-level" is not configured or is invalid');
-    }
-
-    if (!_.includes(['feature', 'snitch', 'all'], configSettingsMode)) {
+    if (configSettingsMode !== 'snitch' && configSettingsMode !== 'feature' && configSettingsMode !== 'all') {
       generateServerFailedMessage('"settings.mode" is not configured or is invalid');
     }
 
-    if (_.includes(['feature', 'all'], configSettingsMode) && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
+    if ((configSettingsMode === 'snitch' || configSettingsMode === 'all') && logChannel === undefined) {
+      generateServerFailedMessage('"settings.log-channel-id" is not a valid text-based channel');
+    }
+
+    if ((configSettingsMode === 'feature' || configSettingsMode === 'all') && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
       generateServerFailedMessage('"settings.bot-prefix" is not configured or longer than 3 characters');
     }
 
@@ -115,12 +107,16 @@ client.on('ready', async () => {
       generateServerFailedMessage('"settings.time-zone" is not configured');
     }
 
+    if (!_.includes([10, 20, 30, 40], configSettingsLogLevel)) {
+      generateServerFailedMessage('"settings.log-level" is not configured or is invalid');
+    }
+
     // Kills the process with error.
     process.exit(1);
   } else {
-    if (_.includes(['feature', 'all'], configSettingsMode)) {
-      await client.user.setStatus('online');
-      await client.user.setActivity({
+    if (client.user && (configSettingsMode === 'feature' || configSettingsMode === 'all')) {
+      client.user.setStatus('online');
+      client.user.setActivity({
         name: `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
         type: 'LISTENING',
       });
@@ -129,7 +125,7 @@ client.on('ready', async () => {
     console.log(
       [
         chalk.green('Server is ready!'),
-        `Logged in as @${client.user.tag} under "${configSettingsMode}" mode ...`,
+        ...(client.user) ? [`Logged in as @${client.user.tag} under "${configSettingsMode}" mode ...`] : [`Logged in under "${configSettingsMode}" mode ...`],
       ].join(' '),
     );
 
@@ -152,14 +148,14 @@ client.on('ready', async () => {
    */
   switch (configSettingsMode) {
     case 'snitch':
-      await snitchMode(client, guild, logChannel).catch((error) => generateLogMessage(
+      await snitchMode(client, guild, logChannel).catch((error: Error) => generateLogMessage(
         'Failed to execute "snitchMode" function',
         10,
         error,
       ));
       break;
     case 'feature':
-      await featureMode(client, guild).catch((error) => generateLogMessage(
+      await featureMode(client, guild).catch((error: Error) => generateLogMessage(
         'Failed to execute "featureMode" function',
         10,
         error,
@@ -167,12 +163,12 @@ client.on('ready', async () => {
       break;
     case 'all':
     default:
-      await snitchMode(client, guild, logChannel).catch((error) => generateLogMessage(
+      await snitchMode(client, guild, logChannel).catch((error: Error) => generateLogMessage(
         'Failed to execute "snitchMode" function',
         10,
         error,
       ));
-      await featureMode(client, guild).catch((error) => generateLogMessage(
+      await featureMode(client, guild).catch((error: Error) => generateLogMessage(
         'Failed to execute "featureMode" function',
         10,
         error,
@@ -187,8 +183,8 @@ client.on('ready', async () => {
  * @since 1.0.0
  */
 process.on('SIGINT', async () => {
-  if (configSettingsMode !== 'snitch') {
-    await client.user.setStatus('invisible');
+  if (client.user && (configSettingsMode === 'feature' || configSettingsMode === 'all')) {
+    client.user.setStatus('invisible');
   }
 
   console.log('Stopping server ...');

@@ -54,6 +54,7 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 12. [Remove Affiliate Links](#12-remove-affiliate-links)
 13. [Stocktwits Trending](#13-stocktwits-trending)
 14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
+15. [Threads](#15-threads)
 
 ### 1. Base Settings
 For Stonker Bot to start, these settings should be filled. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
@@ -63,22 +64,22 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 | `settings`                | `object` |                                                        |                                                                                                                                                                              |
 | `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
 | `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
-| `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID (required for `snitch` and `all` modes)                                                                                                                   |
-| `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 | `settings.mode`           | `string` | Mode that the bot will work on                         | `feature`, `snitch`, or `all`                                                                                                                                                |
+| `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID (required for `snitch` and `all` modes)                                                                                                                   |
 | `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for `feature` and `all` modes)                                                                                                        |
 | `settings.time-zone`      | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
+| `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 
 ```json
 {
     "settings": {
         "client-token": "",
         "guild-id": "",
-        "log-channel-id": "000000000000000000",
-        "log-level": 30,
         "mode": "all",
+        "log-channel-id": "000000000000000000",
         "bot-prefix": "!",
-        "time-zone": "Etc/UTC"
+        "time-zone": "Etc/UTC",
+        "log-level": 30
     }
 }
 ```
@@ -188,19 +189,21 @@ A set of tools to ban members (based on their avatar hash or username), and help
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                                         | __Type__   | __Description__                                       | __Accepted Values__                          |
-|-------------------------------------------------|------------|-------------------------------------------------------|----------------------------------------------|
-| `anti-raid`                                     | `object`   |                                                       |                                              |
-| `anti-raid.auto-ban`                            | `object`   |                                                       |                                              |
-| `anti-raid.auto-ban.avatar`                     | `string[]` | List of banned avatar hashes                          | File name of avatar (without file extension) |
-| `anti-raid.auto-ban.username`                   | `string[]` | List of banned usernames                              | Username of user                             |
-| `anti-raid.membership-gate`                     | `object`   |                                                       |                                              |
-| `anti-raid.membership-gate.verified-role-id`    | `string`   | Role to assign when a user passes the membership gate | Discord role ID                              |
-| `anti-raid.monitor`                             | `object`   |                                                       |                                              |
-| `anti-raid.monitor.guild-join`                  | `object`   |                                                       |                                              |
-| `anti-raid.monitor.guild-join.channel-id`       | `string`   | Channel to post in when a user joins a guild          | Discord channel ID                           |
-| `anti-raid.monitor.guild-leave`                 | `object`   |                                                       |                                              |
-| `anti-raid.monitor.guild-leave.channel-id`      | `string`   | Channel to post in when a user leaves a guild         | Discord channel ID                           |
+| __Key__                                    | __Type__   | __Description__                                              | __Accepted Values__                                                                    |
+|--------------------------------------------|------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| `anti-raid`                                | `object`   |                                                              |                                                                                        |
+| `anti-raid.auto-ban`                       | `object`   |                                                              |                                                                                        |
+| `anti-raid.auto-ban.avatar`                | `string[]` | List of banned avatar hashes                                 | File name of avatar (without file extension)                                           |
+| `anti-raid.auto-ban.username`              | `string[]` | List of banned usernames                                     | Username of user                                                                       |
+| `anti-raid.membership-gate`                | `object`   |                                                              |                                                                                        |
+| `anti-raid.membership-gate.role-id`        | `string`   | Role to assign when a user passes the gate                   | Discord role ID                                                                        |
+| `anti-raid.membership-gate.channel-id`     | `string`   | Where to send message when a user passes the gate (optional) | Discord channel ID                                                                     |
+| `anti-raid.membership-gate.message`        | `string`   | Message to send when a user passes the gate (optional)       | Cannot exceed 2000 characters. Variables include `%GUILD_NAME%` and `%MEMBER_MENTION%` |
+| `anti-raid.monitor`                        | `object`   |                                                              |                                                                                        |
+| `anti-raid.monitor.guild-join`             | `object`   |                                                              |                                                                                        |
+| `anti-raid.monitor.guild-join.channel-id`  | `string`   | Channel to post in when a user joins a guild                 | Discord channel ID                                                                     |
+| `anti-raid.monitor.guild-leave`            | `object`   |                                                              |                                                                                        |
+| `anti-raid.monitor.guild-leave.channel-id` | `string`   | Channel to post in when a user leaves a guild                | Discord channel ID                                                                     |
 
 ```json
 {
@@ -214,7 +217,9 @@ _This feature will work under `feature` and `all` modes only._
             ]
         },
         "membership-gate": {
-            "verified-role-id": "000000000000000000"
+            "role-id": "000000000000000000",
+            "channel-id": "000000000000000000",
+            "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
         },
         "monitor": {
             "guild-join": {
@@ -327,7 +332,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 | `regex-rules[x].regex`                        | `object`   |                                             |                                                                                                                                                                     |
 | `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `regex-rules[x].direct-message`               | `string`   | Direct message content (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
+| `regex-rules[x].direct-message`               | `string`   | Direct message content (optional)           | Cannot exceed 2000 characters                                                                                                                                       |
 | `regex-rules[x].exclude-roles`                | `object[]` |                                             |                                                                                                                                                                     |
 | `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
 | `regex-rules[x].exclude-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
@@ -357,25 +362,30 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 ### 8. Detect Suspicious Words
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often does not require warnings or deletion.
 
-_This feature will work under `snitch` and `all` modes only._
+_This feature will work under `feature` and `all` modes only._
 
-| __Key__                        | __Type__   | __Description__                          |
-|--------------------------------|------------|------------------------------------------|
-| `suspicious-words`             | `object[]` |                                          |
-| `suspicious-words[x].category` | `string`   | Category that the word is detected under |
-| `suspicious-words[x].words`    | `string[]` | List of suspicious words to detect       |
+| __Key__                                   | __Type__   | __Description__                          | __Accepted Values__ |
+|-------------------------------------------|------------|------------------------------------------|---------------------|
+| `suspicious-words`                        | `object`   |                                          |                     |
+| `suspicious-words.channel-id`             | `string`   | Channel used to report suspicious words  | Discord channel ID  |
+| `suspicious-words.categories`             | `object[]` |                                          |                     |
+| `suspicious-words.categories[x].category` | `string`   | Category that the word is detected under |                     |
+| `suspicious-words.categories[x].words`    | `string[]` | List of suspicious words to detect       |                     |
 
 ```json
 {
-    "suspicious-words": [
-        {
-            "category": "Sample",
-            "words": [
-                "suspicious",
-                "really suspicious"
-            ]
-        }
-    ]
+    "suspicious-words": {
+        "channel-id": "000000000000000000",
+        "categories": [
+            {
+                "category": "Sample",
+                "words": [
+                    "suspicious",
+                    "really suspicious"
+                ]
+            }
+        ]
+    }
 }
 ```
 
@@ -504,16 +514,16 @@ Reply to a message without requiring human interaction. Great for automated cust
 
 _This feature will work under `feature` and `all` modes only._
 
-| __Key__                        | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
-|--------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `auto-reply`                   | `object[]` |                                             |                                                                                                                                                                     |
-| `auto-reply[x].name`           | `string`   | Name of the auto-reply task                 |                                                                                                                                                                     |
-| `auto-reply[x].channel-ids`    | `string[]` | Channels monitored for the reply (optional) | Discord channel IDs                                                                                                                                                 |
-| `auto-reply[x].reply`          | `boolean`  | Reply to the author                         | `true` or `false`                                                                                                                                                   |
-| `auto-reply[x].regex`          | `object`   |                                             |                                                                                                                                                                     |
-| `auto-reply[x].regex.pattern`  | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `auto-reply[x].regex.flags`    | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `auto-reply[x].messages`       | `string[]` | Message contents                            | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
+| __Key__                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
+|-------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `auto-reply`                  | `object[]` |                                             |                                                                                                                                                                     |
+| `auto-reply[x].name`          | `string`   | Name of the auto-reply task                 |                                                                                                                                                                     |
+| `auto-reply[x].channel-ids`   | `string[]` | Channels monitored for the reply (optional) | Discord channel IDs                                                                                                                                                 |
+| `auto-reply[x].reply`         | `boolean`  | Reply to the author                         | `true` or `false`                                                                                                                                                   |
+| `auto-reply[x].regex`         | `object`   |                                             |                                                                                                                                                                     |
+| `auto-reply[x].regex.pattern` | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `auto-reply[x].regex.flags`   | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `auto-reply[x].messages`      | `string[]` | Message contents                            | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
 
 ```json
 {
@@ -555,9 +565,9 @@ _This feature will work under `feature` and `all` modes only._
 | `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
 | `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                          | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
 | `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                         | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
-| `message-copier[x].format`                       | `string`   | Format the copied message                            | Cannot be empty and cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                |
+| `message-copier[x].format`                       | `string`   | Format the copied message                            | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                                    |
 | `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
-| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                                  |
+| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                               |
 
 ```json
 {
@@ -601,7 +611,7 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 | `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
 | `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
 | `affiliate-links.channel-id`                    | `string`   | Channel used to report affiliate links      | Discord channel ID                                                                                                                                                  |
-| `affiliate-links.direct-message`                | `string`   | Direct message warning (optional)           | Cannot be empty and cannot exceed 2000 characters                                                                                                                   |
+| `affiliate-links.direct-message`                | `string`   | Direct message warning (optional)           | Cannot exceed 2000 characters                                                                                                                                       |
 | `affiliate-links.excluded-roles`                | `object[]` |                                             |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
 | `affiliate-links.excluded-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
@@ -745,5 +755,30 @@ _This feature will work under `feature` and `all` modes only._
             ]
         }
     ]
+}
+```
+
+### 15. Threads
+Stretch the features of threads! Create threads that never expire, even if you don't have boosted servers.
+
+_This feature will work under `feature` and `all` modes only._
+
+| __Key__                         | __Type__   | __Description__                       | __Accepted Values__ |
+|---------------------------------|------------|---------------------------------------|---------------------|
+| `threads`                       | `object`   |                                       |                     |
+| `threads.bumper`                | `object[]` |                                       |                     |
+| `threads.bumper[x].description` | `string`   | Thread channel description (optional) |                     |
+| `threads.bumper[x].channel-id`  | `string`   | Thread channel description            | Discord channel ID  |
+
+```json
+{
+    "threads": {
+        "bumper": [
+            {
+                "description": "#sample-channel",
+                "channel-id": "000000000000000000"
+            }
+        ]
+    }
 }
 ```

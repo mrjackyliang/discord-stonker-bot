@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "outDir": "./built",
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES2020"
+    },
+    "include": ["./src/**/*"]
+}

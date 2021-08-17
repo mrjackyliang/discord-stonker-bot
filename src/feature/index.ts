@@ -1,31 +1,44 @@
-const _ = require('lodash');
+import { Client, Guild } from 'discord.js';
+import _ from 'lodash';
 
-const config = require('../../config.json');
+import config from '../../config.json';
 
-const {
+import {
   antiRaidAutoBan,
   antiRaidMembershipGate,
   antiRaidMonitor,
-} = require('./anti-raid');
-const {
+} from './anti-raid';
+import {
   fetchMembers,
   findDuplicateUsers,
   help,
   role,
   togglePerms,
   voice,
-} = require('./commands');
-const { rssFeed, schedulePost, stocktwitsTrending } = require('./content');
-const { autoReply, messageCopier } = require('./messenger');
-const {
+} from './commands';
+import { rssFeed, schedulePost, stocktwitsTrending } from './content';
+import { autoReply, messageCopier } from './messenger';
+import {
   checkRegexChannels,
+  detectSuspiciousWords,
   removeAffiliateLinks,
-} = require('./moderator');
-const { changeRoles } = require('./roles');
-const {
+} from './moderator';
+import changeRoles from './roles';
+import threadsBumper from './threads';
+import {
   generateLogMessage,
   getTextBasedChannel,
-} = require('../lib/utilities');
+} from '../lib/utilities';
+import {
+  AffiliateLinks,
+  AntiRaidAutoBanSettings,
+  AntiRaidMembershipGateSettings,
+  ChangeRoles,
+  MessageCopiers,
+  RegexRules,
+  Replies,
+  SuspiciousWords,
+} from '../typings';
 
 /**
  * Bot configuration.
@@ -38,11 +51,13 @@ const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
 const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRssFeeds = _.get(config, 'rss-feeds');
 const configRegexRules = _.get(config, 'regex-rules');
+const configSuspiciousWords = _.get(config, 'suspicious-words');
 const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configMessageCopier = _.get(config, 'message-copier');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configStocktwits = _.get(config, 'stocktwits');
+const configThreadsBumper = _.get(config, 'threads.bumper');
 
 /**
  * Feature mode.
@@ -54,7 +69,7 @@ const configStocktwits = _.get(config, 'stocktwits');
  *
  * @since 1.0.0
  */
-async function featureMode(client, guild) {
+export default async function featureMode(client: Client, guild: Guild): Promise<void> {
   /**
    * When user sends a command.
    *
@@ -65,10 +80,11 @@ async function featureMode(client, guild) {
     const messageContent = message.toString();
 
     if (
-      guild.available === true // If guild is online.
-      && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
-      && _.get(message, 'author.bot') === false // If message is not sent by a bot.
-      && _.get(message, 'system') === false // If message is not sent by system.
+      message.guild
+      && guild.available // If guild is online.
+      && message.guild.id === guild.id // If message was sent in the guild.
+      && !message.author.bot // If message is not sent by a bot.
+      && !message.system // If message is not sent by system.
       && messageContent.startsWith(botPrefix) // If message starts with the bot prefix.
     ) {
       /**
@@ -77,7 +93,7 @@ async function featureMode(client, guild) {
        * @since 1.0.0
        */
       if (messageContent.startsWith(`${botPrefix}fetch-members`)) {
-        await fetchMembers(message, botPrefix, _.get(config, 'commands.fetch-members')).catch((error) => generateLogMessage(
+        await fetchMembers(message, botPrefix, _.get(config, 'commands.fetch-members')).catch((error: Error) => generateLogMessage(
           'Failed to execute "fetchMembers" function',
           10,
           error,
@@ -90,7 +106,7 @@ async function featureMode(client, guild) {
        * @since 1.0.0
        */
       if (messageContent.startsWith(`${botPrefix}find-duplicate-users`)) {
-        await findDuplicateUsers(message, botPrefix, _.get(config, 'commands.find-duplicate-users')).catch((error) => generateLogMessage(
+        await findDuplicateUsers(message, botPrefix, _.get(config, 'commands.find-duplicate-users')).catch((error: Error) => generateLogMessage(
           'Failed to execute "findDuplicateUsers" function',
           10,
           error,
@@ -109,7 +125,7 @@ async function featureMode(client, guild) {
           role: _.get(config, 'commands.role'),
           togglePerms: _.get(config, 'commands.toggle-perms'),
           voice: _.get(config, 'commands.voice'),
-        }).catch((error) => generateLogMessage(
+        }).catch((error: Error) => generateLogMessage(
           'Failed to execute "help" function',
           10,
           error,
@@ -122,7 +138,7 @@ async function featureMode(client, guild) {
        * @since 1.0.0
        */
       if (messageContent.startsWith(`${botPrefix}role`)) {
-        await role(message, botPrefix, _.get(config, 'commands.role')).catch((error) => generateLogMessage(
+        await role(message, botPrefix, _.get(config, 'commands.role')).catch((error: Error) => generateLogMessage(
           'Failed to execute "role" function',
           10,
           error,
@@ -135,7 +151,7 @@ async function featureMode(client, guild) {
        * @since 1.0.0
        */
       if (messageContent.startsWith(`${botPrefix}toggle-perms`)) {
-        await togglePerms(message, botPrefix, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms')).catch((error) => generateLogMessage(
+        await togglePerms(message, botPrefix, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms')).catch((error: Error) => generateLogMessage(
           'Failed to execute "togglePerms" function',
           10,
           error,
@@ -148,7 +164,7 @@ async function featureMode(client, guild) {
        * @since 1.0.0
        */
       if (messageContent.startsWith(`${botPrefix}voice`)) {
-        await voice(message, botPrefix, _.get(config, 'commands.voice')).catch((error) => generateLogMessage(
+        await voice(message, botPrefix, _.get(config, 'commands.voice')).catch((error: Error) => generateLogMessage(
           'Failed to execute "voice" function',
           10,
           error,
@@ -164,17 +180,18 @@ async function featureMode(client, guild) {
    */
   client.on('messageCreate', async (message) => {
     if (
-      guild.available === true // If guild is online.
-      && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
-      && _.get(message, 'author.bot') === false // If message is not sent by a bot.
-      && _.get(message, 'system') === false // If message is not sent by system.
+      message.guild
+      && guild.available // If guild is online.
+      && message.guild.id === guild.id // If message was sent in the guild.
+      && !message.author.bot // If message is not sent by a bot.
+      && !message.system // If message is not sent by system.
     ) {
       /**
        * Auto reply.
        *
        * @since 1.0.0
        */
-      await autoReply(message, configAutoReply).catch((error) => generateLogMessage(
+      await autoReply(message, <Replies>configAutoReply).catch((error: Error) => generateLogMessage(
         'Failed to execute "autoReply" function',
         10,
         error,
@@ -185,8 +202,19 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await checkRegexChannels(message, configRegexRules).catch((error) => generateLogMessage(
+      await checkRegexChannels(message, <RegexRules>configRegexRules).catch((error: Error) => generateLogMessage(
         'Failed to execute "checkRegexChannels" function',
+        10,
+        error,
+      ));
+
+      /**
+       * Detect suspicious words.
+       *
+       * @since 1.0.0
+       */
+      await detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords).catch((error: Error) => generateLogMessage(
+        'Failed to execute "detectSuspiciousWords" function',
         10,
         error,
       ));
@@ -196,7 +224,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await messageCopier(message, configMessageCopier).catch((error) => generateLogMessage(
+      await messageCopier(message, <MessageCopiers>configMessageCopier).catch((error: Error) => generateLogMessage(
         'Failed to execute "messageCopier" function',
         10,
         error,
@@ -207,7 +235,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await removeAffiliateLinks(message, configAffiliateLinks).catch((error) => generateLogMessage(
+      await removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks).catch((error: Error) => generateLogMessage(
         'Failed to execute "removeAffiliateLinks" function',
         10,
         error,
@@ -222,17 +250,30 @@ async function featureMode(client, guild) {
    */
   client.on('messageUpdate', async (message) => {
     if (
-      guild.available === true // If guild is online.
-      && _.get(message, 'guild.id') === guild.id // If message was sent in the guild.
-      && _.get(message, 'author.bot') === false // If message is not sent by a bot.
-      && _.get(message, 'system') === false // If message is not sent by system.
+      message.guild
+      && message.author
+      && guild.available // If guild is online.
+      && message.guild.id === guild.id // If message was sent in the guild.
+      && !message.author.bot // If message is not sent by a bot.
+      && !message.system // If message is not sent by system.
     ) {
+      /**
+       * Detect suspicious words.
+       *
+       * @since 1.0.0
+       */
+      await detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords).catch((error: Error) => generateLogMessage(
+        'Failed to execute "detectSuspiciousWords" function',
+        10,
+        error,
+      ));
+
       /**
        * Remove affiliate links.
        *
        * @since 1.0.0
        */
-      await removeAffiliateLinks(message, configAffiliateLinks).catch((error) => generateLogMessage(
+      await removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks).catch((error: Error) => generateLogMessage(
         'Failed to execute "removeAffiliateLinks" function',
         10,
         error,
@@ -247,8 +288,8 @@ async function featureMode(client, guild) {
    */
   client.on('guildMemberAdd', async (member) => {
     if (
-      guild.available === true // If guild is online.
-      && _.get(member, 'guild.id') === guild.id // If member is in the guild.
+      guild.available // If guild is online.
+      && member.guild.id === guild.id // If member is in the guild.
     ) {
       const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
       const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
@@ -258,7 +299,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await antiRaidMonitor(member, 'join', guildJoinChannel).catch((error) => generateLogMessage(
+      await antiRaidMonitor(member, 'join', guildJoinChannel).catch((error: Error) => generateLogMessage(
         'Failed to execute "antiRaidMonitor" function',
         10,
         error,
@@ -269,7 +310,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await antiRaidAutoBan(member, configAntiRaidAutoBan).catch((error) => generateLogMessage(
+      await antiRaidAutoBan(member, <AntiRaidAutoBanSettings>configAntiRaidAutoBan).catch((error: Error) => generateLogMessage(
         'Failed to execute "antiRaidAutoBan" function',
         10,
         error,
@@ -284,8 +325,8 @@ async function featureMode(client, guild) {
    */
   client.on('guildMemberRemove', async (member) => {
     if (
-      guild.available === true // If guild is online.
-      && _.get(member, 'guild.id') === guild.id // If member is in the guild.
+      guild.available // If guild is online.
+      && member.guild.id === guild.id // If member is in the guild.
     ) {
       const guildLeaveChannelId = _.get(configAntiRaidMonitor, 'guild-leave.channel-id');
       const guildLeaveChannel = getTextBasedChannel(guild, guildLeaveChannelId);
@@ -295,7 +336,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await antiRaidMonitor(member, 'leave', guildLeaveChannel).catch((error) => generateLogMessage(
+      await antiRaidMonitor(member, 'leave', guildLeaveChannel).catch((error: Error) => generateLogMessage(
         'Failed to execute "antiRaidMonitor" function',
         10,
         error,
@@ -310,16 +351,16 @@ async function featureMode(client, guild) {
    */
   client.on('guildMemberUpdate', async (oldMember, newMember) => {
     if (
-      guild.available === true // If guild is online.
-      && _.get(oldMember, 'guild.id') === guild.id // If old member is in the guild.
-      && _.get(newMember, 'guild.id') === guild.id // If new member is in the guild.
+      guild.available // If guild is online.
+      && oldMember.guild.id === guild.id // If old member is in the guild.
+      && newMember.guild.id === guild.id // If new member is in the guild.
     ) {
       /**
        * Anti-raid membership gate.
        *
        * @since 1.0.0
        */
-      await antiRaidMembershipGate(oldMember, newMember, configAntiRaidMembershipGate).catch((error) => generateLogMessage(
+      await antiRaidMembershipGate(oldMember, newMember, <AntiRaidMembershipGateSettings>configAntiRaidMembershipGate).catch((error: Error) => generateLogMessage(
         'Failed to execute "antiRaidMembershipGate" function',
         10,
         error,
@@ -330,7 +371,7 @@ async function featureMode(client, guild) {
        *
        * @since 1.0.0
        */
-      await changeRoles(oldMember, newMember, configRoles).catch((error) => generateLogMessage(
+      await changeRoles(oldMember, newMember, <ChangeRoles>configRoles).catch((error: Error) => generateLogMessage(
         'Failed to execute "changeRoles" function',
         10,
         error,
@@ -345,9 +386,9 @@ async function featureMode(client, guild) {
    */
   if (_.isArray(configSchedulePosts) && !_.isEmpty(configSchedulePosts)) {
     _.forEach(configSchedulePosts, (configSchedulePost) => {
-      const channel = getTextBasedChannel(guild, configSchedulePost['channel-id']);
+      const sendToChannel = getTextBasedChannel(guild, configSchedulePost['channel-id']);
 
-      schedulePost(configSchedulePost, channel);
+      schedulePost(configSchedulePost, sendToChannel);
     });
   }
 
@@ -358,9 +399,9 @@ async function featureMode(client, guild) {
    */
   if (_.isArray(configRssFeeds) && !_.isEmpty(configRssFeeds)) {
     _.forEach(configRssFeeds, (configRssFeed) => {
-      const channel = getTextBasedChannel(guild, configRssFeed['channel-id']);
+      const sendToChannel = getTextBasedChannel(guild, configRssFeed['channel-id']);
 
-      rssFeed(configRssFeed, channel);
+      rssFeed(configRssFeed, sendToChannel);
     });
   }
 
@@ -371,13 +412,22 @@ async function featureMode(client, guild) {
    */
   if (_.isArray(configStocktwits) && !_.isEmpty(configStocktwits)) {
     _.forEach(configStocktwits, (configStocktwit) => {
-      const channel = getTextBasedChannel(guild, configStocktwit['channel-id']);
+      const sendToChannel = getTextBasedChannel(guild, configStocktwit['channel-id']);
 
-      stocktwitsTrending(configStocktwit, channel);
+      stocktwitsTrending(configStocktwit, sendToChannel);
+    });
+  }
+
+  /**
+   * Threads bumper.
+   *
+   * @since 1.0.0
+   */
+  if (_.isArray(configThreadsBumper) && !_.isEmpty(configThreadsBumper)) {
+    _.forEach(configThreadsBumper, (configThreadBumper) => {
+      const thread = getTextBasedChannel(guild, configThreadBumper['channel-id']);
+
+      threadsBumper(thread);
     });
   }
 }
-
-module.exports = {
-  featureMode,
-};
