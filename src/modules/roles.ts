@@ -12,12 +12,12 @@ import { ChangeRoles } from '../typings';
  * @param {GuildMember|PartialGuildMember} newMember - Member information (new).
  * @param {ChangeRoles}                    roles     - Change roles configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export default async function changeRoles(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, roles: ChangeRoles): Promise<void> {
-  _.map(roles, async (role) => {
+export default function changeRoles(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, roles: ChangeRoles): void {
+  _.map(roles, (role) => {
     const name = _.get(role, 'name', 'Unknown');
     const type = _.get(role, 'type');
     const beforeRoles = _.map(_.get(role, 'before'), 'id');
@@ -62,7 +62,7 @@ export default async function changeRoles(oldMember: GuildMember | PartialGuildM
           40,
         );
 
-        await newMember.roles.add(
+        newMember.roles.add(
           toAdd,
           `${name} (${type})`,
         ).catch((error: Error) => generateLogMessage(
@@ -87,7 +87,7 @@ export default async function changeRoles(oldMember: GuildMember | PartialGuildM
           40,
         );
 
-        await newMember.roles.remove(
+        newMember.roles.remove(
           toRemove,
           `${name} (${type})`,
         ).catch((error: Error) => generateLogMessage(

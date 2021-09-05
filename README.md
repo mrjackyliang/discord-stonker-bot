@@ -35,13 +35,13 @@ Here are the instructions on how you can create an application and connect this 
 7. Click the __General Information__ menu item
 8. Under __Client ID__, click __Copy__
 9. Replace the `CLIENT_ID_HERE` below and visit link to add bot into server:
-    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=290712644`
+    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=17470581828`
 
 ## Bot Configuration
 In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. All fields required unless marked as _optional_.
 
 1. [Base Settings](#1-base-settings)
-2. [Notifications](#2-notifications)
+2. [Snitch Notifications](#2-snitch-notifications)
 3. [Commands](#3-commands)
 4. [Anti-Raid](#4-anti-raid)
 5. [Scheduled Posts](#5-scheduled-posts)
@@ -52,9 +52,9 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 10. [Auto Reply](#10-auto-reply)
 11. [Message Copier](#11-message-copier)
 12. [Remove Affiliate Links](#12-remove-affiliate-links)
-13. [Stocktwits Trending](#13-stocktwits-trending)
+13. [Stocktwits](#13-stocktwits)
 14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
-15. [Threads](#15-threads)
+15. [Bump Threads](#15-bump-threads)
 
 ### 1. Base Settings
 For Stonker Bot to start, these settings should be filled. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
@@ -64,9 +64,7 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 | `settings`                | `object` |                                                        |                                                                                                                                                                              |
 | `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
 | `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
-| `settings.mode`           | `string` | Mode that the bot will work on                         | `feature`, `snitch`, or `all`                                                                                                                                                |
-| `settings.log-channel-id` | `string` | Channel used for logging messages                      | Discord channel ID (required for `snitch` and `all` modes)                                                                                                                   |
-| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for `feature` and `all` modes)                                                                                                        |
+| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for commands)                                                                                                                         |
 | `settings.time-zone`      | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
 | `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 
@@ -75,8 +73,6 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
     "settings": {
         "client-token": "",
         "guild-id": "",
-        "mode": "all",
-        "log-channel-id": "000000000000000000",
         "bot-prefix": "!",
         "time-zone": "Etc/UTC",
         "log-level": 30
@@ -84,32 +80,46 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 }
 ```
 
-### 2. Notifications
+### 2. Snitch Notifications
 Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings).
 
-_This feature will work under `snitch` and `all` modes only._
-
-| __Key__                              | __Type__  | __Description__                             | __Accepted Values__ |
-|--------------------------------------|-----------|---------------------------------------------|---------------------|
-| `notifications`                      | `object`  |                                             |                     |
-| `notifications.change-nickname`      | `boolean` | Notify when a member changes their nickname | `true` or `false`   |
-| `notifications.change-username`      | `boolean` | Notify when a member changes their username | `true` or `false`   |
-| `notifications.delete-bulk-messages` | `boolean` | Notify when bulk messages are deleted       | `true` or `false`   |
-| `notifications.delete-message`       | `boolean` | Notify when a message is deleted            | `true` or `false`   |
-| `notifications.includes-link`        | `boolean` | Notify when a message includes links        | `true` or `false`   |
-| `notifications.update-message`       | `boolean` | Notify when a message is edited             | `true` or `false`   |
-| `notifications.upload-attachment`    | `boolean` | Notify when an attachment is uploaded       | `true` or `false`   |
+| __Key__                               | __Type__ | __Description__                             | __Accepted Values__ |
+|---------------------------------------|----------|---------------------------------------------|---------------------|
+| `snitch`                              | `object` |                                             |                     |
+| `snitch.change-nickname`              | `object` | Notify when a member changes their nickname |                     |
+| `snitch.change-nickname.channel-id`   | `string` |                                             | Discord channel ID  |
+| `snitch.change-username`              | `object` | Notify when a member changes their username |                     |
+| `snitch.change-username.channel-id`   | `string` |                                             | Discord channel ID  |
+| `snitch.delete-message`               | `object` | Notify when a message is deleted            |                     |
+| `snitch.delete-message.channel-id`    | `string` |                                             | Discord channel ID  |
+| `snitch.includes-link`                | `object` | Notify when a message includes links        |                     |
+| `snitch.includes-link.channel-id`     | `string` |                                             | Discord channel ID  |
+| `snitch.update-message`               | `object` | Notify when a message is edited             |                     |
+| `snitch.update-message.channel-id`    | `string` |                                             | Discord channel ID  |
+| `snitch.upload-attachment`            | `object` | Notify when an attachment is uploaded       |                     |
+| `snitch.upload-attachment.channel-id` | `string` |                                             | Discord channel ID  |
 
 ```json
 {
-    "notifications": {
-        "change-nickname": true,
-        "change-username": true,
-        "delete-bulk-messages": true,
-        "delete-message": true,
-        "includes-link": true,
-        "update-message": true,
-        "upload-attachment": true
+    "snitch": {
+        "change-nickname": {
+            "channel-id": "000000000000000000"
+        },
+        "change-username": {
+            "channel-id": "000000000000000000"
+        },
+        "delete-message": {
+            "channel-id": "000000000000000000"
+        },
+        "includes-link": {
+            "channel-id": "000000000000000000"
+        },
+        "update-message": {
+            "channel-id": "000000000000000000"
+        },
+        "upload-attachment": {
+            "channel-id": "000000000000000000"
+        }
     }
 }
 ```
@@ -117,40 +127,47 @@ _This feature will work under `snitch` and `all` modes only._
 ### 3. Commands
 Allow members with certain roles to use commands provided by the Stonker Bot. If this is not configured, only server owners and administrators are able to use these commands.
 
-_This feature will work under `feature` and `all` modes only._
-
-| __Key__                                        | __Type__   | __Description__                            | __Accepted Values__ |
-|------------------------------------------------|------------|--------------------------------------------|---------------------|
-| `commands`                                     | `object`   |                                            |                     |
-| `commands.fetch-members`                       | `object[]` |                                            |                     |
-| `commands.fetch-members[x].description`        | `string`   | Description of the allowed role (optional) |                     |
-| `commands.fetch-members[x].id`                 | `string`   | Allowed role                               | Discord role ID     |
-| `commands.find-duplicate-users`                | `object[]` |                                            |                     |
-| `commands.find-duplicate-users[x].description` | `string`   | Description of the allowed role (optional) |                     |
-| `commands.find-duplicate-users[x].id`          | `string`   | Allowed role                               | Discord role ID     |
-| `commands.help`                                | `object[]` |                                            |                     |
-| `commands.help[x].description`                 | `string`   | Description of the allowed role (optional) |                     |
-| `commands.help[x].id`                          | `string`   | Allowed role                               | Discord role ID     |
-| `commands.role`                                | `object[]` |                                            |                     |
-| `commands.role[x].description`                 | `string`   | Description of the allowed role (optional) |                     |
-| `commands.role[x].id`                          | `string`   | Allowed role                               | Discord role ID     |
-| `commands.toggle-perms`                        | `object[]` |                                            |                     |
-| `commands.toggle-perms[x].description`         | `string`   | Description of the allowed role (optional) |                     |
-| `commands.toggle-perms[x].id`                  | `string`   | Allowed role                               | Discord role ID     |
-| `commands.voice`                               | `object[]` |                                            |                     |
-| `commands.voice[x].description`                | `string`   | Description of the allowed role (optional) |                     |
-| `commands.voice[x].id`                         | `string`   | Allowed role                               | Discord role ID     |
+| __Key__                                    | __Type__   | __Description__                            | __Accepted Values__ |
+|--------------------------------------------|------------|--------------------------------------------|---------------------|
+| `commands`                                 | `object`   |                                            |                     |
+| `commands.bulk-ban`                        | `object[]` |                                            |                     |
+| `commands.bulk-ban[x].description`         | `string`   | Description of the allowed role (optional) |                     |
+| `commands.bulk-ban[x].id`                  | `string`   | Allowed role                               | Discord role ID     |
+| `commands.fetch-members`                   | `object[]` |                                            |                     |
+| `commands.fetch-members[x].description`    | `string`   | Description of the allowed role (optional) |                     |
+| `commands.fetch-members[x].id`             | `string`   | Allowed role                               | Discord role ID     |
+| `commands.fetch-duplicates`                | `object[]` |                                            |                     |
+| `commands.fetch-duplicates[x].description` | `string`   | Description of the allowed role (optional) |                     |
+| `commands.fetch-duplicates[x].id`          | `string`   | Allowed role                               | Discord role ID     |
+| `commands.help`                            | `object[]` |                                            |                     |
+| `commands.help[x].description`             | `string`   | Description of the allowed role (optional) |                     |
+| `commands.help[x].id`                      | `string`   | Allowed role                               | Discord role ID     |
+| `commands.role`                            | `object[]` |                                            |                     |
+| `commands.role[x].description`             | `string`   | Description of the allowed role (optional) |                     |
+| `commands.role[x].id`                      | `string`   | Allowed role                               | Discord role ID     |
+| `commands.toggle-perms`                    | `object[]` |                                            |                     |
+| `commands.toggle-perms[x].description`     | `string`   | Description of the allowed role (optional) |                     |
+| `commands.toggle-perms[x].id`              | `string`   | Allowed role                               | Discord role ID     |
+| `commands.voice`                           | `object[]` |                                            |                     |
+| `commands.voice[x].description`            | `string`   | Description of the allowed role (optional) |                     |
+| `commands.voice[x].id`                     | `string`   | Allowed role                               | Discord role ID     |
 
 ```json
 {
     "commands": {
+        "bulk-ban": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
         "fetch-members": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
         ],
-        "find-duplicate-users": [
+        "fetch-duplicates": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -186,8 +203,6 @@ _This feature will work under `feature` and `all` modes only._
 
 ### 4. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps implement a verification gate for those that just joined the server.
-
-_This feature will work under `feature` and `all` modes only._
 
 | __Key__                                    | __Type__   | __Description__                                              | __Accepted Values__                                                                    |
 |--------------------------------------------|------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------|
@@ -235,8 +250,6 @@ _This feature will work under `feature` and `all` modes only._
 
 ### 5. Scheduled Posts
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance).
-
-_This feature will work under `feature` and `all` modes only._
 
 | __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                       |
 |---------------------------------------------|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -294,8 +307,6 @@ _This feature will work under `feature` and `all` modes only._
 ### 6. RSS Feeds
 Get updates from external RSS feeds. Customize the message when a new RSS update is detected (add notifications, custom text) and set cron time intervals!
 
-_This feature will work under `feature` and `all` modes only._
-
 | __Key__                   | __Type__   | __Description__                        | __Accepted Values__                                                                                   |
 |---------------------------|------------|----------------------------------------|-------------------------------------------------------------------------------------------------------|
 | `rss-feeds`               | `object[]` |                                        |                                                                                                       |
@@ -322,7 +333,7 @@ _This feature will work under `feature` and `all` modes only._
 ### 7. Regex Channels
 Restrict a specific format in a particular channel. If the message doesn't match the regular expression, the message will be deleted (unless member is a server owner, administrator, or listed under excluded roles).
 
-_This feature can be extended with the [delete message](#2-notifications) notification and will work under `feature` and `all` modes only._
+_This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
 | __Key__                                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
 |-----------------------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -362,8 +373,6 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 ### 8. Detect Suspicious Words
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often does not require warnings or deletion.
 
-_This feature will work under `feature` and `all` modes only._
-
 | __Key__                                   | __Type__   | __Description__                          | __Accepted Values__ |
 |-------------------------------------------|------------|------------------------------------------|---------------------|
 | `suspicious-words`                        | `object`   |                                          |                     |
@@ -393,8 +402,6 @@ _This feature will work under `feature` and `all` modes only._
 Add or remove selected roles from members if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
 
 Useful for many scenarios like when members lose a Premium role or when they get muted, and you need to remove _write access_ roles.
-
-_This feature will work under `feature` and `all` modes only._
 
 | __Key__                             | __Type__   | __Description__                               | __Accepted Values__                                   |
 |-------------------------------------|------------|-----------------------------------------------|-------------------------------------------------------|
@@ -512,8 +519,6 @@ _This feature will work under `feature` and `all` modes only._
 ### 10. Auto Reply
 Reply to a message without requiring human interaction. Great for automated customer service or surprise members with hidden Easter eggs!
 
-_This feature will work under `feature` and `all` modes only._
-
 | __Key__                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
 |-------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `auto-reply`                  | `object[]` |                                             |                                                                                                                                                                     |
@@ -550,24 +555,25 @@ _This feature will work under `feature` and `all` modes only._
 ### 11. Message Copier
 Automatically copy the original message that matches the regular expression into another channel.
 
-_This feature will work under `feature` and `all` modes only._
-
-| __Key__                                          | __Type__   | __Description__                                      | __Accepted Values__                                                                                                                                                                               |
-|--------------------------------------------------|------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `message-copier`                                 | `object[]` |                                                      |                                                                                                                                                                                                   |
-| `message-copier[x].name`                         | `string`   | Name of the message copier task                      |                                                                                                                                                                                                   |
-| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to     | Discord channel ID                                                                                                                                                                                |
-| `message-copier[x].regex`                        | `object`   |                                                      |                                                                                                                                                                                                   |
-| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                          | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].remove-mentions`              | `boolean`  | Remove all mentions from the original message        | `true` or `false`                                                                                                                                                                                 |
-| `message-copier[x].replacements`                 | `object[]` |                                                      |                                                                                                                                                                                                   |
-| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                          | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                         | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
-| `message-copier[x].format`                       | `string`   | Format the copied message                            | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                                    |
-| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
-| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                               |
+| __Key__                                          | __Type__   | __Description__                                        | __Accepted Values__                                                                                                                                                                               |
+|--------------------------------------------------|------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `message-copier`                                 | `object[]` |                                                        |                                                                                                                                                                                                   |
+| `message-copier[x].name`                         | `string`   | Name of the message copier task                        |                                                                                                                                                                                                   |
+| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to       | Discord channel ID                                                                                                                                                                                |
+| `message-copier[x].regex`                        | `object`   |                                                        |                                                                                                                                                                                                   |
+| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content             | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].remove-mentions`              | `boolean`  | Remove all mentions from the original message          | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].replacements`                 | `object[]` |                                                        |                                                                                                                                                                                                   |
+| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content            | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                           | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
+| `message-copier[x].format`                       | `string`   | Format the copied message                              | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                                    |
+| `message-copier[x].include-attachments`          | `boolean`  | Include attachments when copying message               | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)      | Discord user IDs                                                                                                                                                                                  |
+| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional)   | Discord channel IDs                                                                                                                                                                               |
+| `message-copier[x].disallowed-users`             | `string[]` | Do not copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
+| `message-copier[x].disallowed-channels`          | `string[]` | Do not copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                               |
 
 ```json
 {
@@ -587,10 +593,17 @@ _This feature will work under `feature` and `all` modes only._
                 }
             ],
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
+            "include-attachments": true,
             "allowed-users": [
                 "000000000000000000"
             ],
             "allowed-channels": [
+                "000000000000000000"
+            ],
+            "disallowed-users": [
+                "000000000000000000"
+            ],
+            "disallowed-channels": [
                 "000000000000000000"
             ]
         }
@@ -601,7 +614,7 @@ _This feature will work under `feature` and `all` modes only._
 ### 12. Remove Affiliate Links
 Easily remove affiliate links posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
 
-_This feature can be extended with the [delete message](#2-notifications) notification and will work under `feature` and `all` modes only._
+_This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
 | __Key__                                         | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
 |-------------------------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -640,10 +653,8 @@ _This feature can be extended with the [delete message](#2-notifications) notifi
 }
 ```
 
-### 13. Stocktwits Trending
+### 13. Stocktwits
 Get the latest trending tickers pulled in from Stocktwits automatically. Schedule multiple retrievals throughout the day and set your own message.
-
-_This feature will work under `feature` and `all` modes only._
 
 | __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                               |
 |-----------------------------------------|------------|---------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
@@ -694,8 +705,6 @@ _This feature will work under `feature` and `all` modes only._
 
 ### 14. Toggle Preset Permissions
 Configure channel permissions with a single command without touching them! Great for quickly enabling and disabling features during special events.
-
-_This feature will work under `feature` and `all` modes only._
 
 | __Key__                                                      | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                    |
 |--------------------------------------------------------------|------------|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -758,27 +767,24 @@ _This feature will work under `feature` and `all` modes only._
 }
 ```
 
-### 15. Threads
-Stretch the features of threads! Create threads that never expire, even if you don't have boosted servers.
+### 15. Bump Threads
+Stretch the world of threads and make them like sub-channels! Create threads that never expire, even if you don't have boosted servers.
 
-_This feature will work under `feature` and `all` modes only._
-
-| __Key__                         | __Type__   | __Description__                       | __Accepted Values__ |
-|---------------------------------|------------|---------------------------------------|---------------------|
-| `threads`                       | `object`   |                                       |                     |
-| `threads.bumper`                | `object[]` |                                       |                     |
-| `threads.bumper[x].description` | `string`   | Thread channel description (optional) |                     |
-| `threads.bumper[x].channel-id`  | `string`   | Thread channel description            | Discord channel ID  |
+| __Key__                      | __Type__   | __Description__            | __Accepted Values__ |
+|------------------------------|------------|----------------------------|---------------------|
+| `bump-threads`               | `object[]` |                            |                     |
+| `bump-threads[x].name`       | `string`   | Bump thread channel name   |                     |
+| `bump-threads[x].channel-id` | `string`   | Bump thread parent channel | Discord channel ID  |
+| `bump-threads[x].thread-id`  | `string`   | Bump thread channel        | Discord thread ID   |
 
 ```json
 {
-    "threads": {
-        "bumper": [
-            {
-                "description": "#sample-channel",
-                "channel-id": "000000000000000000"
-            }
-        ]
-    }
+    "bump-threads": [
+        {
+            "name": "#sample-channel",
+            "channel-id": "000000000000000000",
+            "thread-id": "000000000000000000"
+        }
+    ]
 }
 ```

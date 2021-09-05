@@ -2,16 +2,15 @@ import chalk from 'chalk';
 import {
   Client,
   Intents,
-  Options,
   LimitedCollection,
+  Options,
 } from 'discord.js';
 import _ from 'lodash';
 
 import config from '../config.json';
 
-import featureMode from './feature';
-import { getTextBasedChannel, generateLogMessage, generateServerFailedMessage } from './lib/utilities';
-import snitchMode from './snitch';
+import initialize from './modules';
+import { generateServerFailedMessage } from './lib/utilities';
 
 /**
  * Bot configuration.
@@ -20,11 +19,9 @@ import snitchMode from './snitch';
  */
 const configSettingsClientToken = _.get(config, 'settings.client-token');
 const configSettingsGuildId = _.get(config, 'settings.guild-id');
-const configSettingsLogChannelId = _.get(config, 'settings.log-channel-id');
-const configSettingsLogLevel = _.get(config, 'settings.log-level');
-const configSettingsMode = _.get(config, 'settings.mode');
 const configSettingsBotPrefix = _.get(config, 'settings.bot-prefix');
 const configSettingsTimeZone = _.get(config, 'settings.time-zone');
+const configSettingsLogLevel = _.get(config, 'settings.log-level');
 
 /**
  * Discord client.
@@ -42,14 +39,14 @@ const client = new Client({
     },
   }),
   intents: [
+    Intents.FLAGS.DIRECT_MESSAGES,
     Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MEMBERS,
     Intents.FLAGS.GUILD_BANS,
-    Intents.FLAGS.GUILD_VOICE_STATES,
-    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_MEMBERS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    Intents.FLAGS.DIRECT_MESSAGES,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_VOICE_STATES,
   ],
 });
 
@@ -70,9 +67,8 @@ client.login(configSettingsClientToken).catch((error: Error) => {
  *
  * @since 1.0.0
  */
-client.on('ready', async () => {
+client.on('ready', () => {
   const guild = client.guilds.cache.get(configSettingsGuildId);
-  const logChannel = getTextBasedChannel(guild, configSettingsLogChannelId);
 
   /**
    * Configuration pre-checks.
@@ -81,9 +77,7 @@ client.on('ready', async () => {
    */
   if (
     guild === undefined
-    || (configSettingsMode !== 'snitch' && configSettingsMode !== 'feature' && configSettingsMode !== 'all')
-    || ((configSettingsMode === 'snitch' || configSettingsMode === 'all') && logChannel === undefined)
-    || ((configSettingsMode === 'feature' || configSettingsMode === 'all') && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
+    || (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
     || (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone))
     || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
   ) {
@@ -91,16 +85,8 @@ client.on('ready', async () => {
       generateServerFailedMessage('"settings.guild-id" is not a valid guild or is unavailable');
     }
 
-    if (configSettingsMode !== 'snitch' && configSettingsMode !== 'feature' && configSettingsMode !== 'all') {
-      generateServerFailedMessage('"settings.mode" is not configured or is invalid');
-    }
-
-    if ((configSettingsMode === 'snitch' || configSettingsMode === 'all') && logChannel === undefined) {
-      generateServerFailedMessage('"settings.log-channel-id" is not a valid text-based channel');
-    }
-
-    if ((configSettingsMode === 'feature' || configSettingsMode === 'all') && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
-      generateServerFailedMessage('"settings.bot-prefix" is not configured or longer than 3 characters');
+    if (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
+      generateServerFailedMessage('"settings.bot-prefix" is not a string, is empty, or longer than 3 characters');
     }
 
     if (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone)) {
@@ -114,7 +100,7 @@ client.on('ready', async () => {
     // Kills the process with error.
     process.exit(1);
   } else {
-    if (client.user && (configSettingsMode === 'feature' || configSettingsMode === 'all')) {
+    if (client.user && _.isString(configSettingsBotPrefix) && !_.isEmpty(configSettingsBotPrefix)) {
       client.user.setStatus('online');
       client.user.setActivity({
         name: `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
@@ -125,7 +111,7 @@ client.on('ready', async () => {
     console.log(
       [
         chalk.green('Server is ready!'),
-        ...(client.user) ? [`Logged in as @${client.user.tag} under "${configSettingsMode}" mode ...`] : [`Logged in under "${configSettingsMode}" mode ...`],
+        ...(client.user) ? [`Logged in as @${client.user.tag} ...`] : ['Logged in as unknown user ...'],
       ].join(' '),
     );
 
@@ -134,47 +120,21 @@ client.on('ready', async () => {
         guild.name,
         'has',
         chalk.cyan(guild.members.cache.size),
-        'member(s) and',
-        chalk.cyan(guild.channels.cache.filter((channel) => channel.type !== 'GUILD_CATEGORY').size),
-        'channel(s) ...',
+        'member(s),',
+        chalk.cyan(guild.channels.cache.filter((channel) => (channel.isText() || channel.isVoice()) && !channel.isThread()).size),
+        'channel(s), and',
+        chalk.cyan(guild.channels.cache.filter((channel) => channel.isThread()).size),
+        'active thread(s) ...',
       ].join(' '),
     );
   }
 
   /**
-   * Initialize mode.
+   * Initialize.
    *
    * @since 1.0.0
    */
-  switch (configSettingsMode) {
-    case 'snitch':
-      await snitchMode(client, guild, logChannel).catch((error: Error) => generateLogMessage(
-        'Failed to execute "snitchMode" function',
-        10,
-        error,
-      ));
-      break;
-    case 'feature':
-      await featureMode(client, guild).catch((error: Error) => generateLogMessage(
-        'Failed to execute "featureMode" function',
-        10,
-        error,
-      ));
-      break;
-    case 'all':
-    default:
-      await snitchMode(client, guild, logChannel).catch((error: Error) => generateLogMessage(
-        'Failed to execute "snitchMode" function',
-        10,
-        error,
-      ));
-      await featureMode(client, guild).catch((error: Error) => generateLogMessage(
-        'Failed to execute "featureMode" function',
-        10,
-        error,
-      ));
-      break;
-  }
+  initialize(client, guild);
 });
 
 /**
@@ -182,8 +142,8 @@ client.on('ready', async () => {
  *
  * @since 1.0.0
  */
-process.on('SIGINT', async () => {
-  if (client.user && (configSettingsMode === 'feature' || configSettingsMode === 'all')) {
+process.on('SIGINT', () => {
+  if (client.user && _.isString(configSettingsBotPrefix) && !_.isEmpty(configSettingsBotPrefix)) {
     client.user.setStatus('invisible');
   }
 

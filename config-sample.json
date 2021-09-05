@@ -2,29 +2,44 @@
     "settings": {
         "client-token": "",
         "guild-id": "",
-        "mode": "all",
-        "log-channel-id": "000000000000000000",
         "bot-prefix": "!",
         "time-zone": "Etc/UTC",
         "log-level": 30
     },
-    "notifications": {
-        "change-nickname": true,
-        "change-username": true,
-        "delete-bulk-messages": true,
-        "delete-message": true,
-        "includes-link": true,
-        "update-message": true,
-        "upload-attachment": true
+    "snitch": {
+        "change-nickname": {
+            "channel-id": "000000000000000000"
+        },
+        "change-username": {
+            "channel-id": "000000000000000000"
+        },
+        "delete-message": {
+            "channel-id": "000000000000000000"
+        },
+        "includes-link": {
+            "channel-id": "000000000000000000"
+        },
+        "update-message": {
+            "channel-id": "000000000000000000"
+        },
+        "upload-attachment": {
+            "channel-id": "000000000000000000"
+        }
     },
     "commands": {
+        "bulk-ban": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
         "fetch-members": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
         ],
-        "find-duplicate-users": [
+        "fetch-duplicates": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -272,10 +287,17 @@
                 }
             ],
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
+            "include-attachments": true,
             "allowed-users": [
                 "000000000000000000"
             ],
             "allowed-channels": [
+                "000000000000000000"
+            ],
+            "disallowed-users": [
+                "000000000000000000"
+            ],
+            "disallowed-channels": [
                 "000000000000000000"
             ]
         }
@@ -361,12 +383,11 @@
             ]
         }
     ],
-    "threads": {
-        "bumper": [
-            {
-                "description": "#sample-channel",
-                "channel-id": "000000000000000000"
-            }
-        ]
-    }
+    "bump-threads": [
+        {
+            "name": "#sample-channel",
+            "channel-id": "000000000000000000",
+            "thread-id": "000000000000000000"
+        }
+    ]
 }

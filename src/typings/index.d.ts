@@ -55,13 +55,19 @@ export type AffiliateLinks = {
   'excluded-roles': Roles;
 };
 
-export type AntiRaidAutoBanSettings = {
+export type AntiRaidAutoBan = {
   avatar?: string[];
   username?: string[];
 };
 
-export type AntiRaidMembershipGateSettings = {
+export type AntiRaidMembershipGate = {
   'verified-role-id': Snowflake;
+};
+
+export type BumpThread = {
+  name?: string;
+  'channel-id': Snowflake;
+  'thread-id': Snowflake;
 };
 
 export type ChangeRole = {
@@ -79,10 +85,13 @@ export type MessageCopier = {
   name?: string;
   'channel-id': Snowflake;
   regex: RegularExpression;
-  replacements: RegularExpressionReplacements;
+  replacements?: RegularExpressionReplacements;
   format: string;
+  'include-attachments'?: boolean;
   'allowed-users'?: Snowflake[];
   'allowed-channels'?: Snowflake[];
+  'disallowed-users'?: Snowflake[];
+  'disallowed-channels'?: Snowflake[];
 };
 
 export type MessageCopiers = MessageCopier[];
@@ -121,8 +130,12 @@ export type SchedulePost = {
   message: MessageOptions;
   reactions?: EmojiIdentifierResolvable[];
   'send-every': ReoccurringSchedule;
-  'skip-days': string[];
+  'skip-days'?: string[];
 };
+
+export type Snitch = {
+  'channel-id'?: Snowflake;
+}
 
 export type Stocktwit = {
   name?: string;
@@ -131,7 +144,7 @@ export type Stocktwit = {
   'show-embed': boolean;
   limit: number;
   'send-every': ReoccurringSchedule;
-  'skip-days': string[];
+  'skip-days'?: string[];
 };
 
 export type SuspiciousWordsCategory = {
@@ -179,8 +192,9 @@ export type FetchMembersAction = MemberMention | RoleMention | string;
 export type FetchMembersRoute = 'avatar' | 'role' | 'string' | 'username';
 
 export type HelpMenuSettings = {
+  bulkBan?: Roles;
   fetchMembers?: Roles;
-  findDuplicateUsers?: Roles;
+  fetchDuplicates?: Roles;
   role?: Roles;
   togglePerms?: Roles;
   voice?: Roles;

@@ -16,19 +16,20 @@ import { AffiliateLinks, RegexRules, SuspiciousWords } from '../typings';
 /**
  * Check regex channels.
  *
- * @param {Message}    message    - Message object.
- * @param {RegexRules} regexRules - Regex rules from configuration.
+ * @param {Message|PartialMessage} message    - Message object.
+ * @param {RegexRules}             regexRules - Regex rules from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function checkRegexChannels(message: Message, regexRules: RegexRules): Promise<void> {
+export function checkRegexChannels(message: Message | PartialMessage, regexRules: RegexRules): void {
   if (!message.channel || !message.member) {
     return;
   }
 
-  const { channel, member } = message;
+  const { channel, member, reactions } = message;
+  const theMessage = reactions.message.toString() ?? message.toString();
   const isTextBasedChannel = channel.isText();
   const regexRule = _.find(regexRules, { 'channel-id': channel.id });
   const regexRuleName = _.get(regexRule, 'name', 'Unknown');
@@ -45,7 +46,7 @@ export async function checkRegexChannels(message: Message, regexRules: RegexRule
   }
 
   try {
-    match = new RegExp(regexRulePattern, regexRuleFlags).test(message.toString());
+    match = new RegExp(regexRulePattern, regexRuleFlags).test(theMessage);
   } catch (error) {
     generateLogMessage(
       [
@@ -67,8 +68,8 @@ export async function checkRegexChannels(message: Message, regexRules: RegexRule
   ) {
     // Send direct message.
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
-      await member.createDM().then(async (dmChannel) => {
-        await dmChannel.send({
+      member.createDM().then((dmChannel) => {
+        dmChannel.send({
           content: directMessage,
         }).then(() => {
           generateLogMessage(
@@ -92,7 +93,7 @@ export async function checkRegexChannels(message: Message, regexRules: RegexRule
     }
 
     // Delete message.
-    await message.delete().catch((error: Error) => generateLogMessage(
+    message.delete().catch((error: Error) => generateLogMessage(
       'Failed to delete message',
       10,
       error,
@@ -106,11 +107,11 @@ export async function checkRegexChannels(message: Message, regexRules: RegexRule
  * @param {Message|PartialMessage}    message         - Message object.
  * @param {SuspiciousWords|undefined} suspiciousWords - Suspicious words from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function detectSuspiciousWords(message: Message | PartialMessage, suspiciousWords: SuspiciousWords | undefined): Promise<void> {
+export function detectSuspiciousWords(message: Message | PartialMessage, suspiciousWords: SuspiciousWords | undefined): void {
   if (!message.author || !message.guild) {
     return;
   }
@@ -128,8 +129,8 @@ export async function detectSuspiciousWords(message: Message | PartialMessage, s
   const categories = _.get(suspiciousWords, 'categories');
   const sendToChannel = getTextBasedChannel(guild, channelId);
   const detectedCategories: string[] = [];
-  const editedOrOriginalMessage = reactions.message.toString() || message.toString();
-  const editedOrOriginalMessageCleaned = editedOrOriginalMessage
+  const theMessage = reactions.message.toString() ?? message.toString();
+  const theMessageCleaned = theMessage
     .replace(/[.,\\/<>@#!?$%^&*;:{}=+|\-_'“"”`~[\]()]/g, '')
     .replace(/0/g, 'o')
     .replace(/1/g, 'l')
@@ -149,7 +150,7 @@ export async function detectSuspiciousWords(message: Message | PartialMessage, s
     const categoryWords = _.get(category, 'words');
 
     if (_.isArray(categoryWords) && !_.isEmpty(categoryWords) && _.every(categoryWords, (categoryWord) => _.isString(categoryWord) && !_.isEmpty(categoryWord))) {
-      if (new RegExp(`(?:[\\s]|^)(${categoryWords.join('|')})(?=[\\s]|$)`).test(editedOrOriginalMessageCleaned)) {
+      if (new RegExp(`(?:[\\s]|^)(${categoryWords.join('|')})(?=[\\s]|$)`).test(theMessageCleaned)) {
         detectedCategories.push(categoryCategory);
       }
     }
@@ -172,13 +173,13 @@ export async function detectSuspiciousWords(message: Message | PartialMessage, s
   );
 
   if (sendToChannel) {
-    await sendToChannel.send({
+    sendToChannel.send({
       embeds: [
         createSuspiciousWordsEmbed(
           author.toString(),
           channel.toString(),
           id,
-          editedOrOriginalMessage,
+          theMessage,
           attachments,
           url,
           detectedCategories,
@@ -198,11 +199,11 @@ export async function detectSuspiciousWords(message: Message | PartialMessage, s
  * @param {Message|PartialMessage} message        - Discord message object.
  * @param {AffiliateLinks}         affiliateLinks - Affiliate link regex from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function removeAffiliateLinks(message: Message | PartialMessage, affiliateLinks: AffiliateLinks): Promise<void> {
+export function removeAffiliateLinks(message: Message | PartialMessage, affiliateLinks: AffiliateLinks): void {
   if (!message.author || !message.guild || !message.member) {
     return;
   }
@@ -218,7 +219,7 @@ export async function removeAffiliateLinks(message: Message | PartialMessage, af
     url,
   } = message;
   const websites: string[] = [];
-  const theMessage = reactions.message.toString() || message.toString();
+  const theMessage = reactions.message.toString() ?? message.toString();
   const links = _.get(affiliateLinks, 'links');
   const channelId = _.get(affiliateLinks, 'channel-id');
   const directMessage = _.get(affiliateLinks, 'direct-message');
@@ -273,7 +274,7 @@ export async function removeAffiliateLinks(message: Message | PartialMessage, af
   );
 
   if (sendToChannel) {
-    await sendToChannel.send({
+    sendToChannel.send({
       embeds: [
         createRemoveAffiliateLinksEmbed(
           author.toString(),
@@ -294,8 +295,8 @@ export async function removeAffiliateLinks(message: Message | PartialMessage, af
 
   if (!hasExcludedRoles && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
-      await member.createDM().then(async (dmChannel) => {
-        await dmChannel.send({
+      member.createDM().then((dmChannel) => {
+        dmChannel.send({
           content: directMessage,
         }).then(() => {
           generateLogMessage(
@@ -318,7 +319,7 @@ export async function removeAffiliateLinks(message: Message | PartialMessage, af
       ));
     }
 
-    await message.delete().catch((error: Error) => generateLogMessage(
+    message.delete().catch((error: Error) => generateLogMessage(
       'Failed to delete message',
       10,
       error,

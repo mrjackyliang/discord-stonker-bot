@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Guild, Snowflake, TextBasedChannels } from 'discord.js';
 import _ from 'lodash';
-import { DateTime, DurationObject } from 'luxon';
+import { DateTime, DurationObjectUnits } from 'luxon';
 
 import config from '../../config.json';
 
@@ -12,11 +12,11 @@ import { LogMessagePriority } from '../typings';
  *
  * @param {string}             message  - Message to log.
  * @param {LogMessagePriority} priority - Can be 10 (error), 20 (warn), 30 (info), or 40 (debug).
- * @param {Error}              error    - The error object.
+ * @param {Error|unknown}      error    - The error object.
  *
  * @since 1.0.0
  */
-export function generateLogMessage(message: string, priority: LogMessagePriority, error?: Error): void {
+export function generateLogMessage(message: string, priority: LogMessagePriority, error?: Error | unknown): void {
   const logLevel = _.get(config, 'settings.log-level', 30);
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
   const currentTime = DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
@@ -65,13 +65,13 @@ export function generateServerFailedMessage(message: string): void {
 /**
  * Generates a readable time duration.
  *
- * @param {DurationObject} duration - Duration object from Luxon.
+ * @param {DurationObjectUnits} duration - Duration object from Luxon.
  *
  * @returns {string}
  *
  * @since 1.0.0
  */
-export function getReadableDuration(duration: DurationObject): string {
+export function getReadableDuration(duration: DurationObjectUnits): string {
   const intervals = [];
 
   if (duration.years && duration.years > 0) {
@@ -126,7 +126,7 @@ export function getTextBasedChannel(guild: Guild | undefined, channelId: Snowfla
   }
 
   const guildChannels = guild.channels.cache;
-  const textChannel = (guildChannels !== undefined) ? guildChannels.get(channelId) : undefined;
+  const textChannel = guildChannels.get(channelId);
 
   // If channel is a text-based channel.
   if (textChannel !== undefined && textChannel.isText()) {

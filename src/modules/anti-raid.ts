@@ -4,19 +4,19 @@ import _ from 'lodash';
 
 import { createMemberMonitorEmbed } from '../lib/embed';
 import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
-import { AntiRaidAutoBanSettings, AntiRaidMembershipGateSettings, MemberMonitorMode } from '../typings';
+import { AntiRaidAutoBan, AntiRaidMembershipGate, MemberMonitorMode } from '../typings';
 
 /**
  * Anti-raid auto-ban.
  *
- * @param {GuildMember}             member   - Member information.
- * @param {AntiRaidAutoBanSettings} settings - Banned users from configuration.
+ * @param {GuildMember}     member   - Member information.
+ * @param {AntiRaidAutoBan} settings - Banned users from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBanSettings): Promise<void> {
+export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan): void {
   const userAvatar = member.user.avatar;
   const userUsername = member.user.username;
   const avatars = _.get(settings, 'avatar');
@@ -33,7 +33,7 @@ export async function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAut
 
     // If user has a banned avatar hash or username.
     if (bannedAvatar || bannedUsername) {
-      await member.ban(
+      member.ban(
         {
           reason: `Member has a forbidden ${fragmentAvatar ?? fragmentUsername}`,
         },
@@ -60,14 +60,14 @@ export async function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAut
  *
  * @param {GuildMember|PartialGuildMember} oldMember - Member information (old).
  * @param {GuildMember|PartialGuildMember} newMember - Member information (new).
- * @param {AntiRaidMembershipGateSettings} settings  - Membership gate settings.
+ * @param {AntiRaidMembershipGate}         settings  - Membership gate settings.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, settings: AntiRaidMembershipGateSettings): Promise<void> {
-  const guild = oldMember.guild ?? newMember.guild;
+export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, settings: AntiRaidMembershipGate): void {
+  const guild = newMember.guild ?? oldMember.guild;
   const oldMemberPending = oldMember.pending;
   const newMemberPending = newMember.pending;
   const settingsRoleId = _.get(settings, 'role-id');
@@ -89,7 +89,7 @@ export async function antiRaidMembershipGate(oldMember: GuildMember | PartialGui
     && oldMemberPending
     && !newMemberPending
   ) {
-    await newMember.roles.add(
+    newMember.roles.add(
       settingsRoleId,
       'Member was assigned the verified role',
     ).then(() => {
@@ -125,11 +125,11 @@ export async function antiRaidMembershipGate(oldMember: GuildMember | PartialGui
  * @param {MemberMonitorMode}              mode          - Whether a user joined or left a guild.
  * @param {TextBasedChannels|undefined}    sendToChannel - Send message to channel.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannels | undefined): Promise<void> {
+export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannels | undefined): void {
   const joined = (mode === 'join') ? 'joined' : undefined;
   const left = (mode === 'leave') ? 'left' : undefined;
 
@@ -144,7 +144,7 @@ export async function antiRaidMonitor(member: GuildMember | PartialGuildMember, 
   );
 
   if (sendToChannel && member.user && member.joinedAt) {
-    await sendToChannel.send({
+    sendToChannel.send({
       embeds: [
         createMemberMonitorEmbed(
           mode,

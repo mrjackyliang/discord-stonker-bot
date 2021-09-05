@@ -27,7 +27,7 @@ import { RssFeed, SchedulePost, Stocktwit } from '../typings';
  *
  * @since 1.0.0
  */
-export function createReoccurringSchedule(timeZone: Timezone, daysOfWeek: Recurrence[], hour: Recurrence, minute: Recurrence, second: Recurrence): RecurrenceRule {
+function createReoccurringSchedule(timeZone: Timezone, daysOfWeek: Recurrence[], hour: Recurrence, minute: Recurrence, second: Recurrence): RecurrenceRule {
   const rule = new RecurrenceRule();
 
   rule.tz = timeZone;
@@ -76,7 +76,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
       [
         '"channel-id" for',
         chalk.red(name),
-        'RSS feed is not a valid text-based channel',
+        '(RSS feed) is not a valid text-based channel',
       ].join(' '),
       10,
     );
@@ -102,8 +102,8 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
   const rssParser = new RssParser();
 
   try {
-    scheduleJob(interval, async () => {
-      await rssParser.parseURL(url).then((response) => {
+    scheduleJob(interval, () => {
+      rssParser.parseURL(url).then((response) => {
         const { items } = response;
         const cleanItemLink = (link: string | undefined): string | undefined => {
           if (_.isString(link)) {
@@ -127,7 +127,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
           });
         }
 
-        _.map(items, async (item) => {
+        _.map(items, (item) => {
           const itemTitle = _.get(item, 'title', 'No Title');
           const itemLink = _.get(item, 'link');
           const itemLinkCleaned = cleanItemLink(itemLink);
@@ -152,7 +152,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
           // Only send when there is an update to the feed.
           if (itemLinkCleaned && _.every(sentItems, (sentItem) => sentItem !== itemLinkCleaned)) {
-            await sendToChannel.send({
+            sendToChannel.send({
               content: replaceVariables(message),
             }).then(() => {
               generateLogMessage(
@@ -238,7 +238,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
       [
         '"channel-id" for',
         chalk.red(name),
-        'post event is not a valid text-based channel',
+        '(Schedule post) is not a valid text-based channel',
       ].join(' '),
       10,
     );
@@ -292,12 +292,12 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
 
   try {
-    scheduleJob(rule, async () => {
+    scheduleJob(rule, () => {
       const todayDate = DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
       if (!_.includes(skipDays, todayDate)) {
-        await sendToChannel.send(message).then((post) => {
+        sendToChannel.send(message).then((post) => {
           generateLogMessage(
             [
               'Sent',
@@ -309,8 +309,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
           );
 
           // React to message.
-          _.forEach(reactions, async (reaction) => {
-            await post.react(reaction).then(() => generateLogMessage(
+          _.forEach(reactions, (reaction) => {
+            post.react(reaction).then(() => generateLogMessage(
               [
                 'Successfully reacted',
                 chalk.green(name),
@@ -374,7 +374,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
 }
 
 /**
- * Stocktwits trending.
+ * Stocktwits.
  *
  * @param {Stocktwit}                   event         - Post event.
  * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
@@ -383,7 +383,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
  *
  * @since 1.0.0
  */
-export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedChannels | undefined): void {
+export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const message = _.get(event, 'message');
   const showEmbed = _.get(event, 'show-embed');
@@ -399,9 +399,9 @@ export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedCha
   if (sendToChannel === undefined) {
     generateLogMessage(
       [
-        '"channel-id" for Stocktwits post',
-        `(${chalk.red(name)})`,
-        'is not a valid text-based channel',
+        '"channel-id" for',
+        chalk.red(name),
+        '(Stocktwits) is not a valid text-based channel',
       ].join(' '),
       10,
     );
@@ -455,14 +455,14 @@ export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedCha
   const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
 
   try {
-    scheduleJob(rule, async () => {
+    scheduleJob(rule, () => {
       const todayDate = DateTime.now().setZone(timeZone).toISODate();
 
       // Send only on days not specified in "skip-days".
       if (!_.includes(skipDays, todayDate)) {
         const symbolLimit = (limit > 25) ? 25 : limit;
 
-        await axios.get(
+        axios.get(
           `https://api.stocktwits.com/api/2/trending/symbols.json?limit=${symbolLimit}`,
         ).then((response) => {
           if (response.status !== 200) {
@@ -470,7 +470,7 @@ export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedCha
           }
 
           return response.data;
-        }).then(async (responseData) => {
+        }).then((responseData) => {
           const symbols = _.get(responseData, 'symbols', []);
           const sortedSymbols = _.orderBy(symbols, ['watchlist_count'], ['desc']);
           const content = {
@@ -501,7 +501,7 @@ export function stocktwitsTrending(event: Stocktwit, sendToChannel: TextBasedCha
             });
           }
 
-          await sendToChannel.send(content).then(() => {
+          sendToChannel.send(content).then(() => {
             generateLogMessage(
               [
                 'Sent Stocktwits post',

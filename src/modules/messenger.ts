@@ -18,18 +18,18 @@ import {
  * @param {Message} message - Message object.
  * @param {Replies} replies - Auto reply rules from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function autoReply(message: Message, replies: Replies): Promise<void> {
+export function autoReply(message: Message, replies: Replies): void {
   const messageContent = message.toString();
 
   if (!_.isArray(replies) || _.isEmpty(replies) || !_.every(replies, _.isPlainObject)) {
     return;
   }
 
-  _.map(replies, async (reply) => {
+  _.map(replies, (reply) => {
     const replyName = _.get(reply, 'name', 'Unknown');
     const replyChannelIds = _.get(reply, 'channel-ids');
     const replyReply = _.get(reply, 'reply');
@@ -67,7 +67,7 @@ export async function autoReply(message: Message, replies: Replies): Promise<voi
           });
         }
 
-        await message.channel.send(content).then(() => {
+        message.channel.send(content).then(() => {
           generateLogMessage(
             [
               'Sent auto-reply message for',
@@ -104,11 +104,11 @@ export async function autoReply(message: Message, replies: Replies): Promise<voi
  * @param {Message}        message - Message object.
  * @param {MessageCopiers} copiers - Message copier rules from configuration.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */
-export async function messageCopier(message: Message, copiers: MessageCopiers): Promise<void> {
+export function messageCopier(message: Message, copiers: MessageCopiers): void {
   if (!message.guild) {
     return;
   }
@@ -119,15 +119,15 @@ export async function messageCopier(message: Message, copiers: MessageCopiers): 
   /**
    * Replace text.
    *
-   * @param {string}                        originalMessage - Original message.
-   * @param {string}                        name            - Message copier name.
-   * @param {RegularExpressionReplacements} replacements    - Text replacements from configuration.
+   * @param {string}                                  originalMessage - Original message.
+   * @param {string}                                  name            - Message copier name.
+   * @param {RegularExpressionReplacements|undefined} replacements    - Text replacements from configuration.
    *
    * @return {string}
    *
    * @since 1.0.0
    */
-  const replaceText = (originalMessage: string, name: string, replacements: RegularExpressionReplacements): string => {
+  const replaceText = (originalMessage: string, name: string, replacements: RegularExpressionReplacements | undefined): string => {
     let editedText = originalMessage;
 
     // Makes sure the "replace-text" configuration is correct.
@@ -158,15 +158,15 @@ export async function messageCopier(message: Message, copiers: MessageCopiers): 
   /**
    * Replace variables.
    *
-   * @param {string}                        configFormat - Format from configuration.
-   * @param {string}                        name         - Message copier name.
-   * @param {RegularExpressionReplacements} replacements - Text replacements from configuration.
+   * @param {string}                                  configFormat - Format from configuration.
+   * @param {string}                                  name         - Message copier name.
+   * @param {RegularExpressionReplacements|undefined} replacements - Text replacements from configuration.
    *
    * @return {string}
    *
    * @since 1.0.0
    */
-  const replaceVariables = (configFormat: string, name: string, replacements: RegularExpressionReplacements): string => {
+  const replaceVariables = (configFormat: string, name: string, replacements: RegularExpressionReplacements | undefined): string => {
     if (_.isString(configFormat) && !_.isEmpty(configFormat)) {
       return configFormat
         .replace(/%AUTHOR_MENTION%/g, message.author.toString())
@@ -182,15 +182,18 @@ export async function messageCopier(message: Message, copiers: MessageCopiers): 
     return;
   }
 
-  _.map(copiers, async (copier) => {
+  _.map(copiers, (copier) => {
     const name = _.get(copier, 'name', 'Unknown');
     const channelId = _.get(copier, 'channel-id');
     const regexPattern = _.get(copier, 'regex.pattern');
     const regexFlags = _.get(copier, 'regex.flags');
     const replacements = _.get(copier, 'replacements');
     const format = _.get(copier, 'format');
+    const includeAttachments = _.get(copier, 'include-attachments');
     const allowedUsers = _.get(copier, 'allowed-users');
     const allowedChannels = _.get(copier, 'allowed-channels');
+    const disallowedUsers = _.get(copier, 'disallowed-users');
+    const disallowedChannels = _.get(copier, 'disallowed-channels');
 
     // If message copier is limited to specific users or is limited to specific channels.
     if (
@@ -204,6 +207,16 @@ export async function messageCopier(message: Message, copiers: MessageCopiers): 
         && !_.isEmpty(allowedChannels)
         && _.every(allowedChannels, (allowedChannel) => _.isString(allowedChannel) && !_.isEmpty(allowedChannel))
         && !_.includes(allowedChannels, message.channel.id)
+      ) || (
+        _.isArray(disallowedUsers)
+        && !_.isEmpty(disallowedUsers)
+        && _.every(disallowedUsers, (disallowedUser) => _.isString(disallowedUser) && !_.isEmpty(disallowedUser))
+        && _.includes(disallowedUsers, message.author.id)
+      ) || (
+        _.isArray(disallowedChannels)
+        && !_.isEmpty(disallowedChannels)
+        && _.every(disallowedChannels, (disallowedChannel) => _.isString(disallowedChannel) && !_.isEmpty(disallowedChannel))
+        && _.includes(disallowedChannels, message.channel.id)
       )
     ) {
       return;
@@ -217,19 +230,21 @@ export async function messageCopier(message: Message, copiers: MessageCopiers): 
           content: replaceVariables(format, name, replacements),
         };
 
-        // Throw attachment urls into array first.
-        _.forEach([...attachments.values()], (attachment) => {
-          links.push(attachment.url);
-        });
-
-        // If there are attachments, add them into the content.
-        if (_.size(links) > 0) {
-          _.assign(content, {
-            files: links,
+        if (includeAttachments === true) {
+          // Throw attachment urls into array first.
+          _.forEach([...attachments.values()], (attachment) => {
+            links.push(attachment.url);
           });
+
+          // If there are attachments, add them into the content.
+          if (_.size(links) > 0) {
+            _.assign(content, {
+              files: links,
+            });
+          }
         }
 
-        await sendToChannel.send(content).then(() => {
+        sendToChannel.send(content).then(() => {
           generateLogMessage(
             [
               'Copied message for',

@@ -101,6 +101,52 @@ export function addAttachmentFields(attachments: Collection<Snowflake, MessageAt
 }
 
 /**
+ * Create bulk ban embed.
+ *
+ * @param {string}      message - Embed message.
+ * @param {EmbedStatus} status  - Status of role command.
+ * @param {string}      userTag - User tag of initiator.
+ *
+ * @returns {MessageEmbed}
+ *
+ * @since 1.0.0
+ */
+export function createBulkBanEmbed(message: string, status: EmbedStatus, userTag: string): MessageEmbed {
+  const generateTitle = (theStatus: EmbedStatus): string => {
+    switch (theStatus) {
+      case 'complete':
+        return 'Banned Members';
+      case 'fail':
+        return 'Failed to Ban Members';
+      case 'in-progress':
+        return 'Banning Members';
+      default:
+        return 'Unknown';
+    }
+  };
+  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
+    switch (theStatus) {
+      case 'complete':
+        return '#5fdc46';
+      case 'fail':
+        return '#de564f';
+      case 'in-progress':
+      default:
+        return '#eea942';
+    }
+  };
+
+  return addEmbed(
+    generateTitle(status),
+    message,
+    undefined,
+    undefined,
+    `Initiated by @${userTag}`,
+    generateColor(status),
+  );
+}
+
+/**
  * Create change nickname embed.
  *
  * @param {string|null}      oldNickname - Old nickname.
@@ -516,7 +562,7 @@ export function createRoleEmbed(route: RoleRoute, message: string, status: Embed
         return 'Unknown';
     }
   };
-  const generateColor = (theStatus: 'complete' | 'fail' | 'in-progress'): ColorResolvable => {
+  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
     switch (theStatus) {
       case 'complete':
         return '#5fdc46';
@@ -676,7 +722,7 @@ export function createVoiceEmbed(route: VoiceRoute, message: string, status: Emb
         return 'Unknown';
     }
   };
-  const generateColor = (theStatus: 'complete' | 'fail' | 'in-progress'): ColorResolvable => {
+  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
     switch (theStatus) {
       case 'complete':
         return '#5fdc46';
