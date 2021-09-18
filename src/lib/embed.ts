@@ -530,7 +530,7 @@ export function createRemoveAffiliateLinksEmbed(userMention: string, channelMent
 }
 
 /**
- * Create role embed.
+ * Create role manager embed.
  *
  * @param {RoleRoute}   route   - Role command route.
  * @param {string}      message - Embed message.
@@ -541,7 +541,7 @@ export function createRemoveAffiliateLinksEmbed(userMention: string, channelMent
  *
  * @since 1.0.0
  */
-export function createRoleEmbed(route: RoleRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
+export function createRoleManagerEmbed(route: RoleRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
   const generateTitle = (theRoute: RoleRoute, theStatus: EmbedStatus): string => {
     const mode = `${theRoute}-${theStatus}`;
 
@@ -690,7 +690,7 @@ export function createUpdateMessageEmbed(userMention: undefined | string, channe
 }
 
 /**
- * Create voice embed.
+ * Create voice tools embed.
  *
  * @param {VoiceRoute}  route   - Voice command route.
  * @param {string}      message - Embed message.
@@ -701,7 +701,7 @@ export function createUpdateMessageEmbed(userMention: undefined | string, channe
  *
  * @since 1.0.0
  */
-export function createVoiceEmbed(route: VoiceRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
+export function createVoiceToolsEmbed(route: VoiceRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
   const generateTitle = (theRoute: VoiceRoute, theStatus: EmbedStatus): string => {
     const mode = `${theRoute}-${theStatus}`;
 

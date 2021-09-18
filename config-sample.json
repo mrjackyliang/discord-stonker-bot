@@ -3,6 +3,11 @@
         "client-token": "",
         "guild-id": "",
         "bot-prefix": "!",
+        "server-http-port": 8080,
+        "server-https-port": 8443,
+        "server-https-key": "",
+        "server-https-cert": "",
+        "server-https-ca": "",
         "time-zone": "Etc/UTC",
         "log-level": 30
     },
@@ -33,25 +38,25 @@
                 "id": "000000000000000000"
             }
         ],
-        "fetch-members": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
         "fetch-duplicates": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
         ],
-        "help": [
+        "fetch-members": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
         ],
-        "role": [
+        "help-menu": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "role-manager": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -63,7 +68,7 @@
                 "id": "000000000000000000"
             }
         ],
-        "voice": [
+        "voice-tools": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -116,6 +121,9 @@
                     5,
                     6
                 ],
+                "year": 2020,
+                "month": 0,
+                "date": 1,
                 "hour": 0,
                 "minute": 0,
                 "second": 0
@@ -321,6 +329,24 @@
             }
         ]
     },
+    "invite-generator": {
+        "design": {
+            "logo-url": "",
+            "favicon-url": "",
+            "background-color": "",
+            "link-color": "",
+            "text-color": ""
+        },
+        "inject-code": {
+            "header": "",
+            "submit-success": "",
+            "submit-fail": ""
+        },
+        "recaptcha": {
+            "site-key": "",
+            "secret-key": ""
+        }
+    },
     "stocktwits": [
         {
             "name": "Sample",
@@ -337,6 +363,9 @@
                     4,
                     5
                 ],
+                "year": 2020,
+                "month": 0,
+                "date": 1,
                 "hour": 0,
                 "minute": 0,
                 "second": 0

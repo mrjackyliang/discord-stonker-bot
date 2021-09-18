@@ -1,14 +1,23 @@
 {
     "compilerOptions": {
+        "allowJs": true,
+        "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
         "module": "CommonJS",
         "moduleResolution": "Node",
-        "outDir": "./built",
+        "noEmit": true,
+        "noFallthroughCasesInSwitch": true,
+        "outDir": "./build",
         "removeComments": true,
         "resolveJsonModule": true,
+        "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
         "target": "ES2020"
     },
-    "include": ["./src/**/*"]
+    "include": [
+        "./src"
+    ]
 }

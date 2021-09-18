@@ -42,6 +42,7 @@ const client = new Client({
     Intents.FLAGS.DIRECT_MESSAGES,
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_BANS,
+    Intents.FLAGS.GUILD_INVITES,
     Intents.FLAGS.GUILD_MEMBERS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
@@ -103,7 +104,7 @@ client.on('ready', () => {
     if (client.user && _.isString(configSettingsBotPrefix) && !_.isEmpty(configSettingsBotPrefix)) {
       client.user.setStatus('online');
       client.user.setActivity({
-        name: `${configSettingsBotPrefix}help | Powered by Discord Stonker Bot`,
+        name: `${configSettingsBotPrefix}help-menu | Powered by Discord Stonker Bot`,
         type: 'LISTENING',
       });
     }

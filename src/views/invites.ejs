@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Join <%= data.guildName %> Discord</title>
+    <% if (data.faviconUrl !== '') { %>
+        <link rel="shortcut icon" type="image/png" href="<%= data.faviconUrl %>"/>
+    <% } %>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <%- data.injectCodeHeader %>
+    <% if (data.recaptchaSiteKey !== '') { %>
+        <script src="//www.google.com/recaptcha/api.js" async defer></script>
+        <script type="text/javascript">
+            function onSubmit(token) {
+                jQuery(($) => {
+                    $.post(`<%= data.requestUrl %>`, {token}, (success) => {
+                        <%- data.injectCodeSubmitSuccess %>
+
+                        window.location.replace(success);
+                    }).fail((fail) => {
+                        <%- data.injectCodeSubmitFail %>
+
+                        $("#error").html(`<span>${fail.responseText}</span>`);
+                    });
+                });
+            }
+        </script>
+    <% } %>
+    <style>
+        body {
+            background-color: <%= data.backgroundColor %>;
+            color: <%= data.textColor %>;
+            font-family: Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            color: <%= data.linkColor %>;
+        }
+
+        #content {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #content #logo {
+            width: 150px;
+            height: 150px;
+        }
+
+        #content #form {
+            margin-top: 25px;
+        }
+
+        #content #error span {
+            display: block;
+            background-color: #ffe0e0;
+            color: #ba3939;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #a33a3a;
+        }
+    </style>
+</head>
+<body>
+<div id="content">
+    <% if (data.logoUrl !== '') { %>
+        <img src="<%= data.logoUrl %>" alt="<%= data.guildName %>" id="logo"/>
+    <% } %>
+    <% if (data.recaptchaSiteKey !== '') { %>
+        <div id="form">
+            <noscript>
+                <p>JavaScript is required to view this page.</p>
+            </noscript>
+            <div id="error"></div>
+            <div class="g-recaptcha" data-sitekey="<%= data.recaptchaSiteKey %>" data-callback="onSubmit"></div>
+        </div>
+    <% } %>
+</div>
+</body>
+</html>

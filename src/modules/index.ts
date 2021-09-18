@@ -1,5 +1,11 @@
+import chalk from 'chalk';
 import { Client, Guild } from 'discord.js';
+import express from 'express';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
 import _ from 'lodash';
+import path from 'path';
 
 import config from '../../config.json';
 
@@ -10,14 +16,15 @@ import {
 } from './anti-raid';
 import {
   bulkBan,
-  fetchMembers,
   fetchDuplicates,
-  help,
-  role,
+  fetchMembers,
+  helpMenu,
+  roleManager,
   togglePerms,
-  voice,
+  voiceTools,
 } from './commands';
 import { rssFeed, schedulePost, stocktwits } from './content';
+import inviteGenerator from './invites';
 import { autoReply, messageCopier } from './messenger';
 import {
   checkRegexChannels,
@@ -35,7 +42,7 @@ import {
   userUploadAttachment,
 } from './snitch';
 import bumpThreads from './threads';
-import { getTextBasedChannel } from '../lib/utilities';
+import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
 import {
   AffiliateLinks,
   AntiRaidAutoBan,
@@ -54,6 +61,11 @@ import {
  * @since 1.0.0
  */
 const configSettingsBotPrefix = _.get(config, 'settings.bot-prefix');
+const configSettingsServerHttpPort = _.get(config, 'settings.server-http-port');
+const configSettingsServerHttpsPort = _.get(config, 'settings.server-https-port');
+const configSettingsServerHttpsKey = _.get(config, 'settings.server-https-key');
+const configSettingsServerHttpsCert = _.get(config, 'settings.server-https-cert');
+const configSettingsServerHttpsCa = _.get(config, 'settings.server-https-ca');
 const configSnitchChangeNickname = _.get(config, 'snitch.change-nickname');
 const configSnitchChangeUsername = _.get(config, 'snitch.change-username');
 const configSnitchDeleteMessage = _.get(config, 'snitch.delete-message');
@@ -71,8 +83,16 @@ const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configMessageCopier = _.get(config, 'message-copier');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
+const configInviteGenerator = _.get(config, 'invite-generator');
 const configStocktwits = _.get(config, 'stocktwits');
 const configBumpThreads = _.get(config, 'bump-threads');
+
+/**
+ * Web server.
+ *
+ * @since 1.0.0
+ */
+const server = express();
 
 /**
  * Initialize.
@@ -108,17 +128,8 @@ export default function initialize(client: Client, guild: Guild): void {
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}bulk-ban`)) {
-        bulkBan(message, configSettingsBotPrefix, _.get(config, 'commands.bulk-ban'));
-      }
-
-      /**
-       * Fetch members.
-       *
-       * @since 1.0.0
-       */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}fetch-members`)) {
-        fetchMembers(message, configSettingsBotPrefix, _.get(config, 'commands.fetch-members'));
+      if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
+        bulkBan(message, _.get(config, 'commands.bulk-ban'));
       }
 
       /**
@@ -126,51 +137,61 @@ export default function initialize(client: Client, guild: Guild): void {
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}fetch-duplicates`)) {
-        fetchDuplicates(message, configSettingsBotPrefix, _.get(config, 'commands.fetch-duplicates'));
+      if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
+        fetchDuplicates(message, _.get(config, 'commands.fetch-duplicates'));
       }
 
       /**
-       * Help.
+       * Fetch members.
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}help`)) {
-        help(message, configSettingsBotPrefix, _.get(config, 'commands.help'), {
+      if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
+        fetchMembers(message, _.get(config, 'commands.fetch-members'));
+      }
+
+      /**
+       * Help menu.
+       *
+       * @since 1.0.0
+       */
+      if (new RegExp(`^${configSettingsBotPrefix}(help-menu|help|hm)`).test(messageContent)) {
+        helpMenu(message, _.get(config, 'commands.help-menu'), {
+          botPrefix: configSettingsBotPrefix,
           bulkBan: _.get(config, 'commands.bulk-ban'),
-          fetchMembers: _.get(config, 'commands.fetch-members'),
           fetchDuplicates: _.get(config, 'commands.fetch-duplicates'),
-          role: _.get(config, 'commands.role'),
+          fetchMembers: _.get(config, 'commands.fetch-members'),
+          roleManager: _.get(config, 'commands.role-manager'),
           togglePerms: _.get(config, 'commands.toggle-perms'),
-          voice: _.get(config, 'commands.voice'),
+          voiceTools: _.get(config, 'commands.voice-tools'),
         });
       }
 
       /**
-       * Role.
+       * Role manager.
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}role`)) {
-        role(message, configSettingsBotPrefix, _.get(config, 'commands.role'));
+      if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
+        roleManager(message, _.get(config, 'commands.role-manager'));
       }
 
       /**
-       * Toggle permissions.
+       * Toggle perms.
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}toggle-perms`)) {
-        togglePerms(message, configSettingsBotPrefix, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms'));
+      if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
+        togglePerms(message, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms'));
       }
 
       /**
-       * Voice.
+       * Voice tools.
        *
        * @since 1.0.0
        */
-      if (messageContent.startsWith(`${configSettingsBotPrefix}voice`)) {
-        voice(message, configSettingsBotPrefix, _.get(config, 'commands.voice'));
+      if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
+        voiceTools(message, _.get(config, 'commands.voice-tools'));
       }
     }
   });
@@ -491,5 +512,76 @@ export default function initialize(client: Client, guild: Guild): void {
     _.forEach(configBumpThreads, (configBumpThread) => {
       bumpThreads(guild, configBumpThread);
     });
+  }
+
+  /**
+   * Web server configuration.
+   *
+   * @since 1.0.0
+   */
+  if (
+    _.inRange(configSettingsServerHttpPort, 0, 65536)
+    || (
+      fs.existsSync(configSettingsServerHttpsKey)
+      && fs.existsSync(configSettingsServerHttpsCert)
+      && fs.existsSync(configSettingsServerHttpsCa)
+      && _.inRange(configSettingsServerHttpsPort, 0, 65536)
+    )
+  ) {
+    // Middleware.
+    server.use(express.json());
+    server.use(express.urlencoded({
+      extended: true,
+    }));
+
+    // Templates.
+    server.set('view engine', 'ejs');
+    server.set('views', path.join(__dirname, '../views'));
+
+    // HTTP web server.
+    if (_.inRange(configSettingsServerHttpPort, 0, 65536)) {
+      const httpServer = http.createServer(server);
+
+      httpServer.listen(configSettingsServerHttpPort, () => {
+        generateLogMessage(
+          `HTTP web server started on port ${chalk.yellow(configSettingsServerHttpPort)}`,
+          30,
+        );
+      });
+    }
+
+    // HTTPS web server.
+    if (
+      fs.existsSync(configSettingsServerHttpsKey)
+      && fs.existsSync(configSettingsServerHttpsCert)
+      && fs.existsSync(configSettingsServerHttpsCa)
+      && _.inRange(configSettingsServerHttpsPort, 0, 65536)
+    ) {
+      const httpsServer = https.createServer({
+        key: fs.readFileSync(configSettingsServerHttpsKey, 'utf-8'),
+        cert: fs.readFileSync(configSettingsServerHttpsCert, 'utf-8'),
+        ca: fs.readFileSync(configSettingsServerHttpsCa, 'utf-8'),
+      }, server);
+
+      httpsServer.listen(configSettingsServerHttpsPort, () => {
+        generateLogMessage(
+          `HTTPS web server started on port ${chalk.yellow(configSettingsServerHttpsPort)}`,
+          30,
+        );
+      });
+    }
+
+    server.get('/', (request, response) => {
+      response.sendStatus(200);
+    });
+  }
+
+  /**
+   * Invite generator.
+   *
+   * @since 1.0.0
+   */
+  if ((_.inRange(configSettingsServerHttpPort, 0, 65536) || _.inRange(configSettingsServerHttpsPort, 0, 65536)) && _.isPlainObject(configInviteGenerator)) {
+    inviteGenerator(server, guild, configInviteGenerator);
   }
 }

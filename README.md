@@ -35,7 +35,7 @@ Here are the instructions on how you can create an application and connect this 
 7. Click the __General Information__ menu item
 8. Under __Client ID__, click __Copy__
 9. Replace the `CLIENT_ID_HERE` below and visit link to add bot into server:
-    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=17470581828`
+    - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=292348488773`
 
 ## Bot Configuration
 In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. All fields required unless marked as _optional_.
@@ -55,18 +55,24 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 13. [Stocktwits](#13-stocktwits)
 14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
 15. [Bump Threads](#15-bump-threads)
+16. [Invite Generator](#16-invite-generator)
 
 ### 1. Base Settings
 For Stonker Bot to start, these settings should be filled. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
 
-| __Key__                   | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                          |
-|---------------------------|----------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `settings`                | `object` |                                                        |                                                                                                                                                                              |
-| `settings.client-token`   | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
-| `settings.guild-id`       | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
-| `settings.bot-prefix`     | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for commands)                                                                                                                         |
-| `settings.time-zone`      | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
-| `settings.log-level`      | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
+| __Key__                      | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                          |
+|------------------------------|----------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `settings`                   | `object` |                                                        |                                                                                                                                                                              |
+| `settings.client-token`      | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
+| `settings.guild-id`          | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
+| `settings.bot-prefix`        | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for commands)                                                                                                                         |
+| `settings.server-http-port`  | `number` | Web server HTTP port for external requests             | From `0` to `65535`                                                                                                                                                          |
+| `settings.server-https-port` | `number` | Web server HTTPS port for external requests            | From `0` to `65535`                                                                                                                                                          |
+| `settings.server-https-key`  | `string` | Private key for HTTPS server                           | Required for enabling the HTTPS port                                                                                                                                         |
+| `settings.server-https-cert` | `string` | Certificate for HTTPS server                           | Required for enabling the HTTPS port                                                                                                                                         |
+| `settings.server-https-ca`   | `string` | Certificate authority for HTTPS server                 | Required for enabling the HTTPS port                                                                                                                                         |
+| `settings.time-zone`         | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
+| `settings.log-level`         | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 
 ```json
 {
@@ -74,6 +80,11 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
         "client-token": "",
         "guild-id": "",
         "bot-prefix": "!",
+        "server-http-port": 8080,
+        "server-https-port": 8443,
+        "server-https-key": "",
+        "server-https-cert": "",
+        "server-https-ca": "",
         "time-zone": "Etc/UTC",
         "log-level": 30
     }
@@ -133,35 +144,29 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 | `commands.bulk-ban`                        | `object[]` |                                            |                     |
 | `commands.bulk-ban[x].description`         | `string`   | Description of the allowed role (optional) |                     |
 | `commands.bulk-ban[x].id`                  | `string`   | Allowed role                               | Discord role ID     |
-| `commands.fetch-members`                   | `object[]` |                                            |                     |
-| `commands.fetch-members[x].description`    | `string`   | Description of the allowed role (optional) |                     |
-| `commands.fetch-members[x].id`             | `string`   | Allowed role                               | Discord role ID     |
 | `commands.fetch-duplicates`                | `object[]` |                                            |                     |
 | `commands.fetch-duplicates[x].description` | `string`   | Description of the allowed role (optional) |                     |
 | `commands.fetch-duplicates[x].id`          | `string`   | Allowed role                               | Discord role ID     |
-| `commands.help`                            | `object[]` |                                            |                     |
-| `commands.help[x].description`             | `string`   | Description of the allowed role (optional) |                     |
-| `commands.help[x].id`                      | `string`   | Allowed role                               | Discord role ID     |
-| `commands.role`                            | `object[]` |                                            |                     |
-| `commands.role[x].description`             | `string`   | Description of the allowed role (optional) |                     |
-| `commands.role[x].id`                      | `string`   | Allowed role                               | Discord role ID     |
+| `commands.fetch-members`                   | `object[]` |                                            |                     |
+| `commands.fetch-members[x].description`    | `string`   | Description of the allowed role (optional) |                     |
+| `commands.fetch-members[x].id`             | `string`   | Allowed role                               | Discord role ID     |
+| `commands.help-menu`                       | `object[]` |                                            |                     |
+| `commands.help-menu[x].description`        | `string`   | Description of the allowed role (optional) |                     |
+| `commands.help-menu[x].id`                 | `string`   | Allowed role                               | Discord role ID     |
+| `commands.role-manager`                    | `object[]` |                                            |                     |
+| `commands.role-manager[x].description`     | `string`   | Description of the allowed role (optional) |                     |
+| `commands.role-manager[x].id`              | `string`   | Allowed role                               | Discord role ID     |
 | `commands.toggle-perms`                    | `object[]` |                                            |                     |
 | `commands.toggle-perms[x].description`     | `string`   | Description of the allowed role (optional) |                     |
 | `commands.toggle-perms[x].id`              | `string`   | Allowed role                               | Discord role ID     |
-| `commands.voice`                           | `object[]` |                                            |                     |
-| `commands.voice[x].description`            | `string`   | Description of the allowed role (optional) |                     |
-| `commands.voice[x].id`                     | `string`   | Allowed role                               | Discord role ID     |
+| `commands.voice-tools`                     | `object[]` |                                            |                     |
+| `commands.voice-tools[x].description`      | `string`   | Description of the allowed role (optional) |                     |
+| `commands.voice-tools[x].id`               | `string`   | Allowed role                               | Discord role ID     |
 
 ```json
 {
     "commands": {
         "bulk-ban": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "fetch-members": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -173,13 +178,19 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
                 "id": "000000000000000000"
             }
         ],
-        "help": [
+        "fetch-members": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
             }
         ],
-        "role": [
+        "help-menu": [
+            {
+                "description": "Sample role",
+                "id": "000000000000000000"
+            }
+        ],
+        "role-manager": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -191,7 +202,7 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
                 "id": "000000000000000000"
             }
         ],
-        "voice": [
+        "voice-tools": [
             {
                 "description": "Sample role",
                 "id": "000000000000000000"
@@ -259,11 +270,14 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 | `schedule-posts[x].message`                 | `object`   | Message content                             | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
 | `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated)                                                  |
 | `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                                                                           |
-| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
-| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
-| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                                                                          |
-| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                                                                          |
-| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone (optional)           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
+| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week (optional)     | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
+| `schedule-posts[x].send-every.year`         | `number`   | Send post on year (optional)                |                                                                                                                                                           |
+| `schedule-posts[x].send-every.month`        | `number`   | Send post on month (optional)               | From `0` to `11`                                                                                                                                          |
+| `schedule-posts[x].send-every.date`         | `number`   | Send post on date (optional)                | From `1` to `31`                                                                                                                                          |
+| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day (optional)         | From `0` to `23`                                                                                                                                          |
+| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day (optional)       | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day (optional)       | From `0` to `59`                                                                                                                                          |
 | `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                                                               |
 
 ```json
@@ -291,6 +305,9 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
                     5,
                     6
                 ],
+                "year": 2020,
+                "month": 0,
+                "date": 1,
                 "hour": 0,
                 "minute": 0,
                 "second": 0
@@ -665,11 +682,14 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
 | `stocktwits[x].show-embed`              | `boolean`  | Show tickers in addition to a message       | `true` or `false`                                                                                                 |
 | `stocktwits[x].limit`                   | `number`   | The amount of tickers in a post             | Cannot exceed 25 tickers                                                                                          |
 | `stocktwits[x].send-every`              | `object`   |                                             |                                                                                                                   |
-| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone                      | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)          |
-| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week                | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)          |
-| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day                    | From `0` to `23`                                                                                                  |
-| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day                  | From `0` to `59`                                                                                                  |
-| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day                  | From `0` to `59`                                                                                                  |
+| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone (optional)           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)          |
+| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week (optional)     | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)          |
+| `stocktwits[x].send-every.year`         | `number`   | Send post on year (optional)                |                                                                                                                   |
+| `stocktwits[x].send-every.month`        | `number`   | Send post on month (optional)               | From `0` to `11`                                                                                                  |
+| `stocktwits[x].send-every.date`         | `number`   | Send post on date (optional)                | From `1` to `31`                                                                                                  |
+| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day (optional)         | From `0` to `23`                                                                                                  |
+| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day (optional)       | From `0` to `59`                                                                                                  |
+| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day (optional)       | From `0` to `59`                                                                                                  |
 | `stocktwits[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                       |
 
 ```json
@@ -690,6 +710,9 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
                     4,
                     5
                 ],
+                "year": 2020,
+                "month": 0,
+                "date": 1,
                 "hour": 0,
                 "minute": 0,
                 "second": 0
@@ -786,5 +809,48 @@ Stretch the world of threads and make them like sub-channels! Create threads tha
             "thread-id": "000000000000000000"
         }
     ]
+}
+```
+
+### 16. Invite Generator
+A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. Customization includes the page design and code injection.
+
+| __Key__                                       | __Type__ | __Description__                              | __Accepted Values__                                                                                                           |
+|-----------------------------------------------|----------|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `invite-generator`                            | `object` |                                              |                                                                                                                               |
+| `invite-generator.design`                     | `object` |                                              |                                                                                                                               |
+| `invite-generator.design.logo-url`            | `string` | Link to an image used for the front page     | Square image with size dimensions of `300 x 300` or larger                                                                    |
+| `invite-generator.design.favicon-url`         | `object` | Link to an image used for the favicon        | `.png` extensions only                                                                                                        |
+| `invite-generator.design.background-color`    | `object` | Color for background                         | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.design.link-color`          | `object` | Color for links                              | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.design.text-color`          | `object` | Color for text                               | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.inject-code`                | `object` |                                              |                                                                                                                               |
+| `invite-generator.inject-code.header`         | `object` | Unescaped code between the `head` tags       | Double-quote escaped HTML code                                                                                                |
+| `invite-generator.inject-code.submit-success` | `object` | Unescaped code when user passes verification | Double-quote escaped HTML code. Available variables are `success` (Discord invite url)                                        |
+| `invite-generator.inject-code.submit-fail`    | `object` | Unescaped code when user fails verification  | Double-quote escaped HTML code. Available variables are `fail` (The [jqXHR Object](https://api.jquery.com/jquery.ajax#jqXHR)) |
+| `invite-generator.recaptcha`                  | `object` |                                              |                                                                                                                               |
+| `invite-generator.recaptcha.site-key`         | `object` | Google reCAPTCHA v2 Checkbox Site Key        | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
+| `invite-generator.recaptcha.secret-key`       | `object` | Google reCAPTCHA v2 Checkbox Secret Key      | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
+
+```json
+{
+    "invite-generator": {
+        "design": {
+            "logo-url": "",
+            "favicon-url": "",
+            "background-color": "",
+            "link-color": "",
+            "text-color": ""
+        },
+        "inject-code": {
+            "header": "",
+            "submit-success": "",
+            "submit-fail": ""
+        },
+        "recaptcha": {
+            "site-key": "",
+            "secret-key": ""
+        }
+    }
 }
 ```

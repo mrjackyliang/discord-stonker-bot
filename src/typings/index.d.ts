@@ -7,7 +7,7 @@ import {
   RoleMention,
   Snowflake,
 } from 'discord.js';
-import { Recurrence, Timezone } from 'node-schedule';
+import { Timezone } from 'node-schedule';
 
 /**
  * Global types.
@@ -26,11 +26,14 @@ export type RegularExpressionReplacement = {
 export type RegularExpressionReplacements = RegularExpressionReplacement[];
 
 export type ReoccurringSchedule = {
-  'time-zone': Timezone;
-  'days-of-week': Recurrence[];
-  hour: Recurrence;
-  minute: Recurrence;
-  second: Recurrence;
+  'time-zone'?: Timezone;
+  'days-of-week'?: number[];
+  year?: number;
+  month?: number;
+  date?: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
 };
 
 export type Role = {
@@ -80,6 +83,25 @@ export type ChangeRole = {
 };
 
 export type ChangeRoles = ChangeRole[];
+
+export type InviteGenerator = {
+  design?: {
+    'logo-url'?: string;
+    'favicon-url'?: string;
+    'background-color'?: string;
+    'link-color'?: string;
+    'text-color'?: string;
+  };
+  'inject-code'?: {
+    header?: string;
+    'submit-success'?: string;
+    'submit-fail'?: string;
+  };
+  recaptcha?: {
+    'site-key'?: string;
+    'secret-key'?: string;
+  }
+};
 
 export type MessageCopier = {
   name?: string;
@@ -192,12 +214,13 @@ export type FetchMembersAction = MemberMention | RoleMention | string;
 export type FetchMembersRoute = 'avatar' | 'role' | 'string' | 'username';
 
 export type HelpMenuSettings = {
+  botPrefix?: string;
   bulkBan?: Roles;
-  fetchMembers?: Roles;
   fetchDuplicates?: Roles;
-  role?: Roles;
+  fetchMembers?: Roles;
+  roleManager?: Roles;
   togglePerms?: Roles;
-  voice?: Roles;
+  voiceTools?: Roles;
 };
 
 export type LogMessagePriority = 10 | 20 | 30 | 40;

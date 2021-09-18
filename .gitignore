@@ -43,5 +43,5 @@ modules.xml
 *.ipr
 
 ### Project Excludes ###
-built/
+build/
 config.json

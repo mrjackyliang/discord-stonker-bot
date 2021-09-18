@@ -3,50 +3,73 @@ import chalk from 'chalk';
 import { TextBasedChannels } from 'discord.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
-import {
-  Recurrence,
-  RecurrenceRule,
-  scheduleJob,
-  Timezone,
-} from 'node-schedule';
+import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import RssParser from 'rss-parser';
 
 import { generateLogMessage } from '../lib/utilities';
-import { RssFeed, SchedulePost, Stocktwit } from '../typings';
+import {
+  ReoccurringSchedule,
+  RssFeed,
+  SchedulePost,
+  Stocktwit,
+} from '../typings';
 
 /**
  * Create re-occurring schedule.
  *
- * @param {Timezone}     timeZone   - Time zone.
- * @param {Recurrence[]} daysOfWeek - Days of the week.
- * @param {Recurrence}   hour       - Hour.
- * @param {Recurrence}   minute     - Minute.
- * @param {Recurrence}   second     - Second.
+ * @param {ReoccurringSchedule} sendEvery - Reoccurring schedule.
  *
  * @returns {RecurrenceRule}
  *
  * @since 1.0.0
  */
-function createReoccurringSchedule(timeZone: Timezone, daysOfWeek: Recurrence[], hour: Recurrence, minute: Recurrence, second: Recurrence): RecurrenceRule {
+function createReoccurringSchedule(sendEvery: ReoccurringSchedule): RecurrenceRule {
   const rule = new RecurrenceRule();
+  const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
+  const daysOfWeek = _.get(sendEvery, 'days-of-week');
+  const year = _.get(sendEvery, 'year');
+  const month = _.get(sendEvery, 'month');
+  const date = _.get(sendEvery, 'date');
+  const hour = _.get(sendEvery, 'hour');
+  const minute = _.get(sendEvery, 'minute');
+  const second = _.get(sendEvery, 'second');
 
   rule.tz = timeZone;
 
-  if (_.isArray(daysOfWeek) && !_.isEmpty(daysOfWeek) && _.every(daysOfWeek, (dayOfWeek) => dayOfWeek >= 0 && dayOfWeek <= 6)) {
+  // Day of week (0-6) starting with Sunday.
+  if (_.isArray(daysOfWeek) && _.every(daysOfWeek, (dayOfWeek) => _.isFinite(dayOfWeek) && _.inRange(dayOfWeek, 0, 7))) {
     rule.dayOfWeek = daysOfWeek;
   } else {
     rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
   }
 
-  if (_.isFinite(hour) && hour >= 0 && hour <= 23) {
+  // Year.
+  if (!_.isUndefined(year) && _.isFinite(year)) {
+    rule.year = year;
+  }
+
+  // Month (0-11).
+  if (!_.isUndefined(month) && _.isFinite(month) && _.inRange(month, 0, 12)) {
+    rule.month = month;
+  }
+
+  // Date (1-31).
+  if (!_.isUndefined(date) && _.isFinite(date) && _.inRange(date, 1, 32)) {
+    rule.date = date;
+  }
+
+  // Hour (0-23).
+  if (!_.isUndefined(hour) && _.isFinite(hour) && _.inRange(hour, 0, 24)) {
     rule.hour = hour;
   }
 
-  if (_.isFinite(minute) && minute >= 0 && minute <= 59) {
+  // Minute (0-59).
+  if (!_.isUndefined(minute) && _.isFinite(minute) && _.inRange(minute, 0, 60)) {
     rule.minute = minute;
   }
 
-  if (_.isFinite(second) && second >= 0 && second <= 59) {
+  // Second (0-59).
+  if (!_.isUndefined(second) && _.isFinite(second) && _.inRange(second, 0, 60)) {
     rule.second = second;
   }
 
@@ -225,11 +248,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   const name = _.get(event, 'name', 'Unknown');
   const message = _.get(event, 'message');
   const reactions = _.get(event, 'reactions');
-  const timeZone = _.get(event, 'send-every.time-zone', 'Etc/UTC');
-  const daysOfWeek = _.get(event, 'send-every.days-of-week');
-  const hour = _.get(event, 'send-every.hour');
-  const minute = _.get(event, 'send-every.minute');
-  const second = _.get(event, 'send-every.second');
+  const sendEvery = _.get(event, 'send-every');
+  const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
   const skipDays = _.get(event, 'skip-days');
 
   // If "channel-id" is not a text-based channel.
@@ -289,7 +309,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   }
 
   // Create a new re-occurring schedule.
-  const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
+  const rule = createReoccurringSchedule(sendEvery);
 
   try {
     scheduleJob(rule, () => {
@@ -388,11 +408,8 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
   const message = _.get(event, 'message');
   const showEmbed = _.get(event, 'show-embed');
   const limit = _.get(event, 'limit');
-  const timeZone = _.get(event, 'send-every.time-zone', 'Etc/UTC');
-  const daysOfWeek = _.get(event, 'send-every.days-of-week');
-  const hour = _.get(event, 'send-every.hour');
-  const minute = _.get(event, 'send-every.minute');
-  const second = _.get(event, 'send-every.second');
+  const sendEvery = _.get(event, 'send-every');
+  const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
   const skipDays = _.get(event, 'skip-days');
 
   // If "channel-id" is not a text-based channel.
@@ -452,7 +469,7 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
   }
 
   // Create a new re-occurring schedule.
-  const rule = createReoccurringSchedule(timeZone, daysOfWeek, hour, minute, second);
+  const rule = createReoccurringSchedule(sendEvery);
 
   try {
     scheduleJob(rule, () => {

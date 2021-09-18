@@ -8,9 +8,9 @@ import {
   createHelpMenuEmbed,
   createListMembersEmbed,
   createNoResultsEmbed,
-  createRoleEmbed,
+  createRoleManagerEmbed,
   createTogglePermsEmbed,
-  createVoiceEmbed,
+  createVoiceToolsEmbed,
 } from '../lib/embed';
 import { generateLogMessage } from '../lib/utilities';
 import {
@@ -33,14 +33,13 @@ import {
  * Bulk ban.
  *
  * @param {Message} message      - Message object.
- * @param {string}  botPrefix    - Command prefix.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles): void {
+export function bulkBan(message: Message, allowedRoles: Roles): void {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -52,9 +51,11 @@ export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles
 
   const { channel, guild, member } = message;
   const messageText = message.toString();
-  const commandArguments = messageText.split(`${botPrefix}bulk-ban`);
-  const commandTags = commandArguments[1];
-  const matches = [...commandTags.matchAll(/<@!?([0-9]+)>/g)];
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
+  const commandTags = commandArguments.slice(1);
+  const tags = <string[]>_.filter(commandTags, (commandTag) => commandTag.match(/<@!?([0-9]+)>/g));
+  const matches = _.map(tags, (tag) => tag.replace(/<@!?([0-9]+)>/g, '$1'));
 
   if (
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
@@ -63,7 +64,7 @@ export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}bulk-ban\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -81,10 +82,10 @@ export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles
       embeds: [
         createCommandErrorEmbed(
           [
-            'No member tags were not detected. Try using the command by tagging one or more members.\n',
+            'No member tags were detected. Try using the command by tagging one or more members.\n',
             'Example:',
             '```',
-            `${botPrefix}bulk-ban [@user]`,
+            `${commandCommand} [@user]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -117,8 +118,7 @@ export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles
     ],
   }).then((theMessage) => {
     const banResults = _.map(matches, (match) => {
-      const guildMemberId = match[1];
-      const guildMember = guild.members.cache.get(guildMemberId);
+      const guildMember = guild.members.cache.get(match);
 
       let success = true;
 
@@ -195,17 +195,16 @@ export function bulkBan(message: Message, botPrefix: string, allowedRoles: Roles
 }
 
 /**
- * Fetch members.
+ * Fetch duplicates.
  *
  * @param {Message} message      - Message object.
- * @param {string}  botPrefix    - Command prefix.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function fetchMembers(message: Message, botPrefix: string, allowedRoles: Roles): void {
+export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -222,6 +221,132 @@ export function fetchMembers(message: Message, botPrefix: string, allowedRoles: 
   } = message;
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
+  const guildMembers = [...guild.members.cache.values()];
+  const users: DuplicateUsers = {};
+
+  let empty = true;
+
+  if (
+    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+  ) {
+    channel.send({
+      embeds: [
+        createCommandErrorEmbed(
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
+          member.user.tag,
+        ),
+      ],
+    }).catch((error: Error) => generateLogMessage(
+      'Failed to send command error embed',
+      10,
+      error,
+    ));
+
+    return;
+  }
+
+  // Delete message with command.
+  message.delete().catch((error: Error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
+
+  // Remap users based on their avatar.
+  _.forEach(guildMembers, (guildMember) => {
+    const guildMemberAvatar = guildMember.user.avatar;
+
+    if (guildMemberAvatar !== null) {
+      // Create entry for avatar hash if it does not exist.
+      if (users[guildMemberAvatar] === undefined) {
+        users[guildMemberAvatar] = [];
+      }
+
+      users[guildMemberAvatar].push(guildMember.toString());
+    }
+  });
+
+  // Loop through all users with avatars.
+  _.forEach(Object.entries(users), (usersEntry) => {
+    const avatarHash = usersEntry[0];
+    const userIds = usersEntry[1];
+
+    if (_.size(userIds) > 1) {
+      const userIdsChunks = _.chunk(userIds, 80);
+
+      // Don't show empty results message.
+      empty = false;
+
+      // Send a message embed for every 80 members.
+      _.forEach(userIdsChunks, (userIdsChunk, key) => {
+        channel.send({
+          embeds: [
+            createListMembersEmbed(
+              [
+                'Duplicate Members for',
+                `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
+                (key > 0) ? `(Page ${key + 1})` : '',
+              ].join(' '),
+              userIdsChunk,
+              undefined,
+              member.user.tag,
+            ),
+          ],
+        }).catch((error: Error) => generateLogMessage(
+          'Failed to send list members embed',
+          10,
+          error,
+        ));
+      });
+    }
+  });
+
+  if (empty) {
+    channel.send({
+      embeds: [
+        createNoResultsEmbed(
+          `There are no duplicate users found in the **${guild.toString()}** guild.`,
+          member.user.tag,
+        ),
+      ],
+    }).catch((error: Error) => generateLogMessage(
+      'Failed to send no results embed',
+      10,
+      error,
+    ));
+  }
+}
+
+/**
+ * Fetch members.
+ *
+ * @param {Message} message      - Message object.
+ * @param {Roles}   allowedRoles - Roles allowed to use this command.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+export function fetchMembers(message: Message, allowedRoles: Roles): void {
+  if (!message.channel || !message.guild || !message.member) {
+    generateLogMessage(
+      'Missing the "channel", "guild", or "member" property.',
+      10,
+    );
+
+    return;
+  }
+
+  const {
+    channel,
+    guild,
+    member,
+  } = message;
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
   const commandRoute = <FetchMembersRoute>commandArguments[1];
   const commandAction = <FetchMembersAction>commandArguments[2];
   const theMember = guild.members.cache.get(_.replace(commandAction, /[<@!>]/g, ''));
@@ -250,7 +375,7 @@ export function fetchMembers(message: Message, botPrefix: string, allowedRoles: 
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}fetch-members\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -272,10 +397,10 @@ export function fetchMembers(message: Message, botPrefix: string, allowedRoles: 
             `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
             'Examples:',
             '```',
-            `${botPrefix}fetch-members avatar [@user]`,
-            `${botPrefix}fetch-members role [@role]`,
-            `${botPrefix}fetch-members string [string]`,
-            `${botPrefix}fetch-members username [@user]`,
+            `${commandCommand} avatar [@user]`,
+            `${commandCommand} role [@role]`,
+            `${commandCommand} string [string]`,
+            `${commandCommand} username [@user]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -308,7 +433,7 @@ export function fetchMembers(message: Message, botPrefix: string, allowedRoles: 
             `${userMode[0] ?? roleMode[0] ?? stringMode[0]}. Try using the command by ${userMode[1] ?? roleMode[1] ?? stringMode[1]}.\n`,
             'Example:',
             '```',
-            `${botPrefix}fetch-members ${commandRoute} [${userMode[2] ?? roleMode[2] ?? stringMode[2]}]`,
+            `${commandCommand} ${commandRoute} [${userMode[2] ?? roleMode[2] ?? stringMode[2]}]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -411,133 +536,9 @@ export function fetchMembers(message: Message, botPrefix: string, allowedRoles: 
 }
 
 /**
- * Fetch duplicates.
- *
- * @param {Message} message      - Message object.
- * @param {string}  botPrefix    - Command prefix.
- * @param {Roles}   allowedRoles - Roles allowed to use this command.
- *
- * @returns {void}
- *
- * @since 1.0.0
- */
-export function fetchDuplicates(message: Message, botPrefix: string, allowedRoles: Roles): void {
-  if (!message.channel || !message.guild || !message.member) {
-    generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
-      10,
-    );
-
-    return;
-  }
-
-  const {
-    channel,
-    guild,
-    member,
-  } = message;
-  const guildMembers = [...guild.members.cache.values()];
-  const users: DuplicateUsers = {};
-
-  let empty = true;
-
-  if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
-    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-  ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}fetch-duplicates\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
-
-  // Remap users based on their avatar.
-  _.forEach(guildMembers, (guildMember) => {
-    const guildMemberAvatar = guildMember.user.avatar;
-
-    if (guildMemberAvatar !== null) {
-      // Create entry for avatar hash if it does not exist.
-      if (users[guildMemberAvatar] === undefined) {
-        users[guildMemberAvatar] = [];
-      }
-
-      users[guildMemberAvatar].push(guildMember.toString());
-    }
-  });
-
-  // Loop through all users with avatars.
-  _.forEach(Object.entries(users), (usersEntry) => {
-    const avatarHash = usersEntry[0];
-    const userIds = usersEntry[1];
-
-    if (_.size(userIds) > 1) {
-      const userIdsChunks = _.chunk(userIds, 80);
-
-      // Don't show empty results message.
-      empty = false;
-
-      // Send a message embed for every 80 members.
-      _.forEach(userIdsChunks, (userIdsChunk, key) => {
-        channel.send({
-          embeds: [
-            createListMembersEmbed(
-              [
-                'Duplicate Members for',
-                `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
-                (key > 0) ? `(Page ${key + 1})` : '',
-              ].join(' '),
-              userIdsChunk,
-              undefined,
-              member.user.tag,
-            ),
-          ],
-        }).catch((error: Error) => generateLogMessage(
-          'Failed to send list members embed',
-          10,
-          error,
-        ));
-      });
-    }
-  });
-
-  if (empty) {
-    channel.send({
-      embeds: [
-        createNoResultsEmbed(
-          `There are no duplicate users found in the **${guild.toString()}** guild.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send no results embed',
-      10,
-      error,
-    ));
-  }
-}
-
-/**
- * Help.
+ * Help menu.
  *
  * @param {Message}          message      - Message object.
- * @param {string}           botPrefix    - Command prefix.
  * @param {Roles}            allowedRoles - Roles allowed to use this command.
  * @param {HelpMenuSettings} settings     - Command settings.
  *
@@ -545,7 +546,7 @@ export function fetchDuplicates(message: Message, botPrefix: string, allowedRole
  *
  * @since 1.0.0
  */
-export function help(message: Message, botPrefix: string, allowedRoles: Roles, settings: HelpMenuSettings): void {
+export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMenuSettings): void {
   if (!message.channel || !message.member) {
     generateLogMessage(
       'Missing the "channel" or "member" property.',
@@ -559,12 +560,16 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
     channel,
     member,
   } = message;
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
+  const { botPrefix } = settings;
   const allowBulkBanRoles = settings.bulkBan;
-  const allowFetchMembersRoles = settings.fetchMembers;
   const allowFetchDuplicatesRoles = settings.fetchDuplicates;
-  const allowRoleRoles = settings.role;
+  const allowFetchMembersRoles = settings.fetchMembers;
+  const allowRoleManagerRoles = settings.roleManager;
   const allowTogglePermsRoles = settings.togglePerms;
-  const allowVoiceRoles = settings.voice;
+  const allowVoiceToolsRoles = settings.voiceTools;
   const commands = [];
 
   if (
@@ -574,7 +579,7 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}help\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -607,6 +612,18 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
   }
 
   if (
+    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.cache.has(allowFetchDuplicatesRole.id))
+    || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+  ) {
+    commands.push({
+      queries: [
+        `${botPrefix}fetch-duplicates`,
+      ],
+      description: 'Search for duplicate members matching the same avatar',
+    });
+  }
+
+  if (
     _.some(allowFetchMembersRoles, (allowFetchMembersRole) => member.roles.cache.has(allowFetchMembersRole.id))
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
@@ -622,28 +639,16 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
   }
 
   if (
-    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.cache.has(allowFetchDuplicatesRole.id))
+    _.some(allowRoleManagerRoles, (allowRoleManagerRole) => member.roles.cache.has(allowRoleManagerRole.id))
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${botPrefix}fetch-duplicates`,
-      ],
-      description: 'Search for duplicate members matching the same avatar',
-    });
-  }
-
-  if (
-    _.some(allowRoleRoles, (allowRoleRole) => member.roles.cache.has(allowRoleRole.id))
-    || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-  ) {
-    commands.push({
-      queries: [
-        `${botPrefix}role add everyone [@role to add]`,
-        `${botPrefix}role add no-role [@role to add]`,
-        `${botPrefix}role add [@role] [@role to add]`,
-        `${botPrefix}role remove everyone [@role to remove]`,
-        `${botPrefix}role remove [@role] [@role to remove]`,
+        `${botPrefix}role-manager add everyone [@role to add]`,
+        `${botPrefix}role-manager add no-role [@role to add]`,
+        `${botPrefix}role-manager add [@role] [@role to add]`,
+        `${botPrefix}role-manager remove everyone [@role to remove]`,
+        `${botPrefix}role-manager remove [@role] [@role to remove]`,
       ],
       description: 'Add or remove roles from everyone, users with no roles, or users with a specific role',
     });
@@ -663,13 +668,13 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
   }
 
   if (
-    _.some(allowVoiceRoles, (allowVoiceRole) => member.roles.cache.has(allowVoiceRole.id))
+    _.some(allowVoiceToolsRoles, (allowVoiceToolsRole) => member.roles.cache.has(allowVoiceToolsRole.id))
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${botPrefix}voice disconnect [#channel]`,
-        `${botPrefix}voice unmute [#channel]`,
+        `${botPrefix}voice-tools disconnect [#channel]`,
+        `${botPrefix}voice-tools unmute [#channel]`,
       ],
       description: 'Disconnect or unmute everyone in a voice or stage channel',
     });
@@ -705,17 +710,16 @@ export function help(message: Message, botPrefix: string, allowedRoles: Roles, s
 }
 
 /**
- * Role.
+ * Role manager.
  *
  * @param {Message} message      - Message object.
- * @param {string}  botPrefix    - Command prefix.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function role(message: Message, botPrefix: string, allowedRoles: Roles): void {
+export function roleManager(message: Message, allowedRoles: Roles): void {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -730,7 +734,9 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
     guild,
     member,
   } = message;
-  const commandArguments = _.split(message.toString(), ' ');
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
   const commandRoute = <RoleRoute>commandArguments[1];
   const commandSelection = <RoleSelection>commandArguments[2];
   const commandAction = <RoleAction>commandArguments[3];
@@ -750,7 +756,7 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}role\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -771,11 +777,11 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
             `The command route (${commandRoute}) is invalid or does not exist. Try using the command by inputting a route.\n`,
             'Examples:',
             '```',
-            `${botPrefix}role add everyone [@role to add]`,
-            `${botPrefix}role add no-role [@role to add]`,
-            `${botPrefix}role add [@role] [@role to add]`,
-            `${botPrefix}role remove everyone [@role to remove]`,
-            `${botPrefix}role remove [@role] [@role to remove]`,
+            `${commandCommand} add everyone [@role to add]`,
+            `${commandCommand} add no-role [@role to add]`,
+            `${commandCommand} add [@role] [@role to add]`,
+            `${commandCommand} remove everyone [@role to remove]`,
+            `${commandCommand} remove [@role] [@role to remove]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -802,9 +808,9 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
             'Examples:',
             '```',
             ...[
-              `${botPrefix}role ${commandRoute} everyone [@role to ${commandRoute}]`,
-              ...(commandRoute === 'add') ? [`${botPrefix}role add no-role [@role to add]`] : [],
-              `${botPrefix}role ${commandRoute} [@role] [@role to ${commandRoute}]`,
+              `${commandCommand} ${commandRoute} everyone [@role to ${commandRoute}]`,
+              ...(commandRoute === 'add') ? [`${commandCommand} add no-role [@role to add]`] : [],
+              `${commandCommand} ${commandRoute} [@role] [@role to ${commandRoute}]`,
             ],
             '```',
           ].join('\n'),
@@ -828,7 +834,7 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
             `The role (${commandAction}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
             'Examples:',
             '```',
-            `${botPrefix}role ${commandRoute} ${commandSelection} [@role to ${commandRoute}]`,
+            `${commandCommand} ${commandRoute} ${commandSelection} [@role to ${commandRoute}]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -853,7 +859,7 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
   // Begin to perform role actions.
   channel.send({
     embeds: [
-      createRoleEmbed(
+      createRoleManagerEmbed(
         commandRoute,
         [
           'Please wait while Stonker Bot',
@@ -975,7 +981,7 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
 
       theMessage.edit({
         embeds: [
-          createRoleEmbed(
+          createRoleManagerEmbed(
             commandRoute,
             [
               roleTwo.toString(),
@@ -1002,10 +1008,9 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
 }
 
 /**
- * Toggle permissions.
+ * Toggle perms.
  *
  * @param {Message}             message      - Message object.
- * @param {string}              botPrefix    - Command prefix.
  * @param {Roles}               allowedRoles - Roles allowed to use this command.
  * @param {TogglePermsSettings} settings     - Command settings.
  *
@@ -1013,7 +1018,7 @@ export function role(message: Message, botPrefix: string, allowedRoles: Roles): 
  *
  * @since 1.0.0
  */
-export function togglePerms(message: Message, botPrefix: string, allowedRoles: Roles, settings: TogglePermsSettings): void {
+export function togglePerms(message: Message, allowedRoles: Roles, settings: TogglePermsSettings): void {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -1028,7 +1033,9 @@ export function togglePerms(message: Message, botPrefix: string, allowedRoles: R
     guild,
     member,
   } = message;
-  const commandArguments = _.split(message.toString(), ' ');
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
   const commandGroup = <TogglePermsGroup>commandArguments[1];
   const commandToggle = <TogglePermsToggle>commandArguments[2];
   const selectedToggleGroup = _.find(settings, { id: commandGroup });
@@ -1042,7 +1049,7 @@ export function togglePerms(message: Message, botPrefix: string, allowedRoles: R
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}toggle-perms\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -1061,12 +1068,12 @@ export function togglePerms(message: Message, botPrefix: string, allowedRoles: R
 
     let commands = '';
 
-    // Shows the first 10 toggle groups.
+    // Shows the first 15 toggle groups.
     _.forEach(permsIds, (permsId, key) => {
-      if (key < 10) {
+      if (key < 15) {
         commands += [
-          `${botPrefix}toggle-perms ${permsId} on`,
-          `${botPrefix}toggle-perms ${permsId} off\n\n`,
+          `${commandCommand} ${permsId} on`,
+          `${commandCommand} ${permsId} off\n\n`,
         ].join('\n');
       }
     });
@@ -1107,8 +1114,8 @@ export function togglePerms(message: Message, botPrefix: string, allowedRoles: R
             `The toggle direction (${commandToggle}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
             'Example:',
             '```',
-            `${botPrefix}toggle-perms ${commandGroup} on`,
-            `${botPrefix}toggle-perms ${commandGroup} off`,
+            `${commandCommand} ${commandGroup} on`,
+            `${commandCommand} ${commandGroup} off`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -1241,17 +1248,16 @@ export function togglePerms(message: Message, botPrefix: string, allowedRoles: R
 }
 
 /**
- * Voice.
+ * Voice tools.
  *
  * @param {Message} message      - Message object.
- * @param {string}  botPrefix    - Command prefix.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function voice(message: Message, botPrefix: string, allowedRoles: Roles): void {
+export function voiceTools(message: Message, allowedRoles: Roles): void {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -1266,7 +1272,9 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
     guild,
     member,
   } = message;
-  const commandArguments = _.split(message.toString(), ' ');
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
   const commandRoute = <VoiceRoute>commandArguments[1];
   const commandSelection = <VoiceAction>commandArguments[2];
   const voiceOrStageChannel = guild.channels.cache.get(_.replace(commandSelection, /[<#>]/g, ''));
@@ -1282,7 +1290,7 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
     channel.send({
       embeds: [
         createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${botPrefix}voice\` command.`,
+          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
           member.user.tag,
         ),
       ],
@@ -1304,8 +1312,8 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
             `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
             'Examples:',
             '```',
-            `${botPrefix}voice disconnect [#channel]`,
-            `${botPrefix}voice unmute [#channel]`,
+            `${commandCommand} disconnect [#channel]`,
+            `${commandCommand} unmute [#channel]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -1329,7 +1337,7 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
             `The voice or stage channel (${commandSelection}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
             'Example:',
             '```',
-            `${botPrefix}voice ${commandRoute} [#channel]`,
+            `${commandCommand} ${commandRoute} [#channel]`,
             '```',
           ].join('\n'),
           member.user.tag,
@@ -1388,7 +1396,7 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
   // Begin to perform voice or stage channel actions.
   channel.send({
     embeds: [
-      createVoiceEmbed(
+      createVoiceToolsEmbed(
         commandRoute,
         `Please wait while Stonker Bot ${commandRoute}s all members connected to the ${voiceOrStageChannel.toString()} ${voiceChannel ?? stageChannel} channel...`,
         'in-progress',
@@ -1461,7 +1469,7 @@ export function voice(message: Message, botPrefix: string, allowedRoles: Roles):
 
       theMessage.edit({
         embeds: [
-          createVoiceEmbed(
+          createVoiceToolsEmbed(
             commandRoute,
             [
               (success) ? 'All members have been' : 'One or more members could not be',
