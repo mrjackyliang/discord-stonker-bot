@@ -3,7 +3,7 @@ import { GuildMember, PartialGuildMember } from 'discord.js';
 import _ from 'lodash';
 
 import { generateLogMessage } from '../lib/utilities';
-import { ChangeRoles } from '../typings';
+import { ChangeRoles } from '../types';
 
 /**
  * Change roles.
@@ -16,7 +16,7 @@ import { ChangeRoles } from '../typings';
  *
  * @since 1.0.0
  */
-export default function changeRoles(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, roles: ChangeRoles): void {
+export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, roles: ChangeRoles): void {
   _.map(roles, (role) => {
     const name = _.get(role, 'name', 'Unknown');
     const type = _.get(role, 'type');

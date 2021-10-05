@@ -19,7 +19,7 @@ import {
   createUpdateMessageEmbed,
   createUploadAttachmentEmbed,
 } from '../lib/embed';
-import { Snitch, StoredMessages } from '../typings';
+import { Snitch, StoredMessages } from '../types';
 
 const storedMessages: StoredMessages = [];
 

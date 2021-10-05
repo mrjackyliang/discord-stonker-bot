@@ -24,14 +24,14 @@ import {
   voiceTools,
 } from './commands';
 import { rssFeed, schedulePost, stocktwits } from './content';
-import inviteGenerator from './invites';
+import { inviteGenerator } from './invites';
 import { autoReply, messageCopier } from './messenger';
 import {
   checkRegexChannels,
   detectSuspiciousWords,
   removeAffiliateLinks,
 } from './moderator';
-import changeRoles from './roles';
+import { changeRoles } from './roles';
 import {
   userChangeNickname,
   userChangeUsername,
@@ -41,7 +41,7 @@ import {
   userUpdateMessage,
   userUploadAttachment,
 } from './snitch';
-import bumpThreads from './threads';
+import { bumpThreads } from './threads';
 import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
 import {
   AffiliateLinks,
@@ -53,7 +53,7 @@ import {
   Replies,
   Snitch,
   SuspiciousWords,
-} from '../typings';
+} from '../types';
 
 /**
  * Bot configuration.
@@ -104,7 +104,7 @@ const server = express();
  *
  * @since 1.0.0
  */
-export default function initialize(client: Client, guild: Guild): void {
+export function initialize(client: Client, guild: Guild): void {
   /**
    * When user sends a command.
    *

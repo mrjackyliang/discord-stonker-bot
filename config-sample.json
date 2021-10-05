@@ -296,6 +296,7 @@
             ],
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
             "include-attachments": true,
+            "delete-message": false,
             "allowed-users": [
                 "000000000000000000"
             ],

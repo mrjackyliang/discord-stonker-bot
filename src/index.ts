@@ -9,7 +9,7 @@ import _ from 'lodash';
 
 import config from '../config.json';
 
-import initialize from './modules';
+import { initialize } from './modules';
 import { generateServerFailedMessage } from './lib/utilities';
 
 /**

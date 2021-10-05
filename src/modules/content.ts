@@ -12,18 +12,18 @@ import {
   RssFeed,
   SchedulePost,
   Stocktwit,
-} from '../typings';
+} from '../types';
 
 /**
  * Create re-occurring schedule.
  *
- * @param {ReoccurringSchedule} sendEvery - Reoccurring schedule.
+ * @param {ReoccurringSchedule|undefined} sendEvery - Reoccurring schedule.
  *
  * @returns {RecurrenceRule}
  *
  * @since 1.0.0
  */
-function createReoccurringSchedule(sendEvery: ReoccurringSchedule): RecurrenceRule {
+function createReoccurringSchedule(sendEvery: ReoccurringSchedule | undefined): RecurrenceRule {
   const rule = new RecurrenceRule();
   const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
   const daysOfWeek = _.get(sendEvery, 'days-of-week');

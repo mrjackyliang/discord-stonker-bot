@@ -1,13 +1,15 @@
 {
     "name": "discord-stocker-bot",
     "displayName": "Discord Stonker Bot",
-    "version": "1.9.0",
+    "version": "1.9.3",
     "description": "A Discord bot built for finance-related servers",
-    "main": "src/index.ts",
+    "main": "build/src/index.js",
+    "private": true,
     "scripts": {
-        "start:dev": "ts-node src/index.ts",
-        "start:prod": "node build/src/index.js",
-        "build": "tsc --build && copyfiles -u 1 src/**/*.ejs build/src/"
+        "start": "ts-node src/index.ts",
+        "build": "npm-run-all -p build:*",
+        "build:tsc": "tsc --build",
+        "build:copyfiles": "copyfiles -u 1 src/**/*.ejs build/src/"
     },
     "repository": {
         "type": "git",
@@ -31,12 +33,11 @@
         "url": "https://github.com/mrjackyliang/discord-stonker-bot/issues"
     },
     "files": [
-        "src/*.js"
+        "build/*"
     ],
     "homepage": "https://github.com/mrjackyliang/discord-stonker-bot#readme",
     "engines": {
-        "node": ">=16.6.0",
-        "npm": ">=7.0.0"
+        "node": "16"
     },
     "dependencies": {
         "axios": "^0.21.1",
@@ -61,6 +62,7 @@
         "eslint": "^7.32.0",
         "eslint-config-airbnb-base": "^14.2.1",
         "eslint-plugin-import": "^2.24.0",
+        "npm-run-all": "^4.1.5",
         "ts-node": "^10.2.0",
         "typescript": "^4.3.5"
     }

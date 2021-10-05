@@ -5,7 +5,7 @@ import { DateTime, DurationObjectUnits } from 'luxon';
 
 import config from '../../config.json';
 
-import { LogMessagePriority } from '../typings';
+import { LogMessagePriority } from '../types';
 
 /**
  * Generate log message.

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { scheduleJob } from 'node-schedule';
 import { generateLogMessage } from '../lib/utilities';
-import { BumpThread } from '../typings';
+import { BumpThread } from '../types';
 
 /**
  * Bump threads.
@@ -16,7 +16,7 @@ import { BumpThread } from '../typings';
  *
  * @since 1.0.0
  */
-export default function bumpThreads(guild: Guild, setting: BumpThread): void {
+export function bumpThreads(guild: Guild, setting: BumpThread): void {
   const name = _.get(setting, 'name', 'Unknown');
   const channelId = _.get(setting, 'channel-id');
   const threadId = _.get(setting, 'thread-id');

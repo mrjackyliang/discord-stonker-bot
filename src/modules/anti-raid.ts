@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { createMemberMonitorEmbed } from '../lib/embed';
 import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
-import { AntiRaidAutoBan, AntiRaidMembershipGate, MemberMonitorMode } from '../typings';
+import { AntiRaidAutoBan, AntiRaidMembershipGate, MemberMonitorMode } from '../types';
 
 /**
  * Anti-raid auto-ban.
@@ -85,7 +85,8 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
   };
 
   if (
-    guild.roles.cache.has(settingsRoleId)
+    settingsRoleId
+    && guild.roles.cache.has(settingsRoleId)
     && oldMemberPending
     && !newMemberPending
   ) {
@@ -106,7 +107,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
       error,
     ));
 
-    if (sendToChannel) {
+    if (sendToChannel && settingsMessage) {
       sendToChannel.send({
         content: replaceVariables(settingsMessage),
       }).catch((error) => generateLogMessage(

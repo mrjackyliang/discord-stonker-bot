@@ -52,10 +52,10 @@ export type AffiliateLinksWebsite = {
 };
 
 export type AffiliateLinks = {
-  links: AffiliateLinksWebsite[];
-  'channel-id': Snowflake;
-  'direct-message': string;
-  'excluded-roles': Roles;
+  links?: AffiliateLinksWebsite[];
+  'channel-id'?: Snowflake;
+  'direct-message'?: string;
+  'excluded-roles'?: Roles;
 };
 
 export type AntiRaidAutoBan = {
@@ -64,7 +64,9 @@ export type AntiRaidAutoBan = {
 };
 
 export type AntiRaidMembershipGate = {
-  'verified-role-id': Snowflake;
+  'role-id'?: Snowflake;
+  'channel-id'?: Snowflake;
+  'message'?: string;
 };
 
 export type BumpThread = {
@@ -75,14 +77,21 @@ export type BumpThread = {
 
 export type ChangeRole = {
   name?: string;
-  type: 'yes-to-yes' | 'no-to-no' | 'yes-to-no' | 'no-to-yes';
-  before: Roles;
-  after: Roles;
+  type?: 'yes-to-yes' | 'no-to-no' | 'yes-to-no' | 'no-to-yes';
+  before?: Roles;
+  after?: Roles;
   'to-add'?: Roles;
   'to-remove'?: Roles;
 };
 
 export type ChangeRoles = ChangeRole[];
+
+export type HelpMenuEmbedCommand = {
+  queries: string[];
+  description?: string;
+};
+
+export type HelpMenuEmbedCommands = HelpMenuEmbedCommand[];
 
 export type InviteGenerator = {
   design?: {
@@ -105,11 +114,12 @@ export type InviteGenerator = {
 
 export type MessageCopier = {
   name?: string;
-  'channel-id': Snowflake;
+  'channel-id'?: Snowflake;
   regex: RegularExpression;
   replacements?: RegularExpressionReplacements;
-  format: string;
+  format?: string;
   'include-attachments'?: boolean;
+  'delete-message'?: boolean;
   'allowed-users'?: Snowflake[];
   'allowed-channels'?: Snowflake[];
   'disallowed-users'?: Snowflake[];
@@ -120,10 +130,10 @@ export type MessageCopiers = MessageCopier[];
 
 export type RegexRule = {
   name?: string;
-  'channel-id': Snowflake;
+  'channel-id'?: Snowflake;
   regex: RegularExpression;
-  'direct-message': string;
-  'exclude-roles': Roles;
+  'direct-message'?: string;
+  'exclude-roles'?: Roles;
 };
 
 export type RegexRules = RegexRule[];
@@ -131,9 +141,9 @@ export type RegexRules = RegexRule[];
 export type Reply = {
   name?: string;
   'channel-ids'?: Snowflake[];
-  reply: boolean;
+  reply?: boolean;
   regex: RegularExpression;
-  messages: string[];
+  messages?: string[];
 };
 
 export type Replies = Reply[];
@@ -151,7 +161,7 @@ export type SchedulePost = {
   'channel-id': Snowflake;
   message: MessageOptions;
   reactions?: EmojiIdentifierResolvable[];
-  'send-every': ReoccurringSchedule;
+  'send-every'?: ReoccurringSchedule;
   'skip-days'?: string[];
 };
 
@@ -162,10 +172,10 @@ export type Snitch = {
 export type Stocktwit = {
   name?: string;
   'channel-id': Snowflake;
-  message?: string;
-  'show-embed': boolean;
+  message: string;
+  'show-embed'?: boolean;
   limit: number;
-  'send-every': ReoccurringSchedule;
+  'send-every'?: ReoccurringSchedule;
   'skip-days'?: string[];
 };
 
@@ -175,8 +185,8 @@ export type SuspiciousWordsCategory = {
 };
 
 export type SuspiciousWords = {
-  'channel-id': Snowflake;
-  categories: SuspiciousWordsCategory[];
+  'channel-id'?: Snowflake;
+  categories?: SuspiciousWordsCategory[];
 };
 
 export type TogglePermsSettingUser = {
@@ -188,12 +198,12 @@ export type TogglePermsSettingUser = {
 export type TogglePermsSettingChannel = {
   description?: string;
   'channel-id': Snowflake;
-  'channel-perms': TogglePermsSettingUser[];
+  'channel-perms'?: TogglePermsSettingUser[];
 };
 
 export type TogglePermsSetting = {
-  name: string;
-  id: string;
+  name?: string;
+  id?: string;
   on: TogglePermsSettingChannel[];
   off: TogglePermsSettingChannel[];
 };

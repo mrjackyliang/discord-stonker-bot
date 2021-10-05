@@ -1,5 +1,10 @@
 import chalk from 'chalk';
-import { Message, Permissions } from 'discord.js';
+import {
+  GuildMember,
+  Message,
+  Permissions,
+  TextBasedChannels,
+} from 'discord.js';
 import _ from 'lodash';
 
 import {
@@ -27,7 +32,50 @@ import {
   TogglePermsToggle,
   VoiceAction,
   VoiceRoute,
-} from '../typings';
+} from '../types';
+
+/**
+ * Command no permissions.
+ *
+ * @param {TextBasedChannels} channel     - Channel to send to.
+ * @param {GuildMember}       member      - Member attempting to use command.
+ * @param {string}            baseCommand - The command member attempted to use.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, baseCommand: string): void {
+  channel.send({
+    embeds: [
+      createCommandErrorEmbed(
+        `You do not have enough permissions to use the \`${baseCommand}\` command.`,
+        member.user.tag,
+      ),
+    ],
+  }).catch((error: Error) => generateLogMessage(
+    'Failed to send command error embed',
+    10,
+    error,
+  ));
+}
+
+/**
+ * Command delete message.
+ *
+ * @param {Message} message - Message object.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+function commandDeleteMessage(message: Message): void {
+  message.delete().catch((error: Error) => generateLogMessage(
+    'Failed to delete message',
+    10,
+    error,
+  ));
+}
 
 /**
  * Bulk ban.
@@ -61,18 +109,7 @@ export function bulkBan(message: Message, allowedRoles: Roles): void {
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
@@ -101,11 +138,7 @@ export function bulkBan(message: Message, allowedRoles: Roles): void {
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   // Begin to perform role actions.
   channel.send({
@@ -231,28 +264,13 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   // Remap users based on their avatar.
   _.forEach(guildMembers, (guildMember) => {
@@ -372,18 +390,7 @@ export function fetchMembers(message: Message, allowedRoles: Roles): void {
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
@@ -467,11 +474,7 @@ export function fetchMembers(message: Message, allowedRoles: Roles): void {
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   _.forEach(guildMembers, (guildMember) => {
     const memberNickname = guildMember.nickname;
@@ -563,7 +566,7 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
   const commandCommand = commandArguments[0];
-  const { botPrefix } = settings;
+  const theBotPrefix = settings.botPrefix;
   const allowBulkBanRoles = settings.bulkBan;
   const allowFetchDuplicatesRoles = settings.fetchDuplicates;
   const allowFetchMembersRoles = settings.fetchMembers;
@@ -576,28 +579,13 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   if (
     _.some(allowBulkBanRoles, (allowBulkBanRole) => member.roles.cache.has(allowBulkBanRole.id))
@@ -605,7 +593,7 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}bulk-ban [@user]`,
+        `${theBotPrefix}bulk-ban [@user]`,
       ],
       description: 'Bulk ban members tagged in a single command',
     });
@@ -617,7 +605,7 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}fetch-duplicates`,
+        `${theBotPrefix}fetch-duplicates`,
       ],
       description: 'Search for duplicate members matching the same avatar',
     });
@@ -629,10 +617,10 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}fetch-members avatar [@user]`,
-        `${botPrefix}fetch-members role [@role]`,
-        `${botPrefix}fetch-members string [string]`,
-        `${botPrefix}fetch-members username [@user]`,
+        `${theBotPrefix}fetch-members avatar [@user]`,
+        `${theBotPrefix}fetch-members role [@role]`,
+        `${theBotPrefix}fetch-members string [string]`,
+        `${theBotPrefix}fetch-members username [@user]`,
       ],
       description: 'Search for members matching an avatar, role, string, or username',
     });
@@ -644,11 +632,11 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}role-manager add everyone [@role to add]`,
-        `${botPrefix}role-manager add no-role [@role to add]`,
-        `${botPrefix}role-manager add [@role] [@role to add]`,
-        `${botPrefix}role-manager remove everyone [@role to remove]`,
-        `${botPrefix}role-manager remove [@role] [@role to remove]`,
+        `${theBotPrefix}role-manager add everyone [@role to add]`,
+        `${theBotPrefix}role-manager add no-role [@role to add]`,
+        `${theBotPrefix}role-manager add [@role] [@role to add]`,
+        `${theBotPrefix}role-manager remove everyone [@role to remove]`,
+        `${theBotPrefix}role-manager remove [@role] [@role to remove]`,
       ],
       description: 'Add or remove roles from everyone, users with no roles, or users with a specific role',
     });
@@ -660,8 +648,8 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}toggle-perms [id] on`,
-        `${botPrefix}toggle-perms [id] off`,
+        `${theBotPrefix}toggle-perms [id] on`,
+        `${theBotPrefix}toggle-perms [id] off`,
       ],
       description: 'Toggle preset permissions',
     });
@@ -673,8 +661,8 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   ) {
     commands.push({
       queries: [
-        `${botPrefix}voice-tools disconnect [#channel]`,
-        `${botPrefix}voice-tools unmute [#channel]`,
+        `${theBotPrefix}voice-tools disconnect [#channel]`,
+        `${theBotPrefix}voice-tools unmute [#channel]`,
       ],
       description: 'Disconnect or unmute everyone in a voice or stage channel',
     });
@@ -753,18 +741,7 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
@@ -850,11 +827,7 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   // Begin to perform role actions.
   channel.send({
@@ -1046,18 +1019,7 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
@@ -1131,11 +1093,7 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   // Toggle permissions per channel.
   const channelToggles: (boolean | boolean[])[] = _.map(selectedToggleDirection, (channelToggle) => {
@@ -1287,18 +1245,7 @@ export function voiceTools(message: Message, allowedRoles: Roles): void {
     !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `You do not have enough permissions to use the \`${commandCommand}\` command.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandNoPermissions(channel, member, commandCommand);
 
     return;
   }
@@ -1387,11 +1334,7 @@ export function voiceTools(message: Message, allowedRoles: Roles): void {
   }
 
   // Delete message with command.
-  message.delete().catch((error: Error) => generateLogMessage(
-    'Failed to delete message',
-    10,
-    error,
-  ));
+  commandDeleteMessage(message);
 
   // Begin to perform voice or stage channel actions.
   channel.send({

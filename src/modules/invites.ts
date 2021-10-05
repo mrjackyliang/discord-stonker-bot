@@ -4,7 +4,7 @@ import { Express } from 'express';
 import _ from 'lodash';
 
 import { generateLogMessage } from '../lib/utilities';
-import { InviteGenerator } from '../typings';
+import { InviteGenerator } from '../types';
 
 /**
  * Invite generator.
@@ -15,7 +15,7 @@ import { InviteGenerator } from '../typings';
  *
  * @since 1.0.0
  */
-export default function inviteGenerator(server: Express, guild: Guild, config: InviteGenerator): void {
+export function inviteGenerator(server: Express, guild: Guild, config: InviteGenerator): void {
   const secretKey = _.get(config, 'recaptcha.secret-key', '');
 
   /**
@@ -51,20 +51,18 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
 
   server.post('/invite', (request, response) => {
     const { token } = request.body;
-    const remoteIp = request.headers['x-forwarded-for'] ?? request.socket.remoteAddress;
 
     axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
       params: {
         secret: secretKey,
         response: token,
-        remoteip: remoteIp,
       },
     }).then((postResponse) => {
       const data = _.get(postResponse, 'data');
       const success = _.get(data, 'success', false);
       const errorCode = _.get(data, 'error-codes[0]', '');
 
-      let errorMessage = '';
+      let errorMessage;
 
       switch (errorCode) {
         case 'missing-input-secret':
@@ -86,21 +84,22 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
           errorMessage = 'Your token has expired or was already used. Please refresh the page and try again.';
           break;
         default:
+          errorMessage = 'Unknown error.';
           break;
       }
 
       if (!success) {
         generateLogMessage(
-          `/invite: Google reCAPTCHA failed result (ip: ${remoteIp}, error-code: ${errorCode})`,
+          `/invite: Google reCAPTCHA failed result (error-code: ${errorCode})`,
           40,
         );
 
-        response.status(401).send(errorMessage).end();
+        response.status(401).send(errorMessage);
       } else {
         const { rulesChannel } = guild;
 
         generateLogMessage(
-          `/invite: Google reCAPTCHA success result (ip: ${remoteIp})`,
+          '/invite: Google reCAPTCHA success result',
           40,
         );
 
@@ -109,16 +108,16 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
           guild.invites.create(rulesChannel, {
             maxAge: 120,
             maxUses: 1,
-            reason: `Web visitor passed the invite verification (ip: ${remoteIp})`,
+            reason: 'Web visitor passed the invite verification',
           }).then((inviteResponse) => {
             const { code, url } = inviteResponse;
 
             generateLogMessage(
-              `/invite: Invite created (code: ${code}, ip: ${remoteIp})`,
+              `/invite: Invite created (code: ${code})`,
               40,
             );
 
-            response.status(200).send(url).end();
+            response.status(200).send(url);
           }).catch((error) => {
             generateLogMessage(
               '/invite: Failed to create invite',
@@ -126,7 +125,7 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
               error,
             );
 
-            response.status(500).send('Failed to create invite. Please contact your server administrator.').end();
+            response.status(500).send('Failed to create invite. Please contact your server administrator.');
           });
         } else {
           generateLogMessage(
@@ -134,7 +133,7 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
             10,
           );
 
-          response.status(500).send('Rules or guidelines channel not configured. Please contact your server administrator.').end();
+          response.status(500).send('Rules or guidelines channel not configured. Please contact your server administrator.');
         }
       }
     }).catch((error) => {
@@ -144,7 +143,7 @@ export default function inviteGenerator(server: Express, guild: Guild, config: I
         error,
       );
 
-      response.sendStatus(500).end();
+      response.sendStatus(500);
     });
   });
 }

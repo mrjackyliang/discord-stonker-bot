@@ -11,7 +11,7 @@ import {
   generateLogMessage,
   getTextBasedChannel,
 } from '../lib/utilities';
-import { AffiliateLinks, RegexRules, SuspiciousWords } from '../typings';
+import { AffiliateLinks, RegexRules, SuspiciousWords } from '../types';
 
 /**
  * Check regex channels.

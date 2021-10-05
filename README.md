@@ -92,7 +92,7 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 ```
 
 ### 2. Snitch Notifications
-Get notifications from user actions surrounding your server. When a nickname change, username change, deleted message, or edited message is detected, a notification will be sent to the log channel specified in the [base settings](#1-base-settings).
+Get notifications from user actions surrounding your server. A notification will be sent to a specified channel when a user is updated, message includes media, or when a message is updated or deleted.
 
 | __Key__                               | __Type__ | __Description__                             | __Accepted Values__ |
 |---------------------------------------|----------|---------------------------------------------|---------------------|
@@ -213,7 +213,7 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ```
 
 ### 4. Anti-Raid
-A set of tools to ban members (based on their avatar hash or username), and helps implement a verification gate for those that just joined the server.
+A set of tools to ban members (based on their avatar hash or username), and helps automate the membership gate for those that just joined the server.
 
 | __Key__                                    | __Type__   | __Description__                                              | __Accepted Values__                                                                    |
 |--------------------------------------------|------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------|
@@ -260,7 +260,7 @@ A set of tools to ban members (based on their avatar hash or username), and help
 ```
 
 ### 5. Scheduled Posts
-You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance).
+You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance) and even send on a specific day.
 
 | __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                       |
 |---------------------------------------------|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -388,7 +388,7 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 ```
 
 ### 8. Detect Suspicious Words
-Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often does not require warnings or deletion.
+Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often do not require warnings or deletion.
 
 | __Key__                                   | __Type__   | __Description__                          | __Accepted Values__ |
 |-------------------------------------------|------------|------------------------------------------|---------------------|
@@ -418,7 +418,7 @@ Detect words in a message that may require attention. Useful when a member menti
 ### 9. Role Manager
 Add or remove selected roles from members if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
 
-Useful for many scenarios like when members lose a Premium role or when they get muted, and you need to remove _write access_ roles.
+Useful for many scenarios like when members lose a Premium role or when members get muted (_removing_ write access roles).
 
 | __Key__                             | __Type__   | __Description__                               | __Accepted Values__                                   |
 |-------------------------------------|------------|-----------------------------------------------|-------------------------------------------------------|
@@ -570,7 +570,7 @@ Reply to a message without requiring human interaction. Great for automated cust
 ```
 
 ### 11. Message Copier
-Automatically copy the original message that matches the regular expression into another channel.
+Automatically copy the original message that matches the regular expression into another channel. A powerful utility to organize content in Discord.
 
 | __Key__                                          | __Type__   | __Description__                                        | __Accepted Values__                                                                                                                                                                               |
 |--------------------------------------------------|------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -587,6 +587,7 @@ Automatically copy the original message that matches the regular expression into
 | `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                           | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
 | `message-copier[x].format`                       | `string`   | Format the copied message                              | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                                    |
 | `message-copier[x].include-attachments`          | `boolean`  | Include attachments when copying message               | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].delete-message`               | `boolean`  | Delete original message when copying message           | `true` or `false`                                                                                                                                                                                 |
 | `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)      | Discord user IDs                                                                                                                                                                                  |
 | `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional)   | Discord channel IDs                                                                                                                                                                               |
 | `message-copier[x].disallowed-users`             | `string[]` | Do not copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
@@ -611,6 +612,7 @@ Automatically copy the original message that matches the regular expression into
             ],
             "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
             "include-attachments": true,
+            "delete-message": false,
             "allowed-users": [
                 "000000000000000000"
             ],
@@ -727,7 +729,7 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
 ```
 
 ### 14. Toggle Preset Permissions
-Configure channel permissions with a single command without touching them! Great for quickly enabling and disabling features during special events.
+Configure channel permissions with a single command without touching them! Great for quickly showing and hiding channels for special events.
 
 | __Key__                                                      | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                    |
 |--------------------------------------------------------------|------------|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -791,7 +793,7 @@ Configure channel permissions with a single command without touching them! Great
 ```
 
 ### 15. Bump Threads
-Stretch the world of threads and make them like sub-channels! Create threads that never expire, even if you don't have boosted servers.
+Stretch the world of threads and make them like sub-channels! Create threads that never expire, even if you don't have _boosted_ servers.
 
 | __Key__                      | __Type__   | __Description__            | __Accepted Values__ |
 |------------------------------|------------|----------------------------|---------------------|

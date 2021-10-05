@@ -15,10 +15,11 @@ import config from '../../config.json';
 import { getReadableDuration, splitStringChunks } from './utilities';
 import {
   EmbedStatus,
+  HelpMenuEmbedCommands,
   MemberMonitorMode,
   RoleRoute,
   VoiceRoute,
-} from '../typings';
+} from '../types';
 
 /**
  * Add embed.
@@ -301,14 +302,14 @@ export function createDeleteMessageEmbed(userMention: string, channelMention: st
 /**
  * Create help menu embed.
  *
- * @param {{ queries: string[]; description: string; }[]} commands - Array of commands.
+ * @param {HelpMenuEmbedCommands} commands - Array of commands.
  * @param {string}                                        userTag  - User tag of initiator.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-export function createHelpMenuEmbed(commands: { queries: string[]; description: string; }[], userTag: string): MessageEmbed {
+export function createHelpMenuEmbed(commands: HelpMenuEmbedCommands, userTag: string): MessageEmbed {
   const fields: string[] = [];
 
   _.forEach(commands, (command) => {

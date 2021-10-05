@@ -10,7 +10,7 @@ import {
   MessageCopiers,
   RegularExpressionReplacements,
   Replies,
-} from '../typings';
+} from '../types';
 
 /**
  * Auto reply.
@@ -158,7 +158,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
   /**
    * Replace variables.
    *
-   * @param {string}                                  configFormat - Format from configuration.
+   * @param {string|undefined}                        configFormat - Format from configuration.
    * @param {string}                                  name         - Message copier name.
    * @param {RegularExpressionReplacements|undefined} replacements - Text replacements from configuration.
    *
@@ -166,7 +166,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
    *
    * @since 1.0.0
    */
-  const replaceVariables = (configFormat: string, name: string, replacements: RegularExpressionReplacements | undefined): string => {
+  const replaceVariables = (configFormat: string | undefined, name: string, replacements: RegularExpressionReplacements | undefined): string => {
     if (_.isString(configFormat) && !_.isEmpty(configFormat)) {
       return configFormat
         .replace(/%AUTHOR_MENTION%/g, message.author.toString())
@@ -190,6 +190,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
     const replacements = _.get(copier, 'replacements');
     const format = _.get(copier, 'format');
     const includeAttachments = _.get(copier, 'include-attachments');
+    const deleteMessage = _.get(copier, 'delete-message');
     const allowedUsers = _.get(copier, 'allowed-users');
     const allowedChannels = _.get(copier, 'allowed-channels');
     const disallowedUsers = _.get(copier, 'disallowed-users');
@@ -242,6 +243,14 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
               files: links,
             });
           }
+        }
+
+        if (deleteMessage === true) {
+          message.delete().catch((error: Error) => generateLogMessage(
+            'Failed to delete message',
+            10,
+            error,
+          ));
         }
 
         sendToChannel.send(content).then(() => {
