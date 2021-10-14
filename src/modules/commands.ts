@@ -19,7 +19,7 @@ import {
 } from '../lib/embed';
 import { generateLogMessage } from '../lib/utilities';
 import {
-  DuplicateUsers,
+  DuplicateMembers,
   FetchMembersAction,
   FetchMembersRoute,
   HelpMenuSettings,
@@ -27,12 +27,65 @@ import {
   RoleRoute,
   Roles,
   RoleSelection,
+  RoleToOrFrom,
   TogglePermsGroup,
   TogglePermsSettings,
   TogglePermsToggle,
   VoiceAction,
   VoiceRoute,
 } from '../types';
+
+/**
+ * Command no results.
+ *
+ * @param {TextBasedChannels} channel - Channel to send to.
+ * @param {GuildMember}       member  - Member attempting to use command.
+ * @param {string}            message - The no results message.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+function commandNoResults(channel: TextBasedChannels, member: GuildMember, message: string): void {
+  channel.send({
+    embeds: [
+      createNoResultsEmbed(
+        message,
+        member.user.tag,
+      ),
+    ],
+  }).catch((error) => generateLogMessage(
+    'Failed to send no results embed',
+    10,
+    error,
+  ));
+}
+
+/**
+ * Command error.
+ *
+ * @param {TextBasedChannels} channel - Channel to send to.
+ * @param {GuildMember}       member  - Member attempting to use command.
+ * @param {string}            message - The error message.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+function commandError(channel: TextBasedChannels, member: GuildMember, message: string): void {
+  channel.send({
+    embeds: [
+      createCommandErrorEmbed(
+        message,
+        member.user.tag,
+      ),
+    ],
+  }).catch((error) => generateLogMessage(
+    'Failed to send command error embed',
+    10,
+    error,
+  ));
+}
 
 /**
  * Command no permissions.
@@ -53,7 +106,7 @@ function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, b
         member.user.tag,
       ),
     ],
-  }).catch((error: Error) => generateLogMessage(
+  }).catch((error) => generateLogMessage(
     'Failed to send command error embed',
     10,
     error,
@@ -70,7 +123,7 @@ function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, b
  * @since 1.0.0
  */
 function commandDeleteMessage(message: Message): void {
-  message.delete().catch((error: Error) => generateLogMessage(
+  message.delete().catch((error) => generateLogMessage(
     'Failed to delete message',
     10,
     error,
@@ -83,161 +136,11 @@ function commandDeleteMessage(message: Message): void {
  * @param {Message} message      - Message object.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function bulkBan(message: Message, allowedRoles: Roles): void {
-  if (!message.channel || !message.guild || !message.member) {
-    generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
-      10,
-    );
-
-    return;
-  }
-
-  const { channel, guild, member } = message;
-  const messageText = message.toString();
-  const commandArguments = messageText.split(' ');
-  const commandCommand = commandArguments[0];
-  const commandTags = commandArguments.slice(1);
-  const tags = <string[]>_.filter(commandTags, (commandTag) => commandTag.match(/<@!?([0-9]+)>/g));
-  const matches = _.map(tags, (tag) => tag.replace(/<@!?([0-9]+)>/g, '$1'));
-
-  if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
-    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-  ) {
-    commandNoPermissions(channel, member, commandCommand);
-
-    return;
-  }
-
-  if (matches.length === 0) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            'No member tags were detected. Try using the command by tagging one or more members.\n',
-            'Example:',
-            '```',
-            `${commandCommand} [@user]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
-
-    return;
-  }
-
-  // Delete message with command.
-  commandDeleteMessage(message);
-
-  // Begin to perform role actions.
-  channel.send({
-    embeds: [
-      createBulkBanEmbed(
-        'Please wait while Stonker Bot bans the selected members',
-        'in-progress',
-        member.user.tag,
-      ),
-    ],
-  }).then((theMessage) => {
-    const banResults = _.map(matches, (match) => {
-      const guildMember = guild.members.cache.get(match);
-
-      let success = true;
-
-      if (guildMember) {
-        const guildMemberMention = guildMember.toString();
-        /**
-         * Ban member result logger.
-         *
-         * @param {string} word  - Beginning phrase.
-         * @param {Error}  error - Error object.
-         *
-         * @returns {boolean}
-         *
-         * @since 1.0.0
-         */
-        const logger = (word: string, error?: Error): boolean => {
-          generateLogMessage(
-            [
-              word,
-              (!_.isError(error)) ? chalk.green(guildMemberMention) : chalk.red(guildMemberMention),
-              'using the bulk ban command',
-            ].join(' '),
-            (!_.isError(error)) ? 30 : 10,
-            (_.isError(error)) ? error : undefined,
-          );
-
-          return (!_.isError(error));
-        };
-
-        guildMember.ban({
-          reason: [
-            `@${member.user.tag}`,
-            'used the bulk ban command',
-          ].join(' '),
-        }).then(() => logger(
-          'Successfully banned',
-        )).catch((error: Error) => {
-          success = logger(
-            'Failed to ban',
-            error,
-          );
-        });
-      }
-
-      return success;
-    });
-
-    Promise.all(banResults).then((responses) => {
-      const success = _.every(responses, (response) => response === true);
-
-      theMessage.edit({
-        embeds: [
-          createBulkBanEmbed(
-            [
-              'Selected members',
-              (success) ? 'were' : 'could not be',
-              `successfully banned from the **${guild.toString()}** guild.`,
-            ].join(' '),
-            (success) ? 'complete' : 'fail',
-            member.user.tag,
-          ),
-        ],
-      }).catch((error: Error) => generateLogMessage(
-        'Failed to edit role embed',
-        10,
-        error,
-      ));
-    });
-  }).catch((error: Error) => generateLogMessage(
-    'Failed to send bulk ban embed',
-    10,
-    error,
-  ));
-}
-
-/**
- * Fetch duplicates.
- *
- * @param {Message} message      - Message object.
- * @param {Roles}   allowedRoles - Roles allowed to use this command.
- *
- * @returns {void}
- *
- * @since 1.0.0
- */
-export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
+export async function bulkBan(message: Message, allowedRoles: Roles): Promise<void> {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -255,13 +158,161 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
   const messageText = message.toString();
   const commandArguments = messageText.split(' ');
   const commandCommand = commandArguments[0];
-  const guildMembers = [...guild.members.cache.values()];
-  const users: DuplicateUsers = {};
+  const commandTags = commandArguments.slice(1);
+  const guildMembers = await guild.members.fetch();
+  const unverifiedUserIds = _.map(commandTags, (commandTag) => commandTag.replace(/<@!?([0-9]+)>/g, '$1'));
+  const verifiedUsers: GuildMember[] = [];
+
+  if (
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+  ) {
+    commandNoPermissions(channel, member, commandCommand);
+
+    return;
+  }
+
+  // Only keep verified users.
+  _.forEach(unverifiedUserIds, (unverifiedUserId) => {
+    const guildMember = guildMembers.get(unverifiedUserId);
+
+    if (guildMember) {
+      verifiedUsers.push(guildMember);
+    }
+  });
+
+  // If no verified users have been specified.
+  if (verifiedUsers.length === 0) {
+    commandError(
+      channel,
+      member,
+      [
+        'No member tags were detected. Try using the command by tagging one or more members or specifying their IDs.\n',
+        'Example:',
+        '```',
+        `${commandCommand} [@user]`,
+        '```',
+      ].join('\n'),
+    );
+
+    return;
+  }
+
+  // Delete message with command.
+  commandDeleteMessage(message);
+
+  // Send status message.
+  const statusMessage = await channel.send({
+    embeds: [
+      createBulkBanEmbed(
+        'Please wait while Stonker Bot bans the selected members',
+        'in-progress',
+        member.user.tag,
+      ),
+    ],
+  });
+
+  // Perform actions.
+  const banResults = _.map(verifiedUsers, async (verifiedUser) => {
+    /**
+     * Ban results logger.
+     *
+     * @param {string}  word      - Base wording.
+     * @param {boolean} isSuccess - Is successful.
+     * @param {unknown} error     - Error object.
+     *
+     * @returns {void}
+     *
+     * @since 1.0.0
+     */
+    const logger = (word: string, isSuccess: boolean, error?: unknown): void => {
+      generateLogMessage(
+        [
+          word,
+          ...(isSuccess) ? [chalk.green(verifiedUser.toString())] : [chalk.red(verifiedUser.toString())],
+          'using the bulk ban command',
+        ].join(' '),
+        (isSuccess) ? 30 : 10,
+        (_.isError(error)) ? error : undefined,
+      );
+    };
+
+    let success = true;
+
+    try {
+      await verifiedUser.ban({
+        reason: `@${member.user.tag} used the bulk ban command`,
+      });
+
+      logger('Successfully banned', true);
+    } catch (error) {
+      success = false;
+
+      logger('Failed to ban', false);
+    }
+
+    return success;
+  });
+
+  // Check actions and edit status message.
+  Promise.all(banResults).then((responses) => {
+    const success = _.every(responses, (response) => response === true);
+
+    statusMessage.edit({
+      embeds: [
+        createBulkBanEmbed(
+          [
+            'Selected members',
+            ...(success) ? ['were'] : ['could not be'],
+            `successfully banned from the **${guild.toString()}** guild.`,
+          ].join(' '),
+          (success) ? 'complete' : 'fail',
+          member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
+      'Failed to edit role embed',
+      10,
+      error,
+    ));
+  });
+}
+
+/**
+ * Fetch duplicates.
+ *
+ * @param {Message} message      - Message object.
+ * @param {Roles}   allowedRoles - Roles allowed to use this command.
+ *
+ * @returns {Promise<void>}
+ *
+ * @since 1.0.0
+ */
+export async function fetchDuplicates(message: Message, allowedRoles: Roles): Promise<void> {
+  if (!message.channel || !message.guild || !message.member) {
+    generateLogMessage(
+      'Missing the "channel", "guild", or "member" property.',
+      10,
+    );
+
+    return;
+  }
+
+  const {
+    channel,
+    guild,
+    member,
+  } = message;
+  const messageText = message.toString();
+  const commandArguments = messageText.split(' ');
+  const commandCommand = commandArguments[0];
+  const guildMembers = await guild.members.fetch();
+  const members: DuplicateMembers = {};
 
   let empty = true;
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -273,21 +324,22 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
   commandDeleteMessage(message);
 
   // Remap users based on their avatar.
-  _.forEach(guildMembers, (guildMember) => {
-    const guildMemberAvatar = guildMember.user.avatar;
+  _.forEach([...guildMembers.values()], (guildMember) => {
+    const guildMemberUserAvatar = guildMember.user.avatar;
 
-    if (guildMemberAvatar !== null) {
+    // If member has an avatar.
+    if (guildMemberUserAvatar !== null) {
       // Create entry for avatar hash if it does not exist.
-      if (users[guildMemberAvatar] === undefined) {
-        users[guildMemberAvatar] = [];
+      if (members[guildMemberUserAvatar] === undefined) {
+        members[guildMemberUserAvatar] = [];
       }
 
-      users[guildMemberAvatar].push(guildMember.toString());
+      members[guildMemberUserAvatar].push(guildMember.toString());
     }
   });
 
-  // Loop through all users with avatars.
-  _.forEach(Object.entries(users), (usersEntry) => {
+  // Loop through all members with avatars.
+  _.forEach(Object.entries(members), (usersEntry) => {
     const avatarHash = usersEntry[0];
     const userIds = usersEntry[1];
 
@@ -304,15 +356,15 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
             createListMembersEmbed(
               [
                 'Duplicate Members for',
-                `\`${avatarHash.substr(_.size(avatarHash) - 8)}\``,
-                (key > 0) ? `(Page ${key + 1})` : '',
+                `\`...${avatarHash.substr(_.size(avatarHash) - 8)}\``,
+                ...(key > 0) ? [`(Page ${key + 1})`] : [],
               ].join(' '),
               userIdsChunk,
               undefined,
               member.user.tag,
             ),
           ],
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           'Failed to send list members embed',
           10,
           error,
@@ -322,18 +374,11 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
   });
 
   if (empty) {
-    channel.send({
-      embeds: [
-        createNoResultsEmbed(
-          `There are no duplicate users found in the **${guild.toString()}** guild.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send no results embed',
-      10,
-      error,
-    ));
+    commandNoResults(
+      channel,
+      member,
+      `There are no duplicate users found in the **${guild.toString()}** guild.`,
+    );
   }
 }
 
@@ -343,11 +388,11 @@ export function fetchDuplicates(message: Message, allowedRoles: Roles): void {
  * @param {Message} message      - Message object.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function fetchMembers(message: Message, allowedRoles: Roles): void {
+export async function fetchMembers(message: Message, allowedRoles: Roles): Promise<void> {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -367,27 +412,11 @@ export function fetchMembers(message: Message, allowedRoles: Roles): void {
   const commandCommand = commandArguments[0];
   const commandRoute = <FetchMembersRoute>commandArguments[1];
   const commandAction = <FetchMembersAction>commandArguments[2];
-  const theMember = guild.members.cache.get(_.replace(commandAction, /[<@!>]/g, ''));
-  const theRole = guild.roles.cache.get(_.replace(commandAction, /[<@&>]/g, ''));
-  const guildMembers = [...guild.members.cache.values()];
+  const guildMembers = await guild.members.fetch();
   const matchedUsers: string[] = [];
 
-  let query = commandAction;
-
-  // Transform string input (with quotes) into query.
-  if (commandRoute === 'string' && new RegExp(/"(.+)"/g).test(messageText)) {
-    const stringArg = messageText.substring(messageText.lastIndexOf('string "') + 7);
-
-    if (stringArg !== '"') {
-      // Remove the quotes.
-      query = _.replace(stringArg, /(")(.+)(")/g, '$2');
-    } else {
-      query = ' ';
-    }
-  }
-
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -397,145 +426,232 @@ export function fetchMembers(message: Message, allowedRoles: Roles): void {
 
   // If command route is invalid.
   if (!_.includes(['avatar', 'role', 'string', 'username'], commandRoute)) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
-            'Examples:',
-            '```',
-            `${commandCommand} avatar [@user]`,
-            `${commandCommand} role [@role]`,
-            `${commandCommand} string [string]`,
-            `${commandCommand} username [@user]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
+        'Examples:',
+        '```',
+        `${commandCommand} avatar [@user]`,
+        `${commandCommand} role [@role]`,
+        `${commandCommand} string [string]`,
+        `${commandCommand} username [@user]`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
 
-  // If member or role is invalid.
-  if (
-    (commandRoute === 'avatar' && theMember === undefined)
-    || (commandRoute === 'role' && theRole === undefined)
-    || (commandRoute === 'string' && query === undefined)
-    || (commandRoute === 'username' && theMember === undefined)
-  ) {
-    const userMode = (_.includes(['avatar', 'username'], commandRoute)) ? [`The member (${query}) is invalid`, 'tagging a member', '@user'] : [];
-    const roleMode = (_.includes(['role'], commandRoute)) ? [`The role (${query}) is invalid`, 'tagging a role', '@role'] : [];
-    const stringMode = (_.includes(['string'], commandRoute)) ? ['There is nothing specified', 'specifying a string (with or without quotes)', 'text'] : [];
+  // If command route is "avatar" or "username".
+  if (_.includes(['avatar', 'username'], commandRoute)) {
+    try {
+      const theMember = await guild.members.fetch(_.replace(commandAction, /[<@!>]/g, ''));
 
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `${userMode[0] ?? roleMode[0] ?? stringMode[0]}. Try using the command by ${userMode[1] ?? roleMode[1] ?? stringMode[1]}.\n`,
-            'Example:',
-            '```',
-            `${commandCommand} ${commandRoute} [${userMode[2] ?? roleMode[2] ?? stringMode[2]}]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+      // If selected member does not have an avatar.
+      if (commandRoute === 'avatar' && theMember.user.avatar === null) {
+        commandError(
+          channel,
+          member,
+          `Cannot compare members. ${theMember.toString()} does not have an avatar to compare from.`,
+        );
 
-    return;
-  }
+        return;
+      }
 
-  // If user does not have an avatar.
-  if (commandRoute === 'avatar' && theMember?.user.avatar === null) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          `Cannot compare members. ${theMember?.toString()} does not have an avatar to compare from.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+      // Delete message with command.
+      commandDeleteMessage(message);
 
-    return;
-  }
+      // Fetch members that either have the same avatar or username as selected member.
+      _.forEach([...guildMembers.values()], (guildMember) => {
+        if (
+          (commandRoute === 'avatar' && theMember.user.avatar === guildMember.user.avatar)
+          || (commandRoute === 'username' && theMember.user.username === guildMember.user.username)
+        ) {
+          matchedUsers.push(guildMember.toString());
+        }
+      });
 
-  // Delete message with command.
-  commandDeleteMessage(message);
-
-  _.forEach(guildMembers, (guildMember) => {
-    const memberNickname = guildMember.nickname;
-    const userAvatar = guildMember.user.avatar;
-    const userUsername = guildMember.user.username;
-    const hasRole = guildMember.roles.cache.has(_.replace(commandAction, /[<@&>]/g, ''));
-
-    if (
-      (commandRoute === 'avatar' && userAvatar === theMember?.user.avatar)
-      || (commandRoute === 'role' && hasRole)
-      || (commandRoute === 'string' && (_.includes(memberNickname, query) || _.includes(userUsername, query) || (userAvatar !== null && userAvatar === query)))
-      || (commandRoute === 'username' && userUsername === theMember?.user.username)
-    ) {
-      matchedUsers.push(guildMember.toString());
+      // Send a message embed for every 80 members.
+      _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
+        channel.send({
+          embeds: [
+            createListMembersEmbed(
+              [
+                ...(commandRoute === 'avatar') ? [`Avatars Matching @${theMember?.user.tag}`] : [],
+                ...(commandRoute === 'username') ? [`Usernames Matching @${theMember?.user.tag}`] : [],
+                ...(key > 0) ? [`(Page ${key + 1})`] : [],
+              ].join(' '),
+              matchedUsersChunk,
+              theMember.user.displayAvatarURL({
+                format: 'webp',
+                dynamic: true,
+                size: 4096,
+              }),
+              member.user.tag,
+            ),
+          ],
+        }).catch((error) => generateLogMessage(
+          'Failed to send list members embed',
+          10,
+          error,
+        ));
+      });
+    } catch {
+      commandError(
+        channel,
+        member,
+        [
+          `The member (${commandAction}) is invalid. Try using the command by tagging a member.\n`,
+          'Example:',
+          '```',
+          `${commandCommand} ${commandRoute} [@user]`,
+          '```',
+        ].join('\n'),
+      );
     }
-  });
-
-  // No results for "string".
-  if (commandRoute === 'string' && _.size(matchedUsers) < 1) {
-    channel.send({
-      embeds: [
-        createNoResultsEmbed(
-          `No results were found using \`${query}\`.`,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send no results embed',
-      10,
-      error,
-    ));
-
-    return;
   }
 
-  // Send a message embed for every 80 members.
-  _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
-    const avatarTitle = (commandRoute === 'avatar') ? `Avatars Matching @${theMember?.user.tag}` : undefined;
-    const roleTitle = (commandRoute === 'role') ? `${theRole?.name} Members` : undefined;
-    const stringTitle = (commandRoute === 'string') ? `Members Matching \`${query}\`` : undefined;
-    const usernameTitle = (commandRoute === 'username') ? `Usernames Matching @${theMember?.user.tag}` : undefined;
+  // If command route is "role".
+  if (_.includes(['role'], commandRoute)) {
+    const theRole = guild.roles.resolve(_.replace(commandAction, /[<@&>]/g, ''));
 
-    channel.send({
-      embeds: [
-        createListMembersEmbed(
-          `${avatarTitle ?? roleTitle ?? stringTitle ?? usernameTitle}${(key > 0) ? ` (Page ${key + 1})` : ''}`,
-          matchedUsersChunk,
-          theMember?.user.displayAvatarURL({
-            format: 'webp',
-            dynamic: true,
-            size: 4096,
-          }),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send list members embed',
-      10,
-      error,
-    ));
-  });
+    // If role does not exist.
+    if (theRole === null) {
+      commandError(
+        channel,
+        member,
+        [
+          `The role (${commandAction}) is invalid. Try using the command by tagging a role.\n`,
+          'Example:',
+          '```',
+          `${commandCommand} ${commandRoute} [@role]`,
+          '```',
+        ].join('\n'),
+      );
+
+      return;
+    }
+
+    // Delete message with command.
+    commandDeleteMessage(message);
+
+    // Fetch members that have the selected role.
+    _.forEach([...theRole.members.values()], (guildMember) => {
+      matchedUsers.push(guildMember.toString());
+    });
+
+    // If no results were found.
+    if (_.size(matchedUsers) === 0) {
+      commandNoResults(
+        channel,
+        member,
+        `The member list for ${theRole.toString()} role is empty.`,
+      );
+
+      return;
+    }
+
+    // Send a message embed for every 80 members.
+    _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
+      channel.send({
+        embeds: [
+          createListMembersEmbed(
+            [
+              `${theRole.name} Members`,
+              ...(key > 0) ? [`(Page ${key + 1})`] : [],
+            ].join(' '),
+            matchedUsersChunk,
+            undefined,
+            member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
+        'Failed to send list members embed',
+        10,
+        error,
+      ));
+    });
+  }
+
+  // If command route is "string".
+  if (_.includes(['string'], commandRoute)) {
+    let query = commandAction;
+
+    // Transform string input (with quotes) into query.
+    if (new RegExp(/"(.+)"/g).test(messageText)) {
+      const stringArg = messageText.substring(messageText.lastIndexOf('string "') + 7);
+
+      query = _.replace(stringArg, /(")(.+)(")/g, '$2');
+    }
+
+    // If no string is specified.
+    if (query === undefined || query === '""') {
+      commandError(
+        channel,
+        member,
+        [
+          'There is nothing specified. Try using the command by specifying a string (with or without quotes).\n',
+          'Example:',
+          '```',
+          `${commandCommand} ${commandRoute} [text]`,
+          '```',
+        ].join('\n'),
+      );
+
+      return;
+    }
+
+    // Delete message with command.
+    commandDeleteMessage(message);
+
+    // Fetch members that match partial nickname, partial username, or avatar hash.
+    _.forEach([...guildMembers.values()], (guildMember) => {
+      if (
+        _.includes(guildMember.nickname, query)
+        || _.includes(guildMember.user.username, query)
+        || (
+          guildMember.user.avatar !== null
+          && guildMember.user.avatar === query
+        )
+      ) {
+        matchedUsers.push(guildMember.toString());
+      }
+    });
+
+    // If no results were found.
+    if (_.size(matchedUsers) === 0) {
+      commandNoResults(
+        channel,
+        member,
+        `No results were found using \`${query}\`.`,
+      );
+
+      return;
+    }
+
+    // Send a message embed for every 80 members.
+    _.forEach(_.chunk(matchedUsers, 80), (matchedUsersChunk, key) => {
+      channel.send({
+        embeds: [
+          createListMembersEmbed(
+            [
+              `Members Matching \`${query}\``,
+              ...(key > 0) ? [`(Page ${key + 1})`] : [],
+            ].join(' '),
+            matchedUsersChunk,
+            undefined,
+            member.user.tag,
+          ),
+        ],
+      }).catch((error) => generateLogMessage(
+        'Failed to send list members embed',
+        10,
+        error,
+      ));
+    });
+  }
 }
 
 /**
@@ -545,11 +661,11 @@ export function fetchMembers(message: Message, allowedRoles: Roles): void {
  * @param {Roles}            allowedRoles - Roles allowed to use this command.
  * @param {HelpMenuSettings} settings     - Command settings.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMenuSettings): void {
+export async function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMenuSettings): Promise<void> {
   if (!message.channel || !message.member) {
     generateLogMessage(
       'Missing the "channel" or "member" property.',
@@ -576,7 +692,7 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   const commands = [];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -588,112 +704,139 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
   commandDeleteMessage(message);
 
   if (
-    _.some(allowBulkBanRoles, (allowBulkBanRole) => member.roles.cache.has(allowBulkBanRole.id))
+    _.some(allowBulkBanRoles, (allowBulkBanRole) => member.roles.resolve(allowBulkBanRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}bulk-ban [@user]`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}bulk-ban [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}ban [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}bb [@user]`] : [],
       ],
       description: 'Bulk ban members tagged in a single command',
     });
   }
 
   if (
-    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.cache.has(allowFetchDuplicatesRole.id))
+    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.resolve(allowFetchDuplicatesRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}fetch-duplicates`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}fetch-duplicates`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}duplicates`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}fd`] : [],
       ],
       description: 'Search for duplicate members matching the same avatar',
     });
   }
 
   if (
-    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => member.roles.cache.has(allowFetchMembersRole.id))
+    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => member.roles.resolve(allowFetchMembersRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}fetch-members avatar [@user]`,
-        `${theBotPrefix}fetch-members role [@role]`,
-        `${theBotPrefix}fetch-members string [string]`,
-        `${theBotPrefix}fetch-members username [@user]`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}fetch-members avatar [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}fetch-members role [@role]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}fetch-members string [string]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}fetch-members username [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}members avatar [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}members role [@role]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}members string [string]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}members username [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}fm avatar [@user]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}fm role [@role]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}fm string [string]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}fm username [@user]`] : [],
       ],
       description: 'Search for members matching an avatar, role, string, or username',
     });
   }
 
   if (
-    _.some(allowRoleManagerRoles, (allowRoleManagerRole) => member.roles.cache.has(allowRoleManagerRole.id))
+    _.some(allowRoleManagerRoles, (allowRoleManagerRole) => member.roles.resolve(allowRoleManagerRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}role-manager add everyone [@role to add]`,
-        `${theBotPrefix}role-manager add no-role [@role to add]`,
-        `${theBotPrefix}role-manager add [@role] [@role to add]`,
-        `${theBotPrefix}role-manager remove everyone [@role to remove]`,
-        `${theBotPrefix}role-manager remove [@role] [@role to remove]`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}role-manager add everyone [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}role-manager add no-role [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}role-manager add [@role] [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}role-manager remove everyone [@role to remove]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}role-manager remove [@role] [@role to remove]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}role add everyone [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}role add no-role [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}role add [@role] [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}role remove everyone [@role to remove]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}role remove [@role] [@role to remove]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}rm add everyone [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}rm add no-role [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}rm add [@role] [@role to add]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}rm remove everyone [@role to remove]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}rm remove [@role] [@role to remove]`] : [],
       ],
       description: 'Add or remove roles from everyone, users with no roles, or users with a specific role',
     });
   }
 
   if (
-    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => member.roles.cache.has(allowTogglePermsRole.id))
+    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => member.roles.resolve(allowTogglePermsRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}toggle-perms [id] on`,
-        `${theBotPrefix}toggle-perms [id] off`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}toggle-perms [id] on`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}toggle-perms [id] off`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}perms [id] on`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}perms [id] off`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}tp [id] on`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}tp [id] off`] : [],
       ],
       description: 'Toggle preset permissions',
     });
   }
 
   if (
-    _.some(allowVoiceToolsRoles, (allowVoiceToolsRole) => member.roles.cache.has(allowVoiceToolsRole.id))
+    _.some(allowVoiceToolsRoles, (allowVoiceToolsRole) => member.roles.resolve(allowVoiceToolsRole.id) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
       queries: [
-        `${theBotPrefix}voice-tools disconnect [#channel]`,
-        `${theBotPrefix}voice-tools unmute [#channel]`,
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}voice-tools disconnect [#channel]`] : [],
+        ...(commandCommand === `${theBotPrefix}help-menu`) ? [`${theBotPrefix}voice-tools unmute [#channel]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}voice disconnect [#channel]`] : [],
+        ...(commandCommand === `${theBotPrefix}help`) ? [`${theBotPrefix}voice unmute [#channel]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}vt disconnect [#channel]`] : [],
+        ...(commandCommand === `${theBotPrefix}hm`) ? [`${theBotPrefix}vt unmute [#channel]`] : [],
       ],
       description: 'Disconnect or unmute everyone in a voice or stage channel',
     });
   }
 
   if (_.size(commands) > 0) {
-    channel.send({
-      embeds: [
-        createHelpMenuEmbed(
-          commands,
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send help menu embed',
-      10,
-      error,
-    ));
+    try {
+      await channel.send({
+        embeds: [
+          createHelpMenuEmbed(
+            commands,
+            member.user.tag,
+          ),
+        ],
+      });
+    } catch (error) {
+      generateLogMessage(
+        'Failed to send help menu embed',
+        10,
+        error,
+      );
+    }
   } else {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          'You do not have available commands currently assigned for your use.',
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      'You do not have available commands assigned for your use.',
+    );
   }
 }
 
@@ -703,11 +846,11 @@ export function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMe
  * @param {Message} message      - Message object.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function roleManager(message: Message, allowedRoles: Roles): void {
+export async function roleManager(message: Message, allowedRoles: Roles): Promise<void> {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -728,17 +871,12 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
   const commandRoute = <RoleRoute>commandArguments[1];
   const commandSelection = <RoleSelection>commandArguments[2];
   const commandAction = <RoleAction>commandArguments[3];
-  const roleOne = guild.roles.cache.get(_.replace(commandSelection, /[<@&>]/g, ''));
-  const roleTwo = guild.roles.cache.get(_.replace(commandAction, /[<@&>]/g, ''));
-  const guildMembers = [...guild.members.cache.values()];
-  const messageEveryone = (commandSelection === 'everyone') ? 'members...' : undefined;
-  const messageNoRole = (commandSelection === 'no-role') ? 'members with no roles...' : undefined;
-  const messageRole = (roleOne) ? `members with the ${roleOne.toString()} role...` : undefined;
-  const messageAdded = (commandRoute === 'add') ? 'added to' : undefined;
-  const messageRemoved = (commandRoute === 'remove') ? 'removed from' : undefined;
+  const guildMembers = await guild.members.fetch();
+  const roleOne = guild.roles.resolve(_.replace(commandSelection, /[<@&>]/g, ''));
+  const roleTwo = guild.roles.resolve(_.replace(commandAction, /[<@&>]/g, ''));
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -746,82 +884,64 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
     return;
   }
 
+  // If command route is invalid.
   if (!_.includes(['add', 'remove'], commandRoute)) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The command route (${commandRoute}) is invalid or does not exist. Try using the command by inputting a route.\n`,
-            'Examples:',
-            '```',
-            `${commandCommand} add everyone [@role to add]`,
-            `${commandCommand} add no-role [@role to add]`,
-            `${commandCommand} add [@role] [@role to add]`,
-            `${commandCommand} remove everyone [@role to remove]`,
-            `${commandCommand} remove [@role] [@role to remove]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The command route (${commandRoute}) is invalid or does not exist. Try using the command by inputting a route.\n`,
+        'Examples:',
+        '```',
+        `${commandCommand} add everyone [@role to add]`,
+        `${commandCommand} add no-role [@role to add]`,
+        `${commandCommand} add [@role] [@role to add]`,
+        `${commandCommand} remove everyone [@role to remove]`,
+        `${commandCommand} remove [@role] [@role to remove]`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
 
+  // If command selection is invalid.
   if (
-    (commandRoute === 'add' && commandSelection !== 'everyone' && commandSelection !== 'no-role' && !roleOne)
-    || (commandRoute === 'remove' && commandSelection !== 'everyone' && !roleOne)
+    (commandRoute === 'add' && !_.includes(['everyone', 'no-role'], commandSelection) && roleOne === null)
+    || (commandRoute === 'remove' && !_.includes(['everyone'], commandSelection) && roleOne === null)
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The command selection (${commandSelection}) is invalid or does not exist. Try using the command by inputting a selection.\n`,
-            'Examples:',
-            '```',
-            ...[
-              `${commandCommand} ${commandRoute} everyone [@role to ${commandRoute}]`,
-              ...(commandRoute === 'add') ? [`${commandCommand} add no-role [@role to add]`] : [],
-              `${commandCommand} ${commandRoute} [@role] [@role to ${commandRoute}]`,
-            ],
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The command selection (${commandSelection}) is invalid or does not exist. Try using the command by inputting a selection.\n`,
+        'Examples:',
+        '```',
+        ...[
+          `${commandCommand} ${commandRoute} everyone [@role to ${commandRoute}]`,
+          ...(commandRoute === 'add') ? [`${commandCommand} add no-role [@role to add]`] : [],
+          `${commandCommand} ${commandRoute} [@role] [@role to ${commandRoute}]`,
+        ],
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
 
-  if (!roleTwo) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The role (${commandAction}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
-            'Examples:',
-            '```',
-            `${commandCommand} ${commandRoute} ${commandSelection} [@role to ${commandRoute}]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+  // If command action is invalid.
+  if (roleTwo === null) {
+    commandError(
+      channel,
+      member,
+      [
+        `The role (${commandAction}) is invalid or does not exist. Try using the command by tagging a role to add.\n`,
+        'Examples:',
+        '```',
+        `${commandCommand} ${commandRoute} ${commandSelection} [@role to ${commandRoute}]`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
@@ -829,155 +949,125 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
   // Delete message with command.
   commandDeleteMessage(message);
 
-  // Begin to perform role actions.
-  channel.send({
+  // Send status message.
+  const statusMessage = await channel.send({
     embeds: [
       createRoleManagerEmbed(
         commandRoute,
         [
-          'Please wait while Stonker Bot',
-          `${commandRoute}s the`,
-          roleTwo.toString(),
-          'role',
+          `Please wait while Stonker Bot ${commandRoute}s the ${roleTwo.toString()} role`,
           ...(commandRoute === 'add') ? ['to'] : [],
           ...(commandRoute === 'remove') ? ['from'] : [],
           'all',
-          messageEveryone ?? messageNoRole ?? messageRole,
+          ...(commandSelection === 'everyone') ? ['members'] : [],
+          ...(commandSelection === 'no-role') ? ['members with no roles'] : [],
+          ...(roleOne) ? [`members with the ${roleOne.toString()} role`] : [],
+          '...',
         ].join(' '),
         'in-progress',
         member.user.tag,
       ),
     ],
-  }).then((theMessage) => {
-    const roleResults = _.map(guildMembers, (guildMember) => {
-      /**
-       * Role assignment result logger.
-       *
-       * @param {string} word  - Beginning phrase.
-       * @param {Error}  error - Error object.
-       *
-       * @returns {boolean}
-       *
-       * @since 1.0.0
-       */
-      const logger = (word: string, error?: Error): boolean => {
-        generateLogMessage(
-          [
-            word,
-            (!_.isError(error)) ? chalk.green(roleTwo.toString()) : chalk.red(roleTwo.toString()),
-            'role',
-            ...(commandRoute === 'add') ? ['to'] : [],
-            ...(commandRoute === 'remove') ? ['from'] : [],
-            (!_.isError(error)) ? chalk.green(guildMember.toString()) : chalk.red(guildMember.toString()),
-          ].join(' '),
-          (!_.isError(error)) ? 30 : 10,
-          (_.isError(error)) ? error : undefined,
-        );
+  });
 
-        return (!_.isError(error));
-      };
+  // Perform actions.
+  const roleResults = _.map([...guildMembers.values()], async (guildMember) => {
+    /**
+     * Role results logger.
+     *
+     * @param {string}       word      - Base wording.
+     * @param {RoleToOrFrom} toOrFrom  - Command direction.
+     * @param {boolean}      isSuccess - Is successful.
+     * @param {unknown}      error     - Error object.
+     *
+     * @returns {void}
+     *
+     * @since 1.0.0
+     */
+    const logger = (word: string, toOrFrom: RoleToOrFrom, isSuccess: boolean, error?: unknown): void => {
+      generateLogMessage(
+        [
+          word,
+          ...(isSuccess) ? [chalk.green(roleTwo.toString())] : [chalk.red(roleTwo.toString())],
+          toOrFrom,
+          ...(isSuccess) ? [chalk.green(guildMember.toString())] : [chalk.red(guildMember.toString())],
+        ].join(' '),
+        (isSuccess) ? 30 : 10,
+        (_.isError(error)) ? error : undefined,
+      );
+    };
 
-      let success = true;
+    let success = true;
 
-      // "add": Make sure member doesn't have role first. "remove": Make sure member has role first.
-      if (commandRoute === 'add' && !guildMember.roles.cache.has(roleTwo.id)) {
-        if (commandSelection === 'everyone') {
-          guildMember.roles.add(roleTwo).then(() => logger(
-            'Successfully added',
-          )).catch((error: Error) => {
-            success = logger(
-              'Failed to add',
-              error,
-            );
-          });
-        } else if (commandSelection === 'no-role') {
-          const roles = [...guildMember.roles.cache.values()];
+    // Add: Make sure member does not have role.
+    if (commandRoute === 'add' && guildMember.roles.resolve(roleTwo.id) === null) {
+      if (
+        (commandSelection === 'everyone') // Add role to everyone.
+        || (commandSelection === 'no-role' && _.size(guildMember.roles.cache) === 1) // Add role to members with no roles.
+        || (roleOne && guildMember.roles.resolve(roleOne.id) !== null) // Add role if user has role #1.
+      ) {
+        try {
+          await guildMember.roles.add(roleTwo);
 
-          // Users with no roles always have the @everyone role.
-          if (_.size(roles) === 1) {
-            guildMember.roles.add(roleTwo).then(() => logger(
-              'Successfully added',
-            )).catch((error: Error) => {
-              success = logger(
-                'Failed to add',
-                error,
-              );
-            });
-          }
-        } else if (roleOne) {
-          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
+          logger('Successfully added', 'to', true);
+        } catch (error) {
+          success = false;
 
-          // If user has role #1, add role #2.
-          if (hasRoleOne === true) {
-            guildMember.roles.add(roleTwo).then(() => logger(
-              'Successfully added',
-            )).catch((error: Error) => {
-              success = logger(
-                'Failed to add',
-                error,
-              );
-            });
-          }
-        }
-      } else if (commandRoute === 'remove' && guildMember.roles.cache.has(roleTwo.id)) {
-        if (commandSelection === 'everyone') {
-          guildMember.roles.remove(roleTwo).then(() => logger(
-            'Successfully removed',
-          )).catch((error: Error) => {
-            success = logger(
-              'Failed to remove',
-              error,
-            );
-          });
-        } else if (roleOne) {
-          const hasRoleOne = guildMember.roles.cache.has(roleOne.id);
-
-          // If user has role #1, remove role #2.
-          if (hasRoleOne === true) {
-            guildMember.roles.remove(roleTwo).then(() => logger(
-              'Successfully removed',
-            )).catch((error: Error) => {
-              success = logger(
-                'Failed to remove',
-                error,
-              );
-            });
-          }
+          logger('Failed to add', 'to', false, error);
         }
       }
+    }
 
-      return success;
-    });
+    // Remove: Make sure member has role.
+    if (commandRoute === 'remove' && guildMember.roles.resolve(roleTwo.id) !== null) {
+      if (
+        (commandSelection === 'everyone') // Remove role from everyone.
+        || (roleOne && guildMember.roles.resolve(roleOne.id) !== null) // Remove role if user has role #1.
+      ) {
+        try {
+          await guildMember.roles.remove(roleTwo);
 
-    Promise.all(roleResults).then((responses) => {
-      const success = _.every(responses, (response) => response === true);
+          logger('Successfully removed', 'from', true);
+        } catch (error) {
+          success = false;
 
-      theMessage.edit({
-        embeds: [
-          createRoleManagerEmbed(
-            commandRoute,
-            [
-              roleTwo.toString(),
-              (success) ? 'was successfully' : 'could not be',
-              messageAdded ?? messageRemoved,
-              'all',
-              messageEveryone ?? messageNoRole ?? messageRole,
-            ].join(' '),
-            (success) ? 'complete' : 'fail',
-            member.user.tag,
-          ),
-        ],
-      }).catch((error: Error) => generateLogMessage(
-        'Failed to edit role embed',
-        10,
-        error,
-      ));
-    });
-  }).catch((error: Error) => generateLogMessage(
-    'Failed to send role embed',
-    10,
-    error,
-  ));
+          logger('Failed to remove', 'from', false, error);
+        }
+      }
+    }
+
+    return success;
+  });
+
+  // Check actions and edit status message.
+  Promise.all(roleResults).then((responses) => {
+    const success = _.every(responses, (response) => response === true);
+
+    statusMessage.edit({
+      embeds: [
+        createRoleManagerEmbed(
+          commandRoute,
+          [
+            roleTwo.toString(),
+            ...(success) ? ['was successfully'] : ['could not be'],
+            ...(commandRoute === 'add') ? ['added to'] : [],
+            ...(commandRoute === 'remove') ? ['removed from'] : [],
+            'all',
+            ...(commandSelection === 'everyone') ? ['members'] : [],
+            ...(commandSelection === 'no-role') ? ['members with no roles'] : [],
+            ...(roleOne) ? [`members with the ${roleOne.toString()} role`] : [],
+            '...',
+          ].join(' '),
+          (success) ? 'complete' : 'fail',
+          member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
+      'Failed to edit role embed',
+      10,
+      error,
+    ));
+  });
 }
 
 /**
@@ -987,11 +1077,11 @@ export function roleManager(message: Message, allowedRoles: Roles): void {
  * @param {Roles}               allowedRoles - Roles allowed to use this command.
  * @param {TogglePermsSettings} settings     - Command settings.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function togglePerms(message: Message, allowedRoles: Roles, settings: TogglePermsSettings): void {
+export async function togglePerms(message: Message, allowedRoles: Roles, settings: TogglePermsSettings): Promise<void> {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -1016,7 +1106,7 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
   const selectedToggleName = _.get(selectedToggleGroup, 'name', 'Unknown');
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -1040,24 +1130,17 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
       }
     });
 
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The toggle group (${commandGroup}) is invalid. Please type your command with the correct group and try again.\n`,
-            'Example(s):',
-            '```',
-            commands,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The toggle group (${commandGroup}) is invalid. Please type your command with the correct group and try again.\n`,
+        'Example(s):',
+        '```',
+        commands,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
@@ -1069,25 +1152,18 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
     || !_.every(selectedToggleDirection, _.isPlainObject)
     || (commandToggle !== 'on' && commandToggle !== 'off')
   ) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The toggle direction (${commandToggle}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
-            'Example:',
-            '```',
-            `${commandCommand} ${commandGroup} on`,
-            `${commandCommand} ${commandGroup} off`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The toggle direction (${commandToggle}) is invalid or not configured. Please type your command with the correct direction and try again.\n`,
+        'Example:',
+        '```',
+        `${commandCommand} ${commandGroup} on`,
+        `${commandCommand} ${commandGroup} off`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
@@ -1095,67 +1171,69 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
   // Delete message with command.
   commandDeleteMessage(message);
 
-  // Toggle permissions per channel.
-  const channelToggles: (boolean | boolean[])[] = _.map(selectedToggleDirection, (channelToggle) => {
+  // Perform actions for channels.
+  const channelToggles = _.map(selectedToggleDirection, async (channelToggle) => {
     const channelToggleId = _.get(channelToggle, 'channel-id');
     const channelTogglePerms = _.get(channelToggle, 'channel-perms');
-    const channelToggleChannel = guild.channels.cache.get(channelToggleId);
 
-    if (channelToggleChannel === undefined || channelToggleChannel.isThread()) {
+    try {
+      const channelToggleChannel = await guild.channels.fetch(channelToggleId);
+
+      if (channelToggleChannel) {
+        // Perform actions for users or roles.
+        const userOrRoleToggles = _.map(channelTogglePerms, async (userToggle) => {
+          const theId = _.get(userToggle, 'user-or-role-id');
+          const thePerms = _.get(userToggle, 'user-or-role-perms');
+
+          let isSuccess = true;
+
+          try {
+            await channelToggleChannel.permissionOverwrites.edit(
+              theId,
+              thePerms,
+              {
+                reason: `@${member.user.tag} toggled preset permissions for ${selectedToggleName} to ${commandToggle}`,
+              },
+            );
+          } catch (error) {
+            isSuccess = false;
+
+            generateLogMessage(
+              [
+                'Failed to toggle preset permissions for',
+                chalk.red(selectedToggleName),
+                `to ${commandToggle} for`,
+                chalk.red(channelToggleChannel.toString()),
+              ].join(' '),
+              10,
+              error,
+            );
+          }
+
+          return isSuccess;
+        });
+
+        return Promise.all(userOrRoleToggles);
+      }
+
+      return false;
+    } catch {
       generateLogMessage(
         [
           'Failed to toggle preset permissions for',
           chalk.red(selectedToggleName),
-          'to',
-          commandToggle,
-          `because channel (${channelToggleId}) is invalid`,
+          `to ${commandToggle} because`,
+          chalk.red(`<#${channelToggleId}>`),
+          'is invalid',
         ].join(' '),
         10,
       );
 
       return false;
     }
-
-    return _.map(channelTogglePerms, (userToggle) => {
-      const theId = _.get(userToggle, 'user-or-role-id');
-      const thePerms = _.get(userToggle, 'user-or-role-perms');
-
-      let isSuccess = true;
-
-      channelToggleChannel.permissionOverwrites.edit(
-        theId,
-        thePerms,
-        {
-          reason: [
-            `@${member.user.tag}`,
-            'toggled preset permissions for',
-            selectedToggleName,
-            'to',
-            commandToggle,
-          ].join(' '),
-        },
-      ).catch((error: Error) => {
-        isSuccess = false;
-
-        generateLogMessage(
-          [
-            'Failed to toggle preset permissions for',
-            chalk.red(selectedToggleName),
-            'to',
-            commandToggle,
-            'for',
-            chalk.red(channelToggleChannel.toString()),
-          ].join(' '),
-          10,
-          error,
-        );
-      });
-
-      return isSuccess;
-    });
   });
 
-  // Display success or failed message embed.
+  // Check actions and send success or fail message.
   Promise.all(channelToggles).then((responses) => {
     const answers = _.flattenDeep(responses);
     const success = _.every(answers, (answer) => answer === true);
@@ -1165,8 +1243,7 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
         [
           'Successfully toggled preset permissions for',
           chalk.green(selectedToggleName),
-          'to',
-          commandToggle,
+          `to ${commandToggle}`,
         ].join(' '),
         30,
       );
@@ -1179,7 +1256,7 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
             member.user.tag,
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send toggle perms embed',
         10,
         error,
@@ -1190,13 +1267,13 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
           createTogglePermsEmbed(
             [
               `Failed to toggle one or more preset permissions for **${selectedToggleName}** to ${commandToggle}.`,
-              'Please check the logs and configuration then try again.',
+              'Please check the logs and configuration file then try again.',
             ].join(' '),
             false,
             member.user.tag,
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send toggle perms embed',
         10,
         error,
@@ -1211,11 +1288,11 @@ export function togglePerms(message: Message, allowedRoles: Roles, settings: Tog
  * @param {Message} message      - Message object.
  * @param {Roles}   allowedRoles - Roles allowed to use this command.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @since 1.0.0
  */
-export function voiceTools(message: Message, allowedRoles: Roles): void {
+export async function voiceTools(message: Message, allowedRoles: Roles): Promise<void> {
   if (!message.channel || !message.guild || !message.member) {
     generateLogMessage(
       'Missing the "channel", "guild", or "member" property.',
@@ -1235,14 +1312,12 @@ export function voiceTools(message: Message, allowedRoles: Roles): void {
   const commandCommand = commandArguments[0];
   const commandRoute = <VoiceRoute>commandArguments[1];
   const commandSelection = <VoiceAction>commandArguments[2];
-  const voiceOrStageChannel = guild.channels.cache.get(_.replace(commandSelection, /[<#>]/g, ''));
+  const voiceOrStageChannel = guild.channels.resolve(_.replace(commandSelection, /[<#>]/g, ''));
   const voiceOrStageChannelType = (voiceOrStageChannel) ? voiceOrStageChannel.type : undefined;
-  const isVoiceOrStageChannel = _.includes(['GUILD_VOICE', 'GUILD_STAGE_VOICE'], voiceOrStageChannelType);
-  const voiceChannel = (voiceOrStageChannelType === 'GUILD_VOICE') ? 'voice' : undefined;
-  const stageChannel = (voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? 'stage' : undefined;
+  const voiceStates = [...guild.voiceStates.cache.values()];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.cache.has(allowedRole.id))
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -1252,83 +1327,61 @@ export function voiceTools(message: Message, allowedRoles: Roles): void {
 
   // If command route is invalid.
   if (!_.includes(['disconnect', 'unmute'], commandRoute)) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
-            'Examples:',
-            '```',
-            `${commandCommand} disconnect [#channel]`,
-            `${commandCommand} unmute [#channel]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        `The command route (${commandRoute}) is invalid or does not exist. Try using the command by selecting a route.\n`,
+        'Examples:',
+        '```',
+        `${commandCommand} disconnect [#channel]`,
+        `${commandCommand} unmute [#channel]`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
 
-  // If voice or stage channel is invalid or does not exist.
-  if (voiceOrStageChannel === undefined || !isVoiceOrStageChannel) {
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            `The voice or stage channel (${commandSelection}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
-            'Example:',
-            '```',
-            `${commandCommand} ${commandRoute} [#channel]`,
-            '```',
-          ].join('\n'),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+  // If command selection is invalid.
+  if (voiceOrStageChannel === null) {
+    commandError(
+      channel,
+      member,
+      [
+        `The voice or stage channel (${commandSelection}) is invalid or does not exist. Try using the command by pasting a channel ID.\n`,
+        'Example:',
+        '```',
+        `${commandCommand} ${commandRoute} [#channel]`,
+        '```',
+      ].join('\n'),
+    );
 
     return;
   }
 
   // If bot does not have enough permissions.
   if (
-    !guild.me
-    || (commandRoute === 'disconnect' && !guild.me.permissions.has(Permissions.FLAGS.MOVE_MEMBERS))
-    || (commandRoute === 'unmute' && !guild.me.permissions.has(Permissions.FLAGS.MUTE_MEMBERS))
+    guild.me
+    && (
+      (commandRoute === 'disconnect' && !guild.me.permissions.has(Permissions.FLAGS.MOVE_MEMBERS))
+      || (commandRoute === 'unmute' && !guild.me.permissions.has(Permissions.FLAGS.MUTE_MEMBERS))
+    )
   ) {
-    const disconnect = (commandRoute === 'disconnect') ? 'Move Members' : undefined;
-    const unmute = (commandRoute === 'unmute') ? 'Mute Members' : undefined;
-
-    channel.send({
-      embeds: [
-        createCommandErrorEmbed(
-          [
-            'Stonker Bot requires the',
-            `**${disconnect ?? unmute}**`,
-            'permission to',
-            commandRoute,
-            'members from the',
-            voiceOrStageChannel.toString(),
-            voiceChannel ?? stageChannel,
-            'channel.',
-          ].join(' '),
-          member.user.tag,
-        ),
-      ],
-    }).catch((error: Error) => generateLogMessage(
-      'Failed to send command error embed',
-      10,
-      error,
-    ));
+    commandError(
+      channel,
+      member,
+      [
+        'Stonker Bot requires the',
+        ...(commandRoute === 'disconnect') ? ['**Move Members**'] : [],
+        ...(commandRoute === 'unmute') ? ['**Mute Members**'] : [],
+        `permission to ${commandRoute} members from the`,
+        voiceOrStageChannel.toString(),
+        ...(voiceOrStageChannelType === 'GUILD_VOICE') ? ['voice'] : [],
+        ...(voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+        'channel.',
+      ].join(' '),
+    );
 
     return;
   }
@@ -1336,105 +1389,119 @@ export function voiceTools(message: Message, allowedRoles: Roles): void {
   // Delete message with command.
   commandDeleteMessage(message);
 
-  // Begin to perform voice or stage channel actions.
-  channel.send({
+  // Send status message.
+  const statusMessage = await channel.send({
     embeds: [
       createVoiceToolsEmbed(
-        commandRoute,
-        `Please wait while Stonker Bot ${commandRoute}s all members connected to the ${voiceOrStageChannel.toString()} ${voiceChannel ?? stageChannel} channel...`,
+        (commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? 'invite' : commandRoute,
+        [
+          `Please wait while Stonker Bot ${commandRoute}s all members connected to the`,
+          voiceOrStageChannel.toString(),
+          ...(voiceOrStageChannelType === 'GUILD_VOICE') ? ['voice'] : [],
+          ...(voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+          'channel...',
+        ].join(' '),
         'in-progress',
         member.user.tag,
       ),
     ],
-  }).then((theMessage) => {
-    const voiceStates = [...voiceOrStageChannel.guild.voiceStates.cache.values()];
-    const usersResults = _.map(voiceStates, (voiceState) => {
-      let success = true;
+  });
 
-      if (
-        voiceState.member
-        && voiceState.channel
-        && voiceState.channelId === voiceOrStageChannel.id
-      ) {
-        const memberMention = voiceState.member.toString();
-        const channelMention = voiceState.channel.toString();
+  // Perform actions.
+  const voiceResults = _.map(voiceStates, async (voiceState) => {
+    let success = true;
 
-        /**
-         * Voice state result logger.
-         *
-         * @param {string} word  - Beginning phrase.
-         * @param {Error}  error - Error object.
-         *
-         * @returns {boolean}
-         *
-         * @since 1.0.0
-         */
-        const logger = (word: string, error?: Error): boolean => {
-          generateLogMessage(
-            [
-              word,
-              (!_.isError(error)) ? chalk.green(memberMention) : chalk.red(memberMention),
-              'from the',
-              (!_.isError(error)) ? chalk.green(channelMention) : chalk.red(channelMention),
-              voiceChannel ?? stageChannel,
-              'channel',
-            ].join(' '),
-            (!_.isError(error)) ? 30 : 10,
-            (_.isError(error)) ? error : undefined,
-          );
+    if (
+      voiceState.member
+      && voiceState.channel
+      && voiceState.channelId === voiceOrStageChannel.id
+    ) {
+      const memberMention = voiceState.member.toString();
+      const channelMention = voiceState.channel.toString();
+      /**
+       * Voice results logger.
+       *
+       * @param {string}  word      - Base wording.
+       * @param {boolean} isSuccess - Is successful.
+       * @param {unknown} error     - Error object.
+       *
+       * @returns {void}
+       *
+       * @since 1.0.0
+       */
+      const logger = (word: string, isSuccess: boolean, error?: unknown): void => {
+        generateLogMessage(
+          [
+            word,
+            ...(isSuccess) ? [chalk.green(memberMention)] : [chalk.red(memberMention)],
+            'from the',
+            ...(isSuccess) ? [chalk.green(channelMention)] : [chalk.red(channelMention)],
+            ...(voiceOrStageChannelType === 'GUILD_VOICE') ? ['voice'] : [],
+            ...(voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+            'channel',
+          ].join(' '),
+          (isSuccess) ? 30 : 10,
+          (_.isError(error)) ? error : undefined,
+        );
+      };
 
-          return (!_.isError(error));
-        };
+      // Disconnect members connected to selected voice or stage channel.
+      if (commandRoute === 'disconnect') {
+        try {
+          await voiceState.disconnect();
 
-        if (commandRoute === 'disconnect') {
-          voiceState.disconnect().then(() => logger(
-            'Disconnected',
-          )).catch((error: Error) => {
-            success = logger('Failed to disconnect', error);
-          });
-        } else if (commandRoute === 'unmute') {
-          voiceState.setMute(false).then(() => logger(
-            'Unmuted',
-          )).catch((error: Error) => {
-            success = logger('Failed to unmute', error);
-          });
+          logger('Disconnected', true);
+        } catch (error) {
+          success = false;
+
+          logger('Failed to disconnect', false, error);
         }
       }
 
-      return success;
-    });
+      // Unmute members connected to selected voice or stage channel.
+      if (commandRoute === 'unmute') {
+        try {
+          await voiceState.setMute(false);
 
-    Promise.all(usersResults).then((responses) => {
-      const success = _.every(responses, (response) => response === true);
-      const disconnect = (commandRoute === 'disconnect') ? 'disconnected from' : undefined;
-      const unmuteVoice = (commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_VOICE') ? 'unmuted from' : undefined;
-      const unmuteStage = (commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? 'invited to speak in' : undefined;
+          logger('Unmuted', true);
+        } catch (error) {
+          success = false;
 
-      theMessage.edit({
-        embeds: [
-          createVoiceToolsEmbed(
-            commandRoute,
-            [
-              (success) ? 'All members have been' : 'One or more members could not be',
-              disconnect ?? unmuteVoice ?? unmuteStage,
-              'the',
-              voiceOrStageChannel.toString(),
-              voiceChannel ?? stageChannel,
-              'channel.',
-            ].join(' '),
-            (success) ? 'complete' : 'fail',
-            member.user.tag,
-          ),
-        ],
-      }).catch((error: Error) => generateLogMessage(
-        'Failed to edit voice embed',
-        10,
-        error,
-      ));
-    });
-  }).catch((error: Error) => generateLogMessage(
-    'Failed to send voice embed',
-    10,
-    error,
-  ));
+          logger('Failed to unmute', false, error);
+        }
+      }
+    }
+
+    return success;
+  });
+
+  // Check actions and edit status message.
+  Promise.all(voiceResults).then((responses) => {
+    const success = _.every(responses, (response) => response === true);
+
+    statusMessage.edit({
+      embeds: [
+        createVoiceToolsEmbed(
+          (commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? 'invite' : commandRoute,
+          [
+            ...(success) ? ['All members have been'] : ['One or more members could not be'],
+            ...(commandRoute === 'disconnect') ? ['disconnected from'] : [],
+            ...(commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_VOICE') ? ['unmuted from'] : [],
+            ...(commandRoute === 'unmute' && voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['invited to speak in'] : [],
+            'the',
+            voiceOrStageChannel.toString(),
+            ...(voiceOrStageChannelType === 'GUILD_VOICE') ? ['voice'] : [],
+            ...(voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+            'channel.',
+          ].join(' '),
+          (success) ? 'complete' : 'fail',
+          member.user.tag,
+        ),
+      ],
+    }).catch((error) => generateLogMessage(
+      'Failed to edit voice embed',
+      10,
+      error,
+    ));
+  });
 }

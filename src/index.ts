@@ -10,7 +10,7 @@ import _ from 'lodash';
 import config from '../config.json';
 
 import { initialize } from './modules';
-import { generateServerFailedMessage } from './lib/utilities';
+import { generateServerMessage } from './lib/utilities';
 
 /**
  * Bot configuration.
@@ -56,11 +56,8 @@ const client = new Client({
  *
  * @since 1.0.0
  */
-client.login(configSettingsClientToken).catch((error: Error) => {
-  generateServerFailedMessage(error.message.replace(/\.$/, ''));
-
-  // Kills the process with error.
-  process.exit(1);
+client.login(configSettingsClientToken).catch((error) => {
+  generateServerMessage(error.message.replace(/\.$/, ''), true, 1);
 });
 
 /**
@@ -68,74 +65,74 @@ client.login(configSettingsClientToken).catch((error: Error) => {
  *
  * @since 1.0.0
  */
-client.on('ready', () => {
-  const guild = client.guilds.cache.get(configSettingsGuildId);
+client.on('ready', async () => {
+  try {
+    const guild = await client.guilds.fetch(configSettingsGuildId);
+    const guildMembers = await guild.members.fetch();
+    const guildChannels = await guild.channels.fetch();
 
-  /**
-   * Configuration pre-checks.
-   *
-   * @since 1.0.0
-   */
-  if (
-    guild === undefined
-    || (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
-    || (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone))
-    || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
-  ) {
-    if (guild === undefined) {
-      generateServerFailedMessage('"settings.guild-id" is not a valid guild or is unavailable');
+    /**
+     * Configuration pre-checks.
+     *
+     * @since 1.0.0
+     */
+    if (
+      (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3))
+      || (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone))
+      || !_.includes([10, 20, 30, 40], configSettingsLogLevel)
+    ) {
+      if (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
+        generateServerMessage('"settings.bot-prefix" is not a string, is empty, or longer than 3 characters', true, 1);
+      }
+
+      if (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone)) {
+        generateServerMessage('"settings.time-zone" is not configured', true, 1);
+      }
+
+      if (!_.includes([10, 20, 30, 40], configSettingsLogLevel)) {
+        generateServerMessage('"settings.log-level" is not configured or is invalid', true, 1);
+      }
+    } else {
+      if (client.user && _.isString(configSettingsBotPrefix) && !_.isEmpty(configSettingsBotPrefix)) {
+        client.user.setStatus('online');
+        client.user.setActivity({
+          name: `${configSettingsBotPrefix}help-menu | Powered by Discord Stonker Bot`,
+          type: 'LISTENING',
+        });
+      }
+
+      generateServerMessage(
+        [
+          chalk.green('Server is ready!'),
+          ...(client.user) ? [`Logged in as @${client.user.tag}`] : ['Logged in as unknown user'],
+        ].join(' '),
+      );
+
+      generateServerMessage(
+        [
+          guild.name,
+          'has',
+          _.size([...guildMembers.values()]),
+          'member(s) and',
+          _.size(_.filter([...guildChannels.values()], (channel) => channel.isText() || channel.isVoice())),
+          'channel(s)',
+        ].join(' '),
+      );
     }
 
-    if (configSettingsBotPrefix && (!_.isString(configSettingsBotPrefix) || _.isEmpty(configSettingsBotPrefix) || _.size(configSettingsBotPrefix) > 3)) {
-      generateServerFailedMessage('"settings.bot-prefix" is not a string, is empty, or longer than 3 characters');
+    /**
+     * Initialize.
+     *
+     * @since 1.0.0
+     */
+    initialize(client, guild);
+  } catch {
+    if (!configSettingsGuildId) {
+      generateServerMessage('"settings.guild-id" is not configured', true, 1);
+    } else {
+      generateServerMessage('Failed to access the guild, the members, or channels', true, 1);
     }
-
-    if (!_.isString(configSettingsTimeZone) || _.isEmpty(configSettingsTimeZone)) {
-      generateServerFailedMessage('"settings.time-zone" is not configured');
-    }
-
-    if (!_.includes([10, 20, 30, 40], configSettingsLogLevel)) {
-      generateServerFailedMessage('"settings.log-level" is not configured or is invalid');
-    }
-
-    // Kills the process with error.
-    process.exit(1);
-  } else {
-    if (client.user && _.isString(configSettingsBotPrefix) && !_.isEmpty(configSettingsBotPrefix)) {
-      client.user.setStatus('online');
-      client.user.setActivity({
-        name: `${configSettingsBotPrefix}help-menu | Powered by Discord Stonker Bot`,
-        type: 'LISTENING',
-      });
-    }
-
-    console.log(
-      [
-        chalk.green('Server is ready!'),
-        ...(client.user) ? [`Logged in as @${client.user.tag} ...`] : ['Logged in as unknown user ...'],
-      ].join(' '),
-    );
-
-    console.log(
-      [
-        guild.name,
-        'has',
-        chalk.cyan(guild.members.cache.size),
-        'member(s),',
-        chalk.cyan(guild.channels.cache.filter((channel) => (channel.isText() || channel.isVoice()) && !channel.isThread()).size),
-        'channel(s), and',
-        chalk.cyan(guild.channels.cache.filter((channel) => channel.isThread()).size),
-        'active thread(s) ...',
-      ].join(' '),
-    );
   }
-
-  /**
-   * Initialize.
-   *
-   * @since 1.0.0
-   */
-  initialize(client, guild);
 });
 
 /**
@@ -148,8 +145,5 @@ process.on('SIGINT', () => {
     client.user.setStatus('invisible');
   }
 
-  console.log('Stopping server ...');
-
-  // Kills the process.
-  process.exit(0);
+  generateServerMessage('Stopping server', false, 0);
 });

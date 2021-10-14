@@ -20,7 +20,7 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
   const name = _.get(setting, 'name', 'Unknown');
   const channelId = _.get(setting, 'channel-id');
   const threadId = _.get(setting, 'thread-id');
-  const channel = <TextChannel | NewsChannel>guild.channels.cache.get(channelId);
+  const channel = <TextChannel | NewsChannel>guild.channels.resolve(channelId);
 
   if (channel && channel.threads) {
     channel.threads.fetch(threadId).then((thread) => {
@@ -35,14 +35,14 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
               ].join(' '),
               30,
             );
-          }).catch((error: Error) => generateLogMessage(
+          }).catch((error) => generateLogMessage(
             'Failed to un-archive thread',
             10,
             error,
           ));
         }
       });
-    }).catch((error: Error) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         '"thread-id" for',
         chalk.red(name),

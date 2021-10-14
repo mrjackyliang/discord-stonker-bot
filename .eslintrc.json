@@ -1,54 +1,60 @@
 {
-    "env": {
-        "es2020": true,
-        "node": true
-    },
-    "extends": [
-        "airbnb-base",
-        "plugin:import/typescript"
+  "env": {
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "airbnb-base",
+    "plugin:import/typescript"
+  ],
+  "ignorePatterns": [
+    "/build/**/*"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "root": true,
+  "rules": {
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "d.ts": "never",
+        "ts": "never"
+      }
     ],
-    "ignorePatterns": [
-        "/build/**/*"
+    "import/no-default-export": [
+      "error"
     ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 11,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint"
+    "import/prefer-default-export": [
+      "off"
     ],
-    "root": true,
-    "rules": {
-        "import/extensions": [
-            "error",
-            "ignorePackages",
-            {
-                "d.ts": "never",
-                "ts": "never"
-            }
-        ],
-        "import/no-default-export": [
-            "error"
-        ],
-        "import/prefer-default-export": [
-            "off"
-        ],
-        "max-len": [
-            "off"
-        ],
-        "no-console": [
-            "off"
+    "max-len": [
+      "off"
+    ],
+    "no-console": [
+      "off"
+    ],
+    "no-unused-vars": [
+      "off"
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      "error"
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".d.ts",
+          ".ts"
         ]
-    },
-    "settings": {
-        "import/resolver": {
-            "node": {
-                "extensions": [
-                    ".d.ts",
-                    ".ts"
-                ]
-            }
-        }
+      }
     }
+  }
 }

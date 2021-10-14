@@ -28,25 +28,28 @@ export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan):
   ) {
     const bannedAvatar = userAvatar !== null && _.includes(avatars, userAvatar);
     const bannedUsername = _.includes(usernames, userUsername);
-    const fragmentAvatar = (bannedAvatar) ? `avatar hash (${userAvatar})` : undefined;
-    const fragmentUsername = (bannedUsername) ? `username (${userUsername})` : undefined;
 
     // If user has a banned avatar hash or username.
     if (bannedAvatar || bannedUsername) {
       member.ban(
         {
-          reason: `Member has a forbidden ${fragmentAvatar ?? fragmentUsername}`,
+          reason: [
+            'Member has a forbidden',
+            ...(bannedAvatar) ? [`avatar hash (${userAvatar})`] : [],
+            ...(bannedUsername) ? [`username (${userUsername})`] : [],
+          ].join(' '),
         },
       ).then(() => {
         generateLogMessage(
           [
             chalk.red(member.toString()),
             'was automatically banned because member has a forbidden',
-            fragmentAvatar ?? fragmentUsername,
+            ...(bannedAvatar) ? [`avatar hash (${userAvatar})`] : [],
+            ...(bannedUsername) ? [`username (${userUsername})`] : [],
           ].join(' '),
           30,
         );
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to ban member',
         10,
         error,
@@ -86,7 +89,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
 
   if (
     settingsRoleId
-    && guild.roles.cache.has(settingsRoleId)
+    && guild.roles.resolve(settingsRoleId) !== null
     && oldMemberPending
     && !newMemberPending
   ) {
@@ -101,7 +104,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
         ].join(' '),
         30,
       );
-    }).catch((error: Error) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       'Failed to add role',
       10,
       error,
@@ -131,14 +134,12 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
  * @since 1.0.0
  */
 export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannels | undefined): void {
-  const joined = (mode === 'join') ? 'joined' : undefined;
-  const left = (mode === 'leave') ? 'left' : undefined;
-
   generateLogMessage(
     [
       chalk.yellow(member.toString()),
       'has',
-      joined ?? left,
+      ...(mode === 'join') ? ['joined'] : [],
+      ...(mode === 'leave') ? ['left'] : [],
       'the guild',
     ].join(' '),
     30,
@@ -159,10 +160,10 @@ export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: 
           }),
           member.user.createdAt,
           member.joinedAt,
-          member.roles.cache,
+          member.roles,
         ),
       ],
-    }).catch((error: Error) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       'Failed to send member monitor embed',
       10,
       error,

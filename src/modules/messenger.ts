@@ -75,7 +75,7 @@ export function autoReply(message: Message, replies: Replies): void {
             ].join(' '),
             30,
           );
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send auto-reply message for',
             chalk.red(replyName),
@@ -246,7 +246,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         }
 
         if (deleteMessage === true) {
-          message.delete().catch((error: Error) => generateLogMessage(
+          message.delete().catch((error) => generateLogMessage(
             'Failed to delete message',
             10,
             error,
@@ -263,7 +263,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
             ].join(' '),
             30,
           );
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to copy message for',
             chalk.red(name),

@@ -37,7 +37,7 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
   const regexRuleFlags = _.get(regexRule, 'regex.flags');
   const directMessage = _.get(regexRule, 'direct-message');
   const excludedRoles = _.get(regexRule, 'exclude-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.cache.has(excludedRole.id));
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole.id) !== null);
 
   let match;
 
@@ -80,12 +80,12 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
             ].join(' '),
             30,
           );
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           'Failed to send direct message',
           10,
           error,
         ));
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to create direct message channel',
         10,
         error,
@@ -93,7 +93,7 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
     }
 
     // Delete message.
-    message.delete().catch((error: Error) => generateLogMessage(
+    message.delete().catch((error) => generateLogMessage(
       'Failed to delete message',
       10,
       error,
@@ -185,7 +185,7 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
           detectedCategories,
         ),
       ],
-    }).catch((error: Error) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       'Failed to send suspicious words embed',
       10,
       error,
@@ -224,7 +224,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
   const channelId = _.get(affiliateLinks, 'channel-id');
   const directMessage = _.get(affiliateLinks, 'direct-message');
   const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.cache.has(excludedRole.id));
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole.id) !== null);
 
   const sendToChannel = getTextBasedChannel(guild, channelId);
 
@@ -252,7 +252,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
       return;
     }
 
-    if (match === true) {
+    if (match) {
       websites.push(website);
     }
   });
@@ -286,14 +286,17 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
           websites,
         ),
       ],
-    }).catch((error: Error) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       'Failed to send remove affiliate links embed',
       10,
       error,
     ));
   }
 
-  if (!hasExcludedRoles && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+  if (
+    !hasExcludedRoles
+    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+  ) {
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
       member.createDM().then((dmChannel) => {
         dmChannel.send({
@@ -307,19 +310,19 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
             ].join(' '),
             30,
           );
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           'Failed to send direct message',
           10,
           error,
         ));
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to create direct message channel',
         10,
         error,
       ));
     }
 
-    message.delete().catch((error: Error) => generateLogMessage(
+    message.delete().catch((error) => generateLogMessage(
       'Failed to delete message',
       10,
       error,

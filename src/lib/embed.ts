@@ -2,9 +2,9 @@ import {
   Collection,
   ColorResolvable,
   EmbedFieldData,
+  GuildMemberRoleManager,
   MessageAttachment,
   MessageEmbed,
-  Role,
   Snowflake,
 } from 'discord.js';
 import _ from 'lodash';
@@ -70,7 +70,12 @@ export function addMessageFields(message: string, fieldTitle: string = 'Message'
 
   _.forEach(theMessages, (theMessage, key) => {
     fields.push({
-      name: `**${fieldTitle}${(key > 0) ? ' (cont.)' : ''}**`,
+      name: [
+        '**',
+        fieldTitle,
+        ...(key > 0) ? ['(cont.)'] : [],
+        '**',
+      ].join(' '),
       value: `>>> ${theMessage}`,
     });
   });
@@ -386,20 +391,20 @@ export function createListMembersEmbed(title: string, mentions: string[], thumbn
 /**
  * Create member monitor embed.
  *
- * @param {MemberMonitorMode}           mode      - Whether a user joined or left a guild.
- * @param {string}                      tag       - User tag.
- * @param {string}                      mention   - User mention.
- * @param {string|null}                 avatar    - User avatar.
- * @param {string}                      avatarUrl - User avatar url.
- * @param {Date}                        createdAt - User created at.
- * @param {Date}                        joinedAt  - User joined at.
- * @param {Collection<Snowflake, Role>} roles     - User roles.
+ * @param {MemberMonitorMode}      mode      - Whether a user joined or left a guild.
+ * @param {string}                 tag       - User tag.
+ * @param {string}                 mention   - User mention.
+ * @param {string|null}            avatar    - User avatar.
+ * @param {string}                 avatarUrl - User avatar url.
+ * @param {Date}                   createdAt - User created at.
+ * @param {Date}                   joinedAt  - User joined at.
+ * @param {GuildMemberRoleManager} roles     - User roles.
  *
  * @returns {MessageEmbed}
  *
  * @since 1.0.0
  */
-export function createMemberMonitorEmbed(mode: MemberMonitorMode, tag: string, mention: string, avatar: string | null, avatarUrl: string, createdAt: Date, joinedAt: Date, roles: Collection<Snowflake, Role>): MessageEmbed {
+export function createMemberMonitorEmbed(mode: MemberMonitorMode, tag: string, mention: string, avatar: string | null, avatarUrl: string, createdAt: Date, joinedAt: Date, roles: GuildMemberRoleManager): MessageEmbed {
   const fields = [];
   const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
   const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
@@ -447,7 +452,7 @@ export function createMemberMonitorEmbed(mode: MemberMonitorMode, tag: string, m
 
   if (mode === 'leave') {
     const timeOfStayDuration = getReadableDuration(timeOfStay);
-    const assignedRoles = _.filter([...roles.values()], (role) => role.name !== '@everyone');
+    const assignedRoles = _.filter([...roles.cache.values()], (role) => role.name !== '@everyone');
     const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
     const displayRoles = (_.size(assignedRoles) > 0) ? `roles (${assignedRolesMention.join(', ')})` : 'no roles';
 
@@ -711,14 +716,20 @@ export function createVoiceToolsEmbed(route: VoiceRoute, message: string, status
         return 'Disconnected';
       case 'unmute-complete':
         return 'Unmuted';
+      case 'invite-complete':
+        return 'Invited to Speak';
       case 'disconnect-fail':
         return 'Failed to Disconnect';
       case 'unmute-fail':
         return 'Failed to Unmute';
+      case 'invite-fail':
+        return 'Failed to Invite to Speak';
       case 'disconnect-in-progress':
         return 'Disconnecting';
       case 'unmute-in-progress':
         return 'Unmuting';
+      case 'invite-in-progress':
+        return 'Inviting to Speak';
       default:
         return 'Unknown';
     }

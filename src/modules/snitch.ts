@@ -70,7 +70,7 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
             }),
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send change nickname embed',
         10,
         error,
@@ -84,14 +84,14 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
  *
  * @param {Guild}            guild    - Discord guild.
  * @param {User|PartialUser} oldUser  - User information (old).
- * @param {User|PartialUser} newUser  - User information (new).
+ * @param {User}             newUser  - User information (new).
  * @param {Snitch}           settings - Channel configuration.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, newUser: User | PartialUser, settings: Snitch): void {
+export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, newUser: User, settings: Snitch): void {
   if (oldUser.tag !== newUser.tag) {
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
@@ -122,7 +122,7 @@ export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, ne
             }),
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send change username embed',
         10,
         error,
@@ -182,7 +182,7 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
             url,
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send delete message embed',
         10,
         error,
@@ -254,7 +254,7 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
               url,
             ),
           ],
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           'Failed to send includes links embed',
           10,
           error,
@@ -325,7 +325,7 @@ export function userUpdateMessage(message: Message | PartialMessage, settings: S
             url,
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send update message embed',
         10,
         error,
@@ -391,7 +391,7 @@ export function userUploadAttachment(message: Message | PartialMessage, settings
             url,
           ),
         ],
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         'Failed to send upload attachment embed',
         10,
         error,

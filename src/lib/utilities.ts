@@ -1,5 +1,11 @@
 import chalk from 'chalk';
-import { Guild, Snowflake, TextBasedChannels } from 'discord.js';
+import {
+  Guild,
+  NewsChannel,
+  Snowflake,
+  TextChannel,
+  ThreadChannel,
+} from 'discord.js';
 import _ from 'lodash';
 import { DateTime, DurationObjectUnits } from 'luxon';
 
@@ -12,11 +18,11 @@ import { LogMessagePriority } from '../types';
  *
  * @param {string}             message  - Message to log.
  * @param {LogMessagePriority} priority - Can be 10 (error), 20 (warn), 30 (info), or 40 (debug).
- * @param {Error|unknown}      error    - The error object.
+ * @param {unknown}            error    - The error object.
  *
  * @since 1.0.0
  */
-export function generateLogMessage(message: string, priority: LogMessagePriority, error?: Error | unknown): void {
+export function generateLogMessage(message: string, priority: LogMessagePriority, error?: unknown): void {
   const logLevel = _.get(config, 'settings.log-level', 30);
   const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
   const currentTime = DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
@@ -26,40 +32,58 @@ export function generateLogMessage(message: string, priority: LogMessagePriority
     switch (priority) {
       case 10:
         console.error(`${currentTime} - ${chalk.red('ERROR')} - ${message} ...`);
+
+        if (_.isError(error) && error.stack) {
+          console.error(error.stack);
+        }
         break;
       case 20:
         console.warn(`${currentTime} - ${chalk.yellow('WARN')} - ${message} ...`);
+
+        if (_.isError(error) && error.stack) {
+          console.warn(error.stack);
+        }
         break;
       case 30:
         console.log(`${currentTime} - ${chalk.magenta('INFO')} - ${message} ...`);
+
+        if (_.isError(error) && error.stack) {
+          console.log(error.stack);
+        }
         break;
       case 40:
         console.debug(`${currentTime} - ${chalk.gray('DEBUG')} - ${message} ...`);
+
+        if (_.isError(error) && error.stack) {
+          console.debug(error.stack);
+        }
         break;
       default:
         break;
-    }
-
-    // Logs the error stack if available.
-    if (_.isError(error) && error.stack) {
-      console.log(error.stack);
     }
   }
 }
 
 /**
- * Generate server failed message.
+ * Generate server message.
  *
- * @param {string} message - Message to log.
+ * @param {string}  message  - Message to log.
+ * @param {boolean} failed   - If error related. Defaults to false.
+ * @param {number}  exitCode - Exit code.
  *
  * @since 1.0.0
  */
-export function generateServerFailedMessage(message: string): void {
+export function generateServerMessage(message: string, failed: boolean = false, exitCode?: number): void {
   console.error([
-    chalk.red('Server failed to start!'),
+    ...(failed) ? [chalk.red('Server failed to start!')] : [],
     message,
     '...',
   ].join(' '));
+
+  // Kills the process with an exit code.
+  if (_.isFinite(exitCode)) {
+    process.exit(exitCode);
+  }
 }
 
 /**
@@ -116,21 +140,20 @@ export function getReadableDuration(duration: DurationObjectUnits): string {
  * @param {Guild|undefined}     guild     - Discord guild.
  * @param {Snowflake|undefined} channelId - The channel id.
  *
- * @returns {TextBasedChannels|undefined}
+ * @returns {TextChannel|NewsChannel|ThreadChannel|undefined}
  *
  * @since 1.0.0
  */
-export function getTextBasedChannel(guild: Guild | undefined, channelId: Snowflake | undefined): TextBasedChannels | undefined {
+export function getTextBasedChannel(guild: Guild | undefined, channelId: Snowflake | undefined): TextChannel | NewsChannel | ThreadChannel | undefined {
   if (!guild || !channelId) {
     return undefined;
   }
 
-  const guildChannels = guild.channels.cache;
-  const textChannel = guildChannels.get(channelId);
+  const guildChannel = guild.channels.resolve(channelId);
 
-  // If channel is a text-based channel.
-  if (textChannel !== undefined && textChannel.isText()) {
-    return textChannel;
+  // If guild channel is text-based.
+  if (guildChannel !== null && guildChannel.isText()) {
+    return guildChannel;
   }
 
   return undefined;

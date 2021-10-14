@@ -213,7 +213,7 @@ export type TogglePermsSettings = TogglePermsSetting[];
 /**
  * Miscellaneous.
  */
-export type DuplicateUsers = {
+export type DuplicateMembers = {
   [avatarHash: string]: MemberMention[];
 };
 
@@ -243,6 +243,8 @@ export type RoleRoute = 'add' | 'remove';
 
 export type RoleSelection = 'everyone' | 'no-role' | RoleMention;
 
+export type RoleToOrFrom = 'to' | 'from';
+
 export type StoredMessage = {
   id: Snowflake;
   content: string;
@@ -256,4 +258,4 @@ export type TogglePermsToggle = 'on' | 'off';
 
 export type VoiceAction = ChannelMention;
 
-export type VoiceRoute = 'disconnect' | 'unmute';
+export type VoiceRoute = 'disconnect' | 'unmute' | 'invite';

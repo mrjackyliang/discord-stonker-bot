@@ -1,11 +1,7 @@
-import chalk from 'chalk';
 import { Client, Guild } from 'discord.js';
 import express from 'express';
 import fs from 'fs';
-import http from 'http';
-import https from 'https';
 import _ from 'lodash';
-import path from 'path';
 
 import config from '../../config.json';
 
@@ -24,7 +20,7 @@ import {
   voiceTools,
 } from './commands';
 import { rssFeed, schedulePost, stocktwits } from './content';
-import { inviteGenerator } from './invites';
+import { inviteGenerator } from './invite';
 import { autoReply, messageCopier } from './messenger';
 import {
   checkRegexChannels,
@@ -54,6 +50,7 @@ import {
   Snitch,
   SuspiciousWords,
 } from '../types';
+import { webServerSetup } from './server';
 
 /**
  * Bot configuration.
@@ -86,13 +83,6 @@ const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configInviteGenerator = _.get(config, 'invite-generator');
 const configStocktwits = _.get(config, 'stocktwits');
 const configBumpThreads = _.get(config, 'bump-threads');
-
-/**
- * Web server.
- *
- * @since 1.0.0
- */
-const server = express();
 
 /**
  * Initialize.
@@ -129,7 +119,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
-        bulkBan(message, _.get(config, 'commands.bulk-ban'));
+        bulkBan(message, _.get(config, 'commands.bulk-ban')).catch((error) => generateLogMessage(
+          'Failed to invoke "bulkBan" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -138,7 +132,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
-        fetchDuplicates(message, _.get(config, 'commands.fetch-duplicates'));
+        fetchDuplicates(message, _.get(config, 'commands.fetch-duplicates')).catch((error) => generateLogMessage(
+          'Failed to invoke "fetchDuplicates" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -147,7 +145,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
-        fetchMembers(message, _.get(config, 'commands.fetch-members'));
+        fetchMembers(message, _.get(config, 'commands.fetch-members')).catch((error) => generateLogMessage(
+          'Failed to invoke "fetchMembers" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -164,7 +166,11 @@ export function initialize(client: Client, guild: Guild): void {
           roleManager: _.get(config, 'commands.role-manager'),
           togglePerms: _.get(config, 'commands.toggle-perms'),
           voiceTools: _.get(config, 'commands.voice-tools'),
-        });
+        }).catch((error) => generateLogMessage(
+          'Failed to invoke "helpMenu" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -173,7 +179,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
-        roleManager(message, _.get(config, 'commands.role-manager'));
+        roleManager(message, _.get(config, 'commands.role-manager')).catch((error) => generateLogMessage(
+          'Failed to invoke "roleManager" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -182,7 +192,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
-        togglePerms(message, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms'));
+        togglePerms(message, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms')).catch((error) => generateLogMessage(
+          'Failed to invoke "togglePerms" function',
+          10,
+          error,
+        ));
       }
 
       /**
@@ -191,7 +205,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
-        voiceTools(message, _.get(config, 'commands.voice-tools'));
+        voiceTools(message, _.get(config, 'commands.voice-tools')).catch((error) => generateLogMessage(
+          'Failed to invoke "voiceTools" function',
+          10,
+          error,
+        ));
       }
     }
   });
@@ -452,8 +470,6 @@ export function initialize(client: Client, guild: Guild): void {
   client.on('userUpdate', (oldUser, newUser) => {
     if (
       guild.available // If guild is online.
-      && guild.members.cache.has(oldUser.id) // If old user is in the guild.
-      && guild.members.cache.has(newUser.id) // If new user is in the guild.
     ) {
       /**
        * Change username notification.
@@ -528,60 +544,29 @@ export function initialize(client: Client, guild: Guild): void {
       && _.inRange(configSettingsServerHttpsPort, 0, 65536)
     )
   ) {
-    // Middleware.
-    server.use(express.json());
-    server.use(express.urlencoded({
-      extended: true,
-    }));
+    const server = express();
 
-    // Templates.
-    server.set('view engine', 'ejs');
-    server.set('views', path.join(__dirname, '../views'));
+    /**
+     * Web server setup.
+     *
+     * @since 1.0.0
+     */
+    webServerSetup(
+      server,
+      configSettingsServerHttpPort,
+      configSettingsServerHttpsPort,
+      configSettingsServerHttpsKey,
+      configSettingsServerHttpsCert,
+      configSettingsServerHttpsCa,
+    );
 
-    // HTTP web server.
-    if (_.inRange(configSettingsServerHttpPort, 0, 65536)) {
-      const httpServer = http.createServer(server);
-
-      httpServer.listen(configSettingsServerHttpPort, () => {
-        generateLogMessage(
-          `HTTP web server started on port ${chalk.yellow(configSettingsServerHttpPort)}`,
-          30,
-        );
-      });
+    /**
+     * Invite generator.
+     *
+     * @since 1.0.0
+     */
+    if (_.isPlainObject(configInviteGenerator)) {
+      inviteGenerator(server, guild, configInviteGenerator);
     }
-
-    // HTTPS web server.
-    if (
-      fs.existsSync(configSettingsServerHttpsKey)
-      && fs.existsSync(configSettingsServerHttpsCert)
-      && fs.existsSync(configSettingsServerHttpsCa)
-      && _.inRange(configSettingsServerHttpsPort, 0, 65536)
-    ) {
-      const httpsServer = https.createServer({
-        key: fs.readFileSync(configSettingsServerHttpsKey, 'utf-8'),
-        cert: fs.readFileSync(configSettingsServerHttpsCert, 'utf-8'),
-        ca: fs.readFileSync(configSettingsServerHttpsCa, 'utf-8'),
-      }, server);
-
-      httpsServer.listen(configSettingsServerHttpsPort, () => {
-        generateLogMessage(
-          `HTTPS web server started on port ${chalk.yellow(configSettingsServerHttpsPort)}`,
-          30,
-        );
-      });
-    }
-
-    server.get('/', (request, response) => {
-      response.sendStatus(200);
-    });
-  }
-
-  /**
-   * Invite generator.
-   *
-   * @since 1.0.0
-   */
-  if ((_.inRange(configSettingsServerHttpPort, 0, 65536) || _.inRange(configSettingsServerHttpsPort, 0, 65536)) && _.isPlainObject(configInviteGenerator)) {
-    inviteGenerator(server, guild, configInviteGenerator);
   }
 }

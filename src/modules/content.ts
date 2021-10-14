@@ -113,7 +113,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
       [
         '"message" for',
         chalk.red(name),
-        'RSS feed is not a string or is empty',
+        '(RSS feed) is not a string or is empty',
       ].join(' '),
       10,
     );
@@ -128,6 +128,15 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
     scheduleJob(interval, () => {
       rssParser.parseURL(url).then((response) => {
         const { items } = response;
+        /**
+         * Clean item link.
+         *
+         * @param {string|undefined} link - The link.
+         *
+         * @returns {string|undefined}
+         *
+         * @since 1.0.0
+         */
         const cleanItemLink = (link: string | undefined): string | undefined => {
           if (_.isString(link)) {
             return link
@@ -190,7 +199,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
               // Update the sent items array.
               sentItems.push(itemLinkCleaned);
-            }).catch((error: Error) => generateLogMessage(
+            }).catch((error) => generateLogMessage(
               [
                 'Failed to send',
                 chalk.red(name),
@@ -202,7 +211,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
             ));
           }
         });
-      }).catch((error: Error) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to parse',
           chalk.red(name),
@@ -215,7 +224,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
     generateLogMessage(
       [
-        'Scheduled',
+        'Initialized',
         chalk.green(name),
         'RSS feed',
       ].join(' '),
@@ -224,7 +233,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
   } catch (error) {
     generateLogMessage(
       [
-        'Failed to schedule',
+        'Failed to initialize',
         chalk.red(name),
         'RSS feed',
       ].join(' '),
@@ -272,7 +281,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
       [
         '"message" for',
         chalk.red(name),
-        'post event is not a plain object or is empty',
+        '(Schedule post) is not a plain object or is empty',
       ].join(' '),
       10,
     );
@@ -286,7 +295,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
       [
         '"reactions" for',
         chalk.red(name),
-        'post event must be a string[]',
+        '(Schedule post) must be a string[]',
       ].join(' '),
       10,
     );
@@ -300,7 +309,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
       [
         '"skip-days" for',
         chalk.red(name),
-        'post event does not match "YYYY-MM-DD"[]',
+        '(Schedule post) does not match "YYYY-MM-DD"[]',
       ].join(' '),
       10,
     );
@@ -322,7 +331,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
             [
               'Sent',
               chalk.green(name),
-              'post event to',
+              'scheduled post to',
               chalk.green(sendToChannel.toString()),
             ].join(' '),
             30,
@@ -334,26 +343,26 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
               [
                 'Successfully reacted',
                 chalk.green(name),
-                `post event with "${reaction}"`,
+                `scheduled post with "${reaction}"`,
                 'emoji',
               ].join(' '),
               40,
-            )).catch((error: Error) => generateLogMessage(
+            )).catch((error) => generateLogMessage(
               [
                 'Failed to react',
                 chalk.red(name),
-                `post event with "${reaction}"`,
+                `scheduled post with "${reaction}"`,
                 'emoji',
               ].join(' '),
               10,
               error,
             ));
           });
-        }).catch((error: Error) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send',
             chalk.red(name),
-            'post event to',
+            'scheduled post to',
             chalk.red(sendToChannel.toString()),
           ].join(' '),
           10,
@@ -364,7 +373,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
           [
             'Skipped sending',
             chalk.yellow(name),
-            'post event to',
+            'scheduled post to',
             chalk.yellow(sendToChannel.toString()),
           ].join(' '),
           30,
@@ -374,18 +383,18 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
 
     generateLogMessage(
       [
-        'Scheduled',
+        'Initialized',
         chalk.green(name),
-        'post event',
+        'scheduled post',
       ].join(' '),
       40,
     );
   } catch (error) {
     generateLogMessage(
       [
-        'Failed to schedule',
+        'Failed to initialize',
         chalk.red(name),
-        'post event',
+        'scheduled post',
       ].join(' '),
       10,
       error,
@@ -430,9 +439,9 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
   if (!_.isString(message)) {
     generateLogMessage(
       [
-        '"message" for Stocktwits post',
-        `(${chalk.red(name)})`,
-        'is not a string',
+        '"message" for',
+        chalk.red(name),
+        '(Stocktwits) is not a string',
       ].join(' '),
       10,
     );
@@ -444,9 +453,9 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
   if (!_.isFinite(limit)) {
     generateLogMessage(
       [
-        '"limit" for Stocktwits post',
-        `(${chalk.red(name)})`,
-        'is not a finite number',
+        '"limit" for',
+        chalk.red(name),
+        '(Stocktwits) is not a finite number',
       ].join(' '),
       10,
     );
@@ -458,9 +467,9 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
   if (skipDays && (!_.isArray(skipDays) || !_.every(skipDays, (skipDay) => new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/g).test(skipDay)))) {
     generateLogMessage(
       [
-        '"skip-days" for Stocktwits post',
-        `(${chalk.red(name)})`,
-        'does not match "YYYY-MM-DD"[]',
+        '"skip-days" for',
+        chalk.red(name),
+        '(Stocktwits) does not match "YYYY-MM-DD"[]',
       ].join(' '),
       10,
     );
@@ -491,7 +500,10 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
           const symbols = _.get(responseData, 'symbols', []);
           const sortedSymbols = _.orderBy(symbols, ['watchlist_count'], ['desc']);
           const content = {
-            content: message.replace(/%TICKERS%/g, _.map(sortedSymbols, (sortedSymbol) => `**${sortedSymbol.symbol}**`).join(', ')),
+            content: message.replace(
+              /%TICKERS%/g,
+              _.map(sortedSymbols, (sortedSymbol) => `**${sortedSymbol.symbol}**`).join(', '),
+            ),
           };
 
           if (showEmbed === true) {
@@ -521,36 +533,34 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
           sendToChannel.send(content).then(() => {
             generateLogMessage(
               [
-                'Sent Stocktwits post',
-                `(${chalk.green(name)})`,
-                'to',
+                'Sent',
+                chalk.green(name),
+                'Stocktwits post to',
                 chalk.green(sendToChannel.toString()),
               ].join(' '),
               30,
             );
-          }).catch((error: Error) => generateLogMessage(
+          }).catch((error) => generateLogMessage(
             [
-              'Failed to send Stocktwits post',
-              `(${chalk.red(name)})`,
-              'to',
+              'Failed to send',
+              chalk.red(name),
+              'Stocktwits post to',
               chalk.red(sendToChannel.toString()),
             ].join(' '),
             10,
             error,
           ));
-        }).catch((error: Error) => {
-          generateLogMessage(
-            'Failed to retrieve Stocktwits data',
-            10,
-            error,
-          );
-        });
+        }).catch((error) => generateLogMessage(
+          'Failed to retrieve Stocktwits data',
+          10,
+          error,
+        ));
       } else {
         generateLogMessage(
           [
-            'Skipped sending Stocktwits post',
-            `(${chalk.yellow(name)})`,
-            'to',
+            'Skipped sending',
+            chalk.yellow(name),
+            'Stocktwits post to',
             chalk.yellow(sendToChannel.toString()),
           ].join(' '),
           20,
@@ -560,16 +570,18 @@ export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | 
 
     generateLogMessage(
       [
-        'Scheduled Stocktwits post',
-        `(${chalk.green(name)})`,
+        'Initialized',
+        chalk.green(name),
+        'Stocktwits post',
       ].join(' '),
       40,
     );
   } catch (error) {
     generateLogMessage(
       [
-        'Failed to schedule Stocktwits post',
-        `(${chalk.red(name)})`,
+        'Failed to initialize',
+        chalk.red(name),
+        'Stocktwits post',
       ].join(' '),
       10,
       error,

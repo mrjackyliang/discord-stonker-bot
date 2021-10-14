@@ -28,30 +28,30 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
     if (
       (
         type === 'yes-to-yes'
-        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
-        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.resolve(beforeRole) !== null)
+        && _.some(afterRoles, (afterRole) => newMember.roles.resolve(afterRole) !== null)
       )
       || (
         type === 'no-to-no'
-        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
-        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.resolve(beforeRole) !== null)
+        && !_.some(afterRoles, (afterRole) => newMember.roles.resolve(afterRole) !== null)
       )
       || (
         type === 'yes-to-no'
-        && _.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
-        && !_.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
+        && _.some(beforeRoles, (beforeRole) => oldMember.roles.resolve(beforeRole) !== null)
+        && !_.some(afterRoles, (afterRole) => newMember.roles.resolve(afterRole) !== null)
       )
       || (
         type === 'no-to-yes'
-        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.cache.has(beforeRole))
-        && _.some(afterRoles, (afterRole) => newMember.roles.cache.has(afterRole))
+        && !_.some(beforeRoles, (beforeRole) => oldMember.roles.resolve(beforeRole) !== null)
+        && _.some(afterRoles, (afterRole) => newMember.roles.resolve(afterRole) !== null)
       )
     ) {
       // Add roles.
       if (
         _.size(toAdd) > 0
         && !_.every(toAdd, _.isUndefined)
-        && !_.some(toAdd, (theRole) => oldMember.roles.cache.has(theRole))
+        && !_.some(toAdd, (theRole) => oldMember.roles.resolve(theRole) !== null)
       ) {
         generateLogMessage(
           [
@@ -65,7 +65,7 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
         newMember.roles.add(
           toAdd,
           `${name} (${type})`,
-        ).catch((error: Error) => generateLogMessage(
+        ).catch((error) => generateLogMessage(
           'Failed to add roles',
           10,
           error,
@@ -76,7 +76,7 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
       if (
         _.size(toRemove) > 0
         && !_.every(toRemove, _.isUndefined)
-        && _.some(toRemove, (theRole) => newMember.roles.cache.has(theRole))
+        && _.some(toRemove, (theRole) => newMember.roles.resolve(theRole) !== null)
       ) {
         generateLogMessage(
           [
@@ -90,7 +90,7 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
         newMember.roles.remove(
           toRemove,
           `${name} (${type})`,
-        ).catch((error: Error) => generateLogMessage(
+        ).catch((error) => generateLogMessage(
           'Failed to remove roles',
           10,
           error,
