@@ -74,11 +74,17 @@ export function generateLogMessage(message: string, priority: LogMessagePriority
  * @since 1.0.0
  */
 export function generateServerMessage(message: string, failed: boolean = false, exitCode?: number): void {
-  console.error([
+  const consoleMessage = [
     ...(failed) ? [chalk.red('Server failed to start!')] : [],
     message,
     '...',
-  ].join(' '));
+  ].join(' ');
+
+  if (failed) {
+    console.error(consoleMessage);
+  } else {
+    console.log(consoleMessage);
+  }
 
   // Kills the process with an exit code.
   if (_.isFinite(exitCode)) {

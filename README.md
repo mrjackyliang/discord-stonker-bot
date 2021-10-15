@@ -76,18 +76,18 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 
 ```json
 {
-    "settings": {
-        "client-token": "",
-        "guild-id": "",
-        "bot-prefix": "!",
-        "server-http-port": 8080,
-        "server-https-port": 8443,
-        "server-https-key": "",
-        "server-https-cert": "",
-        "server-https-ca": "",
-        "time-zone": "Etc/UTC",
-        "log-level": 30
-    }
+  "settings": {
+    "client-token": "",
+    "guild-id": "",
+    "bot-prefix": "!",
+    "server-http-port": 8080,
+    "server-https-port": 8443,
+    "server-https-key": "",
+    "server-https-cert": "",
+    "server-https-ca": "",
+    "time-zone": "Etc/UTC",
+    "log-level": 30
+  }
 }
 ```
 
@@ -112,26 +112,26 @@ Get notifications from user actions surrounding your server. A notification will
 
 ```json
 {
-    "snitch": {
-        "change-nickname": {
-            "channel-id": "000000000000000000"
-        },
-        "change-username": {
-            "channel-id": "000000000000000000"
-        },
-        "delete-message": {
-            "channel-id": "000000000000000000"
-        },
-        "includes-link": {
-            "channel-id": "000000000000000000"
-        },
-        "update-message": {
-            "channel-id": "000000000000000000"
-        },
-        "upload-attachment": {
-            "channel-id": "000000000000000000"
-        }
+  "snitch": {
+    "change-nickname": {
+      "channel-id": "000000000000000000"
+    },
+    "change-username": {
+      "channel-id": "000000000000000000"
+    },
+    "delete-message": {
+      "channel-id": "000000000000000000"
+    },
+    "includes-link": {
+      "channel-id": "000000000000000000"
+    },
+    "update-message": {
+      "channel-id": "000000000000000000"
+    },
+    "upload-attachment": {
+      "channel-id": "000000000000000000"
     }
+  }
 }
 ```
 
@@ -165,50 +165,50 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 
 ```json
 {
-    "commands": {
-        "bulk-ban": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "fetch-duplicates": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "fetch-members": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "help-menu": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "role-manager": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "toggle-perms": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ],
-        "voice-tools": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    }
+  "commands": {
+    "bulk-ban": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "fetch-duplicates": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "fetch-members": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "help-menu": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "role-manager": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "toggle-perms": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ],
+    "voice-tools": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ]
+  }
 }
 ```
 
@@ -233,29 +233,29 @@ A set of tools to ban members (based on their avatar hash or username), and help
 
 ```json
 {
-    "anti-raid": {
-        "auto-ban": {
-            "avatar": [
-                "00000000000000000000000000000000"
-            ],
-            "username": [
-                "Bad User"
-            ]
-        },
-        "membership-gate": {
-            "role-id": "000000000000000000",
-            "channel-id": "000000000000000000",
-            "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
-        },
-        "monitor": {
-            "guild-join": {
-                "channel-id": "000000000000000000"
-            },
-            "guild-leave": {
-                "channel-id": "000000000000000000"
-            }
-        }
+  "anti-raid": {
+    "auto-ban": {
+      "avatar": [
+        "00000000000000000000000000000000"
+      ],
+      "username": [
+        "Bad User"
+      ]
+    },
+    "membership-gate": {
+      "role-id": "000000000000000000",
+      "channel-id": "000000000000000000",
+      "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
+    },
+    "monitor": {
+      "guild-join": {
+        "channel-id": "000000000000000000"
+      },
+      "guild-leave": {
+        "channel-id": "000000000000000000"
+      }
     }
+  }
 }
 ```
 
@@ -282,42 +282,42 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 
 ```json
 {
-    "schedule-posts": [
-        {
-            "name": "Sample",
-            "channel-id": "000000000000000000",
-            "message": {
-                "content": "This is a sample scheduled post"
-            },
-            "reactions": [
-                "🟢",
-                "🟡",
-                "🔴"
-            ],
-            "send-every": {
-                "time-zone": "Etc/UTC",
-                "days-of-week": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6
-                ],
-                "year": 2020,
-                "month": 0,
-                "date": 1,
-                "hour": 0,
-                "minute": 0,
-                "second": 0
-            },
-            "skip-days": [
-                "2021-01-01",
-                "2021-02-01"
-            ]
-        }
-    ]
+  "schedule-posts": [
+    {
+      "name": "Sample",
+      "channel-id": "000000000000000000",
+      "message": {
+        "content": "This is a sample scheduled post"
+      },
+      "reactions": [
+        "🟢",
+        "🟡",
+        "🔴"
+      ],
+      "send-every": {
+        "time-zone": "Etc/UTC",
+        "days-of-week": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "year": 2020,
+        "month": 0,
+        "date": 1,
+        "hour": 0,
+        "minute": 0,
+        "second": 0
+      },
+      "skip-days": [
+        "2021-01-01",
+        "2021-02-01"
+      ]
+    }
+  ]
 }
 ```
 
@@ -335,15 +335,15 @@ Get updates from external RSS feeds. Customize the message when a new RSS update
 
 ```json
 {
-    "rss-feeds": [
-        {
-            "name": "Sample",
-            "channel-id": "000000000000000000",
-            "interval": "* * * * *",
-            "url": "https://www.example.com/feed",
-            "message": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
-        }
-    ]
+  "rss-feeds": [
+    {
+      "name": "Sample",
+      "channel-id": "000000000000000000",
+      "interval": "* * * * *",
+      "url": "https://www.example.com/feed",
+      "message": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
+    }
+  ]
 }
 ```
 
@@ -367,23 +367,23 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 
 ```json
 {
-    "regex-rules": [
+  "regex-rules": [
+    {
+      "name": "Sample Regex",
+      "channel-id": "000000000000000000",
+      "regex": {
+        "pattern": "(?:)",
+        "flags": "g"
+      },
+      "direct-message": "This type of text is not allowed in this channel!",
+      "exclude-roles": [
         {
-            "name": "Sample Regex",
-            "channel-id": "000000000000000000",
-            "regex": {
-                "pattern": "(?:)",
-                "flags": "g"
-            },
-            "direct-message": "This type of text is not allowed in this channel!",
-            "exclude-roles": [
-                {
-                    "description": "Sample role",
-                    "id": "000000000000000000"
-                }
-            ]
+          "description": "Sample role",
+          "id": "000000000000000000"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
@@ -400,18 +400,18 @@ Detect words in a message that may require attention. Useful when a member menti
 
 ```json
 {
-    "suspicious-words": {
-        "channel-id": "000000000000000000",
-        "categories": [
-            {
-                "category": "Sample",
-                "words": [
-                    "suspicious",
-                    "really suspicious"
-                ]
-            }
+  "suspicious-words": {
+    "channel-id": "000000000000000000",
+    "categories": [
+      {
+        "category": "Sample",
+        "words": [
+          "suspicious",
+          "really suspicious"
         ]
-    }
+      }
+    ]
+  }
 }
 ```
 
@@ -440,96 +440,96 @@ Useful for many scenarios like when members lose a Premium role or when members 
 
 ```json
 {
-    "roles": [
+  "roles": [
+    {
+      "name": "Remove B role if member is A",
+      "type": "yes-to-yes",
+      "before": [
         {
-            "name": "Remove B role if member is A",
-            "type": "yes-to-yes",
-            "before": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "after": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "to-remove": [
-                {
-                    "description": "B role",
-                    "id": "000000000000000000"
-                }
-            ]
-        },
-        {
-            "name": "Remove B role if member is not A",
-            "type": "no-to-no",
-            "before": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "after": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "to-remove": [
-                {
-                    "description": "B role",
-                    "id": "000000000000000000"
-                }
-            ]
-        },
-        {
-            "name": "Add B role if member went from A to not A",
-            "type": "yes-to-no",
-            "before": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "after": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "to-add": [
-                {
-                    "description": "B role",
-                    "id": "000000000000000000"
-                }
-            ]
-        },
-        {
-            "name": "Remove B role if member went from not A to A",
-            "type": "no-to-yes",
-            "before": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "after": [
-                {
-                    "description": "A role",
-                    "id": "000000000000000000"
-                }
-            ],
-            "to-remove": [
-                {
-                    "description": "B role",
-                    "id": "000000000000000000"
-                }
-            ]
+          "description": "A role",
+          "id": "000000000000000000"
         }
-    ]
+      ],
+      "after": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "to-remove": [
+        {
+          "description": "B role",
+          "id": "000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "Remove B role if member is not A",
+      "type": "no-to-no",
+      "before": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "after": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "to-remove": [
+        {
+          "description": "B role",
+          "id": "000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "Add B role if member went from A to not A",
+      "type": "yes-to-no",
+      "before": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "after": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "to-add": [
+        {
+          "description": "B role",
+          "id": "000000000000000000"
+        }
+      ]
+    },
+    {
+      "name": "Remove B role if member went from not A to A",
+      "type": "no-to-yes",
+      "before": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "after": [
+        {
+          "description": "A role",
+          "id": "000000000000000000"
+        }
+      ],
+      "to-remove": [
+        {
+          "description": "B role",
+          "id": "000000000000000000"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -549,23 +549,23 @@ Reply to a message without requiring human interaction. Great for automated cust
 
 ```json
 {
-    "auto-reply": [
-        {
-            "name": "Sample",
-            "channel-ids": [
-                "000000000000000000"
-            ],
-            "reply": true,
-            "regex": {
-                "pattern": "(?:)",
-                "flags": "gi"
-            },
-            "messages": [
-                "reply 1",
-                "reply 2"
-            ]
-        }
-    ]
+  "auto-reply": [
+    {
+      "name": "Sample",
+      "channel-ids": [
+        "000000000000000000"
+      ],
+      "reply": true,
+      "regex": {
+        "pattern": "(?:)",
+        "flags": "gi"
+      },
+      "messages": [
+        "reply 1",
+        "reply 2"
+      ]
+    }
+  ]
 }
 ```
 
@@ -595,38 +595,38 @@ Automatically copy the original message that matches the regular expression into
 
 ```json
 {
-    "message-copier": [
+  "message-copier": [
+    {
+      "name": "Sample",
+      "channel-id": "000000000000000000",
+      "regex": {
+        "pattern": "(?:)",
+        "flags": "g"
+      },
+      "replacements": [
         {
-            "name": "Sample",
-            "channel-id": "000000000000000000",
-            "regex": {
-                "pattern": "(?:)",
-                "flags": "g"
-            },
-            "replacements": [
-                {
-                    "pattern": "",
-                    "flags": "",
-                    "replace-with": ""
-                }
-            ],
-            "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
-            "include-attachments": true,
-            "delete-message": false,
-            "allowed-users": [
-                "000000000000000000"
-            ],
-            "allowed-channels": [
-                "000000000000000000"
-            ],
-            "disallowed-users": [
-                "000000000000000000"
-            ],
-            "disallowed-channels": [
-                "000000000000000000"
-            ]
+          "pattern": "",
+          "flags": "",
+          "replace-with": ""
         }
-    ]
+      ],
+      "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
+      "include-attachments": true,
+      "delete-message": false,
+      "allowed-users": [
+        "000000000000000000"
+      ],
+      "allowed-channels": [
+        "000000000000000000"
+      ],
+      "disallowed-users": [
+        "000000000000000000"
+      ],
+      "disallowed-channels": [
+        "000000000000000000"
+      ]
+    }
+  ]
 }
 ```
 
@@ -650,25 +650,25 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 
 ```json
 {
-    "affiliate-links": {
-        "links": [
-            {
-                "website": "Affiliate Company",
-                "regex": {
-                    "pattern": "(?:)",
-                    "flags": "gi"
-                }
-            }
-        ],
-        "channel-id": "000000000000000000",
-        "direct-message": "Please do not send affiliate links!",
-        "excluded-roles": [
-            {
-                "description": "Sample role",
-                "id": "000000000000000000"
-            }
-        ]
-    }
+  "affiliate-links": {
+    "links": [
+      {
+        "website": "Affiliate Company",
+        "regex": {
+          "pattern": "(?:)",
+          "flags": "gi"
+        }
+      }
+    ],
+    "channel-id": "000000000000000000",
+    "direct-message": "Please do not send affiliate links!",
+    "excluded-roles": [
+      {
+        "description": "Sample role",
+        "id": "000000000000000000"
+      }
+    ]
+  }
 }
 ```
 
@@ -696,35 +696,35 @@ Get the latest trending tickers pulled in from Stocktwits automatically. Schedul
 
 ```json
 {
-    "stocktwits": [
-        {
-            "name": "Sample",
-            "channel-id": "000000000000000000",
-            "message": "This is a sample Stocktwits post - %TICKERS%",
-            "show-embed": true,
-            "limit": 24,
-            "send-every": {
-                "time-zone": "Etc/UTC",
-                "days-of-week": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                ],
-                "year": 2020,
-                "month": 0,
-                "date": 1,
-                "hour": 0,
-                "minute": 0,
-                "second": 0
-            },
-            "skip-days": [
-                "2021-01-01",
-                "2021-02-01"
-            ]
-        }
-    ]
+  "stocktwits": [
+    {
+      "name": "Sample",
+      "channel-id": "000000000000000000",
+      "message": "This is a sample Stocktwits post - %TICKERS%",
+      "show-embed": true,
+      "limit": 24,
+      "send-every": {
+        "time-zone": "Etc/UTC",
+        "days-of-week": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "year": 2020,
+        "month": 0,
+        "date": 1,
+        "hour": 0,
+        "minute": 0,
+        "second": 0
+      },
+      "skip-days": [
+        "2021-01-01",
+        "2021-02-01"
+      ]
+    }
+  ]
 }
 ```
 
@@ -753,42 +753,42 @@ Configure channel permissions with a single command without touching them! Great
 
 ```json
 {
-    "toggle-perms": [
+  "toggle-perms": [
+    {
+      "name": "Sample",
+      "id": "sample",
+      "on": [
         {
-            "name": "Sample",
-            "id": "sample",
-            "on": [
-                {
-                    "description": "#sample-channel",
-                    "channel-id": "000000000000000000",
-                    "channel-perms": [
-                        {
-                            "description": "Sample role",
-                            "user-or-role-id": "000000000000000000",
-                            "user-or-role-perms": {
-                                "SEND_MESSAGES": false
-                            }
-                        }
-                    ]
-                }
-            ],
-            "off": [
-                {
-                    "description": "#sample-channel",
-                    "channel-id": "000000000000000000",
-                    "channel-perms": [
-                        {
-                            "description": "Sample role",
-                            "user-or-role-id": "000000000000000000",
-                            "user-or-role-perms": {
-                                "SEND_MESSAGES": false
-                            }
-                        }
-                    ]
-                }
-            ]
+          "description": "#sample-channel",
+          "channel-id": "000000000000000000",
+          "channel-perms": [
+            {
+              "description": "Sample role",
+              "user-or-role-id": "000000000000000000",
+              "user-or-role-perms": {
+                "SEND_MESSAGES": false
+              }
+            }
+          ]
         }
-    ]
+      ],
+      "off": [
+        {
+          "description": "#sample-channel",
+          "channel-id": "000000000000000000",
+          "channel-perms": [
+            {
+              "description": "Sample role",
+              "user-or-role-id": "000000000000000000",
+              "user-or-role-perms": {
+                "SEND_MESSAGES": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -804,13 +804,13 @@ Stretch the world of threads and make them like sub-channels! Create threads tha
 
 ```json
 {
-    "bump-threads": [
-        {
-            "name": "#sample-channel",
-            "channel-id": "000000000000000000",
-            "thread-id": "000000000000000000"
-        }
-    ]
+  "bump-threads": [
+    {
+      "name": "#sample-channel",
+      "channel-id": "000000000000000000",
+      "thread-id": "000000000000000000"
+    }
+  ]
 }
 ```
 
@@ -820,6 +820,7 @@ A membership invite gate to protect your Discord server from being raided and sp
 | __Key__                                       | __Type__ | __Description__                              | __Accepted Values__                                                                                                           |
 |-----------------------------------------------|----------|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | `invite-generator`                            | `object` |                                              |                                                                                                                               |
+| `invite-generator.path`                       | `string` | Path used to access invite generator         | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                   |
 | `invite-generator.design`                     | `object` |                                              |                                                                                                                               |
 | `invite-generator.design.logo-url`            | `string` | Link to an image used for the front page     | Square image with size dimensions of `300 x 300` or larger                                                                    |
 | `invite-generator.design.favicon-url`         | `object` | Link to an image used for the favicon        | `.png` extensions only                                                                                                        |
@@ -836,23 +837,24 @@ A membership invite gate to protect your Discord server from being raided and sp
 
 ```json
 {
-    "invite-generator": {
-        "design": {
-            "logo-url": "",
-            "favicon-url": "",
-            "background-color": "",
-            "link-color": "",
-            "text-color": ""
-        },
-        "inject-code": {
-            "header": "",
-            "submit-success": "",
-            "submit-fail": ""
-        },
-        "recaptcha": {
-            "site-key": "",
-            "secret-key": ""
-        }
+  "invite-generator": {
+    "path": "/invite",
+    "design": {
+      "logo-url": "",
+      "favicon-url": "",
+      "background-color": "",
+      "link-color": "",
+      "text-color": ""
+    },
+    "inject-code": {
+      "header": "",
+      "submit-success": "",
+      "submit-fail": ""
+    },
+    "recaptcha": {
+      "site-key": "",
+      "secret-key": ""
     }
+  }
 }
 ```

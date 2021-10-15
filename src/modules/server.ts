@@ -65,8 +65,4 @@ export function webServerSetup(server: Express, httpPort: number, httpsPort: num
       );
     });
   }
-
-  server.get('/', (request, response) => {
-    response.sendStatus(200);
-  });
 }
