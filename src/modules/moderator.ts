@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import {
   Message,
   PartialMessage,
@@ -24,11 +23,16 @@ import { AffiliateLinks, RegexRules, SuspiciousWords } from '../types';
  * @since 1.0.0
  */
 export function checkRegexChannels(message: Message | PartialMessage, regexRules: RegexRules): void {
-  if (!message.channel || !message.member) {
+  if (!message.member) {
     return;
   }
 
-  const { channel, member, reactions } = message;
+  const {
+    channel,
+    member,
+    reactions,
+    url,
+  } = message;
   const theMessage = reactions.message.toString() ?? message.toString();
   const isTextBasedChannel = channel.isText();
   const regexRule = _.find(regexRules, { 'channel-id': channel.id });
@@ -50,9 +54,8 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
   } catch (error) {
     generateLogMessage(
       [
-        '"regex.pattern" or "regex.flags" for',
-        chalk.red(regexRuleName),
-        'is invalid',
+        '"regex.pattern" or "regex.flags" is invalid',
+        `(function: checkRegexChannels, name: ${regexRuleName}, pattern: ${regexRulePattern}, flags: ${regexRuleFlags})`,
       ].join(' '),
       10,
       error,
@@ -68,25 +71,32 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
   ) {
     // Send direct message.
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
+      const payload = {
+        content: directMessage,
+      };
+
       member.createDM().then((dmChannel) => {
-        dmChannel.send({
-          content: directMessage,
-        }).then(() => {
+        dmChannel.send(payload).then(() => {
           generateLogMessage(
             [
-              'Sent direct message to',
-              chalk.green(member.toString()),
-              'because member did not follow regex rules',
+              'Sent direct message',
+              `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()})`,
             ].join(' '),
             30,
           );
         }).catch((error) => generateLogMessage(
-          'Failed to send direct message',
+          [
+            'Failed to send direct message',
+            `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
+          ].join(' '),
           10,
           error,
         ));
       }).catch((error) => generateLogMessage(
-        'Failed to create direct message channel',
+        [
+          'Failed to create direct message channel',
+          `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -94,7 +104,10 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
 
     // Delete message.
     message.delete().catch((error) => generateLogMessage(
-      'Failed to delete message',
+      [
+        'Failed to delete message',
+        `(function: checkRegexChannels, message url: ${url})`,
+      ].join(' '),
       10,
       error,
     ));
@@ -163,11 +176,8 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
 
   generateLogMessage(
     [
-      'Message sent by',
-      chalk.yellow(author.toString()),
-      'in',
-      chalk.yellow(channel.toString()),
-      'includes suspicious words',
+      'Message includes suspicious words',
+      `(function: detectSuspiciousWords, author: ${author.toString()}, categories: ${JSON.stringify(detectedCategories)}, message id: ${id})`,
     ].join(' '),
     30,
   );
@@ -186,7 +196,10 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to send suspicious words embed',
+      [
+        'Failed to send embed',
+        `(function: detectSuspiciousWords, channel: ${sendToChannel.toString()})`,
+      ].join(' '),
       10,
       error,
     ));
@@ -241,9 +254,8 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
     } catch (error) {
       generateLogMessage(
         [
-          '"regex.pattern" or "regex.flags" for',
-          chalk.red(website),
-          'is invalid',
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: removeAffiliateLinks, website: ${website}, pattern: ${regexPattern}, flags: ${regexFlags})`,
         ].join(' '),
         10,
         error,
@@ -264,11 +276,8 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
 
   generateLogMessage(
     [
-      'Message sent by',
-      chalk.yellow(author.toString()),
-      'in',
-      chalk.yellow(channel.toString()),
-      'includes affiliate links',
+      'Message includes affiliate links',
+      `(function: removeAffiliateLinks, author: ${author.toString()}, websites: ${JSON.stringify(websites)}, message id: ${id})`,
     ].join(' '),
     30,
   );
@@ -287,7 +296,10 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to send remove affiliate links embed',
+      [
+        'Failed to send embed',
+        `(function: removeAffiliateLinks, channel: ${sendToChannel.toString()})`,
+      ].join(' '),
       10,
       error,
     ));
@@ -298,32 +310,42 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
+      const payload = {
+        content: directMessage,
+      };
+
       member.createDM().then((dmChannel) => {
-        dmChannel.send({
-          content: directMessage,
-        }).then(() => {
+        dmChannel.send(payload).then(() => {
           generateLogMessage(
             [
-              'Sent direct message to',
-              chalk.green(member.toString()),
-              'because member sent affiliate links',
+              'Sent direct message',
+              `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()})`,
             ].join(' '),
             30,
           );
         }).catch((error) => generateLogMessage(
-          'Failed to send direct message',
+          [
+            'Failed to send direct message',
+            `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
+          ].join(' '),
           10,
           error,
         ));
       }).catch((error) => generateLogMessage(
-        'Failed to create direct message channel',
+        [
+          'Failed to create direct message channel',
+          `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
     }
 
     message.delete().catch((error) => generateLogMessage(
-      'Failed to delete message',
+      [
+        'Failed to delete message',
+        `(function: removeAffiliateLinks, message url: ${url})`,
+      ].join(' '),
       10,
       error,
     ));

@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { GuildMember, PartialGuildMember } from 'discord.js';
 import _ from 'lodash';
 
@@ -55,9 +54,8 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
       ) {
         generateLogMessage(
           [
-            'Adding roles for',
-            chalk.green(newMember.toString()),
-            `(name: ${name}, type: ${type})`,
+            'Adding roles',
+            `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to add: ${JSON.stringify(toAdd)})`,
           ].join(' '),
           40,
         );
@@ -66,7 +64,10 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
           toAdd,
           `${name} (${type})`,
         ).catch((error) => generateLogMessage(
-          'Failed to add roles',
+          [
+            'Failed to add roles',
+            `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to add: ${JSON.stringify(toAdd)})`,
+          ].join(' '),
           10,
           error,
         ));
@@ -80,9 +81,8 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
       ) {
         generateLogMessage(
           [
-            'Removing roles for',
-            chalk.yellow(newMember.toString()),
-            `(name: ${name}, type: ${type})`,
+            'Removing roles',
+            `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to remove: ${JSON.stringify(toRemove)})`,
           ].join(' '),
           40,
         );
@@ -91,7 +91,10 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
           toRemove,
           `${name} (${type})`,
         ).catch((error) => generateLogMessage(
-          'Failed to remove roles',
+          [
+            'Failed to remove roles',
+            `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to remove: ${JSON.stringify(toRemove)})`,
+          ].join(' '),
           10,
           error,
         ));

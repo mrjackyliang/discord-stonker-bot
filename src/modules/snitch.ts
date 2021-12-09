@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import {
   Guild,
   GuildMember,
@@ -44,19 +43,15 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    generateLogMessage(
-      [
-        'Nickname for',
-        chalk.blue(newMember.toString()),
-        'was changed from',
-        chalk.blue(oldMember.nickname),
-        'to',
-        chalk.blue(newMember.nickname),
-      ].join(' '),
-      30,
-    );
-
     if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Nickname changed',
+          `(function: userChangeNickname, member: ${newMember.toString()}, old nickname: ${oldMember.nickname}, new nickname: ${newMember.nickname})`,
+        ].join(' '),
+        30,
+      );
+
       sendToChannel.send({
         embeds: [
           createChangeNicknameEmbed(
@@ -71,7 +66,10 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send change nickname embed',
+        [
+          'Failed to send embed',
+          `(function: userChangeNickname, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -96,19 +94,15 @@ export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, ne
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    generateLogMessage(
-      [
-        'Username for',
-        chalk.blue(newUser.toString()),
-        'was changed from',
-        chalk.blue(`@${oldUser.tag}`),
-        'to',
-        chalk.blue(`@${newUser.tag}`),
-      ].join(' '),
-      30,
-    );
-
     if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Username changed',
+          `(function: userChangeUsername, user: ${newUser.toString()}, old tag: @${oldUser.tag}, new tag: @${newUser.tag})`,
+        ].join(' '),
+        30,
+      );
+
       sendToChannel.send({
         embeds: [
           createChangeUsernameEmbed(
@@ -123,7 +117,10 @@ export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, ne
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send change username embed',
+        [
+          'Failed to send embed',
+          `(function: userChangeUsername, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -159,18 +156,15 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    generateLogMessage(
-      [
-        'Message sent by',
-        chalk.red(author.toString()),
-        'in',
-        chalk.red(channel.toString()),
-        'was deleted',
-      ].join(' '),
-      30,
-    );
-
     if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Message deleted',
+          `(function: userDeleteMessage, author: ${author.toString()}, message id: ${id})`,
+        ].join(' '),
+        30,
+      );
+
       sendToChannel.send({
         embeds: [
           createDeleteMessageEmbed(
@@ -183,7 +177,10 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send delete message embed',
+        [
+          'Failed to send embed',
+          `(function: userDeleteMessage, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -231,18 +228,15 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
       const channelId = _.get(settings, 'channel-id');
       const sendToChannel = getTextBasedChannel(guild, channelId);
 
-      generateLogMessage(
-        [
-          'Message sent by',
-          chalk.yellow(author.toString()),
-          'in',
-          chalk.yellow(channel.toString()),
-          'includes links',
-        ].join(' '),
-        30,
-      );
-
       if (sendToChannel) {
+        generateLogMessage(
+          [
+            'Message includes link',
+            `(function: userIncludesLink, author: ${author.toString()}, message id: ${id})`,
+          ].join(' '),
+          30,
+        );
+
         sendToChannel.send({
           embeds: [
             createIncludesLinkEmbed(
@@ -255,7 +249,10 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
             ),
           ],
         }).catch((error) => generateLogMessage(
-          'Failed to send includes links embed',
+          [
+            'Failed to send embed',
+            `(function: userIncludesLink, channel: ${sendToChannel.toString()})`,
+          ].join(' '),
           10,
           error,
         ));
@@ -301,18 +298,15 @@ export function userUpdateMessage(message: Message | PartialMessage, settings: S
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    generateLogMessage(
-      [
-        'Message sent by',
-        chalk.yellow(author.toString()),
-        'in',
-        chalk.yellow(channel.toString()),
-        'was updated',
-      ].join(' '),
-      30,
-    );
-
     if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Message updated',
+          `(function: userUpdateMessage, author: ${author.toString()}, message id: ${id})`,
+        ].join(' '),
+        30,
+      );
+
       sendToChannel.send({
         embeds: [
           createUpdateMessageEmbed(
@@ -326,7 +320,10 @@ export function userUpdateMessage(message: Message | PartialMessage, settings: S
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send update message embed',
+        [
+          'Failed to send embed',
+          `(function: userUpdateMessage, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -368,18 +365,15 @@ export function userUploadAttachment(message: Message | PartialMessage, settings
     const channelId = _.get(settings, 'channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    generateLogMessage(
-      [
-        'Message sent by',
-        chalk.yellow(author.toString()),
-        'in',
-        chalk.yellow(channel.toString()),
-        'includes attachments',
-      ].join(' '),
-      30,
-    );
-
     if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Message includes attachments',
+          `(function: userUploadAttachment, author: ${author.toString()}, message id: ${id})`,
+        ].join(' '),
+        30,
+      );
+
       sendToChannel.send({
         files: links,
         embeds: [
@@ -392,7 +386,10 @@ export function userUploadAttachment(message: Message | PartialMessage, settings
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send upload attachment embed',
+        [
+          'Failed to send embed',
+          `(function: userUploadAttachment, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));

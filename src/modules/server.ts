@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import express, { Express } from 'express';
 import fs from 'fs';
 import http from 'http';
@@ -39,7 +38,10 @@ export function webServerSetup(server: Express, httpPort: number, httpsPort: num
 
     httpServer.listen(httpPort, () => {
       generateLogMessage(
-        `HTTP web server started on port ${chalk.yellow(httpPort)}`,
+        [
+          'HTTP web server started',
+          `(function: webServerSetup, port: ${httpPort})`,
+        ].join(' '),
         30,
       );
     });
@@ -60,7 +62,10 @@ export function webServerSetup(server: Express, httpPort: number, httpsPort: num
 
     httpsServer.listen(httpsPort, () => {
       generateLogMessage(
-        `HTTPS web server started on port ${chalk.yellow(httpsPort)}`,
+        [
+          'HTTPS web server started',
+          `(function: webServerSetup, port: ${httpsPort})`,
+        ].join(' '),
         30,
       );
     });

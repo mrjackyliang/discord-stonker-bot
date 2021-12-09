@@ -47,15 +47,20 @@ import {
  * @since 1.0.0
  */
 function commandNoResults(channel: TextBasedChannels, member: GuildMember, message: string): void {
+  const memberUserTag = member.user.tag;
+
   channel.send({
     embeds: [
       createNoResultsEmbed(
         message,
-        member.user.tag,
+        memberUserTag,
       ),
     ],
   }).catch((error) => generateLogMessage(
-    'Failed to send no results embed',
+    [
+      'Failed to send embed',
+      `(function: commandNoResults, channel: ${channel.toString()})`,
+    ].join(' '),
     10,
     error,
   ));
@@ -73,15 +78,20 @@ function commandNoResults(channel: TextBasedChannels, member: GuildMember, messa
  * @since 1.0.0
  */
 function commandError(channel: TextBasedChannels, member: GuildMember, message: string): void {
+  const memberUserTag = member.user.tag;
+
   channel.send({
     embeds: [
       createCommandErrorEmbed(
         message,
-        member.user.tag,
+        memberUserTag,
       ),
     ],
   }).catch((error) => generateLogMessage(
-    'Failed to send command error embed',
+    [
+      'Failed to send embed',
+      `(function: commandError, channel: ${channel.toString()})`,
+    ].join(' '),
     10,
     error,
   ));
@@ -99,15 +109,21 @@ function commandError(channel: TextBasedChannels, member: GuildMember, message: 
  * @since 1.0.0
  */
 function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, baseCommand: string): void {
+  const message = `You do not have enough permissions to use the \`${baseCommand}\` command.`;
+  const memberUserTag = member.user.tag;
+
   channel.send({
     embeds: [
       createCommandErrorEmbed(
-        `You do not have enough permissions to use the \`${baseCommand}\` command.`,
-        member.user.tag,
+        message,
+        memberUserTag,
       ),
     ],
   }).catch((error) => generateLogMessage(
-    'Failed to send command error embed',
+    [
+      'Failed to send embed',
+      `(function: commandNoPermissions, channel: ${channel.toString()})`,
+    ].join(' '),
     10,
     error,
   ));
@@ -123,8 +139,13 @@ function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, b
  * @since 1.0.0
  */
 function commandDeleteMessage(message: Message): void {
+  const { url } = message;
+
   message.delete().catch((error) => generateLogMessage(
-    'Failed to delete message',
+    [
+      'Failed to delete message',
+      `(function: commandDeleteMessage, message url: ${url})`,
+    ].join(' '),
     10,
     error,
   ));
@@ -141,9 +162,12 @@ function commandDeleteMessage(message: Message): void {
  * @since 1.0.0
  */
 export async function bulkBan(message: Message, allowedRoles: Roles): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: bulkBan)',
+      ].join(' '),
       10,
     );
 
@@ -229,8 +253,7 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
       generateLogMessage(
         [
           word,
-          ...(isSuccess) ? [chalk.green(verifiedUser.toString())] : [chalk.red(verifiedUser.toString())],
-          'using the bulk ban command',
+          `(function: bulkBan, user: ${verifiedUser.toString()})`,
         ].join(' '),
         (isSuccess) ? 30 : 10,
         (_.isError(error)) ? error : undefined,
@@ -244,11 +267,11 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
         reason: `@${member.user.tag} used the bulk ban command`,
       });
 
-      logger('Successfully banned', true);
+      logger('User banned', true);
     } catch (error) {
       success = false;
 
-      logger('Failed to ban', false);
+      logger('Failed to ban user', false);
     }
 
     return success;
@@ -271,7 +294,10 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to edit role embed',
+      [
+        'Failed to edit embed',
+        `(function: bulkBan, message url: ${statusMessage.url})`,
+      ].join(' '),
       10,
       error,
     ));
@@ -289,9 +315,12 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
  * @since 1.0.0
  */
 export async function fetchDuplicates(message: Message, allowedRoles: Roles): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: fetchDuplicates)',
+      ].join(' '),
       10,
     );
 
@@ -365,7 +394,10 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
             ),
           ],
         }).catch((error) => generateLogMessage(
-          'Failed to send list members embed',
+          [
+            'Failed to send embed',
+            `(function: fetchDuplicates, channel: ${channel.toString()})`,
+          ].join(' '),
           10,
           error,
         ));
@@ -393,9 +425,12 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
  * @since 1.0.0
  */
 export async function fetchMembers(message: Message, allowedRoles: Roles): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: fetchMembers)',
+      ].join(' '),
       10,
     );
 
@@ -493,7 +528,10 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
             ),
           ],
         }).catch((error) => generateLogMessage(
-          'Failed to send list members embed',
+          [
+            'Failed to send embed',
+            `(function: fetchMembers, channel: ${channel.toString()})`,
+          ].join(' '),
           10,
           error,
         ));
@@ -568,7 +606,10 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send list members embed',
+        [
+          'Failed to send embed',
+          `(function: fetchMembers, channel: ${channel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -646,7 +687,10 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send list members embed',
+        [
+          'Failed to send embed',
+          `(function: fetchMembers, channel: ${channel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -666,9 +710,12 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
  * @since 1.0.0
  */
 export async function helpMenu(message: Message, allowedRoles: Roles, settings: HelpMenuSettings): Promise<void> {
-  if (!message.channel || !message.member) {
+  if (!message.member) {
     generateLogMessage(
-      'Missing the "channel" or "member" property.',
+      [
+        'Missing the "member" property',
+        '(function: helpMenu)',
+      ].join(' '),
       10,
     );
 
@@ -826,7 +873,10 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
       });
     } catch (error) {
       generateLogMessage(
-        'Failed to send help menu embed',
+        [
+          'Failed to send embed',
+          `(function: helpMenu, channel: ${channel.toString()})`,
+        ].join(' '),
         10,
         error,
       );
@@ -851,9 +901,12 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
  * @since 1.0.0
  */
 export async function roleManager(message: Message, allowedRoles: Roles): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: roleManager)',
+      ].join(' '),
       10,
     );
 
@@ -991,6 +1044,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
           ...(isSuccess) ? [chalk.green(roleTwo.toString())] : [chalk.red(roleTwo.toString())],
           toOrFrom,
           ...(isSuccess) ? [chalk.green(guildMember.toString())] : [chalk.red(guildMember.toString())],
+          '(function: roleManager)',
         ].join(' '),
         (isSuccess) ? 30 : 10,
         (_.isError(error)) ? error : undefined,
@@ -1009,7 +1063,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
         try {
           await guildMember.roles.add(roleTwo);
 
-          logger('Successfully added', 'to', true);
+          logger('Added', 'to', true);
         } catch (error) {
           success = false;
 
@@ -1027,7 +1081,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
         try {
           await guildMember.roles.remove(roleTwo);
 
-          logger('Successfully removed', 'from', true);
+          logger('Removed', 'from', true);
         } catch (error) {
           success = false;
 
@@ -1063,7 +1117,10 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to edit role embed',
+      [
+        'Failed to edit embed',
+        `(function: roleManager, message url: ${statusMessage.url})`,
+      ].join(' '),
       10,
       error,
     ));
@@ -1082,9 +1139,12 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
  * @since 1.0.0
  */
 export async function togglePerms(message: Message, allowedRoles: Roles, settings: TogglePermsSettings): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: togglePerms)',
+      ].join(' '),
       10,
     );
 
@@ -1200,10 +1260,8 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
 
             generateLogMessage(
               [
-                'Failed to toggle preset permissions for',
-                chalk.red(selectedToggleName),
-                `to ${commandToggle} for`,
-                chalk.red(channelToggleChannel.toString()),
+                'Failed to toggle preset permissions',
+                `(function: togglePerms, name: ${selectedToggleName}, direction: ${commandToggle}, channel: ${channelToggleChannel.toString()})`,
               ].join(' '),
               10,
               error,
@@ -1220,11 +1278,8 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
     } catch {
       generateLogMessage(
         [
-          'Failed to toggle preset permissions for',
-          chalk.red(selectedToggleName),
-          `to ${commandToggle} because`,
-          chalk.red(`<#${channelToggleId}>`),
-          'is invalid',
+          'Failed to toggle preset permissions for invalid channel',
+          `(function: togglePerms, name: ${selectedToggleName}, direction: ${commandToggle}, channel: <#${channelToggleId}>)`,
         ].join(' '),
         10,
       );
@@ -1241,9 +1296,8 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
     if (success) {
       generateLogMessage(
         [
-          'Successfully toggled preset permissions for',
-          chalk.green(selectedToggleName),
-          `to ${commandToggle}`,
+          'Toggled preset permissions',
+          `(function: togglePerms, name: ${selectedToggleName}, direction: ${commandToggle})`,
         ].join(' '),
         30,
       );
@@ -1251,13 +1305,16 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
       channel.send({
         embeds: [
           createTogglePermsEmbed(
-            `Successfully toggled preset permissions for **${selectedToggleName}** to ${commandToggle}.`,
+            `Toggled preset permissions for **${selectedToggleName}** to ${commandToggle}.`,
             true,
             member.user.tag,
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send toggle perms embed',
+        [
+          'Failed to send embed',
+          `(function: togglePerms, channel: ${channel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -1274,7 +1331,10 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
           ),
         ],
       }).catch((error) => generateLogMessage(
-        'Failed to send toggle perms embed',
+        [
+          'Failed to send embed',
+          `(function: togglePerms, channel: ${channel.toString()})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -1293,9 +1353,12 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
  * @since 1.0.0
  */
 export async function voiceTools(message: Message, allowedRoles: Roles): Promise<void> {
-  if (!message.channel || !message.guild || !message.member) {
+  if (!message.guild || !message.member) {
     generateLogMessage(
-      'Missing the "channel", "guild", or "member" property.',
+      [
+        'Missing the "guild" or "member" property',
+        '(function: voiceTools)',
+      ].join(' '),
       10,
     );
 
@@ -1439,6 +1502,7 @@ export async function voiceTools(message: Message, allowedRoles: Roles): Promise
             ...(voiceOrStageChannelType === 'GUILD_VOICE') ? ['voice'] : [],
             ...(voiceOrStageChannelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
             'channel',
+            '(function: voiceTools)',
           ].join(' '),
           (isSuccess) ? 30 : 10,
           (_.isError(error)) ? error : undefined,
@@ -1499,7 +1563,10 @@ export async function voiceTools(message: Message, allowedRoles: Roles): Promise
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to edit voice embed',
+      [
+        'Failed to edit embed',
+        `(function: voiceTools, message url: ${statusMessage.url})`,
+      ].join(' '),
       10,
       error,
     ));

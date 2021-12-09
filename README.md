@@ -43,16 +43,16 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 1. [Base Settings](#1-base-settings)
 2. [Snitch Notifications](#2-snitch-notifications)
 3. [Commands](#3-commands)
-4. [Anti-Raid](#4-anti-raid)
-5. [Scheduled Posts](#5-scheduled-posts)
-6. [RSS Feeds](#6-rss-feeds)
-7. [Regex Channels](#7-regex-channels)
-8. [Detect Suspicious Words](#8-detect-suspicious-words)
-9. [Role Manager](#9-role-manager)
-10. [Auto Reply](#10-auto-reply)
-11. [Message Copier](#11-message-copier)
-12. [Remove Affiliate Links](#12-remove-affiliate-links)
-13. [Stocktwits](#13-stocktwits)
+4. [API Fetch](#4-api-fetch)
+5. [Anti-Raid](#5-anti-raid)
+6. [Scheduled Posts](#6-scheduled-posts)
+7. [RSS Feeds](#7-rss-feeds)
+8. [Regex Channels](#8-regex-channels)
+9. [Detect Suspicious Words](#9-detect-suspicious-words)
+10. [Role Manager](#10-role-manager)
+11. [Auto Reply](#11-auto-reply)
+12. [Message Copier](#12-message-copier)
+13. [Remove Affiliate Links](#13-remove-affiliate-links)
 14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
 15. [Bump Threads](#15-bump-threads)
 16. [Invite Generator](#16-invite-generator)
@@ -212,7 +212,75 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 }
 ```
 
-### 4. Anti-Raid
+### 4. API Fetch
+Retrieve updated information through a live feed and via a customizable keyword (like a command). Current APIs available are Etherscan and Stocktwits.
+
+| __Key__                                                                      | __Type__   | __Description__                                 | __Accepted Values__                                                                                                                                                 |
+|------------------------------------------------------------------------------|------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `api-fetch`                                                                  | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle`                                             | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.feed`                                        | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.feed.channel-id`                             | `string`   | Channel used to send Etherscan API updates      | Discord channel ID                                                                                                                                                  |
+| `api-fetch.etherscan-gas-oracle.command`                                     | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.regex`                               | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.regex.pattern`                       | `string`   | Regex pattern for matching message content      | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `api-fetch.etherscan-gas-oracle.command.regex.flags`                         | `string`   | Regex flags                                     | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles`                       | `object[]` |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].description`        | `string`   | Description of the allowed role (optional)      |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].id`                 | `string`   | Allowed role                                    | Discord role ID                                                                                                                                                     |
+| `api-fetch.stocktwits-trending`                                              | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.feed`                                         | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.feed.channel-id`                              | `string`   | Channel used to send Etherscan API updates      | Discord channel ID                                                                                                                                                  |
+| `api-fetch.stocktwits-trending.command`                                      | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.regex`                                | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.regex.pattern`                        | `string`   | Regex pattern for matching message content      | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `api-fetch.stocktwits-trending.command.regex.flags`                          | `string`   | Regex flags                                     | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `api-fetch.stocktwits-trending.command.allowed-roles`                        | `object[]` |                                                 |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.allowed-roles[x].description`         | `string`   | Description of the allowed role (optional)      |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.allowed-roles[x].id`                  | `string`   | Allowed role                                    | Discord role ID                                                                                                                                                     |
+
+```json
+{
+  "api-fetch": {
+    "etherscan-gas-oracle": {
+      "feed": {
+        "channel-id": ""
+      },
+      "command": {
+        "regex": {
+          "pattern": "(?:)",
+          "flags": "g"
+        },
+        "allowed-roles": [
+          {
+            "description": "Sample role",
+            "id": "000000000000000000"
+          }
+        ]
+      }
+    },
+    "stocktwits-trending": {
+      "feed": {
+        "channel-id": ""
+      },
+      "command": {
+        "regex": {
+          "pattern": "(?:)",
+          "flags": "g"
+        },
+        "allowed-roles": [
+          {
+            "description": "Sample role",
+            "id": "000000000000000000"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### 5. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps automate the membership gate for those that just joined the server.
 
 | __Key__                                    | __Type__   | __Description__                                              | __Accepted Values__                                                                    |
@@ -259,7 +327,7 @@ A set of tools to ban members (based on their avatar hash or username), and help
 }
 ```
 
-### 5. Scheduled Posts
+### 6. Scheduled Posts
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance) and even send on a specific day.
 
 | __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                       |
@@ -267,17 +335,17 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 | `schedule-posts`                            | `object[]` |                                             |                                                                                                                                                           |
 | `schedule-posts[x].name`                    | `string`   | Name of the scheduled post                  |                                                                                                                                                           |
 | `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post         | Discord channel ID                                                                                                                                        |
-| `schedule-posts[x].message`                 | `object`   | Message content                             | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
+| `schedule-posts[x].payload`                 | `object`   | Message content                             | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
 | `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated)                                                  |
 | `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                                                                           |
 | `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone (optional)           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
 | `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week (optional)     | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
-| `schedule-posts[x].send-every.year`         | `number`   | Send post on year (optional)                |                                                                                                                                                           |
-| `schedule-posts[x].send-every.month`        | `number`   | Send post on month (optional)               | From `0` to `11`                                                                                                                                          |
-| `schedule-posts[x].send-every.date`         | `number`   | Send post on date (optional)                | From `1` to `31`                                                                                                                                          |
-| `schedule-posts[x].send-every.hour`         | `number`   | Send post on hour of day (optional)         | From `0` to `23`                                                                                                                                          |
-| `schedule-posts[x].send-every.minute`       | `number`   | Send post on minute of day (optional)       | From `0` to `59`                                                                                                                                          |
-| `schedule-posts[x].send-every.second`       | `number`   | Send post on second of day (optional)       | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.year`         | `number[]` | Send post on year (optional)                | Four-digit year                                                                                                                                           |
+| `schedule-posts[x].send-every.month`        | `number[]` | Send post on month (optional)               | From `0` to `11`                                                                                                                                          |
+| `schedule-posts[x].send-every.date`         | `number[]` | Send post on date (optional)                | From `1` to `31`                                                                                                                                          |
+| `schedule-posts[x].send-every.hour`         | `number[]` | Send post on hour of day (optional)         | From `0` to `23`                                                                                                                                          |
+| `schedule-posts[x].send-every.minute`       | `number[]` | Send post on minute of day (optional)       | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.second`       | `number[]` | Send post on second of day (optional)       | From `0` to `59`                                                                                                                                          |
 | `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                                                               |
 
 ```json
@@ -286,7 +354,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
     {
       "name": "Sample",
       "channel-id": "000000000000000000",
-      "message": {
+      "payload": {
         "content": "This is a sample scheduled post"
       },
       "reactions": [
@@ -305,12 +373,24 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
           5,
           6
         ],
-        "year": 2020,
-        "month": 0,
-        "date": 1,
-        "hour": 0,
-        "minute": 0,
-        "second": 0
+        "year": [
+          2020
+        ],
+        "month": [
+          0
+        ],
+        "date": [
+          1
+        ],
+        "hour": [
+          0
+        ],
+        "minute": [
+          0
+        ],
+        "second": [
+          0
+        ]
       },
       "skip-days": [
         "2021-01-01",
@@ -321,7 +401,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 }
 ```
 
-### 6. RSS Feeds
+### 7. RSS Feeds
 Get updates from external RSS feeds. Customize the message when a new RSS update is detected (add notifications, custom text) and set cron time intervals!
 
 | __Key__                   | __Type__   | __Description__                        | __Accepted Values__                                                                                   |
@@ -347,7 +427,7 @@ Get updates from external RSS feeds. Customize the message when a new RSS update
 }
 ```
 
-### 7. Regex Channels
+### 8. Regex Channels
 Restrict a specific format in a particular channel. If the message doesn't match the regular expression, the message will be deleted (unless member is a server owner, administrator, or listed under excluded roles).
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
@@ -387,7 +467,7 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 }
 ```
 
-### 8. Detect Suspicious Words
+### 9. Detect Suspicious Words
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often do not require warnings or deletion.
 
 | __Key__                                   | __Type__   | __Description__                          | __Accepted Values__ |
@@ -415,7 +495,7 @@ Detect words in a message that may require attention. Useful when a member menti
 }
 ```
 
-### 9. Role Manager
+### 10. Role Manager
 Add or remove selected roles from members if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
 
 Useful for many scenarios like when members lose a Premium role or when members get muted (_removing_ write access roles).
@@ -533,7 +613,7 @@ Useful for many scenarios like when members lose a Premium role or when members 
 }
 ```
 
-### 10. Auto Reply
+### 11. Auto Reply
 Reply to a message without requiring human interaction. Great for automated customer service or surprise members with hidden Easter eggs!
 
 | __Key__                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
@@ -569,7 +649,7 @@ Reply to a message without requiring human interaction. Great for automated cust
 }
 ```
 
-### 11. Message Copier
+### 12. Message Copier
 Automatically copy the original message that matches the regular expression into another channel. A powerful utility to organize content in Discord.
 
 | __Key__                                          | __Type__   | __Description__                                        | __Accepted Values__                                                                                                                                                                               |
@@ -580,12 +660,11 @@ Automatically copy the original message that matches the regular expression into
 | `message-copier[x].regex`                        | `object`   |                                                        |                                                                                                                                                                                                   |
 | `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content             | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
 | `message-copier[x].regex.flags`                  | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].remove-mentions`              | `boolean`  | Remove all mentions from the original message          | `true` or `false`                                                                                                                                                                                 |
 | `message-copier[x].replacements`                 | `object[]` |                                                        |                                                                                                                                                                                                   |
 | `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content            | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
 | `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
 | `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                           | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
-| `message-copier[x].format`                       | `string`   | Format the copied message                              | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%MESSAGE_CONTENT%`, and `%MESSAGE_URL%`.                                                                    |
+| `message-copier[x].format`                       | `string`   | Format the copied message                              | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%CHANNEL_MENTION%`, `%MESSAGE_CONTENT%`, `%MESSAGE_EXCERPT%`, and `%MESSAGE_URL%`.                          |
 | `message-copier[x].include-attachments`          | `boolean`  | Include attachments when copying message               | `true` or `false`                                                                                                                                                                                 |
 | `message-copier[x].delete-message`               | `boolean`  | Delete original message when copying message           | `true` or `false`                                                                                                                                                                                 |
 | `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)      | Discord user IDs                                                                                                                                                                                  |
@@ -610,7 +689,7 @@ Automatically copy the original message that matches the regular expression into
           "replace-with": ""
         }
       ],
-      "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage URL: %MESSAGE_URL%",
+      "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nChannel Mention: %CHANNEL_MENTION%\nMessage Content: %MESSAGE_CONTENT%\nMessage Excerpt: %MESSAGE_EXCERPT%\nMessage URL: %MESSAGE_URL%",
       "include-attachments": true,
       "delete-message": false,
       "allowed-users": [
@@ -630,7 +709,7 @@ Automatically copy the original message that matches the regular expression into
 }
 ```
 
-### 12. Remove Affiliate Links
+### 13. Remove Affiliate Links
 Easily remove affiliate links posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
@@ -669,62 +748,6 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
       }
     ]
   }
-}
-```
-
-### 13. Stocktwits
-Get the latest trending tickers pulled in from Stocktwits automatically. Schedule multiple retrievals throughout the day and set your own message.
-
-| __Key__                                 | __Type__   | __Description__                             | __Accepted Values__                                                                                               |
-|-----------------------------------------|------------|---------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `stocktwits`                            | `object[]` |                                             |                                                                                                                   |
-| `stocktwits[x].name`                    | `string`   | Name of the Stocktwits post                 |                                                                                                                   |
-| `stocktwits[x].channel-id`              | `string`   | Channel used to send Stocktwits post        | Discord channel ID                                                                                                |
-| `stocktwits[x].message`                 | `string`   | Message content                             | Cannot be empty if `show-embed` is set to false and cannot exceed 2000 characters. Variables include `%TICKERS%`. |
-| `stocktwits[x].show-embed`              | `boolean`  | Show tickers in addition to a message       | `true` or `false`                                                                                                 |
-| `stocktwits[x].limit`                   | `number`   | The amount of tickers in a post             | Cannot exceed 25 tickers                                                                                          |
-| `stocktwits[x].send-every`              | `object`   |                                             |                                                                                                                   |
-| `stocktwits[x].send-every.time-zone`    | `string`   | Send post on time zone (optional)           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)          |
-| `stocktwits[x].send-every.days-of-week` | `number[]` | Send post during day of week (optional)     | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)          |
-| `stocktwits[x].send-every.year`         | `number`   | Send post on year (optional)                |                                                                                                                   |
-| `stocktwits[x].send-every.month`        | `number`   | Send post on month (optional)               | From `0` to `11`                                                                                                  |
-| `stocktwits[x].send-every.date`         | `number`   | Send post on date (optional)                | From `1` to `31`                                                                                                  |
-| `stocktwits[x].send-every.hour`         | `number`   | Send post on hour of day (optional)         | From `0` to `23`                                                                                                  |
-| `stocktwits[x].send-every.minute`       | `number`   | Send post on minute of day (optional)       | From `0` to `59`                                                                                                  |
-| `stocktwits[x].send-every.second`       | `number`   | Send post on second of day (optional)       | From `0` to `59`                                                                                                  |
-| `stocktwits[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                       |
-
-```json
-{
-  "stocktwits": [
-    {
-      "name": "Sample",
-      "channel-id": "000000000000000000",
-      "message": "This is a sample Stocktwits post - %TICKERS%",
-      "show-embed": true,
-      "limit": 24,
-      "send-every": {
-        "time-zone": "Etc/UTC",
-        "days-of-week": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ],
-        "year": 2020,
-        "month": 0,
-        "date": 1,
-        "hour": 0,
-        "minute": 0,
-        "second": 0
-      },
-      "skip-days": [
-        "2021-01-01",
-        "2021-02-01"
-      ]
-    }
-  ]
 }
 ```
 
@@ -821,6 +844,9 @@ A membership invite gate to protect your Discord server from being raided and sp
 |-----------------------------------------------|----------|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | `invite-generator`                            | `object` |                                              |                                                                                                                               |
 | `invite-generator.path`                       | `string` | Path used to access invite generator         | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                   |
+| `invite-generator.options`                    | `object` | Options for the invite generator             |                                                                                                                               |
+| `invite-generator.options.max-age`            | `number` | Maximum time limit for the invite            | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
+| `invite-generator.options.max-uses`           | `number` | Maximum uses for the invite                  | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
 | `invite-generator.design`                     | `object` |                                              |                                                                                                                               |
 | `invite-generator.design.logo-url`            | `string` | Link to an image used for the front page     | Square image with size dimensions of `300 x 300` or larger                                                                    |
 | `invite-generator.design.favicon-url`         | `object` | Link to an image used for the favicon        | `.png` extensions only                                                                                                        |
@@ -839,6 +865,10 @@ A membership invite gate to protect your Discord server from being raided and sp
 {
   "invite-generator": {
     "path": "/invite",
+    "options": {
+      "max-age": 120,
+      "max-uses": 1
+    },
     "design": {
       "logo-url": "",
       "favicon-url": "",

@@ -1,5 +1,3 @@
-import axios from 'axios';
-import chalk from 'chalk';
 import { TextBasedChannels } from 'discord.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
@@ -11,7 +9,6 @@ import {
   ReoccurringSchedule,
   RssFeed,
   SchedulePost,
-  Stocktwit,
 } from '../types';
 
 /**
@@ -37,39 +34,37 @@ function createReoccurringSchedule(sendEvery: ReoccurringSchedule | undefined): 
   rule.tz = timeZone;
 
   // Day of week (0-6) starting with Sunday.
-  if (_.isArray(daysOfWeek) && _.every(daysOfWeek, (dayOfWeek) => _.isFinite(dayOfWeek) && _.inRange(dayOfWeek, 0, 7))) {
+  if (!_.isUndefined(daysOfWeek)) {
     rule.dayOfWeek = daysOfWeek;
-  } else {
-    rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
   }
 
   // Year.
-  if (!_.isUndefined(year) && _.isFinite(year)) {
+  if (!_.isUndefined(year)) {
     rule.year = year;
   }
 
   // Month (0-11).
-  if (!_.isUndefined(month) && _.isFinite(month) && _.inRange(month, 0, 12)) {
+  if (!_.isUndefined(month)) {
     rule.month = month;
   }
 
   // Date (1-31).
-  if (!_.isUndefined(date) && _.isFinite(date) && _.inRange(date, 1, 32)) {
+  if (!_.isUndefined(date)) {
     rule.date = date;
   }
 
   // Hour (0-23).
-  if (!_.isUndefined(hour) && _.isFinite(hour) && _.inRange(hour, 0, 24)) {
+  if (!_.isUndefined(hour)) {
     rule.hour = hour;
   }
 
   // Minute (0-59).
-  if (!_.isUndefined(minute) && _.isFinite(minute) && _.inRange(minute, 0, 60)) {
+  if (!_.isUndefined(minute)) {
     rule.minute = minute;
   }
 
   // Second (0-59).
-  if (!_.isUndefined(second) && _.isFinite(second) && _.inRange(second, 0, 60)) {
+  if (!_.isUndefined(second)) {
     rule.second = second;
   }
 
@@ -97,9 +92,8 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
   if (sendToChannel === undefined) {
     generateLogMessage(
       [
-        '"channel-id" for',
-        chalk.red(name),
-        '(RSS feed) is not a valid text-based channel',
+        '"channel-id" is not a valid text-based channel',
+        `(function: rssFeed, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -111,9 +105,8 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
   if (!_.isString(message) || _.isEmpty(message)) {
     generateLogMessage(
       [
-        '"message" for',
-        chalk.red(name),
-        '(RSS feed) is not a string or is empty',
+        '"message" is not a string or is empty',
+        `(function: rssFeed, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -140,9 +133,10 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
         const cleanItemLink = (link: string | undefined): string | undefined => {
           if (_.isString(link)) {
             return link
-              .replace(/(&?utm_(.*?)|#(.*?))=[^&]+/g, '')
+              .replace(/(&?(utm_(.*?)|siteid|#(.*?)))=[^&]+/g, '')
               .replace(/\?&/g, '?')
-              .replace(/\?$/g, '');
+              .replace(/\?$/g, '')
+              .trim();
           }
 
           return undefined;
@@ -184,15 +178,15 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
           // Only send when there is an update to the feed.
           if (itemLinkCleaned && _.every(sentItems, (sentItem) => sentItem !== itemLinkCleaned)) {
-            sendToChannel.send({
+            const payload = {
               content: replaceVariables(message),
-            }).then(() => {
+            };
+
+            sendToChannel.send(payload).then(() => {
               generateLogMessage(
                 [
-                  'Sent',
-                  chalk.green(name),
-                  'RSS feed item to',
-                  chalk.green(sendToChannel.toString()),
+                  'Sent message',
+                  `(function: rssFeed, name: ${name}, channel: ${sendToChannel.toString()})`,
                 ].join(' '),
                 30,
               );
@@ -201,10 +195,8 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
               sentItems.push(itemLinkCleaned);
             }).catch((error) => generateLogMessage(
               [
-                'Failed to send',
-                chalk.red(name),
-                'RSS feed item to',
-                chalk.red(sendToChannel.toString()),
+                'Failed to send message',
+                `(function: rssFeed, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
               ].join(' '),
               10,
               error,
@@ -213,9 +205,8 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
         });
       }).catch((error) => generateLogMessage(
         [
-          'Failed to parse',
-          chalk.red(name),
-          'RSS feed',
+          'Failed to parse feed',
+          `(function: rssFeed, name: ${name})`,
         ].join(' '),
         10,
         error,
@@ -224,18 +215,16 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
     generateLogMessage(
       [
-        'Initialized',
-        chalk.green(name),
-        'RSS feed',
+        'Initialized feed',
+        `(function: rssFeed, name: ${name})`,
       ].join(' '),
       40,
     );
   } catch (error) {
     generateLogMessage(
       [
-        'Failed to initialize',
-        chalk.red(name),
-        'RSS feed',
+        'Failed to initialize feed',
+        `(function: rssFeed, name: ${name})`,
       ].join(' '),
       10,
       error,
@@ -255,7 +244,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
  */
 export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChannels | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
-  const message = _.get(event, 'message');
+  const payload = _.get(event, 'payload');
   const reactions = _.get(event, 'reactions');
   const sendEvery = _.get(event, 'send-every');
   const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
@@ -265,9 +254,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   if (sendToChannel === undefined) {
     generateLogMessage(
       [
-        '"channel-id" for',
-        chalk.red(name),
-        '(Schedule post) is not a valid text-based channel',
+        '"channel-id" is not a valid text-based channel',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -275,13 +263,12 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
     return;
   }
 
-  // If "message" is not a plain object, or is empty.
-  if (!_.isPlainObject(message) || _.isEmpty(message)) {
+  // If "payload" is not a plain object or is empty.
+  if (!_.isPlainObject(payload) || _.isEmpty(payload)) {
     generateLogMessage(
       [
-        '"message" for',
-        chalk.red(name),
-        '(Schedule post) is not a plain object or is empty',
+        '"payload" is not a plain object or is empty',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -293,9 +280,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   if (reactions && (!_.isArray(reactions) || !_.every(reactions, _.isString))) {
     generateLogMessage(
       [
-        '"reactions" for',
-        chalk.red(name),
-        '(Schedule post) must be a string[]',
+        '"reactions" must be a string[]',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -307,9 +293,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   if (skipDays && (!_.isArray(skipDays) || !_.every(skipDays, (skipDay) => new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/g).test(skipDay)))) {
     generateLogMessage(
       [
-        '"skip-days" for',
-        chalk.red(name),
-        '(Schedule post) does not match "YYYY-MM-DD"[]',
+        '"skip-days" does not match "YYYY-MM-DD"[]',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,
     );
@@ -326,13 +311,11 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
 
       // Send only on days not specified in "skip-days".
       if (!_.includes(skipDays, todayDate)) {
-        sendToChannel.send(message).then((post) => {
+        sendToChannel.send(payload).then((post) => {
           generateLogMessage(
             [
-              'Sent',
-              chalk.green(name),
-              'scheduled post to',
-              chalk.green(sendToChannel.toString()),
+              'Sent scheduled post',
+              `(function: schedulePost, name: ${name}, channel: ${sendToChannel.toString()})`,
             ].join(' '),
             30,
           );
@@ -341,18 +324,14 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
           _.forEach(reactions, (reaction) => {
             post.react(reaction).then(() => generateLogMessage(
               [
-                'Successfully reacted',
-                chalk.green(name),
-                `scheduled post with "${reaction}"`,
-                'emoji',
+                'Reacted scheduled post with emoji',
+                `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
               ].join(' '),
               40,
             )).catch((error) => generateLogMessage(
               [
-                'Failed to react',
-                chalk.red(name),
-                `scheduled post with "${reaction}"`,
-                'emoji',
+                'Failed to react scheduled post with emoji',
+                `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
               ].join(' '),
               10,
               error,
@@ -360,10 +339,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
           });
         }).catch((error) => generateLogMessage(
           [
-            'Failed to send',
-            chalk.red(name),
-            'scheduled post to',
-            chalk.red(sendToChannel.toString()),
+            'Failed to send scheduled post',
+            `(function: schedulePost, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -371,10 +348,8 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
       } else {
         generateLogMessage(
           [
-            'Skipped sending',
-            chalk.yellow(name),
-            'scheduled post to',
-            chalk.yellow(sendToChannel.toString()),
+            'Skipped sending scheduled post',
+            `(function: schedulePost, name: ${name}, today date: ${todayDate})`,
           ].join(' '),
           30,
         );
@@ -383,205 +358,16 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
 
     generateLogMessage(
       [
-        'Initialized',
-        chalk.green(name),
-        'scheduled post',
+        'Initialized scheduled post',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       40,
     );
   } catch (error) {
     generateLogMessage(
       [
-        'Failed to initialize',
-        chalk.red(name),
-        'scheduled post',
-      ].join(' '),
-      10,
-      error,
-    );
-  }
-}
-
-/**
- * Stocktwits.
- *
- * @param {Stocktwit}                   event         - Post event.
- * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
- *
- * @returns {void}
- *
- * @since 1.0.0
- */
-export function stocktwits(event: Stocktwit, sendToChannel: TextBasedChannels | undefined): void {
-  const name = _.get(event, 'name', 'Unknown');
-  const message = _.get(event, 'message');
-  const showEmbed = _.get(event, 'show-embed');
-  const limit = _.get(event, 'limit');
-  const sendEvery = _.get(event, 'send-every');
-  const timeZone = _.get(sendEvery, 'time-zone', 'Etc/UTC');
-  const skipDays = _.get(event, 'skip-days');
-
-  // If "channel-id" is not a text-based channel.
-  if (sendToChannel === undefined) {
-    generateLogMessage(
-      [
-        '"channel-id" for',
-        chalk.red(name),
-        '(Stocktwits) is not a valid text-based channel',
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "message" is not a string.
-  if (!_.isString(message)) {
-    generateLogMessage(
-      [
-        '"message" for',
-        chalk.red(name),
-        '(Stocktwits) is not a string',
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "limit" is not a finite number.
-  if (!_.isFinite(limit)) {
-    generateLogMessage(
-      [
-        '"limit" for',
-        chalk.red(name),
-        '(Stocktwits) is not a finite number',
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "skip-days" does not match "YYYY-MM-DD"[].
-  if (skipDays && (!_.isArray(skipDays) || !_.every(skipDays, (skipDay) => new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/g).test(skipDay)))) {
-    generateLogMessage(
-      [
-        '"skip-days" for',
-        chalk.red(name),
-        '(Stocktwits) does not match "YYYY-MM-DD"[]',
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // Create a new re-occurring schedule.
-  const rule = createReoccurringSchedule(sendEvery);
-
-  try {
-    scheduleJob(rule, () => {
-      const todayDate = DateTime.now().setZone(timeZone).toISODate();
-
-      // Send only on days not specified in "skip-days".
-      if (!_.includes(skipDays, todayDate)) {
-        const symbolLimit = (limit > 25) ? 25 : limit;
-
-        axios.get(
-          `https://api.stocktwits.com/api/2/trending/symbols.json?limit=${symbolLimit}`,
-        ).then((response) => {
-          if (response.status !== 200) {
-            throw response;
-          }
-
-          return response.data;
-        }).then((responseData) => {
-          const symbols = _.get(responseData, 'symbols', []);
-          const sortedSymbols = _.orderBy(symbols, ['watchlist_count'], ['desc']);
-          const content = {
-            content: message.replace(
-              /%TICKERS%/g,
-              _.map(sortedSymbols, (sortedSymbol) => `**${sortedSymbol.symbol}**`).join(', '),
-            ),
-          };
-
-          if (showEmbed === true) {
-            _.assign(content, {
-              embeds: [
-                {
-                  title: `Stocktwits Top ${symbolLimit} Tickers`,
-                  type: 'rich',
-                  description: `Here are the top ${symbolLimit} trending tickers happening right now. This list includes equities and non-equities (e.g. futures and forex) and is sorted based on popularity.`,
-                  fields: _.map(sortedSymbols, (sortedSymbol) => {
-                    const sortedSymbolSymbol = _.get(sortedSymbol, 'symbol');
-                    const sortedSymbolTitle = _.get(sortedSymbol, 'title');
-                    const sortedSymbolWatchlistCount = _.get(sortedSymbol, 'watchlist_count');
-
-                    return {
-                      name: `**$${sortedSymbolSymbol}** - ${sortedSymbolTitle}`,
-                      value: `:eye: ${sortedSymbolWatchlistCount.toLocaleString()}\n:link: [More info](https://stocktwits.com/symbol/${sortedSymbolSymbol})`,
-                      inline: true,
-                    };
-                  }),
-                  color: 2264315,
-                },
-              ],
-            });
-          }
-
-          sendToChannel.send(content).then(() => {
-            generateLogMessage(
-              [
-                'Sent',
-                chalk.green(name),
-                'Stocktwits post to',
-                chalk.green(sendToChannel.toString()),
-              ].join(' '),
-              30,
-            );
-          }).catch((error) => generateLogMessage(
-            [
-              'Failed to send',
-              chalk.red(name),
-              'Stocktwits post to',
-              chalk.red(sendToChannel.toString()),
-            ].join(' '),
-            10,
-            error,
-          ));
-        }).catch((error) => generateLogMessage(
-          'Failed to retrieve Stocktwits data',
-          10,
-          error,
-        ));
-      } else {
-        generateLogMessage(
-          [
-            'Skipped sending',
-            chalk.yellow(name),
-            'Stocktwits post to',
-            chalk.yellow(sendToChannel.toString()),
-          ].join(' '),
-          20,
-        );
-      }
-    });
-
-    generateLogMessage(
-      [
-        'Initialized',
-        chalk.green(name),
-        'Stocktwits post',
-      ].join(' '),
-      40,
-    );
-  } catch (error) {
-    generateLogMessage(
-      [
-        'Failed to initialize',
-        chalk.red(name),
-        'Stocktwits post',
+        'Failed to initialize scheduled post',
+        `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,
       error,

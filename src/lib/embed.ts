@@ -380,7 +380,7 @@ export function createIncludesLinkEmbed(userMention: string | undefined, channel
 export function createListMembersEmbed(title: string, mentions: string[], thumbnail: string | undefined, userTag: string): MessageEmbed {
   return addEmbed(
     title,
-    mentions.join(', '),
+    mentions.join(' '),
     thumbnail,
     undefined,
     `Initiated by @${userTag}`,

@@ -1,10 +1,10 @@
-import chalk from 'chalk';
-import { Message } from 'discord.js';
+import { Message, MessageOptions } from 'discord.js';
 import _ from 'lodash';
 
 import {
   generateLogMessage,
   getTextBasedChannel,
+  splitStringChunks,
 } from '../lib/utilities';
 import {
   MessageCopiers,
@@ -23,6 +23,10 @@ import {
  * @since 1.0.0
  */
 export function autoReply(message: Message, replies: Replies): void {
+  const {
+    channel,
+    id,
+  } = message;
   const messageContent = message.toString();
 
   if (!_.isArray(replies) || _.isEmpty(replies) || !_.every(replies, _.isPlainObject)) {
@@ -43,7 +47,7 @@ export function autoReply(message: Message, replies: Replies): void {
         _.isArray(replyChannelIds)
         && !_.isEmpty(replyChannelIds)
         && _.every(replyChannelIds, (replyChannelId) => _.isString(replyChannelId) && !_.isEmpty(replyChannelId))
-        && !_.includes(replyChannelIds, message.channel.id)
+        && !_.includes(replyChannelIds, channel.id)
       ) || (
         !_.isArray(replyMessages)
         || _.isEmpty(replyMessages)
@@ -55,30 +59,30 @@ export function autoReply(message: Message, replies: Replies): void {
 
     try {
       if (new RegExp(replyRegexPattern, replyRegexFlags).test(messageContent)) {
-        const content = {
+        const payload = {
           content: _.sample(replyMessages),
         };
 
         if (replyReply === true) {
-          _.assign(content, {
+          _.assign(payload, {
             reply: {
-              messageReference: message.id,
+              messageReference: id,
             },
           });
         }
 
-        message.channel.send(content).then(() => {
+        channel.send(payload).then(() => {
           generateLogMessage(
             [
-              'Sent auto-reply message for',
-              chalk.green(replyName),
+              'Sent message',
+              `(function: autoReply, name: ${replyName}, channel: ${channel.toString()})`,
             ].join(' '),
             30,
           );
         }).catch((error) => generateLogMessage(
           [
-            'Failed to send auto-reply message for',
-            chalk.red(replyName),
+            'Failed to send message',
+            `(function: autoReply, name: ${replyName}, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -87,9 +91,8 @@ export function autoReply(message: Message, replies: Replies): void {
     } catch (error) {
       generateLogMessage(
         [
-          '"regex.pattern" or "regex.flags" for',
-          chalk.red(replyName),
-          'is invalid',
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: autoReply, name: ${replyName}, pattern: ${replyRegexPattern}, flags: ${replyRegexFlags})`,
         ].join(' '),
         10,
         error,
@@ -113,8 +116,15 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
     return;
   }
 
-  const { attachments, guild } = message;
+  const {
+    attachments,
+    author,
+    channel,
+    guild,
+    url,
+  } = message;
   const messageContent = message.toString();
+  const payload: MessageOptions = {};
   const links: string[] = [];
   /**
    * Replace text.
@@ -130,7 +140,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
   const replaceText = (originalMessage: string, name: string, replacements: RegularExpressionReplacements | undefined): string => {
     let editedText = originalMessage;
 
-    // Makes sure the "replace-text" configuration is correct.
+    // Makes sure the "replacements" configuration is correct.
     if (_.isArray(replacements) && _.every(replacements, (replacement) => _.isPlainObject(replacement))) {
       _.forEach(replacements, (replacement, key) => {
         const pattern = _.get(replacement, 'pattern');
@@ -142,9 +152,8 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         } catch (error) {
           generateLogMessage(
             [
-              `"replace-text[${key}]" for`,
-              chalk.red(name),
-              'is invalid',
+              `"replacements[${key}]" is invalid`,
+              `(function: messageCopier, name: ${name}, replacement: ${JSON.stringify(replacement)})`,
             ].join(' '),
             10,
             error,
@@ -167,15 +176,19 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
    * @since 1.0.0
    */
   const replaceVariables = (configFormat: string | undefined, name: string, replacements: RegularExpressionReplacements | undefined): string => {
+    const replacedMessageContent = replaceText(messageContent, name, replacements);
+
     if (_.isString(configFormat) && !_.isEmpty(configFormat)) {
       return configFormat
-        .replace(/%AUTHOR_MENTION%/g, message.author.toString())
-        .replace(/%AUTHOR_TAG%/g, message.author.tag)
-        .replace(/%MESSAGE_CONTENT%/g, replaceText(messageContent, name, replacements))
-        .replace(/%MESSAGE_URL%/g, message.url);
+        .replace(/%AUTHOR_MENTION%/g, author.toString())
+        .replace(/%AUTHOR_TAG%/g, author.tag)
+        .replace(/%CHANNEL_MENTION%/g, channel.toString())
+        .replace(/%MESSAGE_CONTENT%/g, replacedMessageContent)
+        .replace(/%MESSAGE_EXCERPT%/g, _.head(splitStringChunks(replacedMessageContent, 500)) ?? 'Failed to retrieve message excerpt')
+        .replace(/%MESSAGE_URL%/g, url);
     }
 
-    return replaceText(messageContent, name, replacements);
+    return replacedMessageContent;
   };
 
   if (!_.isArray(copiers) || _.isEmpty(copiers) || !_.every(copiers, _.isPlainObject)) {
@@ -202,22 +215,22 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         _.isArray(allowedUsers)
         && !_.isEmpty(allowedUsers)
         && _.every(allowedUsers, (allowedUser) => _.isString(allowedUser) && !_.isEmpty(allowedUser))
-        && !_.includes(allowedUsers, message.author.id)
+        && !_.includes(allowedUsers, author.id)
       ) || (
         _.isArray(allowedChannels)
         && !_.isEmpty(allowedChannels)
         && _.every(allowedChannels, (allowedChannel) => _.isString(allowedChannel) && !_.isEmpty(allowedChannel))
-        && !_.includes(allowedChannels, message.channel.id)
+        && !_.includes(allowedChannels, channel.id)
       ) || (
         _.isArray(disallowedUsers)
         && !_.isEmpty(disallowedUsers)
         && _.every(disallowedUsers, (disallowedUser) => _.isString(disallowedUser) && !_.isEmpty(disallowedUser))
-        && _.includes(disallowedUsers, message.author.id)
+        && _.includes(disallowedUsers, author.id)
       ) || (
         _.isArray(disallowedChannels)
         && !_.isEmpty(disallowedChannels)
         && _.every(disallowedChannels, (disallowedChannel) => _.isString(disallowedChannel) && !_.isEmpty(disallowedChannel))
-        && _.includes(disallowedChannels, message.channel.id)
+        && _.includes(disallowedChannels, channel.id)
       )
     ) {
       return;
@@ -227,9 +240,14 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
 
     try {
       if (new RegExp(regexPattern, regexFlags).test(messageContent) && sendToChannel) {
-        const content = {
-          content: replaceVariables(format, name, replacements),
-        };
+        const replacedContent = replaceVariables(format, name, replacements);
+
+        // If there is text, add them into the content.
+        if (_.isString(replacedContent) && !_.isEmpty(replacedContent)) {
+          _.assign(payload, {
+            content: replacedContent,
+          });
+        }
 
         if (includeAttachments === true) {
           // Throw attachment urls into array first.
@@ -239,7 +257,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
 
           // If there are attachments, add them into the content.
           if (_.size(links) > 0) {
-            _.assign(content, {
+            _.assign(payload, {
               files: links,
             });
           }
@@ -247,39 +265,39 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
 
         if (deleteMessage === true) {
           message.delete().catch((error) => generateLogMessage(
-            'Failed to delete message',
+            [
+              'Failed to delete message',
+              `(function: messageCopier, message url: ${url})`,
+            ].join(' '),
             10,
             error,
           ));
         }
 
-        sendToChannel.send(content).then(() => {
-          generateLogMessage(
+        if (!_.isEmpty(payload)) {
+          sendToChannel.send(payload).then(() => {
+            generateLogMessage(
+              [
+                'Copied message',
+                `(function: messageCopier, name: ${name}, channel: ${sendToChannel.toString()})`,
+              ].join(' '),
+              30,
+            );
+          }).catch((error) => generateLogMessage(
             [
-              'Copied message for',
-              chalk.green(name),
-              'to',
-              chalk.green(sendToChannel.toString()),
+              'Failed to copy message',
+              `(function: messageCopier, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
             ].join(' '),
-            30,
-          );
-        }).catch((error) => generateLogMessage(
-          [
-            'Failed to copy message for',
-            chalk.red(name),
-            'to',
-            chalk.red(sendToChannel.toString()),
-          ].join(' '),
-          10,
-          error,
-        ));
+            10,
+            error,
+          ));
+        }
       }
     } catch (error) {
       generateLogMessage(
         [
-          '"regex.pattern" or "regex.flags" for',
-          chalk.red(name),
-          'is invalid',
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: messageCopier, name: ${name}, pattern: ${regexPattern}, flags: ${regexFlags})`,
         ].join(' '),
         10,
         error,

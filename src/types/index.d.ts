@@ -7,7 +7,7 @@ import {
   RoleMention,
   Snowflake,
 } from 'discord.js';
-import { Timezone } from 'node-schedule';
+import { RecurrenceSegment, Timezone } from 'node-schedule';
 
 /**
  * Global types.
@@ -15,7 +15,7 @@ import { Timezone } from 'node-schedule';
 export type RegularExpression = {
   pattern: string;
   flags: string;
-}
+};
 
 export type RegularExpressionReplacement = {
   pattern: string;
@@ -27,19 +27,19 @@ export type RegularExpressionReplacements = RegularExpressionReplacement[];
 
 export type ReoccurringSchedule = {
   'time-zone'?: Timezone;
-  'days-of-week'?: number[];
-  year?: number;
-  month?: number;
-  date?: number;
-  hour?: number;
-  minute?: number;
-  second?: number;
+  'days-of-week'?: RecurrenceSegment;
+  year?: RecurrenceSegment;
+  month?: RecurrenceSegment;
+  date?: RecurrenceSegment;
+  hour?: RecurrenceSegment;
+  minute?: RecurrenceSegment;
+  second?: RecurrenceSegment;
 };
 
 export type Role = {
   description?: string;
   id: Snowflake;
-}
+};
 
 export type Roles = Role[];
 
@@ -67,6 +67,20 @@ export type AntiRaidMembershipGate = {
   'role-id'?: Snowflake;
   'channel-id'?: Snowflake;
   'message'?: string;
+};
+
+export type ApiFetchSettingsFeed = {
+  'channel-id': Snowflake;
+};
+
+export type ApiFetchSettingsCommand = {
+  regex: RegularExpression;
+  'allowed-roles': Roles;
+};
+
+export type ApiFetchSettings = {
+  feed?: ApiFetchSettingsFeed;
+  command?: ApiFetchSettingsCommand;
 };
 
 export type BumpThread = {
@@ -109,7 +123,7 @@ export type InviteGenerator = {
   recaptcha?: {
     'site-key'?: string;
     'secret-key'?: string;
-  }
+  };
 };
 
 export type MessageCopier = {
@@ -159,7 +173,7 @@ export type RssFeed = {
 export type SchedulePost = {
   name?: string;
   'channel-id': Snowflake;
-  message: MessageOptions;
+  payload: MessageOptions;
   reactions?: EmojiIdentifierResolvable[];
   'send-every'?: ReoccurringSchedule;
   'skip-days'?: string[];
@@ -167,16 +181,6 @@ export type SchedulePost = {
 
 export type Snitch = {
   'channel-id'?: Snowflake;
-}
-
-export type Stocktwit = {
-  name?: string;
-  'channel-id': Snowflake;
-  message: string;
-  'show-embed'?: boolean;
-  limit: number;
-  'send-every'?: ReoccurringSchedule;
-  'skip-days'?: string[];
 };
 
 export type SuspiciousWordsCategory = {

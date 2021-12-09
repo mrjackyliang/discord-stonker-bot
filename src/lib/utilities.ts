@@ -175,7 +175,7 @@ export function getTextBasedChannel(guild: Guild | undefined, channelId: Snowfla
  *
  * @since 1.0.0
  */
-export function splitStringChunks(string: string, maxSize: number) {
+export function splitStringChunks(string: string, maxSize: number): string[] {
   const spacePieces = string.split(' ');
 
   return spacePieces.reduce((chunks, piece, index) => {

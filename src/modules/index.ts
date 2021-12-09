@@ -10,6 +10,7 @@ import {
   antiRaidMembershipGate,
   antiRaidMonitor,
 } from './anti-raid';
+import { etherscanGasOracle, stocktwitsTrending } from './api-fetch';
 import {
   bulkBan,
   fetchDuplicates,
@@ -19,7 +20,7 @@ import {
   togglePerms,
   voiceTools,
 } from './commands';
-import { rssFeed, schedulePost, stocktwits } from './content';
+import { rssFeed, schedulePost } from './content';
 import { inviteGenerator } from './invite';
 import { autoReply, messageCopier } from './messenger';
 import {
@@ -69,6 +70,15 @@ const configSnitchDeleteMessage = _.get(config, 'snitch.delete-message');
 const configSnitchIncludesLink = _.get(config, 'snitch.includes-link');
 const configSnitchUpdateMessage = _.get(config, 'snitch.update-message');
 const configSnitchUploadAttachment = _.get(config, 'snitch.upload-attachment');
+const configCommandsBulkBan = _.get(config, 'commands.bulk-ban');
+const configCommandsFetchDuplicates = _.get(config, 'commands.fetch-duplicates');
+const configCommandsFetchMembers = _.get(config, 'commands.fetch-members');
+const configCommandsHelpMenu = _.get(config, 'commands.help-menu');
+const configCommandsRoleManager = _.get(config, 'commands.role-manager');
+const configCommandsTogglePerms = _.get(config, 'commands.toggle-perms');
+const configCommandsVoiceTools = _.get(config, 'commands.voice-tools');
+const configApiFetchEtherscanGasOracle = _.get(config, 'api-fetch.etherscan-gas-oracle');
+const configApiFetchStocktwitsTrending = _.get(config, 'api-fetch.stocktwits-trending');
 const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
 const configAntiRaidMembershipGate = _.get(config, 'anti-raid.membership-gate');
 const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
@@ -81,7 +91,7 @@ const configAutoReply = _.get(config, 'auto-reply');
 const configMessageCopier = _.get(config, 'message-copier');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
 const configInviteGenerator = _.get(config, 'invite-generator');
-const configStocktwits = _.get(config, 'stocktwits');
+const configTogglePerms = _.get(config, 'toggle-perms');
 const configBumpThreads = _.get(config, 'bump-threads');
 
 /**
@@ -119,8 +129,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
-        bulkBan(message, _.get(config, 'commands.bulk-ban')).catch((error) => generateLogMessage(
-          'Failed to invoke "bulkBan" function',
+        bulkBan(message, configCommandsBulkBan).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: bulkBan)',
+          ].join(' '),
           10,
           error,
         ));
@@ -132,8 +145,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
-        fetchDuplicates(message, _.get(config, 'commands.fetch-duplicates')).catch((error) => generateLogMessage(
-          'Failed to invoke "fetchDuplicates" function',
+        fetchDuplicates(message, configCommandsFetchDuplicates).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: fetchDuplicates)',
+          ].join(' '),
           10,
           error,
         ));
@@ -145,8 +161,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
-        fetchMembers(message, _.get(config, 'commands.fetch-members')).catch((error) => generateLogMessage(
-          'Failed to invoke "fetchMembers" function',
+        fetchMembers(message, configCommandsFetchMembers).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: fetchMembers)',
+          ].join(' '),
           10,
           error,
         ));
@@ -158,16 +177,19 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(help-menu|help|hm)`).test(messageContent)) {
-        helpMenu(message, _.get(config, 'commands.help-menu'), {
+        helpMenu(message, configCommandsHelpMenu, {
           botPrefix: configSettingsBotPrefix,
-          bulkBan: _.get(config, 'commands.bulk-ban'),
-          fetchDuplicates: _.get(config, 'commands.fetch-duplicates'),
-          fetchMembers: _.get(config, 'commands.fetch-members'),
-          roleManager: _.get(config, 'commands.role-manager'),
-          togglePerms: _.get(config, 'commands.toggle-perms'),
-          voiceTools: _.get(config, 'commands.voice-tools'),
+          bulkBan: configCommandsBulkBan,
+          fetchDuplicates: configCommandsFetchDuplicates,
+          fetchMembers: configCommandsFetchMembers,
+          roleManager: configCommandsRoleManager,
+          togglePerms: configCommandsTogglePerms,
+          voiceTools: configCommandsVoiceTools,
         }).catch((error) => generateLogMessage(
-          'Failed to invoke "helpMenu" function',
+          [
+            'Failed to invoke function',
+            '(function: helpMenu)',
+          ].join(' '),
           10,
           error,
         ));
@@ -179,8 +201,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
-        roleManager(message, _.get(config, 'commands.role-manager')).catch((error) => generateLogMessage(
-          'Failed to invoke "roleManager" function',
+        roleManager(message, configCommandsRoleManager).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: roleManager)',
+          ].join(' '),
           10,
           error,
         ));
@@ -192,8 +217,11 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
-        togglePerms(message, _.get(config, 'commands.toggle-perms'), _.get(config, 'toggle-perms')).catch((error) => generateLogMessage(
-          'Failed to invoke "togglePerms" function',
+        togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: togglePerms)',
+          ].join(' '),
           10,
           error,
         ));
@@ -205,12 +233,44 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
-        voiceTools(message, _.get(config, 'commands.voice-tools')).catch((error) => generateLogMessage(
-          'Failed to invoke "voiceTools" function',
+        voiceTools(message, configCommandsVoiceTools).catch((error) => generateLogMessage(
+          [
+            'Failed to invoke function',
+            '(function: voiceTools)',
+          ].join(' '),
           10,
           error,
         ));
       }
+    }
+  });
+
+  /**
+   * When user sends an API fetch request.
+   *
+   * @since 1.0.0
+   */
+  client.on('messageCreate', (message) => {
+    if (
+      message.guild
+      && message.guild.available // If guild is online.
+      && message.guild.id === guild.id // If message was sent in the guild.
+      && !message.author.bot // If message is not sent by a bot.
+      && !message.system // If message is not sent by system.
+    ) {
+      /**
+       * Etherscan gas oracle.
+       *
+       * @since 1.0.0
+       */
+      etherscanGasOracle(guild, configApiFetchEtherscanGasOracle, message);
+
+      /**
+       * Stocktwits trending.
+       *
+       * @since 1.0.0
+       */
+      stocktwitsTrending(guild, configApiFetchStocktwitsTrending, message);
     }
   });
 
@@ -507,19 +567,6 @@ export function initialize(client: Client, guild: Guild): void {
   }
 
   /**
-   * Stocktwits.
-   *
-   * @since 1.0.0
-   */
-  if (_.isArray(configStocktwits) && !_.isEmpty(configStocktwits)) {
-    _.forEach(configStocktwits, (configStocktwit) => {
-      const sendToChannel = getTextBasedChannel(guild, _.get(configStocktwit, 'channel-id'));
-
-      stocktwits(configStocktwit, sendToChannel);
-    });
-  }
-
-  /**
    * Bump threads.
    *
    * @since 1.0.0
@@ -531,7 +578,25 @@ export function initialize(client: Client, guild: Guild): void {
   }
 
   /**
-   * Web server configuration.
+   * Etherscan gas oracle.
+   *
+   * @since 1.0.0
+   */
+  if (_.isPlainObject(configApiFetchEtherscanGasOracle) && !_.isEmpty(configApiFetchEtherscanGasOracle)) {
+    etherscanGasOracle(guild, configApiFetchEtherscanGasOracle);
+  }
+
+  /**
+   * Stocktwits trending.
+   *
+   * @since 1.0.0
+   */
+  if (_.isPlainObject(configApiFetchStocktwitsTrending) && !_.isEmpty(configApiFetchStocktwitsTrending)) {
+    stocktwitsTrending(guild, configApiFetchStocktwitsTrending);
+  }
+
+  /**
+   * Web server.
    *
    * @since 1.0.0
    */

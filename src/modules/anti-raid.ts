@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { GuildMember, PartialGuildMember, TextBasedChannels } from 'discord.js';
 import _ from 'lodash';
 
@@ -36,21 +35,23 @@ export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan):
           reason: [
             'Member has a forbidden',
             ...(bannedAvatar) ? [`avatar hash (${userAvatar})`] : [],
+            ...(bannedAvatar && bannedUsername) ? ['and'] : [],
             ...(bannedUsername) ? [`username (${userUsername})`] : [],
           ].join(' '),
         },
       ).then(() => {
         generateLogMessage(
           [
-            chalk.red(member.toString()),
-            'was automatically banned because member has a forbidden',
-            ...(bannedAvatar) ? [`avatar hash (${userAvatar})`] : [],
-            ...(bannedUsername) ? [`username (${userUsername})`] : [],
+            'Member banned',
+            `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
           ].join(' '),
           30,
         );
       }).catch((error) => generateLogMessage(
-        'Failed to ban member',
+        [
+          'Failed to ban member',
+          `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -73,10 +74,10 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
   const guild = newMember.guild ?? oldMember.guild;
   const oldMemberPending = oldMember.pending;
   const newMemberPending = newMember.pending;
-  const settingsRoleId = _.get(settings, 'role-id');
-  const settingsChannelId = _.get(settings, 'channel-id');
-  const settingsMessage = _.get(settings, 'message');
-  const sendToChannel = getTextBasedChannel(guild, settingsChannelId);
+  const roleId = _.get(settings, 'role-id');
+  const channelId = _.get(settings, 'channel-id');
+  const message = _.get(settings, 'message');
+  const sendToChannel = getTextBasedChannel(guild, channelId);
   const replaceVariables = (configMessage: string): string => {
     if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
       return configMessage
@@ -88,33 +89,41 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
   };
 
   if (
-    settingsRoleId
-    && guild.roles.resolve(settingsRoleId) !== null
+    roleId
+    && guild.roles.resolve(roleId) !== null
     && oldMemberPending
     && !newMemberPending
   ) {
     newMember.roles.add(
-      settingsRoleId,
-      'Member was assigned the verified role',
+      roleId,
+      'Member passed the membership gate',
     ).then(() => {
       generateLogMessage(
         [
-          chalk.green(newMember.toString()),
-          'was assigned the verified role',
+          'Role added',
+          `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
         ].join(' '),
         30,
       );
     }).catch((error) => generateLogMessage(
-      'Failed to add role',
+      [
+        'Failed to add role',
+        `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
+      ].join(' '),
       10,
       error,
     ));
 
-    if (sendToChannel && settingsMessage) {
-      sendToChannel.send({
-        content: replaceVariables(settingsMessage),
-      }).catch((error) => generateLogMessage(
-        'Failed to send message',
+    if (sendToChannel && message) {
+      const payload = {
+        content: replaceVariables(message),
+      };
+
+      sendToChannel.send(payload).catch((error) => generateLogMessage(
+        [
+          'Failed to send message',
+          `(function: antiRaidMembershipGate, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+        ].join(' '),
         10,
         error,
       ));
@@ -134,18 +143,15 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
  * @since 1.0.0
  */
 export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannels | undefined): void {
-  generateLogMessage(
-    [
-      chalk.yellow(member.toString()),
-      'has',
-      ...(mode === 'join') ? ['joined'] : [],
-      ...(mode === 'leave') ? ['left'] : [],
-      'the guild',
-    ].join(' '),
-    30,
-  );
-
   if (sendToChannel && member.user && member.joinedAt) {
+    generateLogMessage(
+      [
+        'Guild member joined or left guild',
+        `(function: antiRaidMonitor, member: ${member.toString()}, mode: ${mode})`,
+      ].join(' '),
+      30,
+    );
+
     sendToChannel.send({
       embeds: [
         createMemberMonitorEmbed(
@@ -164,7 +170,10 @@ export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: 
         ),
       ],
     }).catch((error) => generateLogMessage(
-      'Failed to send member monitor embed',
+      [
+        'Failed to send embed',
+        `(function: antiRaidMonitor, channel: ${sendToChannel.toString()})`,
+      ].join(' '),
       10,
       error,
     ));

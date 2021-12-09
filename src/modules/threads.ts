@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { Guild, NewsChannel, TextChannel } from 'discord.js';
 import _ from 'lodash';
 
@@ -30,13 +29,16 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
           thread.setArchived(false).then(() => {
             generateLogMessage(
               [
-                chalk.green(thread.toString()),
-                'has been un-archived',
+                'Un-archived thread',
+                `(function: bumpThreads, thread: ${thread.toString()})`,
               ].join(' '),
               30,
             );
           }).catch((error) => generateLogMessage(
-            'Failed to un-archive thread',
+            [
+              'Failed to un-archive thread',
+              `(function: bumpThreads, thread: ${thread.toString()})`,
+            ].join(' '),
             10,
             error,
           ));
@@ -44,9 +46,8 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
       });
     }).catch((error) => generateLogMessage(
       [
-        '"thread-id" for',
-        chalk.red(name),
-        '(Bump threads) is not a valid thread channel',
+        '"thread-id" is not a valid thread channel',
+        `(function: bumpThreads, name: ${name})`,
       ].join(' '),
       10,
       error,
@@ -54,9 +55,8 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
   } else {
     generateLogMessage(
       [
-        '"channel-id" for',
-        chalk.red(name),
-        '(Bump threads) is not a valid text or news channel',
+        '"channel-id" is not a valid text or news channel',
+        `(function: bumpThreads, name: ${name})`,
       ].join(' '),
       10,
     );

@@ -1,7 +1,7 @@
 {
     "name": "discord-stocker-bot",
     "displayName": "Discord Stonker Bot",
-    "version": "1.9.6",
+    "version": "2.0.0",
     "description": "A Discord bot built for finance-related servers",
     "main": "build/src/index.js",
     "private": true,
@@ -32,9 +32,7 @@
     "bugs": {
         "url": "https://github.com/mrjackyliang/discord-stonker-bot/issues"
     },
-    "files": [
-        "build/*"
-    ],
+    "files": [],
     "homepage": "https://github.com/mrjackyliang/discord-stonker-bot#readme",
     "engines": {
         "node": "16"

@@ -17,12 +17,16 @@ import { InviteGenerator } from '../types';
  */
 export function inviteGenerator(server: Express, guild: Guild, config: InviteGenerator): void {
   const path = _.get(config, 'path');
+  const options = _.get(config, 'options');
   const secretKey = _.get(config, 'recaptcha.secret-key', '');
 
   // Path must exist before invite generator starts.
   if (_.isString(path) && !_.isEmpty(path)) {
     generateLogMessage(
-      `Invite Generator: Initialized web page with the "${path}" path`,
+      [
+        'Initialized web page',
+        `(function: inviteGenerator, path: ${path})`,
+      ].join(' '),
       30,
     );
 
@@ -100,8 +104,11 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
 
         if (!success) {
           generateLogMessage(
-            `Invite Generator: Google reCAPTCHA failed result (error-code: ${errorCode})`,
-            40,
+            [
+              'Google reCAPTCHA result',
+              `(function: inviteGenerator, success: ${success}, error code: ${errorCode})`,
+            ].join(' '),
+            20,
           );
 
           response.status(401).send(errorMessage);
@@ -109,15 +116,18 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
           const { rulesChannel } = guild;
 
           generateLogMessage(
-            'Invite Generator: Google reCAPTCHA success result',
-            40,
+            [
+              'Google reCAPTCHA result',
+              `(function: inviteGenerator, success: ${success})`,
+            ].join(' '),
+            30,
           );
 
           // Only generate invite link if rules channel is set.
           if (rulesChannel) {
             guild.invites.create(rulesChannel, {
-              maxAge: 120,
-              maxUses: 1,
+              maxAge: _.get(options, 'max-age', 120),
+              maxUses: _.get(options, 'max-uses', 1),
               reason: 'Web visitor passed the invite verification',
             }).then((inviteResponse) => {
               const {
@@ -126,14 +136,20 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
               } = inviteResponse;
 
               generateLogMessage(
-                `Invite Generator: Invite created (code: ${code})`,
-                40,
+                [
+                  'Invite created',
+                  `(function: inviteGenerator, code: ${code})`,
+                ].join(' '),
+                30,
               );
 
               response.status(200).send(url);
             }).catch((error) => {
               generateLogMessage(
-                'Invite Generator: Failed to create invite',
+                [
+                  'Failed to create invite',
+                  `(function: inviteGenerator, rules channel: ${rulesChannel.toString()})`,
+                ].join(' '),
                 10,
                 error,
               );
@@ -142,7 +158,10 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
             });
           } else {
             generateLogMessage(
-              `Invite Generator: Rules or guidelines channel for ${guild.name} guild is not configured`,
+              [
+                'Rules or guidelines channel is not configured',
+                '(function: inviteGenerator)',
+              ].join(' '),
               10,
             );
 
@@ -151,7 +170,10 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
         }
       }).catch((error) => {
         generateLogMessage(
-          'Invite Generator: Failed to contact Google reCAPTCHA API',
+          [
+            'Failed to contact Google reCAPTCHA API',
+            '(function: inviteGenerator)',
+          ].join(' '),
           10,
           error,
         );
