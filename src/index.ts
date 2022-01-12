@@ -2,8 +2,8 @@ import chalk from 'chalk';
 import {
   Client,
   Intents,
-  LimitedCollection,
   Options,
+  Sweepers,
 } from 'discord.js';
 import _ from 'lodash';
 
@@ -31,7 +31,7 @@ const configSettingsLogLevel = _.get(config, 'settings.log-level');
 const client = new Client({
   makeCache: Options.cacheWithLimits({
     MessageManager: {
-      sweepFilter: LimitedCollection.filterByLifetime({
+      sweepFilter: Sweepers.filterByLifetime({
         lifetime: 2592000,
         getComparisonTimestamp: (message) => message.editedTimestamp ?? message.createdTimestamp,
       }),
@@ -56,7 +56,7 @@ const client = new Client({
  *
  * @since 1.0.0
  */
-client.login(configSettingsClientToken).catch((error) => {
+client.login(configSettingsClientToken).catch((error: any) => {
   generateServerMessage(error.message.replace(/\.$/, ''), true, 1);
 });
 
@@ -106,6 +106,7 @@ client.on('ready', async () => {
           chalk.green('Server is ready!'),
           ...(client.user) ? [`Logged in as @${client.user.tag}`] : ['Logged in as unknown user'],
         ].join(' '),
+        false,
       );
 
       generateServerMessage(
@@ -117,6 +118,7 @@ client.on('ready', async () => {
           _.size(_.filter([...guildChannels.values()], (channel) => channel.isText() || channel.isVoice())),
           'channel(s)',
         ].join(' '),
+        false,
       );
     }
 

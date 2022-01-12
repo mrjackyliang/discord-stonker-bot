@@ -27,6 +27,7 @@ const apiCache = {
  * @since 1.0.0
  */
 export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, message?: Message): void {
+  const settingsApiKey = _.get(settings, 'settings.api-key');
   const feedChannelId = _.get(settings, 'feed.channel-id');
   const feedChannel = getTextBasedChannel(guild, feedChannelId);
   const commandRegexPattern = _.get(settings, 'command.regex.pattern');
@@ -46,7 +47,9 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
      * Used: 1 call/10 seconds, 8,640 API calls/day.
      */
     scheduleJob('0/10 * * * * *', () => {
-      axios.get('https://api.etherscan.io/api?module=gastracker&action=gasoracle').then((response) => {
+      const apiKeyParam = settingsApiKey ? `&apikey=${settingsApiKey}` : '';
+
+      axios.get(`https://api.etherscan.io/api?module=gastracker&action=gasoracle${apiKeyParam}`).then((response) => {
         const data = _.get(response, 'data');
         const status = _.get(data, 'status');
         const result = _.get(data, 'result');
@@ -74,7 +77,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
                 content: `**${content.slow} Gwei** (slow), **${content.average} Gwei** (average), **${content.fast} Gwei** (fast)`,
               };
 
-              feedChannel.send(payload).catch((error) => generateLogMessage(
+              feedChannel.send(payload).catch((error: any) => generateLogMessage(
                 [
                   'Failed to send message',
                   `(function: etherscanGasOracle, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -93,7 +96,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
             10,
           );
         }
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: etherscanGasOracle)',
@@ -137,7 +140,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
           },
         };
 
-        channel.send(payload).catch((error) => generateLogMessage(
+        channel.send(payload).catch((error: any) => generateLogMessage(
           [
             'Failed to send message',
             `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -153,7 +156,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
           },
         };
 
-        channel.send(payload).catch((error) => generateLogMessage(
+        channel.send(payload).catch((error: any) => generateLogMessage(
           [
             'Failed to send message',
             `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -226,7 +229,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
                 content: _.map(content.symbols, (symbol) => `**${symbol.symbol}**`).join(', '),
               };
 
-              feedChannel.send(payload).catch((error) => generateLogMessage(
+              feedChannel.send(payload).catch((error: any) => generateLogMessage(
                 [
                   'Failed to send message',
                   `(function: stocktwitsTrending, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -245,7 +248,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
             10,
           );
         }
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: stocktwitsTrending)',
@@ -286,7 +289,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
           },
         };
 
-        channel.send(payload).catch((error) => generateLogMessage(
+        channel.send(payload).catch((error: any) => generateLogMessage(
           [
             'Failed to send message',
             `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -302,7 +305,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
           },
         };
 
-        channel.send(payload).catch((error) => generateLogMessage(
+        channel.send(payload).catch((error: any) => generateLogMessage(
           [
             'Failed to send message',
             `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,

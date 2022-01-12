@@ -1,4 +1,4 @@
-import { TextBasedChannels } from 'discord.js';
+import { TextBasedChannel } from 'discord.js';
 import _ from 'lodash';
 import { DateTime } from 'luxon';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
@@ -74,14 +74,14 @@ function createReoccurringSchedule(sendEvery: ReoccurringSchedule | undefined): 
 /**
  * RSS feed.
  *
- * @param {RssFeed}                     event         - Post event.
- * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
+ * @param {RssFeed}                    event         - Post event.
+ * @param {TextBasedChannel|undefined} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undefined): void {
+export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const interval = _.get(event, 'interval', '* * * * *');
   const url = _.get(event, 'url');
@@ -193,7 +193,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 
               // Update the sent items array.
               sentItems.push(itemLinkCleaned);
-            }).catch((error) => generateLogMessage(
+            }).catch((error: any) => generateLogMessage(
               [
                 'Failed to send message',
                 `(function: rssFeed, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -203,7 +203,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
             ));
           }
         });
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to parse feed',
           `(function: rssFeed, name: ${name})`,
@@ -235,14 +235,14 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannels | undef
 /**
  * Schedule post.
  *
- * @param {SchedulePost}                event         - Post event.
- * @param {TextBasedChannels|undefined} sendToChannel - Send message to channel.
+ * @param {SchedulePost}               event         - Post event.
+ * @param {TextBasedChannel|undefined} sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChannels | undefined): void {
+export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChannel | undefined): void {
   const name = _.get(event, 'name', 'Unknown');
   const payload = _.get(event, 'payload');
   const reactions = _.get(event, 'reactions');
@@ -328,7 +328,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
                 `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
               ].join(' '),
               40,
-            )).catch((error) => generateLogMessage(
+            )).catch((error: any) => generateLogMessage(
               [
                 'Failed to react scheduled post with emoji',
                 `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
@@ -337,7 +337,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
               error,
             ));
           });
-        }).catch((error) => generateLogMessage(
+        }).catch((error: any) => generateLogMessage(
           [
             'Failed to send scheduled post',
             `(function: schedulePost, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,

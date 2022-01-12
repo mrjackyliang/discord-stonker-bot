@@ -41,7 +41,9 @@ function addEmbed(title: string, description: string, thumbnailUrl: string | und
     .setTitle(title)
     .setDescription(description)
     .setTimestamp()
-    .setFooter(footer);
+    .setFooter({
+      text: footer,
+    });
 
   if (thumbnailUrl !== undefined) {
     embed.setThumbnail(thumbnailUrl);

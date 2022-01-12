@@ -84,7 +84,7 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
             ].join(' '),
             30,
           );
-        }).catch((error) => generateLogMessage(
+        }).catch((error: any) => generateLogMessage(
           [
             'Failed to send direct message',
             `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -92,7 +92,7 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
           10,
           error,
         ));
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to create direct message channel',
           `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()})`,
@@ -103,7 +103,7 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
     }
 
     // Delete message.
-    message.delete().catch((error) => generateLogMessage(
+    message.delete().catch((error: any) => generateLogMessage(
       [
         'Failed to delete message',
         `(function: checkRegexChannels, message url: ${url})`,
@@ -195,7 +195,7 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
           detectedCategories,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: detectSuspiciousWords, channel: ${sendToChannel.toString()})`,
@@ -295,7 +295,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
           websites,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: removeAffiliateLinks, channel: ${sendToChannel.toString()})`,
@@ -323,7 +323,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
             ].join(' '),
             30,
           );
-        }).catch((error) => generateLogMessage(
+        }).catch((error: any) => generateLogMessage(
           [
             'Failed to send direct message',
             `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -331,7 +331,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
           10,
           error,
         ));
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to create direct message channel',
           `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()})`,
@@ -341,7 +341,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
       ));
     }
 
-    message.delete().catch((error) => generateLogMessage(
+    message.delete().catch((error: any) => generateLogMessage(
       [
         'Failed to delete message',
         `(function: removeAffiliateLinks, message url: ${url})`,

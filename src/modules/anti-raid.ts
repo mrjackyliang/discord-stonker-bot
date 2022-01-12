@@ -1,4 +1,4 @@
-import { GuildMember, PartialGuildMember, TextBasedChannels } from 'discord.js';
+import { GuildMember, PartialGuildMember, TextBasedChannel } from 'discord.js';
 import _ from 'lodash';
 
 import { createMemberMonitorEmbed } from '../lib/embed';
@@ -47,7 +47,7 @@ export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan):
           ].join(' '),
           30,
         );
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to ban member',
           `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
@@ -105,7 +105,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
         ].join(' '),
         30,
       );
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to add role',
         `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
@@ -119,7 +119,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
         content: replaceVariables(message),
       };
 
-      sendToChannel.send(payload).catch((error) => generateLogMessage(
+      sendToChannel.send(payload).catch((error: any) => generateLogMessage(
         [
           'Failed to send message',
           `(function: antiRaidMembershipGate, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -136,13 +136,13 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
  *
  * @param {GuildMember|PartialGuildMember} member        - Member information.
  * @param {MemberMonitorMode}              mode          - Whether a user joined or left a guild.
- * @param {TextBasedChannels|undefined}    sendToChannel - Send message to channel.
+ * @param {TextBasedChannel|undefined}     sendToChannel - Send message to channel.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannels | undefined): void {
+export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannel | undefined): void {
   if (sendToChannel && member.user && member.joinedAt) {
     generateLogMessage(
       [
@@ -169,7 +169,7 @@ export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: 
           member.roles,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: antiRaidMonitor, channel: ${sendToChannel.toString()})`,

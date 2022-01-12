@@ -3,7 +3,7 @@ import {
   GuildMember,
   Message,
   Permissions,
-  TextBasedChannels,
+  TextBasedChannel,
 } from 'discord.js';
 import _ from 'lodash';
 
@@ -38,15 +38,15 @@ import {
 /**
  * Command no results.
  *
- * @param {TextBasedChannels} channel - Channel to send to.
- * @param {GuildMember}       member  - Member attempting to use command.
- * @param {string}            message - The no results message.
+ * @param {TextBasedChannel} channel - Channel to send to.
+ * @param {GuildMember}      member  - Member attempting to use command.
+ * @param {string}           message - The no results message.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-function commandNoResults(channel: TextBasedChannels, member: GuildMember, message: string): void {
+function commandNoResults(channel: TextBasedChannel, member: GuildMember, message: string): void {
   const memberUserTag = member.user.tag;
 
   channel.send({
@@ -56,7 +56,7 @@ function commandNoResults(channel: TextBasedChannels, member: GuildMember, messa
         memberUserTag,
       ),
     ],
-  }).catch((error) => generateLogMessage(
+  }).catch((error: any) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandNoResults, channel: ${channel.toString()})`,
@@ -69,15 +69,15 @@ function commandNoResults(channel: TextBasedChannels, member: GuildMember, messa
 /**
  * Command error.
  *
- * @param {TextBasedChannels} channel - Channel to send to.
- * @param {GuildMember}       member  - Member attempting to use command.
- * @param {string}            message - The error message.
+ * @param {TextBasedChannel} channel - Channel to send to.
+ * @param {GuildMember}      member  - Member attempting to use command.
+ * @param {string}           message - The error message.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-function commandError(channel: TextBasedChannels, member: GuildMember, message: string): void {
+function commandError(channel: TextBasedChannel, member: GuildMember, message: string): void {
   const memberUserTag = member.user.tag;
 
   channel.send({
@@ -87,7 +87,7 @@ function commandError(channel: TextBasedChannels, member: GuildMember, message: 
         memberUserTag,
       ),
     ],
-  }).catch((error) => generateLogMessage(
+  }).catch((error: any) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandError, channel: ${channel.toString()})`,
@@ -100,15 +100,15 @@ function commandError(channel: TextBasedChannels, member: GuildMember, message: 
 /**
  * Command no permissions.
  *
- * @param {TextBasedChannels} channel     - Channel to send to.
- * @param {GuildMember}       member      - Member attempting to use command.
- * @param {string}            baseCommand - The command member attempted to use.
+ * @param {TextBasedChannel} channel     - Channel to send to.
+ * @param {GuildMember}      member      - Member attempting to use command.
+ * @param {string}           baseCommand - The command member attempted to use.
  *
  * @returns {void}
  *
  * @since 1.0.0
  */
-function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, baseCommand: string): void {
+function commandNoPermissions(channel: TextBasedChannel, member: GuildMember, baseCommand: string): void {
   const message = `You do not have enough permissions to use the \`${baseCommand}\` command.`;
   const memberUserTag = member.user.tag;
 
@@ -119,7 +119,7 @@ function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, b
         memberUserTag,
       ),
     ],
-  }).catch((error) => generateLogMessage(
+  }).catch((error: any) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandNoPermissions, channel: ${channel.toString()})`,
@@ -141,7 +141,7 @@ function commandNoPermissions(channel: TextBasedChannels, member: GuildMember, b
 function commandDeleteMessage(message: Message): void {
   const { url } = message;
 
-  message.delete().catch((error) => generateLogMessage(
+  message.delete().catch((error: any) => generateLogMessage(
     [
       'Failed to delete message',
       `(function: commandDeleteMessage, message url: ${url})`,
@@ -293,7 +293,7 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
           member.user.tag,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: bulkBan, message url: ${statusMessage.url})`,
@@ -385,7 +385,7 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
             createListMembersEmbed(
               [
                 'Duplicate Members for',
-                `\`...${avatarHash.substr(_.size(avatarHash) - 8)}\``,
+                `\`...${avatarHash.substring(_.size(avatarHash) - 8)}\``,
                 ...(key > 0) ? [`(Page ${key + 1})`] : [],
               ].join(' '),
               userIdsChunk,
@@ -393,7 +393,7 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
               member.user.tag,
             ),
           ],
-        }).catch((error) => generateLogMessage(
+        }).catch((error: any) => generateLogMessage(
           [
             'Failed to send embed',
             `(function: fetchDuplicates, channel: ${channel.toString()})`,
@@ -527,7 +527,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
               member.user.tag,
             ),
           ],
-        }).catch((error) => generateLogMessage(
+        }).catch((error: any) => generateLogMessage(
           [
             'Failed to send embed',
             `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -605,7 +605,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
             member.user.tag,
           ),
         ],
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -686,7 +686,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
             member.user.tag,
           ),
         ],
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -1116,7 +1116,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
           member.user.tag,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: roleManager, message url: ${statusMessage.url})`,
@@ -1310,7 +1310,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
             member.user.tag,
           ),
         ],
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: togglePerms, channel: ${channel.toString()})`,
@@ -1330,7 +1330,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
             member.user.tag,
           ),
         ],
-      }).catch((error) => generateLogMessage(
+      }).catch((error: any) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: togglePerms, channel: ${channel.toString()})`,
@@ -1562,7 +1562,7 @@ export async function voiceTools(message: Message, allowedRoles: Roles): Promise
           member.user.tag,
         ),
       ],
-    }).catch((error) => generateLogMessage(
+    }).catch((error: any) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: voiceTools, message url: ${statusMessage.url})`,

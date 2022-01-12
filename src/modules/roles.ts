@@ -63,7 +63,7 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
         newMember.roles.add(
           toAdd,
           `${name} (${type})`,
-        ).catch((error) => generateLogMessage(
+        ).catch((error: any) => generateLogMessage(
           [
             'Failed to add roles',
             `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to add: ${JSON.stringify(toAdd)})`,
@@ -90,7 +90,7 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
         newMember.roles.remove(
           toRemove,
           `${name} (${type})`,
-        ).catch((error) => generateLogMessage(
+        ).catch((error: any) => generateLogMessage(
           [
             'Failed to remove roles',
             `(function: changeRoles, name: ${name}, member: ${newMember.toString()}, type: ${type}, to remove: ${JSON.stringify(toRemove)})`,

@@ -219,6 +219,8 @@ Retrieve updated information through a live feed and via a customizable keyword 
 |------------------------------------------------------------------------------|------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `api-fetch`                                                                  | `object`   |                                                 |                                                                                                                                                                     |
 | `api-fetch.etherscan-gas-oracle`                                             | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.settings`                                    | `object`   |                                                 |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.settings.api-key`                            | `string`   | API Key to access Etherscan API (optional)      | [Signup for an Etherscan API Key](https://etherscan.io/register)                                                                                                    |
 | `api-fetch.etherscan-gas-oracle.feed`                                        | `object`   |                                                 |                                                                                                                                                                     |
 | `api-fetch.etherscan-gas-oracle.feed.channel-id`                             | `string`   | Channel used to send Etherscan API updates      | Discord channel ID                                                                                                                                                  |
 | `api-fetch.etherscan-gas-oracle.command`                                     | `object`   |                                                 |                                                                                                                                                                     |
@@ -243,6 +245,9 @@ Retrieve updated information through a live feed and via a customizable keyword 
 {
   "api-fetch": {
     "etherscan-gas-oracle": {
+      "settings": {
+        "api-key": ""
+      },
       "feed": {
         "channel-id": ""
       },

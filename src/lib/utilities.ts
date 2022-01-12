@@ -68,12 +68,12 @@ export function generateLogMessage(message: string, priority: LogMessagePriority
  * Generate server message.
  *
  * @param {string}  message  - Message to log.
- * @param {boolean} failed   - If error related. Defaults to false.
+ * @param {boolean} failed   - If error related.
  * @param {number}  exitCode - Exit code.
  *
  * @since 1.0.0
  */
-export function generateServerMessage(message: string, failed: boolean = false, exitCode?: number): void {
+export function generateServerMessage(message: string, failed: boolean, exitCode?: number): void {
   const consoleMessage = [
     ...(failed) ? [chalk.red('Server failed to start!')] : [],
     message,
