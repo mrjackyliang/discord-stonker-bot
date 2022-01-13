@@ -124,8 +124,6 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
     url,
   } = message;
   const messageContent = message.toString();
-  const payload: MessageOptions = {};
-  const links: string[] = [];
   /**
    * Replace text.
    *
@@ -236,6 +234,8 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
       return;
     }
 
+    const payload: MessageOptions = {};
+    const links: string[] = [];
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     try {
