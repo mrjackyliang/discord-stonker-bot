@@ -9,7 +9,7 @@ import _ from 'lodash';
 
 import config from '../config.json';
 
-import { initialize } from './modules';
+import { initialize } from './modules/initialize';
 import { generateServerMessage } from './lib/utilities';
 
 /**
@@ -32,7 +32,7 @@ const client = new Client({
   makeCache: Options.cacheWithLimits({
     MessageManager: {
       sweepFilter: Sweepers.filterByLifetime({
-        lifetime: 2592000,
+        lifetime: 2592000, // 30 days in seconds.
         getComparisonTimestamp: (message) => message.editedTimestamp ?? message.createdTimestamp,
       }),
       sweepInterval: 60,

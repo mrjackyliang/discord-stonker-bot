@@ -162,7 +162,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefi
            *
            * @param {string} configMessage - Message from configuration.
            *
-           * @return {string}
+           * @returns {string}
            *
            * @since 1.0.0
            */

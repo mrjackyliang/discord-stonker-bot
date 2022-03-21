@@ -39,7 +39,12 @@ import {
   userUploadAttachment,
 } from './snitch';
 import { bumpThreads } from './threads';
-import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
+import {
+  generateLogMessage,
+  getTextBasedChannel,
+  trackMessage,
+  trackMessageIsDuplicate,
+} from '../lib/utilities';
 import {
   AffiliateLinks,
   AntiRaidAutoBan,
@@ -287,54 +292,60 @@ export function initialize(client: Client, guild: Guild): void {
       && !message.author.bot // If message is not sent by a bot.
       && !message.system // If message is not sent by system.
     ) {
-      /**
-       * Auto reply.
-       *
-       * @since 1.0.0
-       */
-      autoReply(message, <Replies>configAutoReply);
+      const trackedMessage = trackMessage(message);
+      const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
-      /**
-       * Check regex channels.
-       *
-       * @since 1.0.0
-       */
-      checkRegexChannels(message, <RegexRules>configRegexRules);
+      // If message is not a repeat. Happens when Discord creates embeds from links.
+      if (!trackedMessageIsDuplicate) {
+        /**
+         * Auto reply.
+         *
+         * @since 1.0.0
+         */
+        autoReply(message, <Replies>configAutoReply);
 
-      /**
-       * Detect suspicious words.
-       *
-       * @since 1.0.0
-       */
-      detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
+        /**
+         * Check regex channels.
+         *
+         * @since 1.0.0
+         */
+        checkRegexChannels(message, <RegexRules>configRegexRules);
 
-      /**
-       * Message copier.
-       *
-       * @since 1.0.0
-       */
-      messageCopier(message, <MessageCopiers>configMessageCopier);
+        /**
+         * Detect suspicious words.
+         *
+         * @since 1.0.0
+         */
+        detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
 
-      /**
-       * Remove affiliate links.
-       *
-       * @since 1.0.0
-       */
-      removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
+        /**
+         * Message copier.
+         *
+         * @since 1.0.0
+         */
+        messageCopier(message, <MessageCopiers>configMessageCopier);
 
-      /**
-       * User includes link.
-       *
-       * @since 1.0.0
-       */
-      userIncludesLink(message, <Snitch>configSnitchIncludesLink);
+        /**
+         * Remove affiliate links.
+         *
+         * @since 1.0.0
+         */
+        removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
 
-      /**
-       * User upload attachment.
-       *
-       * @since 1.0.0
-       */
-      userUploadAttachment(message, <Snitch>configSnitchUploadAttachment);
+        /**
+         * User includes link.
+         *
+         * @since 1.0.0
+         */
+        userIncludesLink(message, <Snitch>configSnitchIncludesLink);
+
+        /**
+         * User upload attachment.
+         *
+         * @since 1.0.0
+         */
+        userUploadAttachment(message, <Snitch>configSnitchUploadAttachment);
+      }
     }
   });
 
@@ -352,40 +363,46 @@ export function initialize(client: Client, guild: Guild): void {
       && !message.author.bot // If message is not sent by a bot.
       && !message.system // If message is not sent by system.
     ) {
-      /**
-       * Check regex channels.
-       *
-       * @since 1.0.0
-       */
-      checkRegexChannels(message, <RegexRules>configRegexRules);
+      const trackedMessage = trackMessage(message);
+      const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
-      /**
-       * Detect suspicious words.
-       *
-       * @since 1.0.0
-       */
-      detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
+      // If message is not a repeat. Happens when Discord creates embeds from links.
+      if (!trackedMessageIsDuplicate) {
+        /**
+         * Check regex channels.
+         *
+         * @since 1.0.0
+         */
+        checkRegexChannels(message, <RegexRules>configRegexRules);
 
-      /**
-       * Remove affiliate links.
-       *
-       * @since 1.0.0
-       */
-      removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
+        /**
+         * Detect suspicious words.
+         *
+         * @since 1.0.0
+         */
+        detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
 
-      /**
-       * User includes link.
-       *
-       * @since 1.0.0
-       */
-      userIncludesLink(message, <Snitch>configSnitchIncludesLink);
+        /**
+         * Remove affiliate links.
+         *
+         * @since 1.0.0
+         */
+        removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
 
-      /**
-       * User update message.
-       *
-       * @since 1.0.0
-       */
-      userUpdateMessage(message, <Snitch>configSnitchUpdateMessage);
+        /**
+         * User includes link.
+         *
+         * @since 1.0.0
+         */
+        userIncludesLink(message, <Snitch>configSnitchIncludesLink);
+
+        /**
+         * User update message.
+         *
+         * @since 1.0.0
+         */
+        userUpdateMessage(message, <Snitch>configSnitchUpdateMessage);
+      }
     }
   });
 
@@ -601,12 +618,12 @@ export function initialize(client: Client, guild: Guild): void {
    * @since 1.0.0
    */
   if (
-    _.inRange(configSettingsServerHttpPort, 0, 65536)
+    _.inRange(configSettingsServerHttpPort, 1, 65536)
     || (
-      fs.existsSync(configSettingsServerHttpsKey)
+      _.inRange(configSettingsServerHttpsPort, 1, 65536)
+      && fs.existsSync(configSettingsServerHttpsKey)
       && fs.existsSync(configSettingsServerHttpsCert)
       && fs.existsSync(configSettingsServerHttpsCa)
-      && _.inRange(configSettingsServerHttpsPort, 0, 65536)
     )
   ) {
     const server = express();

@@ -131,7 +131,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
    * @param {string}                                  name            - Message copier name.
    * @param {RegularExpressionReplacements|undefined} replacements    - Text replacements from configuration.
    *
-   * @return {string}
+   * @returns {string}
    *
    * @since 1.0.0
    */
@@ -169,7 +169,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
    * @param {string}                                  name         - Message copier name.
    * @param {RegularExpressionReplacements|undefined} replacements - Text replacements from configuration.
    *
-   * @return {string}
+   * @returns {string}
    *
    * @since 1.0.0
    */

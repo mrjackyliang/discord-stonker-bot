@@ -11,7 +11,7 @@ import { BumpThread } from '../types';
  * @param {Guild}      guild   - Discord guild.
  * @param {BumpThread} setting - Thread to bump.
  *
- * @return {void}
+ * @returns {void}
  *
  * @since 1.0.0
  */

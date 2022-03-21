@@ -18,9 +18,7 @@ import {
   createUpdateMessageEmbed,
   createUploadAttachmentEmbed,
 } from '../lib/embed';
-import { Snitch, StoredMessages } from '../types';
-
-const storedMessages: StoredMessages = [];
+import { Snitch } from '../types';
 
 /**
  * User change nickname.
@@ -214,55 +212,39 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
   } = message;
   const theMessage = reactions.message.toString() ?? message.toString();
 
-  // Store message so duplicates aren't sent.
-  storedMessages.push({
-    id,
-    content: theMessage,
-  });
-
   if (new RegExp(/https?:\/\//gi).test(theMessage)) {
-    const filter = _.filter(storedMessages, { id });
+    const channelId = _.get(settings, 'channel-id');
+    const sendToChannel = getTextBasedChannel(guild, channelId);
 
-    // If message is not a repeat. Happens when Discord creates embeds from auto-detected links.
-    if (_.size(filter) === 1 || (_.size(filter) > 1 && !_.isEqual(filter[filter.length - 1], filter[filter.length - 2]))) {
-      const channelId = _.get(settings, 'channel-id');
-      const sendToChannel = getTextBasedChannel(guild, channelId);
+    if (sendToChannel) {
+      generateLogMessage(
+        [
+          'Message includes link',
+          `(function: userIncludesLink, author: ${author.toString()}, message id: ${id})`,
+        ].join(' '),
+        30,
+      );
 
-      if (sendToChannel) {
-        generateLogMessage(
-          [
-            'Message includes link',
-            `(function: userIncludesLink, author: ${author.toString()}, message id: ${id})`,
-          ].join(' '),
-          30,
-        );
-
-        sendToChannel.send({
-          embeds: [
-            createIncludesLinkEmbed(
-              author.toString(),
-              channel.toString(),
-              id,
-              theMessage,
-              attachments,
-              url,
-            ),
-          ],
-        }).catch((error: any) => generateLogMessage(
-          [
-            'Failed to send embed',
-            `(function: userIncludesLink, channel: ${sendToChannel.toString()})`,
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
+      sendToChannel.send({
+        embeds: [
+          createIncludesLinkEmbed(
+            author.toString(),
+            channel.toString(),
+            id,
+            theMessage,
+            attachments,
+            url,
+          ),
+        ],
+      }).catch((error: any) => generateLogMessage(
+        [
+          'Failed to send embed',
+          `(function: userIncludesLink, channel: ${sendToChannel.toString()})`,
+        ].join(' '),
+        10,
+        error,
+      ));
     }
-  }
-
-  // Keep storage size below 100k messages.
-  if (_.size(storedMessages) > 100000) {
-    storedMessages.shift();
   }
 }
 

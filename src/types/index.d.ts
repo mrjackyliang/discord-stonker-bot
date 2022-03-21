@@ -250,8 +250,9 @@ export type RoleSelection = 'everyone' | 'no-role' | RoleMention;
 export type RoleToOrFrom = 'to' | 'from';
 
 export type StoredMessage = {
-  id: Snowflake;
+  id: `${Snowflake}/${Snowflake}/${Snowflake}`;
   content: string;
+  timestamp: number;
 };
 
 export type StoredMessages = StoredMessage[];

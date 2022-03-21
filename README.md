@@ -38,7 +38,7 @@ Here are the instructions on how you can create an application and connect this 
     - `https://discord.com/oauth2/authorize?client_id=CLIENT_ID_HERE&scope=bot&permissions=292348488773`
 
 ## Bot Configuration
-In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. All fields required unless marked as _optional_.
+In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. If you wish to disable a feature, you may omit the section from the configuration.
 
 1. [Base Settings](#1-base-settings)
 2. [Snitch Notifications](#2-snitch-notifications)
@@ -58,21 +58,21 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 16. [Invite Generator](#16-invite-generator)
 
 ### 1. Base Settings
-For Stonker Bot to start, these settings should be filled. The `bot-prefix` is limited to 3 characters because ease-of-use reasons.
+For Stonker Bot to start, these settings should be filled.
 
-| __Key__                      | __Type__ | __Description__                                        | __Accepted Values__                                                                                                                                                          |
-|------------------------------|----------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `settings`                   | `object` |                                                        |                                                                                                                                                                              |
-| `settings.client-token`      | `string` | Bot token used to login to the application             | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
-| `settings.guild-id`          | `string` | The guild this bot will connect to                     | Discord guild ID                                                                                                                                                             |
-| `settings.bot-prefix`        | `string` | Prefixed character for executing a Stonker Bot command | Maximum 3 characters allowed (required for commands)                                                                                                                         |
-| `settings.server-http-port`  | `number` | Web server HTTP port for external requests             | From `0` to `65535`                                                                                                                                                          |
-| `settings.server-https-port` | `number` | Web server HTTPS port for external requests            | From `0` to `65535`                                                                                                                                                          |
-| `settings.server-https-key`  | `string` | Private key for HTTPS server                           | Required for enabling the HTTPS port                                                                                                                                         |
-| `settings.server-https-cert` | `string` | Certificate for HTTPS server                           | Required for enabling the HTTPS port                                                                                                                                         |
-| `settings.server-https-ca`   | `string` | Certificate authority for HTTPS server                 | Required for enabling the HTTPS port                                                                                                                                         |
-| `settings.time-zone`         | `string` | Preferred time zone                                    | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
-| `settings.log-level`         | `number` | Verbosity level configured for logging                 | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
+| __Key__                      | __Type__ | __Description__                                        | __Required__ | __Accepted Values__                                                                                                                                                          |
+|------------------------------|----------|--------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `settings`                   | `object` |                                                        | no           |                                                                                                                                                                              |
+| `settings.client-token`      | `string` | Bot token used to login to the application             | yes          | Bot token found in [Discord Developer Portal](https://discord.com/developers/applications) after [creating and adding a Discord application](#configure-discord-application) |
+| `settings.guild-id`          | `string` | The guild this bot will connect to                     | yes          | Discord guild ID                                                                                                                                                             |
+| `settings.bot-prefix`        | `string` | Prefixed character for executing a Stonker Bot command | no           | Maximum 3 characters allowed. Required to enable [Commands](#3-commands).                                                                                                    |
+| `settings.server-http-port`  | `number` | Web server HTTP port for external requests             | no           | From `1` to `65535`                                                                                                                                                          |
+| `settings.server-https-port` | `number` | Web server HTTPS port for external requests            | no           | From `1` to `65535`                                                                                                                                                          |
+| `settings.server-https-key`  | `string` | Private key for HTTPS server                           | no           | Absolute file path for the private key in PEM format. Required if `settings.server-https-port` is set.                                                                       |
+| `settings.server-https-cert` | `string` | Certificate for HTTPS server                           | no           | Absolute file path for the cert chain in PEM format. Required if `settings.server-https-port` is set.                                                                        |
+| `settings.server-https-ca`   | `string` | Certificate authority for HTTPS server                 | no           | Absolute file path for the CA certificate in PEM format. Required if `settings.server-https-port` is set.                                                                    |
+| `settings.time-zone`         | `string` | Preferred time zone                                    | yes          | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                     |
+| `settings.log-level`         | `number` | Verbosity level configured for logging                 | yes          | `10` (error), `20` (warning), `30` (information), or `40` (debug)                                                                                                            |
 
 ```json
 {
@@ -94,21 +94,21 @@ For Stonker Bot to start, these settings should be filled. The `bot-prefix` is l
 ### 2. Snitch Notifications
 Get notifications from user actions surrounding your server. A notification will be sent to a specified channel when a user is updated, message includes media, or when a message is updated or deleted.
 
-| __Key__                               | __Type__ | __Description__                             | __Accepted Values__ |
-|---------------------------------------|----------|---------------------------------------------|---------------------|
-| `snitch`                              | `object` |                                             |                     |
-| `snitch.change-nickname`              | `object` | Notify when a member changes their nickname |                     |
-| `snitch.change-nickname.channel-id`   | `string` |                                             | Discord channel ID  |
-| `snitch.change-username`              | `object` | Notify when a member changes their username |                     |
-| `snitch.change-username.channel-id`   | `string` |                                             | Discord channel ID  |
-| `snitch.delete-message`               | `object` | Notify when a message is deleted            |                     |
-| `snitch.delete-message.channel-id`    | `string` |                                             | Discord channel ID  |
-| `snitch.includes-link`                | `object` | Notify when a message includes links        |                     |
-| `snitch.includes-link.channel-id`     | `string` |                                             | Discord channel ID  |
-| `snitch.update-message`               | `object` | Notify when a message is edited             |                     |
-| `snitch.update-message.channel-id`    | `string` |                                             | Discord channel ID  |
-| `snitch.upload-attachment`            | `object` | Notify when an attachment is uploaded       |                     |
-| `snitch.upload-attachment.channel-id` | `string` |                                             | Discord channel ID  |
+| __Key__                               | __Type__ | __Description__                             | __Required__ | __Accepted Values__ |
+|---------------------------------------|----------|---------------------------------------------|--------------|---------------------|
+| `snitch`                              | `object` |                                             | no           |                     |
+| `snitch.change-nickname`              | `object` | Notify when a member changes their nickname | no           |                     |
+| `snitch.change-nickname.channel-id`   | `string` |                                             | no           | Discord channel ID  |
+| `snitch.change-username`              | `object` | Notify when a member changes their username | no           |                     |
+| `snitch.change-username.channel-id`   | `string` |                                             | no           | Discord channel ID  |
+| `snitch.delete-message`               | `object` | Notify when a message is deleted            | no           |                     |
+| `snitch.delete-message.channel-id`    | `string` |                                             | no           | Discord channel ID  |
+| `snitch.includes-link`                | `object` | Notify when a message includes links        | no           |                     |
+| `snitch.includes-link.channel-id`     | `string` |                                             | no           | Discord channel ID  |
+| `snitch.update-message`               | `object` | Notify when a message is edited             | no           |                     |
+| `snitch.update-message.channel-id`    | `string` |                                             | no           | Discord channel ID  |
+| `snitch.upload-attachment`            | `object` | Notify when an attachment is uploaded       | no           |                     |
+| `snitch.upload-attachment.channel-id` | `string` |                                             | no           | Discord channel ID  |
 
 ```json
 {
@@ -138,30 +138,30 @@ Get notifications from user actions surrounding your server. A notification will
 ### 3. Commands
 Allow members with certain roles to use commands provided by the Stonker Bot. If this is not configured, only server owners and administrators are able to use these commands.
 
-| __Key__                                    | __Type__   | __Description__                            | __Accepted Values__ |
-|--------------------------------------------|------------|--------------------------------------------|---------------------|
-| `commands`                                 | `object`   |                                            |                     |
-| `commands.bulk-ban`                        | `object[]` |                                            |                     |
-| `commands.bulk-ban[x].description`         | `string`   | Description of the allowed role (optional) |                     |
-| `commands.bulk-ban[x].id`                  | `string`   | Allowed role                               | Discord role ID     |
-| `commands.fetch-duplicates`                | `object[]` |                                            |                     |
-| `commands.fetch-duplicates[x].description` | `string`   | Description of the allowed role (optional) |                     |
-| `commands.fetch-duplicates[x].id`          | `string`   | Allowed role                               | Discord role ID     |
-| `commands.fetch-members`                   | `object[]` |                                            |                     |
-| `commands.fetch-members[x].description`    | `string`   | Description of the allowed role (optional) |                     |
-| `commands.fetch-members[x].id`             | `string`   | Allowed role                               | Discord role ID     |
-| `commands.help-menu`                       | `object[]` |                                            |                     |
-| `commands.help-menu[x].description`        | `string`   | Description of the allowed role (optional) |                     |
-| `commands.help-menu[x].id`                 | `string`   | Allowed role                               | Discord role ID     |
-| `commands.role-manager`                    | `object[]` |                                            |                     |
-| `commands.role-manager[x].description`     | `string`   | Description of the allowed role (optional) |                     |
-| `commands.role-manager[x].id`              | `string`   | Allowed role                               | Discord role ID     |
-| `commands.toggle-perms`                    | `object[]` |                                            |                     |
-| `commands.toggle-perms[x].description`     | `string`   | Description of the allowed role (optional) |                     |
-| `commands.toggle-perms[x].id`              | `string`   | Allowed role                               | Discord role ID     |
-| `commands.voice-tools`                     | `object[]` |                                            |                     |
-| `commands.voice-tools[x].description`      | `string`   | Description of the allowed role (optional) |                     |
-| `commands.voice-tools[x].id`               | `string`   | Allowed role                               | Discord role ID     |
+| __Key__                                    | __Type__   | __Description__                 | __Required__ | __Accepted Values__ |
+|--------------------------------------------|------------|---------------------------------|--------------|---------------------|
+| `commands`                                 | `object`   |                                 | no           |                     |
+| `commands.bulk-ban`                        | `object[]` |                                 | no           |                     |
+| `commands.bulk-ban[x].description`         | `string`   | Description of the allowed role | no           |                     |
+| `commands.bulk-ban[x].id`                  | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.fetch-duplicates`                | `object[]` |                                 | no           |                     |
+| `commands.fetch-duplicates[x].description` | `string`   | Description of the allowed role | no           |                     |
+| `commands.fetch-duplicates[x].id`          | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.fetch-members`                   | `object[]` |                                 | no           |                     |
+| `commands.fetch-members[x].description`    | `string`   | Description of the allowed role | no           |                     |
+| `commands.fetch-members[x].id`             | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.help-menu`                       | `object[]` |                                 | no           |                     |
+| `commands.help-menu[x].description`        | `string`   | Description of the allowed role | no           |                     |
+| `commands.help-menu[x].id`                 | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.role-manager`                    | `object[]` |                                 | no           |                     |
+| `commands.role-manager[x].description`     | `string`   | Description of the allowed role | no           |                     |
+| `commands.role-manager[x].id`              | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.toggle-perms`                    | `object[]` |                                 | no           |                     |
+| `commands.toggle-perms[x].description`     | `string`   | Description of the allowed role | no           |                     |
+| `commands.toggle-perms[x].id`              | `string`   | Allowed role                    | no           | Discord role ID     |
+| `commands.voice-tools`                     | `object[]` |                                 | no           |                     |
+| `commands.voice-tools[x].description`      | `string`   | Description of the allowed role | no           |                     |
+| `commands.voice-tools[x].id`               | `string`   | Allowed role                    | no           | Discord role ID     |
 
 ```json
 {
@@ -215,31 +215,31 @@ Allow members with certain roles to use commands provided by the Stonker Bot. If
 ### 4. API Fetch
 Retrieve updated information through a live feed and via a customizable keyword (like a command). Current APIs available are Etherscan and Stocktwits.
 
-| __Key__                                                                      | __Type__   | __Description__                                 | __Accepted Values__                                                                                                                                                 |
-|------------------------------------------------------------------------------|------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `api-fetch`                                                                  | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle`                                             | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.settings`                                    | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.settings.api-key`                            | `string`   | API Key to access Etherscan API (optional)      | [Signup for an Etherscan API Key](https://etherscan.io/register)                                                                                                    |
-| `api-fetch.etherscan-gas-oracle.feed`                                        | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.feed.channel-id`                             | `string`   | Channel used to send Etherscan API updates      | Discord channel ID                                                                                                                                                  |
-| `api-fetch.etherscan-gas-oracle.command`                                     | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.command.regex`                               | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.command.regex.pattern`                       | `string`   | Regex pattern for matching message content      | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `api-fetch.etherscan-gas-oracle.command.regex.flags`                         | `string`   | Regex flags                                     | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `api-fetch.etherscan-gas-oracle.command.allowed-roles`                       | `object[]` |                                                 |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].description`        | `string`   | Description of the allowed role (optional)      |                                                                                                                                                                     |
-| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].id`                 | `string`   | Allowed role                                    | Discord role ID                                                                                                                                                     |
-| `api-fetch.stocktwits-trending`                                              | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.feed`                                         | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.feed.channel-id`                              | `string`   | Channel used to send Etherscan API updates      | Discord channel ID                                                                                                                                                  |
-| `api-fetch.stocktwits-trending.command`                                      | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.command.regex`                                | `object`   |                                                 |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.command.regex.pattern`                        | `string`   | Regex pattern for matching message content      | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `api-fetch.stocktwits-trending.command.regex.flags`                          | `string`   | Regex flags                                     | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `api-fetch.stocktwits-trending.command.allowed-roles`                        | `object[]` |                                                 |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.command.allowed-roles[x].description`         | `string`   | Description of the allowed role (optional)      |                                                                                                                                                                     |
-| `api-fetch.stocktwits-trending.command.allowed-roles[x].id`                  | `string`   | Allowed role                                    | Discord role ID                                                                                                                                                     |
+| __Key__                                                                      | __Type__   | __Description__                            | __Required__ | __Accepted Values__                                                                                                                                                 |
+|------------------------------------------------------------------------------|------------|--------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `api-fetch`                                                                  | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle`                                             | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.settings`                                    | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.settings.api-key`                            | `string`   | API key to access Etherscan API            | no           | [Signup for an Etherscan API Key](https://etherscan.io/register)                                                                                                    |
+| `api-fetch.etherscan-gas-oracle.feed`                                        | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.feed.channel-id`                             | `string`   | Channel used to send Etherscan API updates | no           | Discord channel ID                                                                                                                                                  |
+| `api-fetch.etherscan-gas-oracle.command`                                     | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.regex`                               | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.regex.pattern`                       | `string`   | Regex pattern for matching message content | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `api-fetch.etherscan-gas-oracle.command.regex.flags`                         | `string`   | Regex flags                                | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles`                       | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].description`        | `string`   | Description of the allowed role            | no           |                                                                                                                                                                     |
+| `api-fetch.etherscan-gas-oracle.command.allowed-roles[x].id`                 | `string`   | Allowed role                               | no           | Discord role ID                                                                                                                                                     |
+| `api-fetch.stocktwits-trending`                                              | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.feed`                                         | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.feed.channel-id`                              | `string`   | Channel used to send Etherscan API updates | no           | Discord channel ID                                                                                                                                                  |
+| `api-fetch.stocktwits-trending.command`                                      | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.regex`                                | `object`   |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.regex.pattern`                        | `string`   | Regex pattern for matching message content | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `api-fetch.stocktwits-trending.command.regex.flags`                          | `string`   | Regex flags                                | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `api-fetch.stocktwits-trending.command.allowed-roles`                        | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.allowed-roles[x].description`         | `string`   | Description of the allowed role            | no           |                                                                                                                                                                     |
+| `api-fetch.stocktwits-trending.command.allowed-roles[x].id`                  | `string`   | Allowed role                               | no           | Discord role ID                                                                                                                                                     |
 
 ```json
 {
@@ -288,21 +288,21 @@ Retrieve updated information through a live feed and via a customizable keyword 
 ### 5. Anti-Raid
 A set of tools to ban members (based on their avatar hash or username), and helps automate the membership gate for those that just joined the server.
 
-| __Key__                                    | __Type__   | __Description__                                              | __Accepted Values__                                                                    |
-|--------------------------------------------|------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------|
-| `anti-raid`                                | `object`   |                                                              |                                                                                        |
-| `anti-raid.auto-ban`                       | `object`   |                                                              |                                                                                        |
-| `anti-raid.auto-ban.avatar`                | `string[]` | List of banned avatar hashes                                 | File name of avatar (without file extension)                                           |
-| `anti-raid.auto-ban.username`              | `string[]` | List of banned usernames                                     | Username of user                                                                       |
-| `anti-raid.membership-gate`                | `object`   |                                                              |                                                                                        |
-| `anti-raid.membership-gate.role-id`        | `string`   | Role to assign when a user passes the gate                   | Discord role ID                                                                        |
-| `anti-raid.membership-gate.channel-id`     | `string`   | Where to send message when a user passes the gate (optional) | Discord channel ID                                                                     |
-| `anti-raid.membership-gate.message`        | `string`   | Message to send when a user passes the gate (optional)       | Cannot exceed 2000 characters. Variables include `%GUILD_NAME%` and `%MEMBER_MENTION%` |
-| `anti-raid.monitor`                        | `object`   |                                                              |                                                                                        |
-| `anti-raid.monitor.guild-join`             | `object`   |                                                              |                                                                                        |
-| `anti-raid.monitor.guild-join.channel-id`  | `string`   | Channel to post in when a user joins a guild                 | Discord channel ID                                                                     |
-| `anti-raid.monitor.guild-leave`            | `object`   |                                                              |                                                                                        |
-| `anti-raid.monitor.guild-leave.channel-id` | `string`   | Channel to post in when a user leaves a guild                | Discord channel ID                                                                     |
+| __Key__                                    | __Type__   | __Description__                                   | __Required__ | __Accepted Values__                                                                    |
+|--------------------------------------------|------------|---------------------------------------------------|--------------|----------------------------------------------------------------------------------------|
+| `anti-raid`                                | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.auto-ban`                       | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.auto-ban.avatar`                | `string[]` | List of banned avatar hashes                      | no           | File name of avatar (without file extension)                                           |
+| `anti-raid.auto-ban.username`              | `string[]` | List of banned usernames                          | no           | Username of user                                                                       |
+| `anti-raid.membership-gate`                | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.membership-gate.role-id`        | `string`   | Role to assign when a user passes the gate        | no           | Discord role ID                                                                        |
+| `anti-raid.membership-gate.channel-id`     | `string`   | Where to send message when a user passes the gate | no           | Discord channel ID                                                                     |
+| `anti-raid.membership-gate.message`        | `string`   | Message to send when a user passes the gate       | no           | Cannot exceed 2000 characters. Variables include `%GUILD_NAME%` and `%MEMBER_MENTION%` |
+| `anti-raid.monitor`                        | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.monitor.guild-join`             | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.monitor.guild-join.channel-id`  | `string`   | Channel to post in when a user joins a guild      | no           | Discord channel ID                                                                     |
+| `anti-raid.monitor.guild-leave`            | `object`   |                                                   | no           |                                                                                        |
+| `anti-raid.monitor.guild-leave.channel-id` | `string`   | Channel to post in when a user leaves a guild     | no           | Discord channel ID                                                                     |
 
 ```json
 {
@@ -335,23 +335,23 @@ A set of tools to ban members (based on their avatar hash or username), and help
 ### 6. Scheduled Posts
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip certain dates from posting (like a holiday, for instance) and even send on a specific day.
 
-| __Key__                                     | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                       |
-|---------------------------------------------|------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `schedule-posts`                            | `object[]` |                                             |                                                                                                                                                           |
-| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post                  |                                                                                                                                                           |
-| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post         | Discord channel ID                                                                                                                                        |
-| `schedule-posts[x].payload`                 | `object`   | Message content                             | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
-| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post (optional)     | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated)                                                  |
-| `schedule-posts[x].send-every`              | `object`   |                                             |                                                                                                                                                           |
-| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone (optional)           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
-| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week (optional)     | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
-| `schedule-posts[x].send-every.year`         | `number[]` | Send post on year (optional)                | Four-digit year                                                                                                                                           |
-| `schedule-posts[x].send-every.month`        | `number[]` | Send post on month (optional)               | From `0` to `11`                                                                                                                                          |
-| `schedule-posts[x].send-every.date`         | `number[]` | Send post on date (optional)                | From `1` to `31`                                                                                                                                          |
-| `schedule-posts[x].send-every.hour`         | `number[]` | Send post on hour of day (optional)         | From `0` to `23`                                                                                                                                          |
-| `schedule-posts[x].send-every.minute`       | `number[]` | Send post on minute of day (optional)       | From `0` to `59`                                                                                                                                          |
-| `schedule-posts[x].send-every.second`       | `number[]` | Send post on second of day (optional)       | From `0` to `59`                                                                                                                                          |
-| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days (optional) | Date format is `YYYY-MM-DD`                                                                                                                               |
+| __Key__                                     | __Type__   | __Description__                     | __Required__ | __Accepted Values__                                                                                                                                       |
+|---------------------------------------------|------------|-------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `schedule-posts`                            | `object[]` |                                     | no           |                                                                                                                                                           |
+| `schedule-posts[x].name`                    | `string`   | Name of the scheduled post          | no           |                                                                                                                                                           |
+| `schedule-posts[x].channel-id`              | `string`   | Channel used to send scheduled post | no           | Discord channel ID                                                                                                                                        |
+| `schedule-posts[x].payload`                 | `object`   | Message content                     | no           | Cannot be empty. Must follow the `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions) |
+| `schedule-posts[x].reactions`               | `string[]` | Reactions for scheduled post        | no           | Unicode emojis or a custom emoji identifier string (`<:name:id>` for static, `<a:name:id>` for animated)                                                  |
+| `schedule-posts[x].send-every`              | `object`   |                                     | no           |                                                                                                                                                           |
+| `schedule-posts[x].send-every.time-zone`    | `string`   | Send post on time zone              | no           | More time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                  |
+| `schedule-posts[x].send-every.days-of-week` | `number[]` | Send post during day of week        | no           | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday)                                                  |
+| `schedule-posts[x].send-every.year`         | `number[]` | Send post on year                   | no           | Four-digit year                                                                                                                                           |
+| `schedule-posts[x].send-every.month`        | `number[]` | Send post on month                  | no           | From `0` to `11`                                                                                                                                          |
+| `schedule-posts[x].send-every.date`         | `number[]` | Send post on date                   | no           | From `1` to `31`                                                                                                                                          |
+| `schedule-posts[x].send-every.hour`         | `number[]` | Send post on hour of day            | no           | From `0` to `23`                                                                                                                                          |
+| `schedule-posts[x].send-every.minute`       | `number[]` | Send post on minute of day          | no           | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].send-every.second`       | `number[]` | Send post on second of day          | no           | From `0` to `59`                                                                                                                                          |
+| `schedule-posts[x].skip-days`               | `string[]` | Don't post during specified days    | no           | Date format is `YYYY-MM-DD`                                                                                                                               |
 
 ```json
 {
@@ -409,14 +409,14 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 ### 7. RSS Feeds
 Get updates from external RSS feeds. Customize the message when a new RSS update is detected (add notifications, custom text) and set cron time intervals!
 
-| __Key__                   | __Type__   | __Description__                        | __Accepted Values__                                                                                   |
-|---------------------------|------------|----------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `rss-feeds`               | `object[]` |                                        |                                                                                                       |
-| `rss-feeds[x].name`       | `string`   | Name of the RSS feed task              |                                                                                                       |
-| `rss-feeds[x].channel-id` | `string`   | Channel to send RSS feed updates       | Discord channel ID                                                                                    |
-| `rss-feeds[x].interval`   | `string`   | Cron-based interval timing             | Generate an expression from the [Cron Expression Generator](http://crontab.cronhub.io/)               |
-| `rss-feeds[x].url`        | `string`   | Link of the RSS feed                   |                                                                                                       |
-| `rss-feeds[x].message`    | `string`   | Customized message for RSS feed update | Cannot be empty and cannot exceed 2000 characters. Variables include `%ITEM_TITLE%` and `%ITEM_LINK%` |
+| __Key__                   | __Type__   | __Description__                        | __Required__ | __Accepted Values__                                                                                   |
+|---------------------------|------------|----------------------------------------|--------------|-------------------------------------------------------------------------------------------------------|
+| `rss-feeds`               | `object[]` |                                        | no           |                                                                                                       |
+| `rss-feeds[x].name`       | `string`   | Name of the RSS feed task              | no           |                                                                                                       |
+| `rss-feeds[x].channel-id` | `string`   | Channel to send RSS feed updates       | no           | Discord channel ID                                                                                    |
+| `rss-feeds[x].interval`   | `string`   | Cron-based interval timing             | no           | Generate an expression from the [Cron Expression Generator](http://crontab.cronhub.io/)               |
+| `rss-feeds[x].url`        | `string`   | Link of the RSS feed                   | no           |                                                                                                       |
+| `rss-feeds[x].message`    | `string`   | Customized message for RSS feed update | no           | Cannot be empty and cannot exceed 2000 characters. Variables include `%ITEM_TITLE%` and `%ITEM_LINK%` |
 
 ```json
 {
@@ -437,18 +437,18 @@ Restrict a specific format in a particular channel. If the message doesn't match
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
-| __Key__                                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
-|-----------------------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `regex-rules`                                 | `object[]` |                                             |                                                                                                                                                                     |
-| `regex-rules[x].name`                         | `string`   | Name of the regex restriction               |                                                                                                                                                                     |
-| `regex-rules[x].channel-id`                   | `string`   | Channel under regex restriction             | Discord channel ID                                                                                                                                                  |
-| `regex-rules[x].regex`                        | `object`   |                                             |                                                                                                                                                                     |
-| `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `regex-rules[x].direct-message`               | `string`   | Direct message content (optional)           | Cannot exceed 2000 characters                                                                                                                                       |
-| `regex-rules[x].exclude-roles`                | `object[]` |                                             |                                                                                                                                                                     |
-| `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
-| `regex-rules[x].exclude-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
+| __Key__                                       | __Type__   | __Description__                            | __Required__ | __Accepted Values__                                                                                                                                                 |
+|-----------------------------------------------|------------|--------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `regex-rules`                                 | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `regex-rules[x].name`                         | `string`   | Name of the regex restriction              | no           |                                                                                                                                                                     |
+| `regex-rules[x].channel-id`                   | `string`   | Channel under regex restriction            | no           | Discord channel ID                                                                                                                                                  |
+| `regex-rules[x].regex`                        | `object`   |                                            | no           |                                                                                                                                                                     |
+| `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `regex-rules[x].direct-message`               | `string`   | Direct message content                     | no           | Cannot exceed 2000 characters                                                                                                                                       |
+| `regex-rules[x].exclude-roles`                | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role           | no           |                                                                                                                                                                     |
+| `regex-rules[x].exclude-roles[x].id`          | `string`   | Excluded role                              | no           | Discord role ID                                                                                                                                                     |
 
 ```json
 {
@@ -475,13 +475,13 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 ### 9. Detect Suspicious Words
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often do not require warnings or deletion.
 
-| __Key__                                   | __Type__   | __Description__                          | __Accepted Values__ |
-|-------------------------------------------|------------|------------------------------------------|---------------------|
-| `suspicious-words`                        | `object`   |                                          |                     |
-| `suspicious-words.channel-id`             | `string`   | Channel used to report suspicious words  | Discord channel ID  |
-| `suspicious-words.categories`             | `object[]` |                                          |                     |
-| `suspicious-words.categories[x].category` | `string`   | Category that the word is detected under |                     |
-| `suspicious-words.categories[x].words`    | `string[]` | List of suspicious words to detect       |                     |
+| __Key__                                   | __Type__   | __Description__                          | __Required__ | __Accepted Values__ |
+|-------------------------------------------|------------|------------------------------------------|--------------|---------------------|
+| `suspicious-words`                        | `object`   |                                          | no           |                     |
+| `suspicious-words.channel-id`             | `string`   | Channel used to report suspicious words  | no           | Discord channel ID  |
+| `suspicious-words.categories`             | `object[]` |                                          | no           |                     |
+| `suspicious-words.categories[x].category` | `string`   | Category that the word is detected under | no           |                     |
+| `suspicious-words.categories[x].words`    | `string[]` | List of suspicious words to detect       | no           |                     |
 
 ```json
 {
@@ -505,23 +505,23 @@ Add or remove selected roles from members if it meets a condition (`yes-to-yes`,
 
 Useful for many scenarios like when members lose a Premium role or when members get muted (_removing_ write access roles).
 
-| __Key__                             | __Type__   | __Description__                               | __Accepted Values__                                   |
-|-------------------------------------|------------|-----------------------------------------------|-------------------------------------------------------|
-| `roles`                             | `object[]` |                                               |                                                       |
-| `roles[x].name`                     | `string`   | Name of the role task                         |                                                       |
-| `roles[x].type`                     | `string`   | Condition to remove roles                     | `yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes` |
-| `roles[x].before`                   | `object[]` |                                               |                                                       |
-| `roles[x].before[x].description`    | `string`   | Description of the roles before (optional)    |                                                       |
-| `roles[x].before[x].id`             | `string`   | Role before                                   | Discord role ID                                       |
-| `roles[x].after`                    | `object[]` |                                               |                                                       |
-| `roles[x].after[x].description`     | `string`   | Description of the roles after (optional)     |                                                       |
-| `roles[x].after[x].id`              | `string`   | Role after                                    | Discord role ID                                       |
-| `roles[x].to-add`                   | `object[]` |                                               |                                                       |
-| `roles[x].to-add[x].description`    | `string`   | Description of the roles to add (optional)    |                                                       |
-| `roles[x].to-add[x].id`             | `string`   | Role to add                                   | Discord role ID                                       |
-| `roles[x].to-remove`                | `object[]` |                                               |                                                       |
-| `roles[x].to-remove[x].description` | `string`   | Description of the roles to remove (optional) |                                                       |
-| `roles[x].to-remove[x].id`          | `string`   | Role to remove                                | Discord role ID                                       |
+| __Key__                             | __Type__   | __Description__                    | __Required__ | __Accepted Values__                                   |
+|-------------------------------------|------------|------------------------------------|--------------|-------------------------------------------------------|
+| `roles`                             | `object[]` |                                    | no           |                                                       |
+| `roles[x].name`                     | `string`   | Name of the role task              | no           |                                                       |
+| `roles[x].type`                     | `string`   | Condition to remove roles          | no           | `yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes` |
+| `roles[x].before`                   | `object[]` |                                    | no           |                                                       |
+| `roles[x].before[x].description`    | `string`   | Description of the roles before    | no           |                                                       |
+| `roles[x].before[x].id`             | `string`   | Role before                        | no           | Discord role ID                                       |
+| `roles[x].after`                    | `object[]` |                                    | no           |                                                       |
+| `roles[x].after[x].description`     | `string`   | Description of the roles after     | no           |                                                       |
+| `roles[x].after[x].id`              | `string`   | Role after                         | no           | Discord role ID                                       |
+| `roles[x].to-add`                   | `object[]` |                                    | no           |                                                       |
+| `roles[x].to-add[x].description`    | `string`   | Description of the roles to add    | no           |                                                       |
+| `roles[x].to-add[x].id`             | `string`   | Role to add                        | no           | Discord role ID                                       |
+| `roles[x].to-remove`                | `object[]` |                                    | no           |                                                       |
+| `roles[x].to-remove[x].description` | `string`   | Description of the roles to remove | no           |                                                       |
+| `roles[x].to-remove[x].id`          | `string`   | Role to remove                     | no           | Discord role ID                                       |
 
 ```json
 {
@@ -621,16 +621,16 @@ Useful for many scenarios like when members lose a Premium role or when members 
 ### 11. Auto Reply
 Reply to a message without requiring human interaction. Great for automated customer service or surprise members with hidden Easter eggs!
 
-| __Key__                       | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
-|-------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `auto-reply`                  | `object[]` |                                             |                                                                                                                                                                     |
-| `auto-reply[x].name`          | `string`   | Name of the auto-reply task                 |                                                                                                                                                                     |
-| `auto-reply[x].channel-ids`   | `string[]` | Channels monitored for the reply (optional) | Discord channel IDs                                                                                                                                                 |
-| `auto-reply[x].reply`         | `boolean`  | Reply to the author                         | `true` or `false`                                                                                                                                                   |
-| `auto-reply[x].regex`         | `object`   |                                             |                                                                                                                                                                     |
-| `auto-reply[x].regex.pattern` | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `auto-reply[x].regex.flags`   | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `auto-reply[x].messages`      | `string[]` | Message contents                            | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
+| __Key__                       | __Type__   | __Description__                            | __Required__ | __Accepted Values__                                                                                                                                                 |
+|-------------------------------|------------|--------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `auto-reply`                  | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `auto-reply[x].name`          | `string`   | Name of the auto-reply task                | no           |                                                                                                                                                                     |
+| `auto-reply[x].channel-ids`   | `string[]` | Channels monitored for the reply           | no           | Discord channel IDs                                                                                                                                                 |
+| `auto-reply[x].reply`         | `boolean`  | Reply to the author                        | no           | `true` or `false`                                                                                                                                                   |
+| `auto-reply[x].regex`         | `object`   |                                            | no           |                                                                                                                                                                     |
+| `auto-reply[x].regex.pattern` | `string`   | Regex pattern for matching message content | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `auto-reply[x].regex.flags`   | `string`   | Regex flags                                | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `auto-reply[x].messages`      | `string[]` | Message contents                           | no           | Cannot be empty and cannot exceed 2000 characters (lesser characters if tagging author)                                                                             |
 
 ```json
 {
@@ -657,25 +657,25 @@ Reply to a message without requiring human interaction. Great for automated cust
 ### 12. Message Copier
 Automatically copy the original message that matches the regular expression into another channel. A powerful utility to organize content in Discord.
 
-| __Key__                                          | __Type__   | __Description__                                        | __Accepted Values__                                                                                                                                                                               |
-|--------------------------------------------------|------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `message-copier`                                 | `object[]` |                                                        |                                                                                                                                                                                                   |
-| `message-copier[x].name`                         | `string`   | Name of the message copier task                        |                                                                                                                                                                                                   |
-| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to       | Discord channel ID                                                                                                                                                                                |
-| `message-copier[x].regex`                        | `object`   |                                                        |                                                                                                                                                                                                   |
-| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content             | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].replacements`                 | `object[]` |                                                        |                                                                                                                                                                                                   |
-| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content            | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
-| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                            | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
-| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                           | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
-| `message-copier[x].format`                       | `string`   | Format the copied message                              | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%CHANNEL_MENTION%`, `%MESSAGE_CONTENT%`, `%MESSAGE_EXCERPT%`, and `%MESSAGE_URL%`.                          |
-| `message-copier[x].include-attachments`          | `boolean`  | Include attachments when copying message               | `true` or `false`                                                                                                                                                                                 |
-| `message-copier[x].delete-message`               | `boolean`  | Delete original message when copying message           | `true` or `false`                                                                                                                                                                                 |
-| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users (optional)      | Discord user IDs                                                                                                                                                                                  |
-| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels (optional)   | Discord channel IDs                                                                                                                                                                               |
-| `message-copier[x].disallowed-users`             | `string[]` | Do not copy messages sent by these users (optional)    | Discord user IDs                                                                                                                                                                                  |
-| `message-copier[x].disallowed-channels`          | `string[]` | Do not copy messages sent in these channels (optional) | Discord channel IDs                                                                                                                                                                               |
+| __Key__                                          | __Type__   | __Description__                                  | __Required__ | __Accepted Values__                                                                                                                                                                               |
+|--------------------------------------------------|------------|--------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `message-copier`                                 | `object[]` |                                                  | no           |                                                                                                                                                                                                   |
+| `message-copier[x].name`                         | `string`   | Name of the message copier task                  | no           |                                                                                                                                                                                                   |
+| `message-copier[x].channel-id`                   | `string`   | The channel that the message should be posted to | no           | Discord channel ID                                                                                                                                                                                |
+| `message-copier[x].regex`                        | `object`   |                                                  | no           |                                                                                                                                                                                                   |
+| `message-copier[x].regex.pattern`                | `string`   | Regex pattern for matching message content       | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].regex.flags`                  | `string`   | Regex flags                                      | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].replacements`                 | `object[]` |                                                  | no           |                                                                                                                                                                                                   |
+| `message-copier[x].replacements[x].pattern`      | `string`   | Regex pattern for replacing message content      | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-copier[x].replacements[x].flags`        | `string`   | Regex flags                                      | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-copier[x].replacements[x].replace-with` | `string`   | Replace matched content with                     | no           | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
+| `message-copier[x].format`                       | `string`   | Format the copied message                        | no           | Cannot exceed 2000 characters. Variables include `%AUTHOR_MENTION%`, `%AUTHOR_TAG%`, `%CHANNEL_MENTION%`, `%MESSAGE_CONTENT%`, `%MESSAGE_EXCERPT%`, and `%MESSAGE_URL%`.                          |
+| `message-copier[x].include-attachments`          | `boolean`  | Include attachments when copying message         | no           | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].delete-message`               | `boolean`  | Delete original message when copying message     | no           | `true` or `false`                                                                                                                                                                                 |
+| `message-copier[x].allowed-users`                | `string[]` | Only copy messages sent by these users           | no           | Discord user IDs                                                                                                                                                                                  |
+| `message-copier[x].allowed-channels`             | `string[]` | Only copy messages sent in these channels        | no           | Discord channel IDs                                                                                                                                                                               |
+| `message-copier[x].disallowed-users`             | `string[]` | Do not copy messages sent by these users         | no           | Discord user IDs                                                                                                                                                                                  |
+| `message-copier[x].disallowed-channels`          | `string[]` | Do not copy messages sent in these channels      | no           | Discord channel IDs                                                                                                                                                                               |
 
 ```json
 {
@@ -719,18 +719,18 @@ Easily remove affiliate links posted in channels, many of them unauthorized and 
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
-| __Key__                                         | __Type__   | __Description__                             | __Accepted Values__                                                                                                                                                 |
-|-------------------------------------------------|------------|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `affiliate-links`                               | `object`   |                                             |                                                                                                                                                                     |
-| `affiliate-links.links`                         | `object[]` |                                             |                                                                                                                                                                     |
-| `affiliate-links.links[x].website`              | `string`   | Name of the website                         |                                                                                                                                                                     |
-| `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content  | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                 | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `affiliate-links.channel-id`                    | `string`   | Channel used to report affiliate links      | Discord channel ID                                                                                                                                                  |
-| `affiliate-links.direct-message`                | `string`   | Direct message warning (optional)           | Cannot exceed 2000 characters                                                                                                                                       |
-| `affiliate-links.excluded-roles`                | `object[]` |                                             |                                                                                                                                                                     |
-| `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role (optional) |                                                                                                                                                                     |
-| `affiliate-links.excluded-roles[x].id`          | `string`   | Excluded role                               | Discord role ID                                                                                                                                                     |
+| __Key__                                         | __Type__   | __Description__                            | __Required__ | __Accepted Values__                                                                                                                                                 |
+|-------------------------------------------------|------------|--------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `affiliate-links`                               | `object`   |                                            | no           |                                                                                                                                                                     |
+| `affiliate-links.links`                         | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `affiliate-links.links[x].website`              | `string`   | Name of the website                        | no           |                                                                                                                                                                     |
+| `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `affiliate-links.channel-id`                    | `string`   | Channel used to report affiliate links     | no           | Discord channel ID                                                                                                                                                  |
+| `affiliate-links.direct-message`                | `string`   | Direct message warning                     | no           | Cannot exceed 2000 characters                                                                                                                                       |
+| `affiliate-links.excluded-roles`                | `object[]` |                                            | no           |                                                                                                                                                                     |
+| `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role           | no           |                                                                                                                                                                     |
+| `affiliate-links.excluded-roles[x].id`          | `string`   | Excluded role                              | no           | Discord role ID                                                                                                                                                     |
 
 ```json
 {
@@ -759,25 +759,25 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 ### 14. Toggle Preset Permissions
 Configure channel permissions with a single command without touching them! Great for quickly showing and hiding channels for special events.
 
-| __Key__                                                      | __Type__   | __Description__                            | __Accepted Values__                                                                                                                                                    |
-|--------------------------------------------------------------|------------|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `toggle-perms`                                               | `object[]` |                                            |                                                                                                                                                                        |
-| `toggle-perms[x].name`                                       | `string`   | Toggle group name                          |                                                                                                                                                                        |
-| `toggle-perms[x].id`                                         | `string`   | Toggle group identifier                    |                                                                                                                                                                        |
-| `toggle-perms[x].on`                                         | `object[]` |                                            |                                                                                                                                                                        |
-| `toggle-perms[x].on[x].description`                          | `string`   | Toggle on channel description (optional)   |                                                                                                                                                                        |
-| `toggle-perms[x].on[x].channel-id`                           | `string`   | Toggle on channel ID                       | Discord channel ID                                                                                                                                                     |
-| `toggle-perms[x].on[x].channel-perms`                        | `object[]` | Toggle on channel permissions              |                                                                                                                                                                        |
-| `toggle-perms[x].on[x].channel-perms[x].description`         | `string`   | Description of user or role (optional)     |                                                                                                                                                                        |
-| `toggle-perms[x].on[x].channel-perms[x].user-or-role-id`     | `string`   | User or role                               | Discord user or role ID                                                                                                                                                |
-| `toggle-perms[x].on[x].channel-perms[x].user-or-role-perms`  | `object`   | User or role permissions                   | Review the [permission flags](https://discord.js.org/#/docs/main/stable/class/Permissions?scrollTo=s-FLAGS). Set flags to `true` (green), `null` (gray), `false` (red) |
-| `toggle-perms[x].off`                                        | `object[]` |                                            |                                                                                                                                                                        |
-| `toggle-perms[x].off[x].description`                         | `string`   | Toggle off channel description (optional)  |                                                                                                                                                                        |
-| `toggle-perms[x].off[x].channel-id`                          | `string`   | Toggle off channel ID                      | Discord channel ID                                                                                                                                                     |
-| `toggle-perms[x].off[x].channel-perms`                       | `object[]` | Toggle off channel permissions             |                                                                                                                                                                        |
-| `toggle-perms[x].off[x].channel-perms[x].description`        | `string`   | Description of user or role (optional)     |                                                                                                                                                                        |
-| `toggle-perms[x].off[x].channel-perms[x].user-or-role-id`    | `string`   | User or role                               | Discord user or role ID                                                                                                                                                |
-| `toggle-perms[x].off[x].channel-perms[x].user-or-role-perms` | `object`   | User or role permissions                   | Review the [permission flags](https://discord.js.org/#/docs/main/stable/class/Permissions?scrollTo=s-FLAGS). Set flags to `true` (green), `null` (gray), `false` (red) |
+| __Key__                                                      | __Type__   | __Description__                | __Required__ | __Accepted Values__                                                                                                                                                    |
+|--------------------------------------------------------------|------------|--------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `toggle-perms`                                               | `object[]` |                                | no           |                                                                                                                                                                        |
+| `toggle-perms[x].name`                                       | `string`   | Toggle group name              | no           |                                                                                                                                                                        |
+| `toggle-perms[x].id`                                         | `string`   | Toggle group identifier        | no           |                                                                                                                                                                        |
+| `toggle-perms[x].on`                                         | `object[]` |                                | no           |                                                                                                                                                                        |
+| `toggle-perms[x].on[x].description`                          | `string`   | Toggle on channel description  | no           |                                                                                                                                                                        |
+| `toggle-perms[x].on[x].channel-id`                           | `string`   | Toggle on channel ID           | no           | Discord channel ID                                                                                                                                                     |
+| `toggle-perms[x].on[x].channel-perms`                        | `object[]` | Toggle on channel permissions  | no           |                                                                                                                                                                        |
+| `toggle-perms[x].on[x].channel-perms[x].description`         | `string`   | Description of user or role    | no           |                                                                                                                                                                        |
+| `toggle-perms[x].on[x].channel-perms[x].user-or-role-id`     | `string`   | User or role                   | no           | Discord user or role ID                                                                                                                                                |
+| `toggle-perms[x].on[x].channel-perms[x].user-or-role-perms`  | `object`   | User or role permissions       | no           | Review the [permission flags](https://discord.js.org/#/docs/main/stable/class/Permissions?scrollTo=s-FLAGS). Set flags to `true` (green), `null` (gray), `false` (red) |
+| `toggle-perms[x].off`                                        | `object[]` |                                | no           |                                                                                                                                                                        |
+| `toggle-perms[x].off[x].description`                         | `string`   | Toggle off channel description | no           |                                                                                                                                                                        |
+| `toggle-perms[x].off[x].channel-id`                          | `string`   | Toggle off channel ID          | no           | Discord channel ID                                                                                                                                                     |
+| `toggle-perms[x].off[x].channel-perms`                       | `object[]` | Toggle off channel permissions | no           |                                                                                                                                                                        |
+| `toggle-perms[x].off[x].channel-perms[x].description`        | `string`   | Description of user or role    | no           |                                                                                                                                                                        |
+| `toggle-perms[x].off[x].channel-perms[x].user-or-role-id`    | `string`   | User or role                   | no           | Discord user or role ID                                                                                                                                                |
+| `toggle-perms[x].off[x].channel-perms[x].user-or-role-perms` | `object`   | User or role permissions       | no           | Review the [permission flags](https://discord.js.org/#/docs/main/stable/class/Permissions?scrollTo=s-FLAGS). Set flags to `true` (green), `null` (gray), `false` (red) |
 
 ```json
 {
@@ -823,12 +823,12 @@ Configure channel permissions with a single command without touching them! Great
 ### 15. Bump Threads
 Stretch the world of threads and make them like sub-channels! Create threads that never expire, even if you don't have _boosted_ servers.
 
-| __Key__                      | __Type__   | __Description__            | __Accepted Values__ |
-|------------------------------|------------|----------------------------|---------------------|
-| `bump-threads`               | `object[]` |                            |                     |
-| `bump-threads[x].name`       | `string`   | Bump thread channel name   |                     |
-| `bump-threads[x].channel-id` | `string`   | Bump thread parent channel | Discord channel ID  |
-| `bump-threads[x].thread-id`  | `string`   | Bump thread channel        | Discord thread ID   |
+| __Key__                      | __Type__   | __Description__            | __Required__ | __Accepted Values__ |
+|------------------------------|------------|----------------------------|--------------|---------------------|
+| `bump-threads`               | `object[]` |                            | no           |                     |
+| `bump-threads[x].name`       | `string`   | Bump thread channel name   | no           |                     |
+| `bump-threads[x].channel-id` | `string`   | Bump thread parent channel | no           | Discord channel ID  |
+| `bump-threads[x].thread-id`  | `string`   | Bump thread channel        | no           | Discord thread ID   |
 
 ```json
 {
@@ -845,26 +845,26 @@ Stretch the world of threads and make them like sub-channels! Create threads tha
 ### 16. Invite Generator
 A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. Customization includes the page design and code injection.
 
-| __Key__                                       | __Type__ | __Description__                              | __Accepted Values__                                                                                                           |
-|-----------------------------------------------|----------|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| `invite-generator`                            | `object` |                                              |                                                                                                                               |
-| `invite-generator.path`                       | `string` | Path used to access invite generator         | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                   |
-| `invite-generator.options`                    | `object` | Options for the invite generator             |                                                                                                                               |
-| `invite-generator.options.max-age`            | `number` | Maximum time limit for the invite            | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
-| `invite-generator.options.max-uses`           | `number` | Maximum uses for the invite                  | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
-| `invite-generator.design`                     | `object` |                                              |                                                                                                                               |
-| `invite-generator.design.logo-url`            | `string` | Link to an image used for the front page     | Square image with size dimensions of `300 x 300` or larger                                                                    |
-| `invite-generator.design.favicon-url`         | `object` | Link to an image used for the favicon        | `.png` extensions only                                                                                                        |
-| `invite-generator.design.background-color`    | `object` | Color for background                         | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
-| `invite-generator.design.link-color`          | `object` | Color for links                              | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
-| `invite-generator.design.text-color`          | `object` | Color for text                               | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
-| `invite-generator.inject-code`                | `object` |                                              |                                                                                                                               |
-| `invite-generator.inject-code.header`         | `object` | Unescaped code between the `head` tags       | Double-quote escaped HTML code                                                                                                |
-| `invite-generator.inject-code.submit-success` | `object` | Unescaped code when user passes verification | Double-quote escaped HTML code. Available variables are `success` (Discord invite url)                                        |
-| `invite-generator.inject-code.submit-fail`    | `object` | Unescaped code when user fails verification  | Double-quote escaped HTML code. Available variables are `fail` (The [jqXHR Object](https://api.jquery.com/jquery.ajax#jqXHR)) |
-| `invite-generator.recaptcha`                  | `object` |                                              |                                                                                                                               |
-| `invite-generator.recaptcha.site-key`         | `object` | Google reCAPTCHA v2 Checkbox Site Key        | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
-| `invite-generator.recaptcha.secret-key`       | `object` | Google reCAPTCHA v2 Checkbox Secret Key      | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
+| __Key__                                       | __Type__ | __Description__                              | __Required__ | __Accepted Values__                                                                                                           |
+|-----------------------------------------------|----------|----------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `invite-generator`                            | `object` |                                              | no           |                                                                                                                               |
+| `invite-generator.path`                       | `string` | Path used to access invite generator         | no           | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                   |
+| `invite-generator.options`                    | `object` | Options for the invite generator             | no           |                                                                                                                               |
+| `invite-generator.options.max-age`            | `number` | Maximum time limit for the invite            | no           | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
+| `invite-generator.options.max-uses`           | `number` | Maximum uses for the invite                  | no           | Time in seconds (e.g. 1 minute equals `60`)                                                                                   |
+| `invite-generator.design`                     | `object` |                                              | no           |                                                                                                                               |
+| `invite-generator.design.logo-url`            | `string` | Link to an image used for the front page     | no           | Square image with size dimensions of `300 x 300` or larger                                                                    |
+| `invite-generator.design.favicon-url`         | `object` | Link to an image used for the favicon        | no           | `.png` extensions only                                                                                                        |
+| `invite-generator.design.background-color`    | `object` | Color for background                         | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.design.link-color`          | `object` | Color for links                              | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.design.text-color`          | `object` | Color for text                               | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp)                                          |
+| `invite-generator.inject-code`                | `object` |                                              | no           |                                                                                                                               |
+| `invite-generator.inject-code.header`         | `object` | Unescaped code between the `head` tags       | no           | Double-quote escaped HTML code                                                                                                |
+| `invite-generator.inject-code.submit-success` | `object` | Unescaped code when user passes verification | no           | Double-quote escaped HTML code. Available variables are `success` (Discord invite url)                                        |
+| `invite-generator.inject-code.submit-fail`    | `object` | Unescaped code when user fails verification  | no           | Double-quote escaped HTML code. Available variables are `fail` (The [jqXHR Object](https://api.jquery.com/jquery.ajax#jqXHR)) |
+| `invite-generator.recaptcha`                  | `object` |                                              | no           |                                                                                                                               |
+| `invite-generator.recaptcha.site-key`         | `object` | Google reCAPTCHA v2 Checkbox Site Key        | no           | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
+| `invite-generator.recaptcha.secret-key`       | `object` | Google reCAPTCHA v2 Checkbox Secret Key      | no           | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                          |
 
 ```json
 {

@@ -1,8 +1,8 @@
 {
   "name": "discord-stocker-bot",
   "displayName": "Discord Stonker Bot",
-  "version": "2.0.2",
-  "description": "A Discord bot built for finance-related servers",
+  "version": "2.0.3",
+  "description": "An advanced bot built for finance-related Discord servers",
   "main": "build/src/index.js",
   "private": true,
   "scripts": {

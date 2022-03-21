@@ -1,7 +1,9 @@
 import chalk from 'chalk';
 import {
   Guild,
+  Message,
   NewsChannel,
+  PartialMessage,
   Snowflake,
   TextChannel,
   ThreadChannel,
@@ -11,7 +13,9 @@ import { DateTime, DurationObjectUnits } from 'luxon';
 
 import config from '../../config.json';
 
-import { LogMessagePriority } from '../types';
+import { LogMessagePriority, StoredMessages } from '../types';
+
+let storedMessages: StoredMessages = [];
 
 /**
  * Generate log message.
@@ -23,8 +27,8 @@ import { LogMessagePriority } from '../types';
  * @since 1.0.0
  */
 export function generateLogMessage(message: string, priority: LogMessagePriority, error?: unknown): void {
-  const logLevel = _.get(config, 'settings.log-level', 30);
-  const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
+  const logLevel = _.get(config, 'settings.log-level');
+  const timeZone = _.get(config, 'settings.time-zone');
   const currentTime = DateTime.now().setZone(timeZone).toFormat('yyyy-MM-dd HH:mm:ss ZZZZ');
 
   if (logLevel >= priority) {
@@ -208,4 +212,56 @@ export function splitStringChunks(string: string, maxSize: number): string[] {
 
     return theChunks;
   }, ['']);
+}
+
+/**
+ * Track message.
+ *
+ * @param {Message} message - Message object.
+ *
+ * @returns {StoredMessages}
+ *
+ * @since 1.0.0
+ */
+export function trackMessage(message: Message | PartialMessage): StoredMessages {
+  const {
+    channelId,
+    guildId,
+    id,
+    reactions,
+  } = message;
+
+  // Store message for reference later.
+  storedMessages.push({
+    id: `${guildId}/${channelId}/${id}`,
+    content: reactions.message.toString() ?? message.toString(),
+    timestamp: Date.now(),
+  });
+
+  // Only keep messages within the last 30 days.
+  storedMessages = _.filter(storedMessages, (storedMessage) => {
+    const messageTimestamp = storedMessage.timestamp;
+    const thirtyDaysAgoTimestamp = Date.now() - 2592000000;
+
+    return messageTimestamp > thirtyDaysAgoTimestamp;
+  });
+
+  // Return matched stored messages.
+  return _.filter(storedMessages, { id: `${guildId}/${channelId}/${id}` });
+}
+
+/**
+ * Track message is duplicate.
+ *
+ * @param {StoredMessages} matches - Matched stored messages.
+ *
+ * @returns {boolean}
+ *
+ * @since 1.0.0
+ */
+export function trackMessageIsDuplicate(matches: StoredMessages): boolean {
+  const theMatches = _.map(matches, (match) => _.pick(match, ['id', 'content']));
+
+  // If "last item" in array and "second to last item" in array are the same.
+  return _.size(theMatches) > 1 && _.isEqual(theMatches[theMatches.length - 1], theMatches[theMatches.length - 2]);
 }

@@ -22,7 +22,7 @@ const apiCache = {
  * @param {ApiFetchSettings} settings - API fetch settings.
  * @param {Message}          message  - Message object.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @since 1.0.0
  */

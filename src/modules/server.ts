@@ -33,7 +33,7 @@ export function webServerSetup(server: Express, httpPort: number, httpsPort: num
   server.set('views', path.join(__dirname, '../views'));
 
   // HTTP web server.
-  if (_.inRange(httpPort, 0, 65536)) {
+  if (_.inRange(httpPort, 1, 65536)) {
     const httpServer = http.createServer(server);
 
     httpServer.listen(httpPort, () => {
@@ -49,7 +49,7 @@ export function webServerSetup(server: Express, httpPort: number, httpsPort: num
 
   // HTTPS web server.
   if (
-    _.inRange(httpsPort, 0, 65536)
+    _.inRange(httpsPort, 1, 65536)
     && fs.existsSync(httpsKey)
     && fs.existsSync(httpsCert)
     && fs.existsSync(httpsCa)
