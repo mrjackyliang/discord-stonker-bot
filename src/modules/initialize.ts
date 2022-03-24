@@ -564,7 +564,7 @@ export function initialize(client: Client, guild: Guild): void {
    */
   if (_.isArray(configSchedulePosts) && !_.isEmpty(configSchedulePosts)) {
     _.forEach(configSchedulePosts, (configSchedulePost) => {
-      const sendToChannel = getTextBasedChannel(guild, _.get(configSchedulePost, 'channel-id'));
+      const sendToChannel = getTextBasedChannel(guild, _.get(configSchedulePost, 'channel.channel-id'));
 
       schedulePost(configSchedulePost, sendToChannel);
     });
@@ -577,7 +577,7 @@ export function initialize(client: Client, guild: Guild): void {
    */
   if (_.isArray(configRssFeeds) && !_.isEmpty(configRssFeeds)) {
     _.forEach(configRssFeeds, (configRssFeed) => {
-      const sendToChannel = getTextBasedChannel(guild, _.get(configRssFeed, 'channel-id'));
+      const sendToChannel = getTextBasedChannel(guild, _.get(configRssFeed, 'channel.channel-id'));
 
       rssFeed(configRssFeed, sendToChannel);
     });

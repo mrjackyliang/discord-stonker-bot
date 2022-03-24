@@ -92,7 +92,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefi
   if (sendToChannel === undefined) {
     generateLogMessage(
       [
-        '"channel-id" is not a valid text-based channel',
+        '"channel.channel-id" is not a valid text-based channel',
         `(function: rssFeed, name: ${name})`,
       ].join(' '),
       10,
@@ -254,7 +254,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
   if (sendToChannel === undefined) {
     generateLogMessage(
       [
-        '"channel-id" is not a valid text-based channel',
+        '"channel.channel-id" is not a valid text-based channel',
         `(function: schedulePost, name: ${name})`,
       ].join(' '),
       10,

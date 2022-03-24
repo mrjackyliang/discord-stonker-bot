@@ -13,21 +13,27 @@
   },
   "snitch": {
     "change-nickname": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
     "change-username": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
     "delete-message": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
     "includes-link": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
     "update-message": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
     "upload-attachment": {
+      "description": "Sample channel",
       "channel-id": "000000000000000000"
     }
   },
@@ -35,43 +41,43 @@
     "bulk-ban": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "fetch-duplicates": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "fetch-members": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "help-menu": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "role-manager": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "toggle-perms": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ],
     "voice-tools": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ]
   },
@@ -81,7 +87,8 @@
         "api-key": ""
       },
       "feed": {
-        "channel-id": ""
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
       },
       "command": {
         "regex": {
@@ -91,14 +98,15 @@
         "allowed-roles": [
           {
             "description": "Sample role",
-            "id": "000000000000000000"
+            "role-id": "000000000000000000"
           }
         ]
       }
     },
     "stocktwits-trending": {
       "feed": {
-        "channel-id": ""
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
       },
       "command": {
         "regex": {
@@ -108,7 +116,7 @@
         "allowed-roles": [
           {
             "description": "Sample role",
-            "id": "000000000000000000"
+            "role-id": "000000000000000000"
           }
         ]
       }
@@ -116,23 +124,37 @@
   },
   "anti-raid": {
     "auto-ban": {
-      "avatar": [
-        "00000000000000000000000000000000"
+      "avatars": [
+        {
+          "description": "Sample avatar hash",
+          "avatar-hash": "00000000000000000000000000000000"
+        }
       ],
-      "username": [
-        "Bad User"
+      "usernames": [
+        {
+          "description": "Sample username",
+          "username": "Bad User"
+        }
       ]
     },
     "membership-gate": {
-      "role-id": "000000000000000000",
-      "channel-id": "000000000000000000",
+      "role": {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
       "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
     },
     "monitor": {
       "guild-join": {
+        "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
       "guild-leave": {
+        "description": "Sample channel",
         "channel-id": "000000000000000000"
       }
     }
@@ -140,7 +162,10 @@
   "schedule-posts": [
     {
       "name": "Sample",
-      "channel-id": "000000000000000000",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
       "payload": {
         "content": "This is a sample scheduled post"
       },
@@ -188,7 +213,10 @@
   "rss-feeds": [
     {
       "name": "Sample",
-      "channel-id": "000000000000000000",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
       "interval": "* * * * *",
       "url": "https://www.example.com/feed",
       "message": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
@@ -197,7 +225,10 @@
   "regex-rules": [
     {
       "name": "Sample Regex",
-      "channel-id": "000000000000000000",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
       "regex": {
         "pattern": "(?:)",
         "flags": "g"
@@ -206,13 +237,16 @@
       "exclude-roles": [
         {
           "description": "Sample role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ]
     }
   ],
   "suspicious-words": {
-    "channel-id": "000000000000000000",
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    },
     "categories": [
       {
         "category": "Sample",
@@ -230,19 +264,19 @@
       "before": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "after": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "to-remove": [
         {
           "description": "B role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ]
     },
@@ -252,19 +286,19 @@
       "before": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "after": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "to-remove": [
         {
           "description": "B role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ]
     },
@@ -274,19 +308,19 @@
       "before": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "after": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "to-add": [
         {
           "description": "B role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ]
     },
@@ -296,19 +330,19 @@
       "before": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "after": [
         {
           "description": "A role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ],
       "to-remove": [
         {
           "description": "B role",
-          "id": "000000000000000000"
+          "role-id": "000000000000000000"
         }
       ]
     }
@@ -316,8 +350,11 @@
   "auto-reply": [
     {
       "name": "Sample",
-      "channel-ids": [
-        "000000000000000000"
+      "channels": [
+        {
+          "description": "Sample channel",
+          "channel-id": "000000000000000000"
+        }
       ],
       "reply": true,
       "regex": {
@@ -333,7 +370,10 @@
   "message-copier": [
     {
       "name": "Sample",
-      "channel-id": "000000000000000000",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
       "regex": {
         "pattern": "(?:)",
         "flags": "g"
@@ -345,20 +385,32 @@
           "replace-with": ""
         }
       ],
-      "format": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nChannel Mention: %CHANNEL_MENTION%\nMessage Content: %MESSAGE_CONTENT%\nMessage Excerpt: %MESSAGE_EXCERPT%\nMessage URL: %MESSAGE_URL%",
+      "message": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nChannel Mention: %CHANNEL_MENTION%\nMessage Content: %MESSAGE_CONTENT%\nMessage Excerpt: %MESSAGE_EXCERPT%\nMessage URL: %MESSAGE_URL%",
       "include-attachments": true,
       "delete-message": false,
       "allowed-users": [
-        "000000000000000000"
+        {
+          "description": "Sample user",
+          "user-id": "000000000000000000"
+        }
       ],
       "allowed-channels": [
-        "000000000000000000"
+        {
+          "description": "Sample channel",
+          "channel-id": "000000000000000000"
+        }
       ],
       "disallowed-users": [
-        "000000000000000000"
+        {
+          "description": "Sample user",
+          "user-id": "000000000000000000"
+        }
       ],
       "disallowed-channels": [
-        "000000000000000000"
+        {
+          "description": "Sample channel",
+          "channel-id": "000000000000000000"
+        }
       ]
     }
   ],
@@ -372,37 +424,17 @@
         }
       }
     ],
-    "channel-id": "000000000000000000",
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    },
     "direct-message": "Please do not send affiliate links!",
     "excluded-roles": [
       {
         "description": "Sample role",
-        "id": "000000000000000000"
+        "role-id": "000000000000000000"
       }
     ]
-  },
-  "invite-generator": {
-    "path": "/invite",
-    "options": {
-      "max-age": 120,
-      "max-uses": 1
-    },
-    "design": {
-      "logo-url": "",
-      "favicon-url": "",
-      "background-color": "",
-      "link-color": "",
-      "text-color": ""
-    },
-    "inject-code": {
-      "header": "",
-      "submit-success": "",
-      "submit-fail": ""
-    },
-    "recaptcha": {
-      "site-key": "",
-      "secret-key": ""
-    }
   },
   "toggle-perms": [
     {
@@ -442,9 +474,38 @@
   ],
   "bump-threads": [
     {
-      "name": "#sample-channel",
-      "channel-id": "000000000000000000",
-      "thread-id": "000000000000000000"
+      "name": "#sample-channel ➜ #sample-thread",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "thread": {
+        "description": "Sample thread",
+        "thread-id": "000000000000000000"
+      }
     }
-  ]
+  ],
+  "invite-generator": {
+    "path": "/invite",
+    "options": {
+      "max-age": 120,
+      "max-uses": 1
+    },
+    "design": {
+      "logo-url": "",
+      "favicon-url": "",
+      "background-color": "",
+      "link-color": "",
+      "text-color": ""
+    },
+    "inject-code": {
+      "header": "",
+      "submit-success": "",
+      "submit-fail": ""
+    },
+    "recaptcha": {
+      "site-key": "",
+      "secret-key": ""
+    }
+  }
 }

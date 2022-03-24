@@ -17,8 +17,8 @@ import { BumpThread } from '../types';
  */
 export function bumpThreads(guild: Guild, setting: BumpThread): void {
   const name = _.get(setting, 'name', 'Unknown');
-  const channelId = _.get(setting, 'channel-id');
-  const threadId = _.get(setting, 'thread-id');
+  const channelId = _.get(setting, 'channel.channel-id');
+  const threadId = _.get(setting, 'thread.thread-id');
   const channel = <TextChannel | NewsChannel>guild.channels.resolve(channelId);
 
   if (channel && channel.threads) {
@@ -46,7 +46,7 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
       });
     }).catch((error) => generateLogMessage(
       [
-        '"thread-id" is not a valid thread channel',
+        '"thread.thread-id" is not a valid thread channel',
         `(function: bumpThreads, name: ${name})`,
       ].join(' '),
       10,
@@ -55,7 +55,7 @@ export function bumpThreads(guild: Guild, setting: BumpThread): void {
   } else {
     generateLogMessage(
       [
-        '"channel-id" is not a valid text or news channel',
+        '"channel.channel-id" is not a valid text or news channel',
         `(function: bumpThreads, name: ${name})`,
       ].join(' '),
       10,

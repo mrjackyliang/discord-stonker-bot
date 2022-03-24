@@ -19,10 +19,10 @@ export function changeRoles(oldMember: GuildMember | PartialGuildMember, newMemb
   _.map(roles, (role) => {
     const name = _.get(role, 'name', 'Unknown');
     const type = _.get(role, 'type');
-    const beforeRoles = _.map(_.get(role, 'before'), 'id');
-    const afterRoles = _.map(_.get(role, 'after'), 'id');
-    const toAdd = _.map(_.get(role, 'to-add'), 'id');
-    const toRemove = _.map(_.get(role, 'to-remove'), 'id');
+    const beforeRoles = _.map(_.get(role, 'before'), 'role-id');
+    const afterRoles = _.map(_.get(role, 'after'), 'role-id');
+    const toAdd = _.map(_.get(role, 'to-add'), 'role-id');
+    const toRemove = _.map(_.get(role, 'to-remove'), 'role-id');
 
     if (
       (

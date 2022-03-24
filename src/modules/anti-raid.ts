@@ -18,8 +18,8 @@ import { AntiRaidAutoBan, AntiRaidMembershipGate, MemberMonitorMode } from '../t
 export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan): void {
   const userAvatar = member.user.avatar;
   const userUsername = member.user.username;
-  const avatars = _.get(settings, 'avatar');
-  const usernames = _.get(settings, 'username');
+  const avatars = _.map(_.get(settings, 'avatars'), (avatar) => avatar['avatar-hash']);
+  const usernames = _.map(_.get(settings, 'usernames'), (username) => username.username);
 
   if (
     (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar)))
@@ -74,8 +74,8 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
   const guild = newMember.guild ?? oldMember.guild;
   const oldMemberPending = oldMember.pending;
   const newMemberPending = newMember.pending;
-  const roleId = _.get(settings, 'role-id');
-  const channelId = _.get(settings, 'channel-id');
+  const roleId = _.get(settings, 'role.role-id');
+  const channelId = _.get(settings, 'channel.channel-id');
   const message = _.get(settings, 'message');
   const sendToChannel = getTextBasedChannel(guild, channelId);
   const replaceVariables = (configMessage: string): string => {

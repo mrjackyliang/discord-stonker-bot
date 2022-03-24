@@ -188,7 +188,7 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
   const verifiedUsers: GuildMember[] = [];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -341,7 +341,7 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
   let empty = true;
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -451,7 +451,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
   const matchedUsers: string[] = [];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -739,7 +739,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   const commands = [];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -751,7 +751,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   commandDeleteMessage(message);
 
   if (
-    _.some(allowBulkBanRoles, (allowBulkBanRole) => member.roles.resolve(allowBulkBanRole.id) !== null)
+    _.some(allowBulkBanRoles, (allowBulkBanRole) => member.roles.resolve(allowBulkBanRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -765,7 +765,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   }
 
   if (
-    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.resolve(allowFetchDuplicatesRole.id) !== null)
+    _.some(allowFetchDuplicatesRoles, (allowFetchDuplicatesRole) => member.roles.resolve(allowFetchDuplicatesRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -779,7 +779,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   }
 
   if (
-    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => member.roles.resolve(allowFetchMembersRole.id) !== null)
+    _.some(allowFetchMembersRoles, (allowFetchMembersRole) => member.roles.resolve(allowFetchMembersRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -802,7 +802,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   }
 
   if (
-    _.some(allowRoleManagerRoles, (allowRoleManagerRole) => member.roles.resolve(allowRoleManagerRole.id) !== null)
+    _.some(allowRoleManagerRoles, (allowRoleManagerRole) => member.roles.resolve(allowRoleManagerRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -828,7 +828,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   }
 
   if (
-    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => member.roles.resolve(allowTogglePermsRole.id) !== null)
+    _.some(allowTogglePermsRoles, (allowTogglePermsRole) => member.roles.resolve(allowTogglePermsRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -845,7 +845,7 @@ export async function helpMenu(message: Message, allowedRoles: Roles, settings: 
   }
 
   if (
-    _.some(allowVoiceToolsRoles, (allowVoiceToolsRole) => member.roles.resolve(allowVoiceToolsRole.id) !== null)
+    _.some(allowVoiceToolsRoles, (allowVoiceToolsRole) => member.roles.resolve(allowVoiceToolsRole['role-id']) !== null)
     || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commands.push({
@@ -929,7 +929,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
   const roleTwo = guild.roles.resolve(_.replace(commandAction, /[<@&>]/g, ''));
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -1166,7 +1166,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
   const selectedToggleName = _.get(selectedToggleGroup, 'name', 'Unknown');
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);
@@ -1380,7 +1380,7 @@ export async function voiceTools(message: Message, allowedRoles: Roles): Promise
   const voiceStates = [...guild.voiceStates.cache.values()];
 
   if (
-    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole.id) !== null)
+    !_.some(allowedRoles, (allowedRole) => member.roles.resolve(allowedRole['role-id']) !== null)
     && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
   ) {
     commandNoPermissions(channel, member, commandCommand);

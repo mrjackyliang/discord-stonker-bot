@@ -35,13 +35,13 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
   } = message;
   const theMessage = reactions.message.toString() ?? message.toString();
   const isTextBasedChannel = channel.isText();
-  const regexRule = _.find(regexRules, { 'channel-id': channel.id });
+  const regexRule = _.find(regexRules, { channel: { 'channel-id': channel.id } });
   const regexRuleName = _.get(regexRule, 'name', 'Unknown');
   const regexRulePattern = _.get(regexRule, 'regex.pattern');
   const regexRuleFlags = _.get(regexRule, 'regex.flags');
   const directMessage = _.get(regexRule, 'direct-message');
   const excludedRoles = _.get(regexRule, 'exclude-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole.id) !== null);
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole['role-id']) !== null);
 
   let match;
 
@@ -138,7 +138,7 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
     reactions,
     url,
   } = message;
-  const channelId = _.get(suspiciousWords, 'channel-id');
+  const channelId = _.get(suspiciousWords, 'channel.channel-id');
   const categories = _.get(suspiciousWords, 'categories');
   const sendToChannel = getTextBasedChannel(guild, channelId);
   const detectedCategories: string[] = [];
@@ -234,10 +234,10 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
   const websites: string[] = [];
   const theMessage = reactions.message.toString() ?? message.toString();
   const links = _.get(affiliateLinks, 'links');
-  const channelId = _.get(affiliateLinks, 'channel-id');
+  const channelId = _.get(affiliateLinks, 'channel.channel-id');
   const directMessage = _.get(affiliateLinks, 'direct-message');
   const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole.id) !== null);
+  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole['role-id']) !== null);
 
   const sendToChannel = getTextBasedChannel(guild, channelId);
 

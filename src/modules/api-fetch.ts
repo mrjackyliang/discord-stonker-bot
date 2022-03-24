@@ -122,7 +122,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
     if (
       new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
       && (
-        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole.id) !== null)
+        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
         || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
       )
     ) {
@@ -274,7 +274,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
     if (
       new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
       && (
-        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole.id) !== null)
+        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
         || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
       )
     ) {

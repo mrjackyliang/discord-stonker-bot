@@ -35,7 +35,7 @@ export function autoReply(message: Message, replies: Replies): void {
 
   _.map(replies, (reply) => {
     const replyName = _.get(reply, 'name', 'Unknown');
-    const replyChannelIds = _.get(reply, 'channel-ids');
+    const replyChannelIds = _.map(_.get(reply, 'channels'), (replyChannel) => replyChannel['channel-id']);
     const replyReply = _.get(reply, 'reply');
     const replyRegexPattern = _.get(reply, 'regex.pattern');
     const replyRegexFlags = _.get(reply, 'regex.flags');
@@ -194,41 +194,41 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
   }
 
   _.map(copiers, (copier) => {
-    const name = _.get(copier, 'name', 'Unknown');
-    const channelId = _.get(copier, 'channel-id');
-    const regexPattern = _.get(copier, 'regex.pattern');
-    const regexFlags = _.get(copier, 'regex.flags');
-    const replacements = _.get(copier, 'replacements');
-    const format = _.get(copier, 'format');
-    const includeAttachments = _.get(copier, 'include-attachments');
-    const deleteMessage = _.get(copier, 'delete-message');
-    const allowedUsers = _.get(copier, 'allowed-users');
-    const allowedChannels = _.get(copier, 'allowed-channels');
-    const disallowedUsers = _.get(copier, 'disallowed-users');
-    const disallowedChannels = _.get(copier, 'disallowed-channels');
+    const copierName = _.get(copier, 'name', 'Unknown');
+    const copierChannelId = _.get(copier, 'channel.channel-id');
+    const copierRegexPattern = _.get(copier, 'regex.pattern');
+    const copierRegexFlags = _.get(copier, 'regex.flags');
+    const copierReplacements = _.get(copier, 'replacements');
+    const copierMessage = _.get(copier, 'message');
+    const copierIncludeAttachments = _.get(copier, 'include-attachments');
+    const copierDeleteMessage = _.get(copier, 'delete-message');
+    const copierAllowedUsers = _.map(_.get(copier, 'allowed-users'), (copierAllowedUser) => copierAllowedUser['user-id']);
+    const copierAllowedChannels = _.map(_.get(copier, 'allowed-channels'), (copierAllowedChannel) => copierAllowedChannel['channel-id']);
+    const copierDisallowedUsers = _.map(_.get(copier, 'disallowed-users'), (copierDisallowedUser) => copierDisallowedUser['user-id']);
+    const copierDisallowedChannels = _.map(_.get(copier, 'disallowed-channels'), (copierDisallowedChannel) => copierDisallowedChannel['channel-id']);
 
     // If message copier is limited to specific users or is limited to specific channels.
     if (
       (
-        _.isArray(allowedUsers)
-        && !_.isEmpty(allowedUsers)
-        && _.every(allowedUsers, (allowedUser) => _.isString(allowedUser) && !_.isEmpty(allowedUser))
-        && !_.includes(allowedUsers, author.id)
+        _.isArray(copierAllowedUsers)
+        && !_.isEmpty(copierAllowedUsers)
+        && _.every(copierAllowedUsers, (copierAllowedUser) => _.isString(copierAllowedUser) && !_.isEmpty(copierAllowedUser))
+        && !_.includes(copierAllowedUsers, author.id)
       ) || (
-        _.isArray(allowedChannels)
-        && !_.isEmpty(allowedChannels)
-        && _.every(allowedChannels, (allowedChannel) => _.isString(allowedChannel) && !_.isEmpty(allowedChannel))
-        && !_.includes(allowedChannels, channel.id)
+        _.isArray(copierAllowedChannels)
+        && !_.isEmpty(copierAllowedChannels)
+        && _.every(copierAllowedChannels, (copierAllowedChannel) => _.isString(copierAllowedChannel) && !_.isEmpty(copierAllowedChannel))
+        && !_.includes(copierAllowedChannels, channel.id)
       ) || (
-        _.isArray(disallowedUsers)
-        && !_.isEmpty(disallowedUsers)
-        && _.every(disallowedUsers, (disallowedUser) => _.isString(disallowedUser) && !_.isEmpty(disallowedUser))
-        && _.includes(disallowedUsers, author.id)
+        _.isArray(copierDisallowedUsers)
+        && !_.isEmpty(copierDisallowedUsers)
+        && _.every(copierDisallowedUsers, (copierDisallowedUser) => _.isString(copierDisallowedUser) && !_.isEmpty(copierDisallowedUser))
+        && _.includes(copierDisallowedUsers, author.id)
       ) || (
-        _.isArray(disallowedChannels)
-        && !_.isEmpty(disallowedChannels)
-        && _.every(disallowedChannels, (disallowedChannel) => _.isString(disallowedChannel) && !_.isEmpty(disallowedChannel))
-        && _.includes(disallowedChannels, channel.id)
+        _.isArray(copierDisallowedChannels)
+        && !_.isEmpty(copierDisallowedChannels)
+        && _.every(copierDisallowedChannels, (copierDisallowedChannel) => _.isString(copierDisallowedChannel) && !_.isEmpty(copierDisallowedChannel))
+        && _.includes(copierDisallowedChannels, channel.id)
       )
     ) {
       return;
@@ -236,11 +236,11 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
 
     const payload: MessageOptions = {};
     const links: string[] = [];
-    const sendToChannel = getTextBasedChannel(guild, channelId);
+    const sendToChannel = getTextBasedChannel(guild, copierChannelId);
 
     try {
-      if (new RegExp(regexPattern, regexFlags).test(messageContent) && sendToChannel) {
-        const replacedContent = replaceVariables(format, name, replacements);
+      if (new RegExp(copierRegexPattern, copierRegexFlags).test(messageContent) && sendToChannel) {
+        const replacedContent = replaceVariables(copierMessage, copierName, copierReplacements);
 
         // If there is text, add them into the content.
         if (_.isString(replacedContent) && !_.isEmpty(replacedContent)) {
@@ -249,7 +249,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
           });
         }
 
-        if (includeAttachments === true) {
+        if (copierIncludeAttachments === true) {
           // Throw attachment urls into array first.
           _.forEach([...attachments.values()], (attachment) => {
             links.push(attachment.url);
@@ -263,7 +263,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
           }
         }
 
-        if (deleteMessage === true) {
+        if (copierDeleteMessage === true) {
           message.delete().catch((error: any) => generateLogMessage(
             [
               'Failed to delete message',
@@ -279,14 +279,14 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
             generateLogMessage(
               [
                 'Copied message',
-                `(function: messageCopier, name: ${name}, channel: ${sendToChannel.toString()})`,
+                `(function: messageCopier, name: ${copierName}, channel: ${sendToChannel.toString()})`,
               ].join(' '),
               30,
             );
           }).catch((error: any) => generateLogMessage(
             [
               'Failed to copy message',
-              `(function: messageCopier, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+              `(function: messageCopier, name: ${copierName}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
             ].join(' '),
             10,
             error,
@@ -297,7 +297,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
       generateLogMessage(
         [
           '"regex.pattern" or "regex.flags" is invalid',
-          `(function: messageCopier, name: ${name}, pattern: ${regexPattern}, flags: ${regexFlags})`,
+          `(function: messageCopier, name: ${copierName}, pattern: ${copierRegexPattern}, flags: ${copierRegexFlags})`,
         ].join(' '),
         10,
         error,

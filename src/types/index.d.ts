@@ -12,6 +12,13 @@ import { RecurrenceSegment, Timezone } from 'node-schedule';
 /**
  * Global types.
  */
+export type Channel = {
+  description?: string;
+  'channel-id': Snowflake;
+};
+
+export type Channels = Channel[];
+
 export type RegularExpression = {
   pattern: string;
   flags: string;
@@ -38,10 +45,22 @@ export type ReoccurringSchedule = {
 
 export type Role = {
   description?: string;
-  id: Snowflake;
+  'role-id': Snowflake;
 };
 
 export type Roles = Role[];
+
+export type Thread = {
+  description?: string;
+  'thread-id': Snowflake;
+};
+
+export type User = {
+  description?: string;
+  'user-id': Snowflake;
+};
+
+export type Users = User[];
 
 /**
  * Configuration.
@@ -53,24 +72,30 @@ export type AffiliateLinksWebsite = {
 
 export type AffiliateLinks = {
   links?: AffiliateLinksWebsite[];
-  'channel-id'?: Snowflake;
+  channel?: Channel;
   'direct-message'?: string;
   'excluded-roles'?: Roles;
 };
 
+export type AntiRaidAutoBanAvatar = {
+  description?: string;
+  'avatar-hash'?: string;
+};
+
+export type AntiRaidAutoBanUsername = {
+  description?: string;
+  username?: string;
+};
+
 export type AntiRaidAutoBan = {
-  avatar?: string[];
-  username?: string[];
+  avatar?: AntiRaidAutoBanAvatar[];
+  username?: AntiRaidAutoBanUsername[];
 };
 
 export type AntiRaidMembershipGate = {
-  'role-id'?: Snowflake;
-  'channel-id'?: Snowflake;
+  'role'?: Role;
+  'channel'?: Channel;
   'message'?: string;
-};
-
-export type ApiFetchSettingsFeed = {
-  'channel-id': Snowflake;
 };
 
 export type ApiFetchSettingsCommand = {
@@ -79,14 +104,14 @@ export type ApiFetchSettingsCommand = {
 };
 
 export type ApiFetchSettings = {
-  feed?: ApiFetchSettingsFeed;
+  feed?: Channel;
   command?: ApiFetchSettingsCommand;
 };
 
 export type BumpThread = {
   name?: string;
-  'channel-id': Snowflake;
-  'thread-id': Snowflake;
+  channel: Channel;
+  thread: Thread;
 };
 
 export type ChangeRole = {
@@ -128,23 +153,23 @@ export type InviteGenerator = {
 
 export type MessageCopier = {
   name?: string;
-  'channel-id'?: Snowflake;
+  channel?: Channel;
   regex: RegularExpression;
   replacements?: RegularExpressionReplacements;
-  format?: string;
+  message?: string;
   'include-attachments'?: boolean;
   'delete-message'?: boolean;
-  'allowed-users'?: Snowflake[];
-  'allowed-channels'?: Snowflake[];
-  'disallowed-users'?: Snowflake[];
-  'disallowed-channels'?: Snowflake[];
+  'allowed-users'?: Users;
+  'allowed-channels'?: Channels;
+  'disallowed-users'?: Users;
+  'disallowed-channels'?: Channels;
 };
 
 export type MessageCopiers = MessageCopier[];
 
 export type RegexRule = {
   name?: string;
-  'channel-id'?: Snowflake;
+  channel?: Channel;
   regex: RegularExpression;
   'direct-message'?: string;
   'exclude-roles'?: Roles;
@@ -164,7 +189,7 @@ export type Replies = Reply[];
 
 export type RssFeed = {
   name?: string;
-  'channel-id': Snowflake;
+  'channel': Channel;
   interval?: string;
   url: string;
   message: string;
@@ -172,7 +197,7 @@ export type RssFeed = {
 
 export type SchedulePost = {
   name?: string;
-  'channel-id': Snowflake;
+  channel: Channel;
   payload: MessageOptions;
   reactions?: EmojiIdentifierResolvable[];
   'send-every'?: ReoccurringSchedule;
@@ -180,6 +205,7 @@ export type SchedulePost = {
 };
 
 export type Snitch = {
+  description?: string;
   'channel-id'?: Snowflake;
 };
 
@@ -189,7 +215,7 @@ export type SuspiciousWordsCategory = {
 };
 
 export type SuspiciousWords = {
-  'channel-id'?: Snowflake;
+  channel?: Channel;
   categories?: SuspiciousWordsCategory[];
 };
 
