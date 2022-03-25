@@ -38,7 +38,7 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
 
   if (oldMember.nickname !== newMember.nickname) {
     const guild = newMember.guild ?? oldMember.guild;
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
@@ -89,7 +89,7 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
  */
 export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, newUser: User, settings: Snitch): void {
   if (oldUser.tag !== newUser.tag) {
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
@@ -151,7 +151,7 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
   } = message;
 
   if (!_.isEmpty(message.toString()) || !_.isEmpty(attachments)) {
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
@@ -213,7 +213,7 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
   const theMessage = reactions.message.toString() ?? message.toString();
 
   if (new RegExp(/https?:\/\//gi).test(theMessage)) {
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
@@ -277,7 +277,7 @@ export function userUpdateMessage(message: Message | PartialMessage, settings: S
     (!_.isEmpty(message.toString()) || !_.isEmpty(reactions.message.toString()) || !_.isEmpty(attachments))
     && (message.toString() !== reactions.message.toString())
   ) {
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
@@ -344,7 +344,7 @@ export function userUploadAttachment(message: Message | PartialMessage, settings
   });
 
   if (_.size(links) > 0) {
-    const channelId = _.get(settings, 'channel-id');
+    const channelId = _.get(settings, 'channel.channel-id');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {

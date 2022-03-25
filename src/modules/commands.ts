@@ -1233,8 +1233,8 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
 
   // Perform actions for channels.
   const channelToggles = _.map(selectedToggleDirection, async (channelToggle) => {
-    const channelToggleId = _.get(channelToggle, 'channel-id');
-    const channelTogglePerms = _.get(channelToggle, 'channel-perms');
+    const channelToggleId = _.get(channelToggle, 'channel.channel-id');
+    const channelTogglePerms = _.get(channelToggle, 'permissions');
 
     try {
       const channelToggleChannel = await guild.channels.fetch(channelToggleId);

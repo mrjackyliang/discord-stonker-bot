@@ -205,8 +205,7 @@ export type SchedulePost = {
 };
 
 export type Snitch = {
-  description?: string;
-  'channel-id'?: Snowflake;
+  channel: Channel;
 };
 
 export type SuspiciousWordsCategory = {
@@ -226,9 +225,8 @@ export type TogglePermsSettingUser = {
 };
 
 export type TogglePermsSettingChannel = {
-  description?: string;
-  'channel-id': Snowflake;
-  'channel-perms'?: TogglePermsSettingUser[];
+  channel: Channel;
+  permissions?: TogglePermsSettingUser[];
 };
 
 export type TogglePermsSetting = {

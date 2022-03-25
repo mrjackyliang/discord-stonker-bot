@@ -13,28 +13,40 @@
   },
   "snitch": {
     "change-nickname": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "change-username": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "delete-message": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "includes-link": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "update-message": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "upload-attachment": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     }
   },
   "commands": {
@@ -442,9 +454,11 @@
       "id": "sample",
       "on": [
         {
-          "description": "#sample-channel",
-          "channel-id": "000000000000000000",
-          "channel-perms": [
+          "channel": {
+            "description": "#sample-channel",
+            "channel-id": "000000000000000000"
+          },
+          "permissions": [
             {
               "description": "Sample role",
               "user-or-role-id": "000000000000000000",
@@ -457,9 +471,11 @@
       ],
       "off": [
         {
-          "description": "#sample-channel",
-          "channel-id": "000000000000000000",
-          "channel-perms": [
+          "channel": {
+            "description": "#sample-channel",
+            "channel-id": "000000000000000000"
+          },
+          "permissions": [
             {
               "description": "Sample role",
               "user-or-role-id": "000000000000000000",
