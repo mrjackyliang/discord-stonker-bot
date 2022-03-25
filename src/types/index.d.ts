@@ -208,6 +208,26 @@ export type Snitch = {
   channel: Channel;
 };
 
+export type SnitchChangeNameDetector = {
+  description?: string;
+  regex: RegularExpression;
+  user: User;
+};
+
+export interface SnitchChangeName extends Snitch {
+  detectors?: SnitchChangeNameDetector[];
+  message?: string;
+}
+
+export type SnitchIncludesLinkExcludeLink = {
+  description?: string;
+  regex: RegularExpression;
+};
+
+export interface SnitchIncludesLink extends Snitch {
+  'exclude-links'?: SnitchIncludesLinkExcludeLink[];
+}
+
 export type SuspiciousWordsCategory = {
   category?: string;
   words?: string[];

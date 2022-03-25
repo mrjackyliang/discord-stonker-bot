@@ -150,7 +150,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         } catch (error) {
           generateLogMessage(
             [
-              `"replacements[${key}]" is invalid`,
+              `"replacements[${key}]" regular expression is invalid`,
               `(function: messageCopier, name: ${name}, replacement: ${JSON.stringify(replacement)})`,
             ].join(' '),
             10,

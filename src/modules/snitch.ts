@@ -2,6 +2,7 @@ import {
   Guild,
   GuildMember,
   Message,
+  MessageOptions,
   PartialGuildMember,
   PartialMessage,
   PartialUser,
@@ -18,7 +19,7 @@ import {
   createUpdateMessageEmbed,
   createUploadAttachmentEmbed,
 } from '../lib/embed';
-import { Snitch } from '../types';
+import { Snitch, SnitchChangeName, SnitchIncludesLink } from '../types';
 
 /**
  * User change nickname.
@@ -31,7 +32,7 @@ import { Snitch } from '../types';
  *
  * @since 1.0.0
  */
-export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, settings: Snitch): void {
+export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, settings: SnitchChangeName): void {
   if (!oldMember.user || !newMember.user) {
     return;
   }
@@ -39,18 +40,12 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
   if (oldMember.nickname !== newMember.nickname) {
     const guild = newMember.guild ?? oldMember.guild;
     const channelId = _.get(settings, 'channel.channel-id');
+    const detectors = _.get(settings, 'detectors');
+    const message = _.get(settings, 'message', '');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
-      generateLogMessage(
-        [
-          'Nickname changed',
-          `(function: userChangeNickname, member: ${newMember.toString()}, old nickname: ${oldMember.nickname}, new nickname: ${newMember.nickname})`,
-        ].join(' '),
-        30,
-      );
-
-      sendToChannel.send({
+      const payload: MessageOptions = {
         embeds: [
           createChangeNicknameEmbed(
             oldMember.nickname,
@@ -63,10 +58,55 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
             }),
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      };
+
+      generateLogMessage(
         [
-          'Failed to send embed',
-          `(function: userChangeNickname, channel: ${sendToChannel.toString()})`,
+          'Nickname changed',
+          `(function: userChangeNickname, member: ${newMember.toString()}, old nickname: ${oldMember.nickname}, new nickname: ${newMember.nickname})`,
+        ].join(' '),
+        30,
+      );
+
+      // Add message if new nickname matches regex and is not "null".
+      if (_.isArray(detectors) && !_.isEmpty(detectors) && _.every(detectors, (detector) => _.isPlainObject(detector)) && newMember.nickname !== null) {
+        const users: string[] = [];
+
+        _.forEach(detectors, (detector, key) => {
+          const regexPattern = _.get(detector, 'regex.pattern');
+          const regexFlags = _.get(detector, 'regex.flags');
+          const userId = _.get(detector, 'user.user-id');
+
+          try {
+            if (new RegExp(regexPattern, regexFlags).test(<string>newMember.nickname) && userId) {
+              users.push(`<@!${userId}>`);
+            }
+          } catch (error) {
+            generateLogMessage(
+              [
+                `"detectors[${key}].regex" regular expression is invalid`,
+                `(function: userChangeNickname, pattern: ${regexPattern}, flags: ${regexFlags})`,
+              ].join(' '),
+              10,
+              error,
+            );
+          }
+        });
+
+        // Add message on embed if nicknames were matched.
+        if (_.size(users) > 0) {
+          const additionalPayload = {
+            content: `${users.join(', ')}${(message.startsWith('<@&')) ? ', ' : ' '}${message}`,
+          };
+
+          _.assign(payload, additionalPayload);
+        }
+      }
+
+      sendToChannel.send(payload).catch((error: any) => generateLogMessage(
+        [
+          'Failed to send message',
+          `(function: userChangeNickname, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
         ].join(' '),
         10,
         error,
@@ -87,21 +127,15 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
  *
  * @since 1.0.0
  */
-export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, newUser: User, settings: Snitch): void {
+export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, newUser: User, settings: SnitchChangeName): void {
   if (oldUser.tag !== newUser.tag) {
     const channelId = _.get(settings, 'channel.channel-id');
+    const detectors = _.get(settings, 'detectors');
+    const message = _.get(settings, 'message', '');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
-      generateLogMessage(
-        [
-          'Username changed',
-          `(function: userChangeUsername, user: ${newUser.toString()}, old tag: @${oldUser.tag}, new tag: @${newUser.tag})`,
-        ].join(' '),
-        30,
-      );
-
-      sendToChannel.send({
+      const payload: MessageOptions = {
         embeds: [
           createChangeUsernameEmbed(
             oldUser.tag,
@@ -114,10 +148,55 @@ export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, ne
             }),
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      };
+
+      generateLogMessage(
         [
-          'Failed to send embed',
-          `(function: userChangeUsername, channel: ${sendToChannel.toString()})`,
+          'Username changed',
+          `(function: userChangeUsername, user: ${newUser.toString()}, old tag: @${oldUser.tag}, new tag: @${newUser.tag})`,
+        ].join(' '),
+        30,
+      );
+
+      // Add message if new tag matches regex.
+      if (_.isArray(detectors) && !_.isEmpty(detectors) && _.every(detectors, (detector) => _.isPlainObject(detector))) {
+        const users: string[] = [];
+
+        _.forEach(detectors, (detector, key) => {
+          const regexPattern = _.get(detector, 'regex.pattern');
+          const regexFlags = _.get(detector, 'regex.flags');
+          const userId = _.get(detector, 'user.user-id');
+
+          try {
+            if (new RegExp(regexPattern, regexFlags).test(newUser.tag) && userId) {
+              users.push(`<@!${userId}>`);
+            }
+          } catch (error) {
+            generateLogMessage(
+              [
+                `"detectors[${key}].regex" regular expression is invalid`,
+                `(function: userChangeUsername, pattern: ${regexPattern}, flags: ${regexFlags})`,
+              ].join(' '),
+              10,
+              error,
+            );
+          }
+        });
+
+        // Add message on embed if tags were matched.
+        if (_.size(users) > 0) {
+          const additionalPayload = {
+            content: `${users.join(', ')}${(message.startsWith('<@&')) ? ', ' : ' '}${message}`,
+          };
+
+          _.assign(payload, additionalPayload);
+        }
+      }
+
+      sendToChannel.send(payload).catch((error: any) => generateLogMessage(
+        [
+          'Failed to send message',
+          `(function: userChangeUsername, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)}))`,
         ].join(' '),
         10,
         error,
@@ -196,7 +275,7 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
  *
  * @since 1.0.0
  */
-export function userIncludesLink(message: Message | PartialMessage, settings: Snitch): void {
+export function userIncludesLink(message: Message | PartialMessage, settings: SnitchIncludesLink): void {
   if (!message.author || !message.guild) {
     return;
   }
@@ -214,9 +293,48 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
 
   if (new RegExp(/https?:\/\//gi).test(theMessage)) {
     const channelId = _.get(settings, 'channel.channel-id');
+    const excludeLinks = _.get(settings, 'exclude-links');
     const sendToChannel = getTextBasedChannel(guild, channelId);
 
     if (sendToChannel) {
+      // Skip if excluded link matches regex.
+      if (_.isArray(excludeLinks) && !_.isEmpty(excludeLinks) && _.every(excludeLinks, (excludeLink) => _.isPlainObject(excludeLink))) {
+        let matches = 0;
+
+        _.forEach(excludeLinks, (excludeLink) => {
+          const regexPattern = _.get(excludeLink, 'regex.pattern');
+          const regexFlags = _.get(excludeLink, 'regex.flags');
+
+          try {
+            if (new RegExp(regexPattern, regexFlags).test(theMessage)) {
+              matches += 1;
+            }
+          } catch (error) {
+            generateLogMessage(
+              [
+                '"regex.pattern" or "regex.flags" is invalid',
+                `(function: userIncludesLink, pattern: ${regexPattern}, flags: ${regexFlags})`,
+              ].join(' '),
+              10,
+              error,
+            );
+          }
+        });
+
+        // Skip sending embed if excluded link matches regex.
+        if (matches > 0) {
+          generateLogMessage(
+            [
+              'Message includes excluded link',
+              `(function: userIncludesLink, author: ${author.toString()}, message id: ${id})`,
+            ].join(' '),
+            40,
+          );
+
+          return;
+        }
+      }
+
       generateLogMessage(
         [
           'Message includes link',

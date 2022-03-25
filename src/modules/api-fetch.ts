@@ -119,52 +119,63 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
       return;
     }
 
-    if (
-      new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
-      && (
-        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
-        || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-      )
-    ) {
-      const content = _.get(apiCache, 'etherscanGasOracle.content');
-      const slowFee = _.get(content, 'slow');
-      const averageFee = _.get(content, 'average');
-      const fastFee = _.get(content, 'fast');
+    try {
+      if (
+        new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
+        && (
+          _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
+          || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+        )
+      ) {
+        const content = _.get(apiCache, 'etherscanGasOracle.content');
+        const slowFee = _.get(content, 'slow');
+        const averageFee = _.get(content, 'average');
+        const fastFee = _.get(content, 'fast');
 
-      // Only show the latest cached content.
-      if (content !== null) {
-        const payload = {
-          content: `The average gas prices are **${slowFee} Gwei** (slow), **${averageFee} Gwei** (average), **${fastFee} Gwei** (fast)`,
-          reply: {
-            messageReference: id,
-          },
-        };
+        // Only show the latest cached content.
+        if (content !== null) {
+          const payload = {
+            content: `The average gas prices are **${slowFee} Gwei** (slow), **${averageFee} Gwei** (average), **${fastFee} Gwei** (fast)`,
+            reply: {
+              messageReference: id,
+            },
+          };
 
-        channel.send(payload).catch((error: any) => generateLogMessage(
-          [
-            'Failed to send message',
-            `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-          ].join(' '),
-          10,
-          error,
-        ));
-      } else {
-        const payload = {
-          content: 'Failed to retrieve gas prices. Please try again later.',
-          reply: {
-            messageReference: id,
-          },
-        };
+          channel.send(payload).catch((error: any) => generateLogMessage(
+            [
+              'Failed to send message',
+              `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
+            ].join(' '),
+            10,
+            error,
+          ));
+        } else {
+          const payload = {
+            content: 'Failed to retrieve gas prices. Please try again later.',
+            reply: {
+              messageReference: id,
+            },
+          };
 
-        channel.send(payload).catch((error: any) => generateLogMessage(
-          [
-            'Failed to send message',
-            `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-          ].join(' '),
-          10,
-          error,
-        ));
+          channel.send(payload).catch((error: any) => generateLogMessage(
+            [
+              'Failed to send message',
+              `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
       }
+    } catch (error) {
+      generateLogMessage(
+        [
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: etherscanGasOracle, pattern: ${commandRegexPattern}, flags: ${commandRegexFlags})`,
+        ].join(' '),
+        10,
+        error,
+      );
     }
   }
 }
@@ -271,49 +282,61 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
       return;
     }
 
-    if (
-      new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
-      && (
-        _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
-        || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-      )
-    ) {
-      const content = _.get(apiCache, 'stocktwitsTrending.content');
+    try {
+      if (
+        new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
+        && (
+          _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
+          || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+        )
+      ) {
+        const content = _.get(apiCache, 'stocktwitsTrending.content');
 
-      // Only show the latest cached content.
-      if (content !== null) {
-        const payload = {
-          content: `The top trending symbols are ${_.map(content.symbols, (symbol) => `**${symbol.symbol}**`).join(', ')}`,
-          reply: {
-            messageReference: id,
-          },
-        };
+        // Only show the latest cached content.
+        if (content !== null) {
+          const payload = {
+            content: `The top trending symbols are ${_.map(content.symbols, (symbol) => `**${symbol.symbol}**`)
+              .join(', ')}`,
+            reply: {
+              messageReference: id,
+            },
+          };
 
-        channel.send(payload).catch((error: any) => generateLogMessage(
-          [
-            'Failed to send message',
-            `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-          ].join(' '),
-          10,
-          error,
-        ));
-      } else {
-        const payload = {
-          content: 'Failed to retrieve top trending symbols. Please try again later.',
-          reply: {
-            messageReference: id,
-          },
-        };
+          channel.send(payload).catch((error: any) => generateLogMessage(
+            [
+              'Failed to send message',
+              `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
+            ].join(' '),
+            10,
+            error,
+          ));
+        } else {
+          const payload = {
+            content: 'Failed to retrieve top trending symbols. Please try again later.',
+            reply: {
+              messageReference: id,
+            },
+          };
 
-        channel.send(payload).catch((error: any) => generateLogMessage(
-          [
-            'Failed to send message',
-            `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-          ].join(' '),
-          10,
-          error,
-        ));
+          channel.send(payload).catch((error: any) => generateLogMessage(
+            [
+              'Failed to send message',
+              `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
       }
+    } catch (error) {
+      generateLogMessage(
+        [
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: stocktwitsTrending, pattern: ${commandRegexPattern}, flags: ${commandRegexFlags})`,
+        ].join(' '),
+        10,
+        error,
+      );
     }
   }
 }
