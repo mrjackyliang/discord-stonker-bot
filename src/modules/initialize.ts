@@ -25,6 +25,7 @@ import { inviteGenerator } from './invite';
 import { autoReply, messageCopier } from './messenger';
 import {
   checkRegexChannels,
+  detectImpersonation,
   detectSuspiciousWords,
   removeAffiliateLinks,
 } from './moderator';
@@ -50,6 +51,7 @@ import {
   AntiRaidAutoBan,
   AntiRaidMembershipGate,
   ChangeRoles,
+  ImpersonatorAlerts,
   MessageCopiers,
   RegexRules,
   Replies,
@@ -95,9 +97,10 @@ const configRoles = _.get(config, 'roles');
 const configAutoReply = _.get(config, 'auto-reply');
 const configMessageCopier = _.get(config, 'message-copier');
 const configAffiliateLinks = _.get(config, 'affiliate-links');
-const configInviteGenerator = _.get(config, 'invite-generator');
 const configTogglePerms = _.get(config, 'toggle-perms');
 const configBumpThreads = _.get(config, 'bump-threads');
+const configInviteGenerator = _.get(config, 'invite-generator');
+const configImpersonatorAlerts = _.get(config, 'impersonator-alerts');
 
 /**
  * Initialize.
@@ -475,6 +478,13 @@ export function initialize(client: Client, guild: Guild): void {
       antiRaidMonitor(member, 'join', guildJoinChannel);
 
       /**
+       * Detect impersonation.
+       *
+       * @since 1.0.0
+       */
+      detectImpersonation(member, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
+
+      /**
        * Anti-raid auto-ban.
        *
        * @since 1.0.0
@@ -536,6 +546,13 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       userChangeNickname(oldMember, newMember, <Snitch>configSnitchChangeNickname);
+
+      /**
+       * Detect impersonation.
+       *
+       * @since 1.0.0
+       */
+      detectImpersonation(newMember, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
     }
   });
 
@@ -554,6 +571,13 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       userChangeUsername(guild, oldUser, newUser, <Snitch>configSnitchChangeUsername);
+
+      /**
+       * Detect impersonation.
+       *
+       * @since 1.0.0
+       */
+      detectImpersonation(newUser, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
     }
   });
 

@@ -78,6 +78,15 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
   const channelId = _.get(settings, 'channel.channel-id');
   const message = _.get(settings, 'message');
   const sendToChannel = getTextBasedChannel(guild, channelId);
+  /**
+   * Replace variables.
+   *
+   * @param {string} configMessage - Message from configuration.
+   *
+   * @returns {string}
+   *
+   * @since 1.0.0
+   */
   const replaceVariables = (configMessage: string): string => {
     if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
       return configMessage

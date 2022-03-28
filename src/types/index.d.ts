@@ -132,6 +132,18 @@ export type HelpMenuEmbedCommand = {
 
 export type HelpMenuEmbedCommands = HelpMenuEmbedCommand[];
 
+export type ImpersonatorAlertsUser = {
+  name?: string;
+  user: User;
+  regex: RegularExpression;
+}
+
+export type ImpersonatorAlerts = {
+  users: ImpersonatorAlertsUser[];
+  channel: Channel;
+  message: string;
+}
+
 export type InviteGenerator = {
   design?: {
     'logo-url'?: string;
@@ -207,17 +219,6 @@ export type SchedulePost = {
 export type Snitch = {
   channel: Channel;
 };
-
-export type SnitchChangeNameDetector = {
-  description?: string;
-  regex: RegularExpression;
-  user: User;
-};
-
-export interface SnitchChangeName extends Snitch {
-  detectors?: SnitchChangeNameDetector[];
-  message?: string;
-}
 
 export type SnitchIncludesLinkExcludeLink = {
   description?: string;

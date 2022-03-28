@@ -140,7 +140,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
 
     // Makes sure the "replacements" configuration is correct.
     if (_.isArray(replacements) && _.every(replacements, (replacement) => _.isPlainObject(replacement))) {
-      _.forEach(replacements, (replacement, key) => {
+      _.forEach(replacements, (replacement) => {
         const pattern = _.get(replacement, 'pattern');
         const flags = _.get(replacement, 'flags');
         const replaceWith = _.get(replacement, 'replace-with');
@@ -150,8 +150,8 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         } catch (error) {
           generateLogMessage(
             [
-              `"replacements[${key}]" regular expression is invalid`,
-              `(function: messageCopier, name: ${name}, replacement: ${JSON.stringify(replacement)})`,
+              '"regex.pattern", "regex.flags", or "regex.replace-with" is invalid',
+              `(function: messageCopier, name: ${name}, pattern: ${pattern}, flags: ${flags}, replace with: ${replaceWith})`,
             ].join(' '),
             10,
             error,

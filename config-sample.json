@@ -16,41 +16,13 @@
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "detectors": [
-        {
-          "description": "Sample regex",
-          "regex": {
-            "pattern": "(?:)",
-            "flags": "g"
-          },
-          "user": {
-            "description": "Sample user",
-            "user-id": "000000000000000000"
-          }
-        }
-      ],
-      "message": "An impersonator may have been detected."
+      }
     },
     "change-username": {
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "detectors": [
-        {
-          "description": "Sample regex",
-          "regex": {
-            "pattern": "(?:)",
-            "flags": "g"
-          },
-          "user": {
-            "description": "Sample user",
-            "user-id": "000000000000000000"
-          }
-        }
-      ],
-      "message": "An impersonator may have been detected."
+      }
     },
     "delete-message": {
       "channel": {
@@ -560,5 +532,25 @@
       "site-key": "",
       "secret-key": ""
     }
+  },
+  "impersonator-alerts": {
+    "users": [
+      {
+        "name": "Sample name",
+        "user": {
+          "description": "Sample user",
+          "user-id": "000000000000000000"
+        },
+        "regex": {
+          "pattern": "(?:)",
+          "flags": "g"
+        }
+      }
+    ],
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    },
+    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION% (`%MEMBER_USER_ID%`)."
   }
 }

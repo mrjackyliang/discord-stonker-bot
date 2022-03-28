@@ -1,7 +1,10 @@
 import {
+  Guild,
+  GuildMember,
   Message,
   PartialMessage,
   Permissions,
+  User,
 } from 'discord.js';
 import _ from 'lodash';
 
@@ -10,7 +13,12 @@ import {
   generateLogMessage,
   getTextBasedChannel,
 } from '../lib/utilities';
-import { AffiliateLinks, RegexRules, SuspiciousWords } from '../types';
+import {
+  AffiliateLinks,
+  ImpersonatorAlerts,
+  RegexRules,
+  SuspiciousWords,
+} from '../types';
 
 /**
  * Check regex channels.
@@ -115,6 +123,99 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
 }
 
 /**
+ * Detect impersonation.
+ *
+ * @param {GuildMember|User}   memberOrUser       - Member or user information.
+ * @param {Guild}              guild              - Discord guild.
+ * @param {ImpersonatorAlerts} impersonatorAlerts - Impersonator alerts from configuration.
+ *
+ * @returns {void}
+ *
+ * @since 1.0.0
+ */
+export function detectImpersonation(memberOrUser: GuildMember | User, guild: Guild, impersonatorAlerts: ImpersonatorAlerts): void {
+  const offendingId = _.get(memberOrUser, 'user.id') ?? _.get(memberOrUser, 'id');
+  const offendingNickname = _.get(memberOrUser, 'nickname', null);
+  const offendingUsername = _.get(memberOrUser, 'user.username') ?? _.get(memberOrUser, 'username');
+  const users = _.get(impersonatorAlerts, 'users');
+  const channelId = _.get(impersonatorAlerts, 'channel.channel-id');
+  const message = _.get(impersonatorAlerts, 'message', '');
+  const sendToChannel = getTextBasedChannel(guild, channelId);
+  /**
+   * Replace variables.
+   *
+   * @param {string} configMessage - Message from configuration.
+   *
+   * @returns {string}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configMessage: string): string => {
+    if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
+      return configMessage
+        .replace(/%MEMBER_USER_ID%/, offendingId)
+        .replace(/%MEMBER_USER_MENTION%/, memberOrUser.toString());
+    }
+
+    return '';
+  };
+
+  // If configuration is not properly set.
+  if (!_.isArray(users) || _.isEmpty(users) || !_.every(users, (user) => _.isPlainObject(user)) || !sendToChannel) {
+    return;
+  }
+
+  _.forEach(users, (user) => {
+    const name = _.get(user, 'name', 'Unknown');
+    const userId = _.get(user, 'user.user-id');
+    const regexPattern = _.get(user, 'regex.pattern');
+    const regexFlags = _.get(user, 'regex.flags');
+
+    // User cannot impersonate themself.
+    if (offendingId === userId) {
+      return;
+    }
+
+    try {
+      const regExp = new RegExp(regexPattern, regexFlags);
+
+      // If nickname or username matches the pattern.
+      if ((offendingNickname !== null && regExp.test(offendingNickname)) || regExp.test(offendingUsername)) {
+        const payload = {
+          content: `<@!${userId}>${(message) ? ' ' : ''}${replaceVariables(message)}`,
+        };
+
+        generateLogMessage(
+          [
+            'User impersonation detected',
+            `(function: detectImpersonation, name: ${name}, member or user: ${memberOrUser.toString()})`,
+          ].join(' '),
+          30,
+        );
+
+        sendToChannel.send(payload).catch((error) => generateLogMessage(
+          [
+            'Failed to send message',
+            `(function: detectImpersonation, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+          ].join(' '),
+          10,
+          error,
+        ));
+      }
+    } catch (error) {
+      generateLogMessage(
+        [
+          'regex.pattern" or "regex.flags" is invalid',
+          `(function: detectImpersonation, name: ${name}, pattern: ${regexPattern}, flags: ${regexFlags})`,
+        ].join(' '),
+        10,
+        error,
+      );
+    }
+  });
+}
+
+/**
  * Detect suspicious words.
  *
  * @param {Message|PartialMessage}    message         - Message object.
@@ -195,7 +296,7 @@ export function detectSuspiciousWords(message: Message | PartialMessage, suspici
           detectedCategories,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: detectSuspiciousWords, channel: ${sendToChannel.toString()})`,
@@ -238,7 +339,6 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
   const directMessage = _.get(affiliateLinks, 'direct-message');
   const excludedRoles = _.get(affiliateLinks, 'excluded-roles');
   const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole['role-id']) !== null);
-
   const sendToChannel = getTextBasedChannel(guild, channelId);
 
   // Scan through list of affiliate links.

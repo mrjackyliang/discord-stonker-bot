@@ -56,6 +56,7 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
 15. [Bump Threads](#15-bump-threads)
 16. [Invite Generator](#16-invite-generator)
+17. [Impersonator Alert](#17-impersonator-alert)
 
 ### 1. Base Settings
 For Stonker Bot to start, these settings should be filled.
@@ -101,28 +102,10 @@ Get notifications from user actions surrounding your server. A notification will
 | `snitch.change-nickname.channel`                       | `object`   |                                                  | no           |                                                                                                                                                                     |
 | `snitch.change-nickname.channel.description`           | `string`   | Description of the channel                       | no           |                                                                                                                                                                     |
 | `snitch.change-nickname.channel.channel-id`            | `string`   | Channel used to report nickname changes          | no           | Discord channel ID                                                                                                                                                  |
-| `snitch.change-nickname.detectors`                     | `object[]` |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-nickname.detectors[x].description`      | `string`   | Description of the regular expression            | no           |                                                                                                                                                                     |
-| `snitch.change-nickname.detectors[x].regex`            | `object`   |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-nickname.detectors[x].regex.pattern`    | `string`   | Regex pattern for matching nickname              | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `snitch.change-nickname.detectors[x].regex.flags`      | `string`   | Regex flags                                      | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `snitch.change-nickname.detectors[x].user`             | `object`   |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-nickname.detectors[x].user.description` | `string`   | Description of the user                          | no           |                                                                                                                                                                     |
-| `snitch.change-nickname.detectors[x].user.user-id`     | `string`   | User                                             | no           | Discord user ID                                                                                                                                                     |
-| `snitch.change-nickname.message`                       | `string`   | Message to send when there are matched nicknames | no           | Cannot exceed 2000 characters. You may tag roles at the beginning of this message. Do not tag individual users                                                      |
 | `snitch.change-username`                               | `object`   |                                                  | no           |                                                                                                                                                                     |
 | `snitch.change-username.channel`                       | `object`   |                                                  | no           |                                                                                                                                                                     |
 | `snitch.change-username.channel.description`           | `string`   | Description of the channel                       | no           |                                                                                                                                                                     |
 | `snitch.change-username.channel.channel-id`            | `string`   | Channel used to report username changes          | no           | Discord channel ID                                                                                                                                                  |
-| `snitch.change-username.detectors`                     | `object[]` |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-username.detectors[x].description`      | `string`   | Description of the regular expression            | no           |                                                                                                                                                                     |
-| `snitch.change-username.detectors[x].regex`            | `object`   |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-username.detectors[x].regex.pattern`    | `string`   | Regex pattern for matching nickname              | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `snitch.change-username.detectors[x].regex.flags`      | `string`   | Regex flags                                      | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `snitch.change-username.detectors[x].user`             | `object`   |                                                  | no           |                                                                                                                                                                     |
-| `snitch.change-username.detectors[x].user.description` | `string`   | Description of the user                          | no           |                                                                                                                                                                     |
-| `snitch.change-username.detectors[x].user.user-id`     | `string`   | User                                             | no           | Discord user ID                                                                                                                                                     |
-| `snitch.change-username.message`                       | `string`   | Message to send when there are matched usernames | no           | Cannot exceed 2000 characters. You may tag roles at the beginning of this message. Do not tag individual users                                                      |
 | `snitch.delete-message`                                | `object`   |                                                  | no           |                                                                                                                                                                     |
 | `snitch.delete-message.channel`                        | `object`   |                                                  | no           |                                                                                                                                                                     |
 | `snitch.delete-message.channel.description`            | `string`   | Description of the channel                       | no           |                                                                                                                                                                     |
@@ -152,41 +135,13 @@ Get notifications from user actions surrounding your server. A notification will
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "detectors": [
-        {
-          "description": "Sample regex",
-          "regex": {
-            "pattern": "(?:)",
-            "flags": "g"
-          },
-          "user": {
-            "description": "Sample user",
-            "user-id": "000000000000000000"
-          }
-        }
-      ],
-      "message": "An impersonator may have been detected."
+      }
     },
     "change-username": {
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "detectors": [
-        {
-          "description": "Sample regex",
-          "regex": {
-            "pattern": "(?:)",
-            "flags": "g"
-          },
-          "user": {
-            "description": "Sample user",
-            "user-id": "000000000000000000"
-          }
-        }
-      ],
-      "message": "An impersonator may have been detected."
+      }
     },
     "delete-message": {
       "channel": {
@@ -1081,6 +1036,50 @@ A membership invite gate to protect your Discord server from being raided and sp
       "site-key": "",
       "secret-key": ""
     }
+  }
+}
+```
+
+### 17. Impersonator Alert
+Get notifications when your Discord identity is being used without your knowledge (especially when scams and fraudulent activity is on the rise).
+
+| __Key__                                         | __Type__   | __Description__                                                          | __Required__ | __Accepted Values__                                                                                                                                                  |
+|-------------------------------------------------|------------|--------------------------------------------------------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `impersonator-alerts`                           | `object`   |                                                                          | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users`                     | `object[]` |                                                                          | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users[x].name`             | `string`   | Name of the user                                                         | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users[x].user`             | `object`   |                                                                          | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users[x].user.description` | `string`   | Description of the user                                                  | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users[x].user.user-id`     | `string`   | User                                                                     | no           | Discord user ID                                                                                                                                                      |
+| `impersonator-alerts.users[x].regex`            | `object`   |                                                                          | no           |                                                                                                                                                                      |
+| `impersonator-alerts.users[x].regex.pattern`    | `string`   | Regex pattern for matching nicknames or usernames                        | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)  |
+| `impersonator-alerts.users[x].regex.flags`      | `string`   | Regex flags                                                              | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                |
+| `impersonator-alerts.channel`                   | `object`   |                                                                          | no           |                                                                                                                                                                      |
+| `impersonator-alerts.channel.description`       | `string`   | Description of the channel                                               | no           |                                                                                                                                                                      |
+| `impersonator-alerts.channel.channel-id`        | `string`   | Channel used to send impersonator alerts                                 | no           | Discord channel ID                                                                                                                                                   |
+| `impersonator-alerts.message`                   | `string`   | Customized message to send when there are matched nicknames or usernames | no           | Cannot exceed 2000 characters. Do not tag individual users, the bot will parse those automatically. Variables include `%MEMBER_USER_ID%` and `%MEMBER_USER_MENTION%` |
+
+```json
+{
+  "impersonator-alerts": {
+    "users": [
+      {
+        "name": "Sample name",
+        "user": {
+          "description": "Sample user",
+          "user-id": "000000000000000000"
+        },
+        "regex": {
+          "pattern": "(?:)",
+          "flags": "g"
+        }
+      }
+    ],
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    },
+    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION% (`%MEMBER_USER_ID%`)."
   }
 }
 ```
