@@ -193,7 +193,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefi
 
               // Update the sent items array.
               sentItems.push(itemLinkCleaned);
-            }).catch((error: any) => generateLogMessage(
+            }).catch((error) => generateLogMessage(
               [
                 'Failed to send message',
                 `(function: rssFeed, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -203,7 +203,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefi
             ));
           }
         });
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to parse feed',
           `(function: rssFeed, name: ${name})`,
@@ -328,7 +328,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
                 `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
               ].join(' '),
               40,
-            )).catch((error: any) => generateLogMessage(
+            )).catch((error) => generateLogMessage(
               [
                 'Failed to react scheduled post with emoji',
                 `(function: schedulePost, name: ${name}, reaction: ${reaction})`,
@@ -337,7 +337,7 @@ export function schedulePost(event: SchedulePost, sendToChannel: TextBasedChanne
               error,
             ));
           });
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send scheduled post',
             `(function: schedulePost, name: ${name}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,

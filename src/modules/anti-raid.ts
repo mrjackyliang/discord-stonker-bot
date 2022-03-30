@@ -47,7 +47,7 @@ export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan):
           ].join(' '),
           30,
         );
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to ban member',
           `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
@@ -114,7 +114,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
         ].join(' '),
         30,
       );
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to add role',
         `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
@@ -128,7 +128,7 @@ export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMemb
         content: replaceVariables(message),
       };
 
-      sendToChannel.send(payload).catch((error: any) => generateLogMessage(
+      sendToChannel.send(payload).catch((error) => generateLogMessage(
         [
           'Failed to send message',
           `(function: antiRaidMembershipGate, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -178,7 +178,7 @@ export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: 
           member.roles,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: antiRaidMonitor, channel: ${sendToChannel.toString()})`,

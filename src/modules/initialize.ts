@@ -137,7 +137,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
-        bulkBan(message, configCommandsBulkBan).catch((error: any) => generateLogMessage(
+        bulkBan(message, configCommandsBulkBan).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: bulkBan)',
@@ -153,7 +153,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
-        fetchDuplicates(message, configCommandsFetchDuplicates).catch((error: any) => generateLogMessage(
+        fetchDuplicates(message, configCommandsFetchDuplicates).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: fetchDuplicates)',
@@ -169,7 +169,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
-        fetchMembers(message, configCommandsFetchMembers).catch((error: any) => generateLogMessage(
+        fetchMembers(message, configCommandsFetchMembers).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: fetchMembers)',
@@ -193,7 +193,7 @@ export function initialize(client: Client, guild: Guild): void {
           roleManager: configCommandsRoleManager,
           togglePerms: configCommandsTogglePerms,
           voiceTools: configCommandsVoiceTools,
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: helpMenu)',
@@ -209,7 +209,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
-        roleManager(message, configCommandsRoleManager).catch((error: any) => generateLogMessage(
+        roleManager(message, configCommandsRoleManager).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: roleManager)',
@@ -225,7 +225,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
-        togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error: any) => generateLogMessage(
+        togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: togglePerms)',
@@ -241,7 +241,7 @@ export function initialize(client: Client, guild: Guild): void {
        * @since 1.0.0
        */
       if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
-        voiceTools(message, configCommandsVoiceTools).catch((error: any) => generateLogMessage(
+        voiceTools(message, configCommandsVoiceTools).catch((error) => generateLogMessage(
           [
             'Failed to invoke function',
             '(function: voiceTools)',

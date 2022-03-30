@@ -6,7 +6,7 @@ Discord Stonker Bot
 [![GitHub License](https://img.shields.io/github/license/mrjackyliang/discord-stonker-bot?style=flat-square&color=yellow)](https://github.com/mrjackyliang/discord-stonker-bot/blob/master/LICENSE)
 [![Become a GitHub Sponsor](https://img.shields.io/badge/sponsor-github-black?style=flat-square&color=orange)](https://github.com/sponsors/mrjackyliang)
 
-A utility bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your Discord such as auto-reply, anti-raid, voice commands and more.
+A utility bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your Discord such as auto-reply, anti-raid, bumping threads, and more.
 
 To use this Discord bot, you would need to:
 1. Install the [dependencies](#install-dependencies)
@@ -47,7 +47,7 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 5. [Anti-Raid](#5-anti-raid)
 6. [Scheduled Posts](#6-scheduled-posts)
 7. [RSS Feeds](#7-rss-feeds)
-8. [Regex Channels](#8-regex-channels)
+8. [Regex Rules](#8-regex-rules)
 9. [Detect Suspicious Words](#9-detect-suspicious-words)
 10. [Role Manager](#10-role-manager)
 11. [Auto Reply](#11-auto-reply)
@@ -517,25 +517,26 @@ Get updates from external RSS feeds. Customize the message when a new RSS update
 }
 ```
 
-### 8. Regex Channels
-Restrict a specific format in a particular channel. If the message doesn't match the regular expression, the message will be deleted (unless member is a server owner, administrator, or listed under excluded roles).
+### 8. Regex Rules
+Restrict a specific format or disallow certain text in a channel or the entire server. If the message matches or doesn't match the regular expression, the message will be deleted (unless member is a server owner, administrator, or listed under excluded roles).
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
-| __Key__                                       | __Type__   | __Description__                                      | __Required__ | __Accepted Values__                                                                                                                                                 |
-|-----------------------------------------------|------------|------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `regex-rules`                                 | `object[]` |                                                      | no           |                                                                                                                                                                     |
-| `regex-rules[x].name`                         | `string`   | Name of the regex restriction                        | no           |                                                                                                                                                                     |
-| `regex-rules[x].channel`                      | `object`   |                                                      | no           |                                                                                                                                                                     |
-| `regex-rules[x].channel.description`          | `string`   | Description of the channel                           | no           |                                                                                                                                                                     |
-| `regex-rules[x].channel.channel-id`           | `string`   | Channel under regex restriction                      | no           | Discord channel ID                                                                                                                                                  |
-| `regex-rules[x].regex`                        | `object`   |                                                      | no           |                                                                                                                                                                     |
-| `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content           | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                          | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `regex-rules[x].direct-message`               | `string`   | Message to send when user did not follow regex rules | no           | Cannot exceed 2000 characters                                                                                                                                       |
-| `regex-rules[x].exclude-roles`                | `object[]` |                                                      | no           |                                                                                                                                                                     |
-| `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role                     | no           |                                                                                                                                                                     |
-| `regex-rules[x].exclude-roles[x].role-id`     | `string`   | Excluded role                                        | no           | Discord role ID                                                                                                                                                     |
+| __Key__                                       | __Type__   | __Description__                                             | __Required__ | __Accepted Values__                                                                                                                                                 |
+|-----------------------------------------------|------------|-------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `regex-rules`                                 | `object[]` |                                                             | no           |                                                                                                                                                                     |
+| `regex-rules[x].name`                         | `string`   | Name of the regex restriction                               | no           |                                                                                                                                                                     |
+| `regex-rules[x].channel`                      | `object`   |                                                             | no           |                                                                                                                                                                     |
+| `regex-rules[x].channel.description`          | `string`   | Description of the channel                                  | no           |                                                                                                                                                                     |
+| `regex-rules[x].channel.channel-id`           | `string`   | Channel under regex restriction (omit for server-wide rule) | no           | Discord channel ID                                                                                                                                                  |
+| `regex-rules[x].regex`                        | `object`   |                                                             | no           |                                                                                                                                                                     |
+| `regex-rules[x].regex.pattern`                | `string`   | Regex pattern for matching message content                  | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `regex-rules[x].regex.flags`                  | `string`   | Regex flags                                                 | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `regex-rules[x].match`                        | `boolean`  | Remove when regex matches or does not match                 | no           | `true` or `false`                                                                                                                                                   |
+| `regex-rules[x].direct-message`               | `string`   | Message to send when user did not follow regex rules        | no           | Cannot exceed 2000 characters                                                                                                                                       |
+| `regex-rules[x].exclude-roles`                | `object[]` |                                                             | no           |                                                                                                                                                                     |
+| `regex-rules[x].exclude-roles[x].description` | `string`   | Description of the excluded role                            | no           |                                                                                                                                                                     |
+| `regex-rules[x].exclude-roles[x].role-id`     | `string`   | Excluded role                                               | no           | Discord role ID                                                                                                                                                     |
 
 ```json
 {
@@ -550,6 +551,7 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
         "pattern": "(?:)",
         "flags": "g"
       },
+      "match": false,
       "direct-message": "This type of text is not allowed in this channel!",
       "exclude-roles": [
         {

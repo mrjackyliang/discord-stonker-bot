@@ -63,7 +63,7 @@ export function userChangeNickname(oldMember: GuildMember | PartialGuildMember, 
             }),
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userChangeNickname, channel: ${sendToChannel.toString()})`,
@@ -114,7 +114,7 @@ export function userChangeUsername(guild: Guild, oldUser: User | PartialUser, ne
             }),
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userChangeUsername, channel: ${sendToChannel.toString()})`,
@@ -174,7 +174,7 @@ export function userDeleteMessage(message: Message | PartialMessage, settings: S
             url,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userDeleteMessage, channel: ${sendToChannel.toString()})`,
@@ -275,7 +275,7 @@ export function userIncludesLink(message: Message | PartialMessage, settings: Sn
             url,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userIncludesLink, channel: ${sendToChannel.toString()})`,
@@ -340,7 +340,7 @@ export function userUpdateMessage(message: Message | PartialMessage, settings: S
             url,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userUpdateMessage, channel: ${sendToChannel.toString()})`,
@@ -406,7 +406,7 @@ export function userUploadAttachment(message: Message | PartialMessage, settings
             url,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: userUploadAttachment, channel: ${sendToChannel.toString()})`,

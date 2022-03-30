@@ -42,84 +42,94 @@ export function checkRegexChannels(message: Message | PartialMessage, regexRules
     url,
   } = message;
   const theMessage = reactions.message.toString() ?? message.toString();
-  const isTextBasedChannel = channel.isText();
-  const regexRule = _.find(regexRules, { channel: { 'channel-id': channel.id } });
-  const regexRuleName = _.get(regexRule, 'name', 'Unknown');
-  const regexRulePattern = _.get(regexRule, 'regex.pattern');
-  const regexRuleFlags = _.get(regexRule, 'regex.flags');
-  const directMessage = _.get(regexRule, 'direct-message');
-  const excludedRoles = _.get(regexRule, 'exclude-roles');
-  const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole['role-id']) !== null);
 
-  let match;
+  let alreadyMatched = false;
 
-  if (!isTextBasedChannel || regexRule === undefined) {
+  // If configuration is not properly set.
+  if (!_.isArray(regexRules) || _.isEmpty(regexRules) || !_.every(regexRules, (regexRule) => _.isPlainObject(regexRule))) {
     return;
   }
 
-  try {
-    match = new RegExp(regexRulePattern, regexRuleFlags).test(theMessage);
-  } catch (error) {
-    generateLogMessage(
-      [
-        '"regex.pattern" or "regex.flags" is invalid',
-        `(function: checkRegexChannels, name: ${regexRuleName}, pattern: ${regexRulePattern}, flags: ${regexRuleFlags})`,
-      ].join(' '),
-      10,
-      error,
-    );
+  _.forEach(regexRules, (regexRule) => {
+    const name = _.get(regexRule, 'name', 'Unknown');
+    const channelId = _.get(regexRule, 'channel.channel-id');
+    const regexPattern = _.get(regexRule, 'regex.pattern');
+    const regexFlags = _.get(regexRule, 'regex.flags');
+    const match = _.get(regexRule, 'match', false);
+    const directMessage = _.get(regexRule, 'direct-message');
+    const excludedRoles = _.get(regexRule, 'exclude-roles');
+    const hasExcludedRoles = _.some(excludedRoles, (excludedRole) => member.roles.resolve(excludedRole['role-id']) !== null);
 
-    return;
-  }
+    // If current rule doesn't apply to the channel being checked or if last iteration already matched.
+    if ((channelId && channelId !== channel.id) || alreadyMatched) {
+      return;
+    }
 
-  if (
-    !match
-    && !hasExcludedRoles
-    && !member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-  ) {
-    // Send direct message.
-    if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
-      const payload = {
-        content: directMessage,
-      };
+    try {
+      const regExp = new RegExp(regexPattern, regexFlags).test(theMessage);
 
-      member.createDM().then((dmChannel) => {
-        dmChannel.send(payload).then(() => {
-          generateLogMessage(
+      if ((match && regExp) || (!match && !regExp)) {
+        alreadyMatched = true;
+
+        // Doesn't apply to server owners, administrators, and users with excluded roles.
+        if (hasExcludedRoles || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+          return;
+        }
+
+        // Send direct message.
+        if (_.isString(directMessage) && !_.isEmpty(directMessage)) {
+          const payload = {
+            content: directMessage,
+          };
+
+          member.createDM().then((dmChannel) => {
+            dmChannel.send(payload).then(() => {
+              generateLogMessage(
+                [
+                  'Sent direct message',
+                  `(function: checkRegexChannels, name: ${name}, member: ${member.toString()})`,
+                ].join(' '),
+                30,
+              );
+            }).catch((error) => generateLogMessage(
+              [
+                'Failed to send direct message',
+                `(function: checkRegexChannels, name: ${name}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
+              ].join(' '),
+              10,
+              error,
+            ));
+          }).catch((error) => generateLogMessage(
             [
-              'Sent direct message',
-              `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()})`,
+              'Failed to create direct message channel',
+              `(function: checkRegexChannels, name: ${name}, member: ${member.toString()})`,
             ].join(' '),
-            30,
-          );
-        }).catch((error: any) => generateLogMessage(
+            10,
+            error,
+          ));
+        }
+
+        // Delete message.
+        message.delete().catch((error) => generateLogMessage(
           [
-            'Failed to send direct message',
-            `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
+            'Failed to delete message',
+            `(function: checkRegexChannels, message url: ${url})`,
           ].join(' '),
           10,
           error,
         ));
-      }).catch((error: any) => generateLogMessage(
+      }
+    } catch (error) {
+      generateLogMessage(
         [
-          'Failed to create direct message channel',
-          `(function: checkRegexChannels, name: ${regexRuleName}, member: ${member.toString()})`,
+          '"regex.pattern" or "regex.flags" is invalid',
+          `(function: checkRegexChannels, name: ${name}, pattern: ${regexPattern}, flags: ${regexFlags})`,
         ].join(' '),
         10,
         error,
-      ));
+      );
     }
-
-    // Delete message.
-    message.delete().catch((error: any) => generateLogMessage(
-      [
-        'Failed to delete message',
-        `(function: checkRegexChannels, message url: ${url})`,
-      ].join(' '),
-      10,
-      error,
-    ));
-  }
+  });
 }
 
 /**
@@ -395,7 +405,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
           websites,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to send embed',
         `(function: removeAffiliateLinks, channel: ${sendToChannel.toString()})`,
@@ -423,7 +433,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
             ].join(' '),
             30,
           );
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send direct message',
             `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -431,7 +441,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
           10,
           error,
         ));
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to create direct message channel',
           `(function: removeAffiliateLinks, websites: ${JSON.stringify(websites)}, member: ${member.toString()})`,
@@ -441,7 +451,7 @@ export function removeAffiliateLinks(message: Message | PartialMessage, affiliat
       ));
     }
 
-    message.delete().catch((error: any) => generateLogMessage(
+    message.delete().catch((error) => generateLogMessage(
       [
         'Failed to delete message',
         `(function: removeAffiliateLinks, message url: ${url})`,

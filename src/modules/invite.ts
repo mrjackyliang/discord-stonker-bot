@@ -144,7 +144,7 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
               );
 
               response.status(200).send(url);
-            }).catch((error: any) => {
+            }).catch((error) => {
               generateLogMessage(
                 [
                   'Failed to create invite',
@@ -168,7 +168,7 @@ export function inviteGenerator(server: Express, guild: Guild, config: InviteGen
             response.status(500).send('Rules or guidelines channel not configured. Please contact your server administrator.');
           }
         }
-      }).catch((error: any) => {
+      }).catch((error) => {
         generateLogMessage(
           [
             'Failed to contact Google reCAPTCHA API',

@@ -56,7 +56,7 @@ function commandNoResults(channel: TextBasedChannel, member: GuildMember, messag
         memberUserTag,
       ),
     ],
-  }).catch((error: any) => generateLogMessage(
+  }).catch((error) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandNoResults, channel: ${channel.toString()})`,
@@ -87,7 +87,7 @@ function commandError(channel: TextBasedChannel, member: GuildMember, message: s
         memberUserTag,
       ),
     ],
-  }).catch((error: any) => generateLogMessage(
+  }).catch((error) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandError, channel: ${channel.toString()})`,
@@ -119,7 +119,7 @@ function commandNoPermissions(channel: TextBasedChannel, member: GuildMember, ba
         memberUserTag,
       ),
     ],
-  }).catch((error: any) => generateLogMessage(
+  }).catch((error) => generateLogMessage(
     [
       'Failed to send embed',
       `(function: commandNoPermissions, channel: ${channel.toString()})`,
@@ -141,7 +141,7 @@ function commandNoPermissions(channel: TextBasedChannel, member: GuildMember, ba
 function commandDeleteMessage(message: Message): void {
   const { url } = message;
 
-  message.delete().catch((error: any) => generateLogMessage(
+  message.delete().catch((error) => generateLogMessage(
     [
       'Failed to delete message',
       `(function: commandDeleteMessage, message url: ${url})`,
@@ -293,7 +293,7 @@ export async function bulkBan(message: Message, allowedRoles: Roles): Promise<vo
           member.user.tag,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: bulkBan, message url: ${statusMessage.url})`,
@@ -393,7 +393,7 @@ export async function fetchDuplicates(message: Message, allowedRoles: Roles): Pr
               member.user.tag,
             ),
           ],
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send embed',
             `(function: fetchDuplicates, channel: ${channel.toString()})`,
@@ -527,7 +527,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
               member.user.tag,
             ),
           ],
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send embed',
             `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -605,7 +605,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
             member.user.tag,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -686,7 +686,7 @@ export async function fetchMembers(message: Message, allowedRoles: Roles): Promi
             member.user.tag,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: fetchMembers, channel: ${channel.toString()})`,
@@ -1116,7 +1116,7 @@ export async function roleManager(message: Message, allowedRoles: Roles): Promis
           member.user.tag,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: roleManager, message url: ${statusMessage.url})`,
@@ -1310,7 +1310,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
             member.user.tag,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: togglePerms, channel: ${channel.toString()})`,
@@ -1330,7 +1330,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
             member.user.tag,
           ),
         ],
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to send embed',
           `(function: togglePerms, channel: ${channel.toString()})`,
@@ -1562,7 +1562,7 @@ export async function voiceTools(message: Message, allowedRoles: Roles): Promise
           member.user.tag,
         ),
       ],
-    }).catch((error: any) => generateLogMessage(
+    }).catch((error) => generateLogMessage(
       [
         'Failed to edit embed',
         `(function: voiceTools, message url: ${statusMessage.url})`,

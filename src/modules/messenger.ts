@@ -79,7 +79,7 @@ export function autoReply(message: Message, replies: Replies): void {
             ].join(' '),
             30,
           );
-        }).catch((error: any) => generateLogMessage(
+        }).catch((error) => generateLogMessage(
           [
             'Failed to send message',
             `(function: autoReply, name: ${replyName}, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -264,7 +264,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
         }
 
         if (copierDeleteMessage === true) {
-          message.delete().catch((error: any) => generateLogMessage(
+          message.delete().catch((error) => generateLogMessage(
             [
               'Failed to delete message',
               `(function: messageCopier, message url: ${url})`,
@@ -283,7 +283,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
               ].join(' '),
               30,
             );
-          }).catch((error: any) => generateLogMessage(
+          }).catch((error) => generateLogMessage(
             [
               'Failed to copy message',
               `(function: messageCopier, name: ${copierName}, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,

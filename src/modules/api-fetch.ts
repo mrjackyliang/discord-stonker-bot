@@ -77,7 +77,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
                 content: `**${content.slow} Gwei** (slow), **${content.average} Gwei** (average), **${content.fast} Gwei** (fast)`,
               };
 
-              feedChannel.send(payload).catch((error: any) => generateLogMessage(
+              feedChannel.send(payload).catch((error) => generateLogMessage(
                 [
                   'Failed to send message',
                   `(function: etherscanGasOracle, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -96,7 +96,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
             10,
           );
         }
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: etherscanGasOracle)',
@@ -141,7 +141,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
             },
           };
 
-          channel.send(payload).catch((error: any) => generateLogMessage(
+          channel.send(payload).catch((error) => generateLogMessage(
             [
               'Failed to send message',
               `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -157,7 +157,7 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
             },
           };
 
-          channel.send(payload).catch((error: any) => generateLogMessage(
+          channel.send(payload).catch((error) => generateLogMessage(
             [
               'Failed to send message',
               `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -240,7 +240,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
                 content: _.map(content.symbols, (symbol) => `**${symbol.symbol}**`).join(', '),
               };
 
-              feedChannel.send(payload).catch((error: any) => generateLogMessage(
+              feedChannel.send(payload).catch((error) => generateLogMessage(
                 [
                   'Failed to send message',
                   `(function: stocktwitsTrending, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -259,7 +259,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
             10,
           );
         }
-      }).catch((error: any) => generateLogMessage(
+      }).catch((error) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: stocktwitsTrending)',
@@ -302,7 +302,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
             },
           };
 
-          channel.send(payload).catch((error: any) => generateLogMessage(
+          channel.send(payload).catch((error) => generateLogMessage(
             [
               'Failed to send message',
               `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
@@ -318,7 +318,7 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
             },
           };
 
-          channel.send(payload).catch((error: any) => generateLogMessage(
+          channel.send(payload).catch((error) => generateLogMessage(
             [
               'Failed to send message',
               `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,

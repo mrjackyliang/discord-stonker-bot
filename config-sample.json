@@ -254,6 +254,7 @@
         "pattern": "(?:)",
         "flags": "g"
       },
+      "match": false,
       "direct-message": "This type of text is not allowed in this channel!",
       "exclude-roles": [
         {

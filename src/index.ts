@@ -56,7 +56,7 @@ const client = new Client({
  *
  * @since 1.0.0
  */
-client.login(configSettingsClientToken).catch((error: any) => {
+client.login(configSettingsClientToken).catch((error) => {
   generateServerMessage(error.message.replace(/\.$/, ''), true, 1);
 });
 
