@@ -33,7 +33,7 @@ export function autoReply(message: Message, replies: Replies): void {
     return;
   }
 
-  _.map(replies, (reply) => {
+  _.forEach(replies, (reply) => {
     const replyName = _.get(reply, 'name', 'Unknown');
     const replyChannelIds = _.map(_.get(reply, 'channels'), (replyChannel) => replyChannel['channel-id']);
     const replyReply = _.get(reply, 'reply');
@@ -193,7 +193,7 @@ export function messageCopier(message: Message, copiers: MessageCopiers): void {
     return;
   }
 
-  _.map(copiers, (copier) => {
+  _.forEach(copiers, (copier) => {
     const copierName = _.get(copier, 'name', 'Unknown');
     const copierChannelId = _.get(copier, 'channel.channel-id');
     const copierRegexPattern = _.get(copier, 'regex.pattern');

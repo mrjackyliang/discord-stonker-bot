@@ -29,7 +29,7 @@ import {
   detectSuspiciousWords,
   removeAffiliateLinks,
 } from './moderator';
-import { changeRoles } from './roles';
+import { changeRoleAlert, syncRoles } from './roles';
 import {
   userChangeNickname,
   userChangeUsername,
@@ -56,7 +56,9 @@ import {
   RegexRules,
   Replies,
   Snitch,
+  SnitchIncludesLink,
   SuspiciousWords,
+  SyncRoles,
 } from '../types';
 import { webServerSetup } from './server';
 
@@ -93,10 +95,11 @@ const configSchedulePosts = _.get(config, 'schedule-posts');
 const configRssFeeds = _.get(config, 'rss-feeds');
 const configRegexRules = _.get(config, 'regex-rules');
 const configSuspiciousWords = _.get(config, 'suspicious-words');
-const configRoles = _.get(config, 'roles');
+const configRoleSync = _.get(config, 'role-sync');
+const configRoleMessages = _.get(config, 'role-messages');
 const configAutoReply = _.get(config, 'auto-reply');
 const configMessageCopier = _.get(config, 'message-copier');
-const configAffiliateLinks = _.get(config, 'affiliate-links');
+const configRemoveAffiliateLinks = _.get(config, 'remove-affiliate-links');
 const configTogglePerms = _.get(config, 'toggle-perms');
 const configBumpThreads = _.get(config, 'bump-threads');
 const configInviteGenerator = _.get(config, 'invite-generator');
@@ -114,175 +117,6 @@ const configImpersonatorAlerts = _.get(config, 'impersonator-alerts');
  */
 export function initialize(client: Client, guild: Guild): void {
   /**
-   * When user sends a command.
-   *
-   * @since 1.0.0
-   */
-  client.on('messageCreate', (message) => {
-    const messageContent = message.toString();
-
-    if (
-      message.guild
-      && message.guild.available // If guild is online.
-      && message.guild.id === guild.id // If message was sent in the guild.
-      && !message.author.bot // If message is not sent by a bot.
-      && !message.system // If message is not sent by system.
-      && _.isString(configSettingsBotPrefix) // If bot prefix is a string.
-      && !_.isEmpty(configSettingsBotPrefix) // If bot prefix is not empty.
-      && messageContent.startsWith(configSettingsBotPrefix) // If message starts with the bot prefix.
-    ) {
-      /**
-       * Bulk ban.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
-        bulkBan(message, configCommandsBulkBan).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: bulkBan)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Fetch duplicates.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
-        fetchDuplicates(message, configCommandsFetchDuplicates).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: fetchDuplicates)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Fetch members.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
-        fetchMembers(message, configCommandsFetchMembers).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: fetchMembers)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Help menu.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(help-menu|help|hm)`).test(messageContent)) {
-        helpMenu(message, configCommandsHelpMenu, {
-          botPrefix: configSettingsBotPrefix,
-          bulkBan: configCommandsBulkBan,
-          fetchDuplicates: configCommandsFetchDuplicates,
-          fetchMembers: configCommandsFetchMembers,
-          roleManager: configCommandsRoleManager,
-          togglePerms: configCommandsTogglePerms,
-          voiceTools: configCommandsVoiceTools,
-        }).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: helpMenu)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Role manager.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
-        roleManager(message, configCommandsRoleManager).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: roleManager)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Toggle perms.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
-        togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: togglePerms)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-
-      /**
-       * Voice tools.
-       *
-       * @since 1.0.0
-       */
-      if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
-        voiceTools(message, configCommandsVoiceTools).catch((error) => generateLogMessage(
-          [
-            'Failed to invoke function',
-            '(function: voiceTools)',
-          ].join(' '),
-          10,
-          error,
-        ));
-      }
-    }
-  });
-
-  /**
-   * When user sends an API fetch request.
-   *
-   * @since 1.0.0
-   */
-  client.on('messageCreate', (message) => {
-    if (
-      message.guild
-      && message.guild.available // If guild is online.
-      && message.guild.id === guild.id // If message was sent in the guild.
-      && !message.author.bot // If message is not sent by a bot.
-      && !message.system // If message is not sent by system.
-    ) {
-      /**
-       * Etherscan gas oracle.
-       *
-       * @since 1.0.0
-       */
-      etherscanGasOracle(guild, configApiFetchEtherscanGasOracle, message);
-
-      /**
-       * Stocktwits trending.
-       *
-       * @since 1.0.0
-       */
-      stocktwitsTrending(guild, configApiFetchStocktwitsTrending, message);
-    }
-  });
-
-  /**
    * When user creates a message.
    *
    * @since 1.0.0
@@ -295,18 +129,150 @@ export function initialize(client: Client, guild: Guild): void {
       && !message.author.bot // If message is not sent by a bot.
       && !message.system // If message is not sent by system.
     ) {
+      const messageContent = message.toString();
       const trackedMessage = trackMessage(message);
       const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
-      // If message is not a repeat. Happens when Discord creates embeds from links.
-      if (!trackedMessageIsDuplicate) {
+      /**
+       * If message is a command.
+       *
+       * @since 1.0.0
+       */
+      if (
+        _.isString(configSettingsBotPrefix) // If bot prefix is a string.
+        && !_.isEmpty(configSettingsBotPrefix) // If bot prefix is not empty.
+        && messageContent.startsWith(configSettingsBotPrefix) // If message starts with the bot prefix.
+      ) {
         /**
-         * Auto reply.
+         * Bulk ban.
          *
          * @since 1.0.0
          */
-        autoReply(message, <Replies>configAutoReply);
+        if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
+          bulkBan(message, configCommandsBulkBan).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: bulkBan)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
 
+        /**
+         * Fetch duplicates.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
+          fetchDuplicates(message, configCommandsFetchDuplicates).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: fetchDuplicates)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+
+        /**
+         * Fetch members.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
+          fetchMembers(message, configCommandsFetchMembers).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: fetchMembers)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+
+        /**
+         * Help menu.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(help-menu|help|hm)`).test(messageContent)) {
+          helpMenu(message, configCommandsHelpMenu, {
+            botPrefix: configSettingsBotPrefix,
+            bulkBan: configCommandsBulkBan,
+            fetchDuplicates: configCommandsFetchDuplicates,
+            fetchMembers: configCommandsFetchMembers,
+            roleManager: configCommandsRoleManager,
+            togglePerms: configCommandsTogglePerms,
+            voiceTools: configCommandsVoiceTools,
+          }).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: helpMenu)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+
+        /**
+         * Role manager.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
+          roleManager(message, configCommandsRoleManager).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: roleManager)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+
+        /**
+         * Toggle perms.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
+          togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: togglePerms)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+
+        /**
+         * Voice tools.
+         *
+         * @since 1.0.0
+         */
+        if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
+          voiceTools(message, configCommandsVoiceTools).catch((error) => generateLogMessage(
+            [
+              'Failed to invoke function',
+              '(function: voiceTools)',
+            ].join(' '),
+            10,
+            error,
+          ));
+        }
+      }
+
+      /**
+       * If message is not a repeat.
+       *
+       * Discord creates embeds from links and fires the "messageUpdate"
+       * event causing repeated executions.
+       *
+       * @since 1.0.0
+       */
+      if (!trackedMessageIsDuplicate) {
         /**
          * Check regex channels.
          *
@@ -322,33 +288,54 @@ export function initialize(client: Client, guild: Guild): void {
         detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
 
         /**
-         * Message copier.
-         *
-         * @since 1.0.0
-         */
-        messageCopier(message, <MessageCopiers>configMessageCopier);
-
-        /**
          * Remove affiliate links.
          *
          * @since 1.0.0
          */
-        removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
+        removeAffiliateLinks(message, <AffiliateLinks>configRemoveAffiliateLinks);
 
         /**
          * User includes link.
          *
          * @since 1.0.0
          */
-        userIncludesLink(message, <Snitch>configSnitchIncludesLink);
-
-        /**
-         * User upload attachment.
-         *
-         * @since 1.0.0
-         */
-        userUploadAttachment(message, <Snitch>configSnitchUploadAttachment);
+        userIncludesLink(message, <SnitchIncludesLink>configSnitchIncludesLink);
       }
+
+      /**
+       * Auto reply.
+       *
+       * @since 1.0.0
+       */
+      autoReply(message, <Replies>configAutoReply);
+
+      /**
+       * Etherscan gas oracle.
+       *
+       * @since 1.0.0
+       */
+      etherscanGasOracle(guild, configApiFetchEtherscanGasOracle, message);
+
+      /**
+       * Message copier.
+       *
+       * @since 1.0.0
+       */
+      messageCopier(message, <MessageCopiers>configMessageCopier);
+
+      /**
+       * Stocktwits trending.
+       *
+       * @since 1.0.0
+       */
+      stocktwitsTrending(guild, configApiFetchStocktwitsTrending, message);
+
+      /**
+       * User upload attachment.
+       *
+       * @since 1.0.0
+       */
+      userUploadAttachment(message, <Snitch>configSnitchUploadAttachment);
     }
   });
 
@@ -369,7 +356,14 @@ export function initialize(client: Client, guild: Guild): void {
       const trackedMessage = trackMessage(message);
       const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
-      // If message is not a repeat. Happens when Discord creates embeds from links.
+      /**
+       * If message is not a repeat.
+       *
+       * Discord creates embeds from links and fires the "messageUpdate"
+       * event causing repeated executions.
+       *
+       * @since 1.0.0
+       */
       if (!trackedMessageIsDuplicate) {
         /**
          * Check regex channels.
@@ -390,22 +384,22 @@ export function initialize(client: Client, guild: Guild): void {
          *
          * @since 1.0.0
          */
-        removeAffiliateLinks(message, <AffiliateLinks>configAffiliateLinks);
+        removeAffiliateLinks(message, <AffiliateLinks>configRemoveAffiliateLinks);
 
         /**
          * User includes link.
          *
          * @since 1.0.0
          */
-        userIncludesLink(message, <Snitch>configSnitchIncludesLink);
-
-        /**
-         * User update message.
-         *
-         * @since 1.0.0
-         */
-        userUpdateMessage(message, <Snitch>configSnitchUpdateMessage);
+        userIncludesLink(message, <SnitchIncludesLink>configSnitchIncludesLink);
       }
+
+      /**
+       * User update message.
+       *
+       * @since 1.0.0
+       */
+      userUpdateMessage(message, <Snitch>configSnitchUpdateMessage);
     }
   });
 
@@ -534,11 +528,18 @@ export function initialize(client: Client, guild: Guild): void {
       antiRaidMembershipGate(oldMember, newMember, <AntiRaidMembershipGate>configAntiRaidMembershipGate);
 
       /**
-       * Change roles.
+       * Sync roles.
        *
        * @since 1.0.0
        */
-      changeRoles(oldMember, newMember, <ChangeRoles>configRoles);
+      syncRoles(oldMember, newMember, <SyncRoles>configRoleSync);
+
+      /**
+       * Change role alert.
+       *
+       * @since 1.0.0
+       */
+      changeRoleAlert(oldMember, newMember, <ChangeRoles>configRoleMessages);
 
       /**
        * Change nickname notification.

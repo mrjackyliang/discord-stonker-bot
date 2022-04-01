@@ -153,7 +153,7 @@ export function rssFeed(event: RssFeed, sendToChannel: TextBasedChannel | undefi
           });
         }
 
-        _.map(items, (item) => {
+        _.forEach(items, (item) => {
           const itemTitle = _.get(item, 'title', 'No Title');
           const itemLink = _.get(item, 'link');
           const itemLinkCleaned = cleanItemLink(itemLink);

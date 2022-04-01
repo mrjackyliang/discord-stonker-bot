@@ -49,14 +49,15 @@ In the project folder, you will find a `config-sample.json` file. Each section e
 7. [RSS Feeds](#7-rss-feeds)
 8. [Regex Rules](#8-regex-rules)
 9. [Detect Suspicious Words](#9-detect-suspicious-words)
-10. [Role Manager](#10-role-manager)
-11. [Auto Reply](#11-auto-reply)
-12. [Message Copier](#12-message-copier)
-13. [Remove Affiliate Links](#13-remove-affiliate-links)
-14. [Toggle Preset Permissions](#14-toggle-preset-permissions)
-15. [Bump Threads](#15-bump-threads)
-16. [Invite Generator](#16-invite-generator)
-17. [Impersonator Alert](#17-impersonator-alert)
+10. [Role Sync](#10-role-sync)
+11. [Role Messages](#11-role-messages)
+12. [Auto Reply](#12-auto-reply)
+13. [Message Copier](#13-message-copier)
+14. [Remove Affiliate Links](#14-remove-affiliate-links)
+15. [Toggle Permissions](#15-toggle-permissions)
+16. [Bump Threads](#16-bump-threads)
+17. [Invite Generator](#17-invite-generator)
+18. [Impersonator Alerts](#18-impersonator-alerts)
 
 ### 1. Base Settings
 For Stonker Bot to start, these settings should be filled.
@@ -522,6 +523,8 @@ Restrict a specific format or disallow certain text in a channel or the entire s
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
+__NOTE:__ Please prioritize channel restrictions before server-wide restrictions since only the first match will be executed.
+
 | __Key__                                       | __Type__   | __Description__                                             | __Required__ | __Accepted Values__                                                                                                                                                 |
 |-----------------------------------------------|------------|-------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `regex-rules`                                 | `object[]` |                                                             | no           |                                                                                                                                                                     |
@@ -597,32 +600,32 @@ Detect words in a message that may require attention. Useful when a member menti
 }
 ```
 
-### 10. Role Manager
-Add or remove selected roles from members if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
+### 10. Role Sync
+Add or remove selected roles from members automatically if it meets a condition (`yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes`).
 
 Useful for many scenarios, for example, when members lose a premium role (_removing_ premium add-on roles) or when members get muted (_removing_ write access roles).
 
-| __Key__                             | __Type__   | __Description__                    | __Required__ | __Accepted Values__                                   |
-|-------------------------------------|------------|------------------------------------|--------------|-------------------------------------------------------|
-| `roles`                             | `object[]` |                                    | no           |                                                       |
-| `roles[x].name`                     | `string`   | Name of the role task              | no           |                                                       |
-| `roles[x].type`                     | `string`   | Condition to remove roles          | no           | `yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes` |
-| `roles[x].before`                   | `object[]` |                                    | no           |                                                       |
-| `roles[x].before[x].description`    | `string`   | Description of the role before     | no           |                                                       |
-| `roles[x].before[x].role-id`        | `string`   | Role before                        | no           | Discord role ID                                       |
-| `roles[x].after`                    | `object[]` |                                    | no           |                                                       |
-| `roles[x].after[x].description`     | `string`   | Description of the role after      | no           |                                                       |
-| `roles[x].after[x].role-id`         | `string`   | Role after                         | no           | Discord role ID                                       |
-| `roles[x].to-add`                   | `object[]` |                                    | no           |                                                       |
-| `roles[x].to-add[x].description`    | `string`   | Description of the role to add     | no           |                                                       |
-| `roles[x].to-add[x].role-id`        | `string`   | Role to add                        | no           | Discord role ID                                       |
-| `roles[x].to-remove`                | `object[]` |                                    | no           |                                                       |
-| `roles[x].to-remove[x].description` | `string`   | Description of the role to remove  | no           |                                                       |
-| `roles[x].to-remove[x].role-id`     | `string`   | Role to remove                     | no           | Discord role ID                                       |
+| __Key__                                 | __Type__   | __Description__                    | __Required__ | __Accepted Values__                                   |
+|-----------------------------------------|------------|------------------------------------|--------------|-------------------------------------------------------|
+| `role-sync`                             | `object[]` |                                    | no           |                                                       |
+| `role-sync[x].name`                     | `string`   | Name of the role task              | no           |                                                       |
+| `role-sync[x].type`                     | `string`   | Condition to add or remove roles   | no           | `yes-to-yes`, `no-to-no`, `yes-to-no`, or `no-to-yes` |
+| `role-sync[x].before`                   | `object[]` |                                    | no           |                                                       |
+| `role-sync[x].before[x].description`    | `string`   | Description of the role before     | no           |                                                       |
+| `role-sync[x].before[x].role-id`        | `string`   | Role before                        | no           | Discord role ID                                       |
+| `role-sync[x].after`                    | `object[]` |                                    | no           |                                                       |
+| `role-sync[x].after[x].description`     | `string`   | Description of the role after      | no           |                                                       |
+| `role-sync[x].after[x].role-id`         | `string`   | Role after                         | no           | Discord role ID                                       |
+| `role-sync[x].to-add`                   | `object[]` |                                    | no           |                                                       |
+| `role-sync[x].to-add[x].description`    | `string`   | Description of the role to add     | no           |                                                       |
+| `role-sync[x].to-add[x].role-id`        | `string`   | Role to add                        | no           | Discord role ID                                       |
+| `role-sync[x].to-remove`                | `object[]` |                                    | no           |                                                       |
+| `role-sync[x].to-remove[x].description` | `string`   | Description of the role to remove  | no           |                                                       |
+| `role-sync[x].to-remove[x].role-id`     | `string`   | Role to remove                     | no           | Discord role ID                                       |
 
 ```json
 {
-  "roles": [
+  "role-sync": [
     {
       "name": "Remove B role if member is A",
       "type": "yes-to-yes",
@@ -715,7 +718,56 @@ Useful for many scenarios, for example, when members lose a premium role (_remov
 }
 ```
 
-### 11. Auto Reply
+### 11. Role Messages
+Send out a message when a role is added to or removed from a user. Perfect for social proof, welcoming new members, and internal analytics!
+
+| __Key__                                | __Type__   | __Description__               | __Required__ | __Accepted Values__                                                 |
+|----------------------------------------|------------|-------------------------------|--------------|---------------------------------------------------------------------|
+| `role-messages`                        | `object[]` |                               | no           |                                                                     |
+| `role-messages[x].name`                | `string`   | Name of the role message task | no           |                                                                     |
+| `role-messages[x].direction`           | `string`   | Direction of the update       | no           | `add` when user gets a role or `remove` when user loses a role      |
+| `role-messages[x].role`                | `object`   |                               | no           |                                                                     |
+| `role-messages[x].role.description`    | `string`   | Description of the role       | no           |                                                                     |
+| `role-messages[x].role.role-id`        | `string`   | Role                          | no           | Discord role ID                                                     |
+| `role-messages[x].channel`             | `object`   |                               | no           |                                                                     |
+| `role-messages[x].channel.description` | `string`   | Description of the channel    | no           |                                                                     |
+| `role-messages[x].channel.channel-id`  | `string`   | Channel used to send message  | no           | Discord channel ID                                                  |
+| `role-messages[x].message`             | `string`   | Customized message to send    | no           | Cannot exceed 2000 characters. Variables include `%MEMBER_MENTION%` |
+
+```json
+{
+  "role-messages": [
+    {
+      "name": "Sample",
+      "direction": "add",
+      "role": {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "message": "%MEMBER_MENTION% has obtained a role."
+    },
+    {
+      "name": "Sample",
+      "direction": "remove",
+      "role": {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "message": "%MEMBER_MENTION% has relinquished a role."
+    }
+  ]
+}
+```
+
+### 12. Auto Reply
 Reply to a message without requiring human interaction. Great for automated customer service or surprise members with hidden Easter eggs!
 
 | __Key__                                 | __Type__   | __Description__                            | __Required__ | __Accepted Values__                                                                                                                                                 |
@@ -756,7 +808,7 @@ Reply to a message without requiring human interaction. Great for automated cust
 }
 ```
 
-### 12. Message Copier
+### 13. Message Copier
 Automatically copy the original message that matches the regular expression into another channel. A powerful utility to organize content in Discord.
 
 | __Key__                                                | __Type__   | __Description__                                    | __Required__ | __Accepted Values__                                                                                                                                                                               |
@@ -841,29 +893,29 @@ Automatically copy the original message that matches the regular expression into
 }
 ```
 
-### 13. Remove Affiliate Links
+### 14. Remove Affiliate Links
 Easily remove affiliate links posted in channels, many of them unauthorized and undetected. This feature automatically removes affiliate links and logs the message.
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
-| __Key__                                         | __Type__   | __Description__                                   | __Required__ | __Accepted Values__                                                                                                                                                 |
-|-------------------------------------------------|------------|---------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `affiliate-links`                               | `object`   |                                                   | no           |                                                                                                                                                                     |
-| `affiliate-links.links`                         | `object[]` |                                                   | no           |                                                                                                                                                                     |
-| `affiliate-links.links[x].website`              | `string`   | Name of the website                               | no           |                                                                                                                                                                     |
-| `affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content        | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
-| `affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                       | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
-| `affiliate-links.channel`                       | `object`   |                                                   | no           |                                                                                                                                                                     |
-| `affiliate-links.channel.description`           | `string`   | Description of the channel                        | no           |                                                                                                                                                                     |
-| `affiliate-links.channel.channel-id`            | `string`   | Channel used to report affiliate link postings    | no           | Discord channel ID                                                                                                                                                  |
-| `affiliate-links.direct-message`                | `string`   | Message to send when user posts an affiliate link | no           | Cannot exceed 2000 characters                                                                                                                                       |
-| `affiliate-links.excluded-roles`                | `object[]` |                                                   | no           |                                                                                                                                                                     |
-| `affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role                  | no           |                                                                                                                                                                     |
-| `affiliate-links.excluded-roles[x].role-id`     | `string`   | Excluded role                                     | no           | Discord role ID                                                                                                                                                     |
+| __Key__                                                | __Type__   | __Description__                                   | __Required__ | __Accepted Values__                                                                                                                                                 |
+|--------------------------------------------------------|------------|---------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `remove-affiliate-links`                               | `object`   |                                                   | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.links`                         | `object[]` |                                                   | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.links[x].website`              | `string`   | Name of the website                               | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.links[x].regex.pattern`        | `string`   | Regex pattern for matching message content        | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `remove-affiliate-links.links[x].regex.flags`          | `string`   | Regex flags                                       | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `remove-affiliate-links.channel`                       | `object`   |                                                   | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.channel.description`           | `string`   | Description of the channel                        | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.channel.channel-id`            | `string`   | Channel used to report affiliate link postings    | no           | Discord channel ID                                                                                                                                                  |
+| `remove-affiliate-links.direct-message`                | `string`   | Message to send when user posts an affiliate link | no           | Cannot exceed 2000 characters                                                                                                                                       |
+| `remove-affiliate-links.excluded-roles`                | `object[]` |                                                   | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.excluded-roles[x].description` | `string`   | Description of the excluded role                  | no           |                                                                                                                                                                     |
+| `remove-affiliate-links.excluded-roles[x].role-id`     | `string`   | Excluded role                                     | no           | Discord role ID                                                                                                                                                     |
 
 ```json
 {
-  "affiliate-links": {
+  "remove-affiliate-links": {
     "links": [
       {
         "website": "Affiliate Company",
@@ -888,14 +940,14 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 }
 ```
 
-### 14. Toggle Preset Permissions
+### 15. Toggle Permissions
 Configure channel permissions with a single command without touching them! Great for quickly showing and hiding channels for special events.
 
 | __Key__                                                      | __Type__   | __Description__                        | __Required__ | __Accepted Values__                                                                                                                                                    |
 |--------------------------------------------------------------|------------|----------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `toggle-perms`                                               | `object[]` |                                        | no           |                                                                                                                                                                        |
-| `toggle-perms[x].name`                                       | `string`   | Toggle group name                      | no           |                                                                                                                                                                        |
-| `toggle-perms[x].id`                                         | `string`   | Toggle group identifier                | no           |                                                                                                                                                                        |
+| `toggle-perms[x].name`                                       | `string`   | Name of the toggle                     | no           |                                                                                                                                                                        |
+| `toggle-perms[x].id`                                         | `string`   | Identifier of the toggle               | no           |                                                                                                                                                                        |
 | `toggle-perms[x].on`                                         | `object[]` |                                        | no           |                                                                                                                                                                        |
 | `toggle-perms[x].on[x].channel`                              | `object`   |                                        | no           |                                                                                                                                                                        |
 | `toggle-perms[x].on[x].channel.description`                  | `string`   | Description of the channel             | no           |                                                                                                                                                                        |
@@ -958,13 +1010,13 @@ Configure channel permissions with a single command without touching them! Great
 }
 ```
 
-### 15. Bump Threads
+### 16. Bump Threads
 Stretch the world of threads and make them like sub-channels! Create threads that _never_ archive, even if you don't have _boosted_ servers.
 
 | __Key__                               | __Type__   | __Description__            | __Required__ | __Accepted Values__ |
 |---------------------------------------|------------|----------------------------|--------------|---------------------|
 | `bump-threads`                        | `object[]` |                            | no           |                     |
-| `bump-threads[x].name`                | `string`   | Bump thread channel name   | no           |                     |
+| `bump-threads[x].name`                | `string`   | Name of the bump task      | no           |                     |
 | `bump-threads[x].channel`             | `object`   |                            | no           |                     |
 | `bump-threads[x].channel.description` | `string`   | Description of the channel | no           |                     |
 | `bump-threads[x].channel.channel-id`  | `string`   | Channel to bump threads in | no           | Discord channel ID  |
@@ -990,7 +1042,7 @@ Stretch the world of threads and make them like sub-channels! Create threads tha
 }
 ```
 
-### 16. Invite Generator
+### 17. Invite Generator
 A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. Customization includes the page design and code injection.
 
 | __Key__                                       | __Type__ | __Description__                              | __Required__ | __Accepted Values__                                                                                                                                                                     |
@@ -1042,31 +1094,31 @@ A membership invite gate to protect your Discord server from being raided and sp
 }
 ```
 
-### 17. Impersonator Alert
+### 18. Impersonator Alerts
 Get notifications when your Discord identity is being used without your knowledge (especially when scams and fraudulent activity is on the rise).
 
-| __Key__                                         | __Type__   | __Description__                                                          | __Required__ | __Accepted Values__                                                                                                                                                  |
-|-------------------------------------------------|------------|--------------------------------------------------------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `impersonator-alerts`                           | `object`   |                                                                          | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users`                     | `object[]` |                                                                          | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users[x].name`             | `string`   | Name of the user                                                         | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users[x].user`             | `object`   |                                                                          | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users[x].user.description` | `string`   | Description of the user                                                  | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users[x].user.user-id`     | `string`   | User                                                                     | no           | Discord user ID                                                                                                                                                      |
-| `impersonator-alerts.users[x].regex`            | `object`   |                                                                          | no           |                                                                                                                                                                      |
-| `impersonator-alerts.users[x].regex.pattern`    | `string`   | Regex pattern for matching nicknames or usernames                        | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)  |
-| `impersonator-alerts.users[x].regex.flags`      | `string`   | Regex flags                                                              | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                |
-| `impersonator-alerts.channel`                   | `object`   |                                                                          | no           |                                                                                                                                                                      |
-| `impersonator-alerts.channel.description`       | `string`   | Description of the channel                                               | no           |                                                                                                                                                                      |
-| `impersonator-alerts.channel.channel-id`        | `string`   | Channel used to send impersonator alerts                                 | no           | Discord channel ID                                                                                                                                                   |
-| `impersonator-alerts.message`                   | `string`   | Customized message to send when there are matched nicknames or usernames | no           | Cannot exceed 2000 characters. Do not tag individual users, the bot will parse those automatically. Variables include `%MEMBER_USER_ID%` and `%MEMBER_USER_MENTION%` |
+| __Key__                                         | __Type__   | __Description__                                                          | __Required__ | __Accepted Values__                                                                                                                                                 |
+|-------------------------------------------------|------------|--------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `impersonator-alerts`                           | `object`   |                                                                          | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users`                     | `object[]` |                                                                          | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users[x].name`             | `string`   | Name of the user                                                         | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users[x].user`             | `object`   |                                                                          | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users[x].user.description` | `string`   | Description of the user                                                  | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users[x].user.user-id`     | `string`   | User                                                                     | no           | Discord user ID                                                                                                                                                     |
+| `impersonator-alerts.users[x].regex`            | `object`   |                                                                          | no           |                                                                                                                                                                     |
+| `impersonator-alerts.users[x].regex.pattern`    | `string`   | Regex pattern for matching nicknames or usernames                        | no           | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `impersonator-alerts.users[x].regex.flags`      | `string`   | Regex flags                                                              | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `impersonator-alerts.channel`                   | `object`   |                                                                          | no           |                                                                                                                                                                     |
+| `impersonator-alerts.channel.description`       | `string`   | Description of the channel                                               | no           |                                                                                                                                                                     |
+| `impersonator-alerts.channel.channel-id`        | `string`   | Channel used to send impersonator alerts                                 | no           | Discord channel ID                                                                                                                                                  |
+| `impersonator-alerts.message`                   | `string`   | Customized message to send when there are matched nicknames or usernames | no           | Cannot exceed 2000 characters. Do not tag individual users, the bot will parse those automatically. Variables include `%MEMBER_USER_MENTION%`                       |
 
 ```json
 {
   "impersonator-alerts": {
     "users": [
       {
-        "name": "Sample name",
+        "name": "Sample",
         "user": {
           "description": "Sample user",
           "user-id": "000000000000000000"
@@ -1081,7 +1133,7 @@ Get notifications when your Discord identity is being used without your knowledg
       "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
-    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION% (`%MEMBER_USER_ID%`)."
+    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION%."
   }
 }
 ```

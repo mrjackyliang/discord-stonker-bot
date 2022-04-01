@@ -93,9 +93,9 @@ export type AntiRaidAutoBan = {
 };
 
 export type AntiRaidMembershipGate = {
-  'role'?: Role;
-  'channel'?: Channel;
-  'message'?: string;
+  role?: Role;
+  channel?: Channel;
+  message?: string;
 };
 
 export type ApiFetchSettingsCommand = {
@@ -116,11 +116,10 @@ export type BumpThread = {
 
 export type ChangeRole = {
   name?: string;
-  type?: 'yes-to-yes' | 'no-to-no' | 'yes-to-no' | 'no-to-yes';
-  before?: Roles;
-  after?: Roles;
-  'to-add'?: Roles;
-  'to-remove'?: Roles;
+  direction: 'add' | 'remove';
+  role: Role;
+  channel: Channel;
+  message?: string;
 };
 
 export type ChangeRoles = ChangeRole[];
@@ -201,7 +200,7 @@ export type Replies = Reply[];
 
 export type RssFeed = {
   name?: string;
-  'channel': Channel;
+  channel: Channel;
   interval?: string;
   url: string;
   message: string;
@@ -238,6 +237,17 @@ export type SuspiciousWords = {
   channel?: Channel;
   categories?: SuspiciousWordsCategory[];
 };
+
+export type SyncRole = {
+  name?: string;
+  type?: 'yes-to-yes' | 'no-to-no' | 'yes-to-no' | 'no-to-yes';
+  before?: Roles;
+  after?: Roles;
+  'to-add'?: Roles;
+  'to-remove'?: Roles;
+};
+
+export type SyncRoles = SyncRole[];
 
 export type TogglePermsSettingUser = {
   description?: string;

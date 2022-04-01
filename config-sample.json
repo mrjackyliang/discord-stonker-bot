@@ -279,7 +279,7 @@
       }
     ]
   },
-  "roles": [
+  "role-sync": [
     {
       "name": "Remove B role if member is A",
       "type": "yes-to-yes",
@@ -369,6 +369,34 @@
       ]
     }
   ],
+  "role-messages": [
+    {
+      "name": "Sample",
+      "direction": "add",
+      "role": {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "message": "%MEMBER_MENTION% has obtained a role."
+    },
+    {
+      "name": "Sample",
+      "direction": "remove",
+      "role": {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "message": "%MEMBER_MENTION% has relinquished a role."
+    }
+  ],
   "auto-reply": [
     {
       "name": "Sample",
@@ -436,7 +464,7 @@
       ]
     }
   ],
-  "affiliate-links": {
+  "remove-affiliate-links": {
     "links": [
       {
         "website": "Affiliate Company",
@@ -552,6 +580,6 @@
       "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
-    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION% (`%MEMBER_USER_ID%`)."
+    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION%."
   }
 }

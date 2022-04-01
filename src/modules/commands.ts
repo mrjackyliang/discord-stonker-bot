@@ -1180,9 +1180,9 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
 
     let commands = '';
 
-    // Shows the first 15 toggle groups.
+    // Shows the first 10 toggle groups.
     _.forEach(permsIds, (permsId, key) => {
-      if (key < 15) {
+      if (key < 10) {
         commands += [
           `${commandCommand} ${permsId} on`,
           `${commandCommand} ${permsId} off\n\n`,
@@ -1194,7 +1194,7 @@ export async function togglePerms(message: Message, allowedRoles: Roles, setting
       channel,
       member,
       [
-        `The toggle group (${commandGroup}) is invalid. Please type your command with the correct group and try again.\n`,
+        `The toggle group (${commandGroup}) is invalid. Please type your command with the correct group and try again.\n\n_For your convenience, only the first 10 toggle groups will be shown. For further reference, please check the configuration._\n`,
         'Example(s):',
         '```',
         commands,

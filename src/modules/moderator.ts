@@ -163,7 +163,6 @@ export function detectImpersonation(memberOrUser: GuildMember | User, guild: Gui
   const replaceVariables = (configMessage: string): string => {
     if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
       return configMessage
-        .replace(/%MEMBER_USER_ID%/, offendingId)
         .replace(/%MEMBER_USER_MENTION%/, memberOrUser.toString());
     }
 
