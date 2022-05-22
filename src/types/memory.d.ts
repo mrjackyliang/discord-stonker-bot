@@ -75,6 +75,7 @@ export type MemoryFetchMembersMatchedMembers = MemoryFetchMembersMatchedMember[]
  * @since 1.0.0
  */
 export type MemoryFinnhubEarningsContentEarning = {
+  isoDate: string;
   date: string;
   symbol: string;
   fiscalQuarter: string,

@@ -54,6 +54,7 @@ import {
   StocktwitsTrendingSettingsCommandAllowedRoles,
   StocktwitsTrendingSettingsCommandBaseCommands,
   StocktwitsTrendingSettingsCommandNoPermsPayload,
+  StocktwitsTrendingSettingsSettingsLimit,
 } from '../types';
 import {
   ApiEtherscanGasOracle,
@@ -689,14 +690,13 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
         );
 
         if (getResponseDataEarningsCalendar !== undefined) {
-          const sortedEarnings = _.orderBy(getResponseDataEarningsCalendar, ['date', 'symbol'], ['desc', 'asc']);
-          const filteredEarnings = _.filter(sortedEarnings, (sortedEarning) => {
-            const sortedEarningEpsActual = sortedEarning.epsActual;
-            const sortedEarningEpsEstimate = sortedEarning.epsEstimate;
-            const sortedEarningRevenueActual = sortedEarning.revenueActual;
-            const sortedEarningRevenueEstimate = sortedEarning.revenueEstimate;
+          const filteredEarnings = _.filter(getResponseDataEarningsCalendar, (getResponseDataEarningCalendar) => {
+            const getResponseDataEarningCalendarEpsActual = getResponseDataEarningCalendar.epsActual;
+            const getResponseDataEarningCalendarEpsEstimate = getResponseDataEarningCalendar.epsEstimate;
+            const getResponseDataEarningCalendarRevenueActual = getResponseDataEarningCalendar.revenueActual;
+            const getResponseDataEarningCalendarRevenueEstimate = getResponseDataEarningCalendar.revenueEstimate;
 
-            return sortedEarningEpsActual !== null || sortedEarningEpsEstimate !== null || sortedEarningRevenueActual !== null || sortedEarningRevenueEstimate !== null;
+            return getResponseDataEarningCalendarEpsActual !== null || getResponseDataEarningCalendarEpsEstimate !== null || getResponseDataEarningCalendarRevenueActual !== null || getResponseDataEarningCalendarRevenueEstimate !== null;
           });
           const content = {
             earnings: _.map(filteredEarnings, (filteredEarning) => {
@@ -727,6 +727,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
               }
 
               return {
+                isoDate: filteredEarningDate,
                 date: fetchFormattedDate('iso', filteredEarningDate, 'config', 'DDDD'),
                 symbol: filteredEarningSymbol,
                 fiscalQuarter: `${filteredEarningYear} Q${filteredEarningQuarter}`,
@@ -759,21 +760,22 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
             const newContent = content.earnings;
             const oldContent = memoryFinnhubEarnings.earnings;
             const earnings = _.differenceWith(newContent, oldContent, _.isEqual);
+            const sortedEarnings = _.orderBy(earnings, ['isoDate'], ['asc']);
 
             memoryFinnhubEarnings = content;
 
             if (channel) {
-              earnings.forEach((earning) => {
-                const earningDate = earning.date;
-                const earningSymbol = earning.symbol;
-                const earningFiscalQuarter = earning.fiscalQuarter;
-                const earningCallTime = earning.callTime;
-                const earningEpsEstimate = earning.epsEstimate;
-                const earningEpsActual = earning.epsActual;
-                const earningEpsSurprise = earning.epsSurprise;
-                const earningRevenueEstimate = earning.revenueEstimate;
-                const earningRevenueActual = earning.revenueActual;
-                const earningRevenueSurprise = earning.revenueSurprise;
+              sortedEarnings.forEach((sortedEarning) => {
+                const earningDate = sortedEarning.date;
+                const earningSymbol = sortedEarning.symbol;
+                const earningFiscalQuarter = sortedEarning.fiscalQuarter;
+                const earningCallTime = sortedEarning.callTime;
+                const earningEpsEstimate = sortedEarning.epsEstimate;
+                const earningEpsActual = sortedEarning.epsActual;
+                const earningEpsSurprise = sortedEarning.epsSurprise;
+                const earningRevenueEstimate = sortedEarning.revenueEstimate;
+                const earningRevenueActual = sortedEarning.revenueActual;
+                const earningRevenueSurprise = sortedEarning.revenueSurprise;
 
                 payload = {
                   content: [
@@ -903,11 +905,13 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
         },
       });
     } else if (memoryFinnhubEarnings !== null) {
+      const sortedEarnings = _.orderBy(memoryFinnhubEarnings.earnings, ['isoDate', 'symbol'], ['desc', 'asc']);
+
       payload = {
         content: 'Here are the latest earnings information up to today:',
         files: [
           createEarningsTableAttachment(
-            memoryFinnhubEarnings.earnings,
+            sortedEarnings,
           ),
         ],
         reply: {
@@ -958,6 +962,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
 export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: StocktwitsTrendingGuild, settings: StocktwitsTrendingSettings): StocktwitsTrendingReturns {
   const guildRoles = guild.roles;
 
+  const settingsSettingsLimit = <StocktwitsTrendingSettingsSettingsLimit>_.get(settings, ['settings', 'limit']);
   const settingsChannelChannelId = <StocktwitsTrendingSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
   const settingsCommandBaseCommands = <StocktwitsTrendingSettingsCommandBaseCommands>_.get(settings, ['command', 'base-commands']);
   const settingsCommandAllowedRoles = <StocktwitsTrendingSettingsCommandAllowedRoles>_.get(settings, ['command', 'allowed-roles']);
@@ -993,6 +998,25 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
         `(function: stocktwitsTrending, settings: ${JSON.stringify(settings)})`,
       ].join(' '),
       40,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.settings.limit" is not configured properly.
+  if (
+    settingsSettingsLimit !== undefined
+    && (
+      !_.isNumber(settingsSettingsLimit)
+      || !_.inRange(settingsSettingsLimit, 1, 31)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.settings.limit" is not configured properly',
+        `(function: stocktwitsTrending, limit: ${JSON.stringify(settingsSettingsLimit)})`,
+      ].join(' '),
+      10,
     );
 
     return;
@@ -1104,7 +1128,9 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
      * @since 1.0.0
      */
     cron.schedule('0/20 * * * * *', () => {
-      axios.get<ApiStocktwitsTrending>('https://api.stocktwits.com/api/2/trending/symbols.json?limit=15').then((getResponse) => {
+      const limitParameter = (settingsSettingsLimit !== undefined) ? settingsSettingsLimit : 30;
+
+      axios.get<ApiStocktwitsTrending>(`https://api.stocktwits.com/api/2/trending/symbols.json?limit=${limitParameter}`).then((getResponse) => {
         const getResponseData = getResponse.data;
 
         const getResponseDataResponseStatus = <ApiStocktwitsTrendingResponseStatus>_.get(getResponseData, ['response', 'status']);

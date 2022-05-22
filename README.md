@@ -609,6 +609,8 @@ Retrieve updated information through a live feed and via a customizable keyword 
 | `api-fetch.finnhub-earnings.command.allowed-roles[x].role-id`         | `string`   | Allowed role                                              | yes          | Discord role ID                                                                                                                                      |
 | `api-fetch.finnhub-earnings.command.no-perms-payload`                 | `object`   | Message content to send if user does not have permissions | no           | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%YEAR%` |
 | `api-fetch.stocktwits-trending`                                       | `object`   |                                                           | no           |                                                                                                                                                      |
+| `api-fetch.stocktwits-trending.settings`                              | `object`   |                                                           | no           |                                                                                                                                                      |
+| `api-fetch.stocktwits-trending.settings.limit`                        | `number`   | Symbols to retrieve for each retrieval                    | no           | From `1` to `30`                                                                                                                                     |
 | `api-fetch.stocktwits-trending.channel`                               | `object`   |                                                           | no           |                                                                                                                                                      |
 | `api-fetch.stocktwits-trending.channel.description`                   | `string`   | Description of the channel used to send API updates       | no           |                                                                                                                                                      |
 | `api-fetch.stocktwits-trending.channel.channel-id`                    | `string`   | Channel used to send API updates                          | yes          | Discord channel ID                                                                                                                                   |
@@ -675,6 +677,9 @@ Retrieve updated information through a live feed and via a customizable keyword 
       }
     },
     "stocktwits-trending": {
+      "settings": {
+        "limit": 30
+      },
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"

@@ -2210,6 +2210,12 @@ export type StocktwitsTrendingMessage = Message | undefined;
 
 export type StocktwitsTrendingGuild = Guild;
 
+export type StocktwitsTrendingSettingsSettingsLimit = number | undefined;
+
+export type StocktwitsTrendingSettingsSettings = {
+  limit: StocktwitsTrendingSettingsSettingsLimit;
+} | undefined;
+
 export type StocktwitsTrendingSettingsChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
 export type StocktwitsTrendingSettingsChannel = ConfigChannel | undefined;
@@ -2233,6 +2239,7 @@ export type StocktwitsTrendingSettingsCommand = {
 } | undefined;
 
 export type StocktwitsTrendingSettings = {
+  settings: StocktwitsTrendingSettingsSettings;
   channel: StocktwitsTrendingSettingsChannel;
   command: StocktwitsTrendingSettingsCommand;
 } | undefined;
