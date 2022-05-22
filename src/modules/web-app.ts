@@ -703,8 +703,6 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
           case 'string':
             if (_.isString(fetchedValue)) {
               editedValue = fetchedValue
-                .replace(/\b/g, '\\b') // Escape backspaces.
-                .replace(/\f/g, '\\f') // Escape form feeds.
                 .replace(/\n/g, '\\n') // Escape new lines.
                 .replace(/\r/g, '\\r') // Escape carriage returns.
                 .replace(/\t/g, '\\t'); // Escape tabs.
