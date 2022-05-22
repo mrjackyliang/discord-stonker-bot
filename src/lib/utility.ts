@@ -89,6 +89,7 @@ let memoryTrackedRoutes: MemoryTrackedRoutes = [];
 export function escapeCharacters(string: EscapeCharactersString): EscapeCharactersReturns {
   return string
     .replace(/[\\]/g, '\\\\') // Escape double-backslashes.
+    .replace(/[\\"]/g, '\\"') // Escape double-quotes.
     .replace(/[/]/g, '\\/') // Escape forward slashes.
     .replace(/[\b]/g, '\\b') // Escape backspaces.
     .replace(/[\f]/g, '\\f') // Escape form feeds.
