@@ -84,6 +84,27 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
     let endTime = startTime;
     let payload: MessageOptions = {};
 
+    // If Twitter client not configured.
+    if (twitterClient === undefined) {
+      generateLogMessage(
+        [
+          'Twitter client not configured',
+          `(function: twitterFeeds, name: ${JSON.stringify(eventName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Twitter client configured',
+        `(function: twitterFeeds, name: ${JSON.stringify(eventName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+      ].join(' '),
+      40,
+    );
+
     twitterApiQueue.schedule(() => twitterClient.v2.userTimeline(eventTwitterId, {
       exclude: (eventExcludeRetweets === true || eventExcludeReplies === true) ? [
         ...(eventExcludeRetweets === true) ? ['retweets' as 'retweets'] : [],

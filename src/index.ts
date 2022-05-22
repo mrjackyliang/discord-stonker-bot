@@ -156,12 +156,21 @@ const discordClient = new Client({
  *
  * @since 1.0.0
  */
-const twitterClient = new TwitterApi({
-  appKey: configSettingsTwitterApiKey ?? '',
-  appSecret: configSettingsTwitterApiKeySecret ?? '',
-  accessToken: configSettingsTwitterAccessToken,
-  accessSecret: configSettingsTwitterAccessTokenSecret,
-});
+let twitterClient: TwitterApi | undefined;
+
+if (
+  _.isString(configSettingsTwitterApiKey)
+  && _.isString(configSettingsTwitterApiKeySecret)
+  && _.isString(configSettingsTwitterAccessToken)
+  && _.isString(configSettingsTwitterAccessTokenSecret)
+) {
+  twitterClient = new TwitterApi({
+    appKey: configSettingsTwitterApiKey,
+    appSecret: configSettingsTwitterApiKeySecret,
+    accessToken: configSettingsTwitterAccessToken,
+    accessSecret: configSettingsTwitterAccessTokenSecret,
+  });
+}
 
 /**
  * Discord client login.

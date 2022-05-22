@@ -230,7 +230,7 @@ export type BroadcastAlertsInstance = {
   userCount: number | null;
 };
 
-export type BroadcastAlertsTwitterClient = TwitterApi;
+export type BroadcastAlertsTwitterClient = TwitterApi | undefined;
 
 export type BroadcastAlertsGuild = Guild;
 
@@ -276,7 +276,7 @@ export type BroadcastAlertsReplaceVariablesReturns = string;
  */
 export type BroadcastAlertsViaGuildScheduledEventCreateScheduledEvent = GuildScheduledEvent;
 
-export type BroadcastAlertsViaGuildScheduledEventCreateTwitterClient = TwitterApi;
+export type BroadcastAlertsViaGuildScheduledEventCreateTwitterClient = TwitterApi | undefined;
 
 export type BroadcastAlertsViaGuildScheduledEventCreateGuild = Guild;
 
@@ -300,7 +300,7 @@ export type BroadcastAlertsViaGuildScheduledEventUpdateOldScheduledEvent = Guild
 
 export type BroadcastAlertsViaGuildScheduledEventUpdateNewScheduledEvent = GuildScheduledEvent;
 
-export type BroadcastAlertsViaGuildScheduledEventUpdateTwitterClient = TwitterApi;
+export type BroadcastAlertsViaGuildScheduledEventUpdateTwitterClient = TwitterApi | undefined;
 
 export type BroadcastAlertsViaGuildScheduledEventUpdateGuild = Guild;
 
@@ -322,7 +322,7 @@ export type BroadcastAlertsViaGuildScheduledEventUpdateGenerateInstanceReturns =
  */
 export type BroadcastAlertsViaGuildScheduledEventDeleteScheduledEvent = GuildScheduledEvent;
 
-export type BroadcastAlertsViaGuildScheduledEventDeleteTwitterClient = TwitterApi;
+export type BroadcastAlertsViaGuildScheduledEventDeleteTwitterClient = TwitterApi | undefined;
 
 export type BroadcastAlertsViaGuildScheduledEventDeleteGuild = Guild;
 
@@ -1180,6 +1180,13 @@ export type GenerateTitleKey = string;
 export type GenerateTitleReturns = string;
 
 /**
+ * Generate user agent.
+ *
+ * @since 1.0.0
+ */
+export type GenerateUserAgentReturns = string;
+
+/**
  * Get collection items.
  *
  * @since 1.0.0
@@ -1398,7 +1405,7 @@ export type IncludesLinkReturns = void;
  */
 export type InitializeDiscordClient = Client;
 
-export type InitializeTwitterClient = TwitterApi;
+export type InitializeTwitterClient = TwitterApi | undefined;
 
 export type InitializeGuild = Guild;
 
@@ -1625,7 +1632,7 @@ export type MemberHasPermissionsReturns = boolean;
  */
 export type MessageCopiersMessage = Message;
 
-export type MessageCopiersTwitterClient = TwitterApi;
+export type MessageCopiersTwitterClient = TwitterApi | undefined;
 
 export type MessageCopiersEventName = string | undefined;
 
@@ -1954,6 +1961,8 @@ export type RssFeedsEventName = string | undefined;
 
 export type RssFeedsEventUrl = string | undefined;
 
+export type RssFeedsEventUserAgent = string | undefined;
+
 export type RssFeedsEventFollowRedirects = boolean | undefined;
 
 export type RssFeedsEventRemoveParameters = boolean | undefined;
@@ -2003,6 +2012,7 @@ export type RssFeedsEventFetchOn = {
 export type RssFeedsEvent = {
   name: RssFeedsEventName;
   url: RssFeedsEventUrl;
+  'user-agent': RssFeedsEventUserAgent;
   'follow-redirects': RssFeedsEventFollowRedirects;
   'remove-parameters': RssFeedsEventRemoveParameters;
   payload: RssFeedsEventPayload;
@@ -2471,7 +2481,7 @@ export type TrackRouteIsTrackedReturns = boolean;
  *
  * @since 1.0.0
  */
-export type TwitterFeedsTwitterClient = TwitterApi;
+export type TwitterFeedsTwitterClient = TwitterApi | undefined;
 
 export type TwitterFeedsGuild = Guild;
 

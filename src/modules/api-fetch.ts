@@ -8,6 +8,7 @@ import { createEarningsTableAttachment } from '../lib/attachment';
 import {
   fetchFormattedDate,
   generateLogMessage,
+  generateUserAgent,
   getTextBasedChannel,
   memberHasPermissions,
 } from '../lib/utility';
@@ -262,7 +263,11 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
     cron.schedule('0/10 * * * * *', () => {
       const apiKeyParameter = (settingsSettingsApiKey !== undefined) ? `&apikey=${settingsSettingsApiKey}` : '';
 
-      axios.get<ApiEtherscanGasOracle>(`https://api.etherscan.io/api?module=gastracker&action=gasoracle${apiKeyParameter}`).then((getResponse) => {
+      axios.get<ApiEtherscanGasOracle>(`https://api.etherscan.io/api?module=gastracker&action=gasoracle${apiKeyParameter}`, {
+        headers: {
+          'User-Agent': generateUserAgent(),
+        },
+      }).then((getResponse) => {
         const getResponseData = getResponse.data;
 
         const getResponseDataStatus = <ApiEtherscanGasOracleStatus>_.get(getResponseData, ['status']);
@@ -676,7 +681,11 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
      * @since 1.0.0
      */
     cron.schedule('0/10 * * * * *', () => {
-      axios.get<ApiFinnhubEarnings>(`https://finnhub.io/api/v1/calendar/earnings?token=${settingsSettingsApiKey}`).then((getResponse) => {
+      axios.get<ApiFinnhubEarnings>(`https://finnhub.io/api/v1/calendar/earnings?token=${settingsSettingsApiKey}`, {
+        headers: {
+          'User-Agent': generateUserAgent(),
+        },
+      }).then((getResponse) => {
         const getResponseData = getResponse.data;
 
         const getResponseDataEarningsCalendar = <ApiFinnhubEarningsEvents>_.get(getResponseData, ['earningsCalendar']);
@@ -1130,7 +1139,11 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
     cron.schedule('0/20 * * * * *', () => {
       const limitParameter = (settingsSettingsLimit !== undefined) ? settingsSettingsLimit : 30;
 
-      axios.get<ApiStocktwitsTrending>(`https://api.stocktwits.com/api/2/trending/symbols.json?limit=${limitParameter}`).then((getResponse) => {
+      axios.get<ApiStocktwitsTrending>(`https://api.stocktwits.com/api/2/trending/symbols.json?limit=${limitParameter}`, {
+        headers: {
+          'User-Agent': generateUserAgent(),
+        },
+      }).then((getResponse) => {
         const getResponseData = getResponse.data;
 
         const getResponseDataResponseStatus = <ApiStocktwitsTrendingResponseStatus>_.get(getResponseData, ['response', 'status']);

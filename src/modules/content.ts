@@ -8,6 +8,7 @@ import {
   fetchFormattedDate,
   generateCron,
   generateLogMessage,
+  generateUserAgent,
   getTextBasedChannel,
   isTimeZoneValid,
 } from '../lib/utility';
@@ -27,6 +28,7 @@ import {
   RssFeedsEventRemoveParameters,
   RssFeedsEvents,
   RssFeedsEventUrl,
+  RssFeedsEventUserAgent,
   RssFeedsGuild,
   RssFeedsRemoveParametersItemLink,
   RssFeedsRemoveParametersReturns,
@@ -138,6 +140,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
   events.forEach((event, eventKey) => {
     const theName = <RssFeedsEventName>_.get(event, ['name']) ?? 'Unknown';
     const theUrl = <RssFeedsEventUrl>_.get(event, ['url']);
+    const theUserAgent = <RssFeedsEventUserAgent>_.get(event, ['user-agent']);
     const theFollowRedirects = <RssFeedsEventFollowRedirects>_.get(event, ['follow-redirects']);
     const theRemoveParameters = <RssFeedsEventRemoveParameters>_.get(event, ['remove-parameters']);
     const thePayload = <RssFeedsEventPayload>_.get(event, ['payload']);
@@ -182,6 +185,25 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
         [
           `"rss-feeds[${eventKey}].url" is not configured properly`,
           `(function: rssFeeds, name: ${JSON.stringify(theName)}, url: ${JSON.stringify(theUrl)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    // If "rss-feeds[${eventKey}].user-agent" is not configured properly.
+    if (
+      theUserAgent !== undefined
+      && (
+        !_.isString(theUserAgent)
+        || _.isEmpty(theUserAgent)
+      )
+    ) {
+      generateLogMessage(
+        [
+          `"rss-feeds[${eventKey}].user-agent" is not configured properly`,
+          `(function: rssFeeds, name: ${JSON.stringify(theName)}, user agent: ${JSON.stringify(theUserAgent)})`,
         ].join(' '),
         10,
       );
@@ -414,7 +436,11 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
     }
 
     try {
-      const rssParser = new RssParser();
+      const rssParser = new RssParser({
+        headers: {
+          'User-Agent': (theUserAgent !== undefined) ? theUserAgent : generateUserAgent(),
+        },
+      });
       const rule = generateCron({
         'days-of-week': theFetchOnDaysOfWeek,
         months: theFetchOnMonths,
@@ -441,7 +467,11 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
               const parseURLResponseItemLink = parseURLResponseItem.link;
 
               if (parseURLResponseItemLink !== undefined) {
-                return axios.get(parseURLResponseItemLink).then((getResponse) => {
+                return axios.get(parseURLResponseItemLink, {
+                  headers: {
+                    'User-Agent': generateUserAgent(),
+                  },
+                }).then((getResponse) => {
                   const getResponseRequestResResponseUrl = getResponse.request.res.responseUrl;
 
                   generateLogMessage(

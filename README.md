@@ -855,6 +855,7 @@ Sends out messages when an update from external RSS feeds are detected. Control 
 | `rss-feeds`                          | `object[]` |                                                         | no           |                                                                                                                                                                              |
 | `rss-feeds[x].name`                  | `string`   | Name of the event                                       | no           |                                                                                                                                                                              |
 | `rss-feeds[x].url`                   | `string`   | Link to RSS feed                                        | yes          | Fully qualified URL                                                                                                                                                          |
+| `rss-feeds[x].user-agent`            | `string`   | User agent to use when retrieving RSS feed              | no           | Most popular user agents found in [Tech Blog (wh)](https://techblog.willshouse.com/2012/01/03/most-common-user-agents/)                                                      |
 | `rss-feeds[x].follow-redirects`      | `boolean`  | Follow redirects for each RSS update                    | no           | `true` or `false`                                                                                                                                                            |
 | `rss-feeds[x].remove-parameters`     | `boolean`  | Remove all parameters for each RSS update               | no           | `true` or `false`                                                                                                                                                            |
 | `rss-feeds[x].payload`               | `object`   | Message content to send for each RSS update             | yes          | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%ITEM_LINK%` and `%ITEM_TITLE%` |
@@ -876,6 +877,7 @@ Sends out messages when an update from external RSS feeds are detected. Control 
     {
       "name": "Sample",
       "url": "https://www.example.com/feed",
+      "user-agent": "stonker-bot",
       "follow-redirects": true,
       "remove-parameters": true,
       "payload": {

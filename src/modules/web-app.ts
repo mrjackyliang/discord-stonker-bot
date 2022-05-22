@@ -10,6 +10,7 @@ import path from 'path';
 import {
   fetchFormattedDate,
   generateLogMessage,
+  generateUserAgent,
   getTextBasedChannel,
   trackRoute,
   trackRouteIsTracked,
@@ -467,6 +468,9 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
       const requestBodyToken = request.body.token;
 
       axios.post<ApiGoogleRecaptchaVerify>('https://www.google.com/recaptcha/api/siteverify', undefined, {
+        headers: {
+          'User-Agent': generateUserAgent(),
+        },
         params: {
           secret: settingsRecaptchaSecretKey,
           response: requestBodyToken,

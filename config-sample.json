@@ -439,6 +439,7 @@
     {
       "name": "Sample",
       "url": "https://www.example.com/feed",
+      "user-agent": "stonker-bot",
       "follow-redirects": true,
       "remove-parameters": true,
       "payload": {

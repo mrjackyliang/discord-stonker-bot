@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import {
   generateLogMessage,
+  generateUserAgent,
   getCollectionItems,
   getTextBasedChannel,
   splitStringChunks,
@@ -281,7 +282,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
       );
 
       if (regExp.test(messageContent)) {
-        payload = _.sample(thePayloads) as MessageOptions;
+        payload = _.sample(thePayloads as MessageOptions[]) ?? thePayloads[0] as MessageOptions;
 
         if (theReply === true) {
           _.assign(payload, {
@@ -504,7 +505,12 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
         const originalMessageAttachmentName = originalMessageAttachment.name;
         const originalMessageAttachmentUrl = originalMessageAttachment.url;
 
-        return axios.get<Buffer>(originalMessageAttachmentUrl, { responseType: 'arraybuffer' }).then((getResponse) => {
+        return axios.get<Buffer>(originalMessageAttachmentUrl, {
+          headers: {
+            'User-Agent': generateUserAgent(),
+          },
+          responseType: 'arraybuffer',
+        }).then((getResponse) => {
           const getResponseData = getResponse.data;
 
           generateLogMessage(
@@ -744,7 +750,9 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
 
           try {
             await axios.post<ApiDiscordWebhook>(theUrl, form, {
-              headers: form.getHeaders(),
+              headers: form.getHeaders({
+                'User-Agent': generateUserAgent(),
+              }),
             });
 
             generateLogMessage(
@@ -767,6 +775,27 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
         }
 
         if (theMethod === 'twitter-account') {
+          // If Twitter client not configured.
+          if (twitterClient === undefined) {
+            generateLogMessage(
+              [
+                'Twitter client not configured',
+                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+              ].join(' '),
+              10,
+            );
+
+            return;
+          }
+
+          generateLogMessage(
+            [
+              'Twitter client configured',
+              `(function: messageCopiers, name: ${JSON.stringify(eventName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+            ].join(' '),
+            40,
+          );
+
           const images = _.filter(attachments, (attachment) => {
             const attachmentType = attachment.type;
 

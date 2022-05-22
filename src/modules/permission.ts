@@ -62,27 +62,6 @@ const memoryTogglePermsSchedules: MemoryTogglePermsSchedules = {};
  * @since 1.0.0
  */
 export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild, events: TogglePermsEvents): TogglePermsReturns {
-  if (guild.me === null) {
-    generateLogMessage(
-      [
-        'Failed to invoke function',
-        '(function: togglePerms)',
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  generateLogMessage(
-    [
-      'Invoked function',
-      '(function: togglePerms)',
-    ].join(' '),
-    40,
-  );
-
-  const guildMeUserTag = guild.me.user.tag;
   const guildMembers = guild.members;
   const guildRoles = guild.roles;
 
@@ -92,13 +71,13 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
    * @param {TogglePermsTogglerEventName}    eventName    - Event name.
    * @param {TogglePermsTogglerEventKey}     eventKey     - Event key.
    * @param {TogglePermsTogglerEventToggles} eventToggles - Event toggles.
-   * @param {TogglePermsTogglerUserTag}      userTag      - User tag.
+   * @param {TogglePermsTogglerUserTag}      [userTag]    - User tag.
    *
    * @returns {TogglePermsTogglerReturns}
    *
    * @since 1.0.0
    */
-  const toggler = async (eventName: TogglePermsTogglerEventName, eventKey: TogglePermsTogglerEventKey, eventToggles: TogglePermsTogglerEventToggles, userTag: TogglePermsTogglerUserTag): TogglePermsTogglerReturns => {
+  const toggler = async (eventName: TogglePermsTogglerEventName, eventKey: TogglePermsTogglerEventKey, eventToggles: TogglePermsTogglerEventToggles, userTag?: TogglePermsTogglerUserTag): TogglePermsTogglerReturns => {
     if (
       _.isArray(eventToggles)
       && !_.isEmpty(eventToggles)
@@ -190,7 +169,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
               theUserOrRoleId,
               theUserOrRolePerms,
               {
-                reason: `${userTag} toggled permissions`,
+                reason: `${userTag ?? 'Stonker Bot'} toggled permissions`,
               },
             );
 
@@ -573,7 +552,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
             40,
           );
 
-          toggler(theName, eventKey, theToggles, guildMeUserTag).then((toggleResponses) => {
+          toggler(theName, eventKey, theToggles).then((toggleResponses) => {
             const answers = _.flattenDeep([toggleResponses]);
             const success = _.every(answers, (answer) => answer === true);
 

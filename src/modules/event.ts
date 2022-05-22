@@ -301,6 +301,27 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
 
     payload = replaceVariables(theMessage);
 
+    // If Twitter client not configured.
+    if (twitterClient === undefined) {
+      generateLogMessage(
+        [
+          'Twitter client not configured',
+          `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Twitter client configured',
+        `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, twitter client: ${JSON.stringify(twitterClient)})`,
+      ].join(' '),
+      40,
+    );
+
     twitterClient.v2.tweet(payload).then(() => generateLogMessage(
       [
         'Sent tweet',
