@@ -1,84 +1,270 @@
-import {
-  Collection,
-  ColorResolvable,
-  EmbedFieldData,
-  GuildMemberRoleManager,
-  MessageAttachment,
-  MessageEmbed,
-  Snowflake,
-} from 'discord.js';
+import { EmbedFieldData, MessageEmbed } from 'discord.js';
 import _ from 'lodash';
-import { DateTime, DurationUnit, Interval } from 'luxon';
 
-import config from '../../config.json';
-
-import { getReadableDuration, splitStringChunks } from './utilities';
+import { fetchFormattedDate, fetchFormattedDuration, splitStringChunks } from './utility';
 import {
-  EmbedStatus,
-  HelpMenuEmbedCommands,
-  MemberMonitorMode,
-  RoleRoute,
-  VoiceRoute,
+  AddAttachmentFieldsMessageAttachments,
+  AddAttachmentFieldsReturns,
+  AddMessageFieldsMessageContent,
+  AddMessageFieldsReturns,
+  AddMessageFieldsTitle,
+  AddTimeDurationFieldsAccountAge,
+  AddTimeDurationFieldsReturns,
+  AddTimeDurationFieldsTimeOfStay,
+  AddUserInformationFieldsReturns,
+  AddUserInformationFieldsUserAvatar,
+  AddUserInformationFieldsUserMention,
+  AddUserInformationFieldsUserTag,
+  CreateBulkBanEmbedProgressMessage,
+  CreateBulkBanEmbedReturns,
+  CreateBulkBanEmbedStatus,
+  CreateBulkBanEmbedUserTag,
+  CreateChangeNicknameEmbedNewNickname,
+  CreateChangeNicknameEmbedOldNickname,
+  CreateChangeNicknameEmbedReturns,
+  CreateChangeNicknameEmbedUserAvatarUrl,
+  CreateChangeNicknameEmbedUserMention,
+  CreateChangeUsernameEmbedNewUserTag,
+  CreateChangeUsernameEmbedOldUserTag,
+  CreateChangeUsernameEmbedReturns,
+  CreateChangeUsernameEmbedUserAvatarUrl,
+  CreateChangeUsernameEmbedUserMention,
+  CreateCommandErrorEmbedReason,
+  CreateCommandErrorEmbedReturns,
+  CreateCommandErrorEmbedUserTag,
+  CreateDeleteMessageEmbedChannelMention,
+  CreateDeleteMessageEmbedMessageAttachments,
+  CreateDeleteMessageEmbedMessageContent,
+  CreateDeleteMessageEmbedMessageId,
+  CreateDeleteMessageEmbedMessageUrl,
+  CreateDeleteMessageEmbedReturns,
+  CreateDeleteMessageEmbedUserMention,
+  CreateGuildJoinEmbedReturns,
+  CreateGuildJoinEmbedUserAvatar,
+  CreateGuildJoinEmbedUserAvatarUrl,
+  CreateGuildJoinEmbedUserCreatedAt,
+  CreateGuildJoinEmbedUserMention,
+  CreateGuildJoinEmbedUserTag,
+  CreateGuildLeaveEmbedMemberJoinedAt,
+  CreateGuildLeaveEmbedMemberRoles,
+  CreateGuildLeaveEmbedReturns,
+  CreateGuildLeaveEmbedUserAvatar,
+  CreateGuildLeaveEmbedUserAvatarUrl,
+  CreateGuildLeaveEmbedUserCreatedAt,
+  CreateGuildLeaveEmbedUserMention,
+  CreateGuildLeaveEmbedUserTag,
+  CreateIncludesLinkEmbedChannelMention,
+  CreateIncludesLinkEmbedMessageAttachments,
+  CreateIncludesLinkEmbedMessageContent,
+  CreateIncludesLinkEmbedMessageId,
+  CreateIncludesLinkEmbedMessageUrl,
+  CreateIncludesLinkEmbedReturns,
+  CreateIncludesLinkEmbedUserMention,
+  CreateListEmojisEmbedReturns,
+  CreateListEmojisEmbedRoute,
+  CreateListEmojisEmbedUserTag,
+  CreateListMembersEmbedReturns,
+  CreateListMembersEmbedThumbnailUrl,
+  CreateListMembersEmbedTitle,
+  CreateListMembersEmbedUserTag,
+  CreateNoResultsEmbedReason,
+  CreateNoResultsEmbedReturns,
+  CreateNoResultsEmbedUserTag,
+  CreateRemoveAffiliatesEmbedChannelMention,
+  CreateRemoveAffiliatesEmbedMessageAttachments,
+  CreateRemoveAffiliatesEmbedMessageContent,
+  CreateRemoveAffiliatesEmbedMessageId,
+  CreateRemoveAffiliatesEmbedMessageUrl,
+  CreateRemoveAffiliatesEmbedPlatforms,
+  CreateRemoveAffiliatesEmbedReturns,
+  CreateRemoveAffiliatesEmbedUserMention,
+  CreateRoleChangeEmbedAddedMemberRoles,
+  CreateRoleChangeEmbedRemovedMemberRoles,
+  CreateRoleChangeEmbedReturns,
+  CreateRoleChangeEmbedUserAvatarUrl,
+  CreateRoleChangeEmbedUserMention,
+  CreateRoleManagerEmbedProgressMessage,
+  CreateRoleManagerEmbedReturns,
+  CreateRoleManagerEmbedRoute,
+  CreateRoleManagerEmbedStatus,
+  CreateRoleManagerEmbedUserTag,
+  CreateSuspiciousWordsEmbedCategories,
+  CreateSuspiciousWordsEmbedChannelMention,
+  CreateSuspiciousWordsEmbedMessageAttachments,
+  CreateSuspiciousWordsEmbedMessageContent,
+  CreateSuspiciousWordsEmbedMessageId,
+  CreateSuspiciousWordsEmbedMessageUrl,
+  CreateSuspiciousWordsEmbedReturns,
+  CreateSuspiciousWordsEmbedUserMention,
+  CreateTogglePermsEmbedProgressMessage,
+  CreateTogglePermsEmbedReturns,
+  CreateTogglePermsEmbedSuccess,
+  CreateTogglePermsEmbedUserTag,
+  CreateUpdateMessageEmbedChannelMention,
+  CreateUpdateMessageEmbedMessageAttachments,
+  CreateUpdateMessageEmbedMessageId,
+  CreateUpdateMessageEmbedMessageUrl,
+  CreateUpdateMessageEmbedNewMessageContent,
+  CreateUpdateMessageEmbedOldMessageContent,
+  CreateUpdateMessageEmbedReturns,
+  CreateUpdateMessageEmbedUserMention,
+  CreateUploadAttachmentEmbedChannelMention,
+  CreateUploadAttachmentEmbedMessageAttachments,
+  CreateUploadAttachmentEmbedMessageId,
+  CreateUploadAttachmentEmbedMessageUrl,
+  CreateUploadAttachmentEmbedReturns,
+  CreateUploadAttachmentEmbedUserMention,
+  CreateVoiceToolsEmbedProgressMessage,
+  CreateVoiceToolsEmbedReturns,
+  CreateVoiceToolsEmbedRoute,
+  CreateVoiceToolsEmbedStatus,
+  CreateVoiceToolsEmbedUserTag,
+  GenerateColorKey,
+  GenerateColorReturns,
+  GenerateEmbedColor,
+  GenerateEmbedDescription,
+  GenerateEmbedFields,
+  GenerateEmbedFooterText,
+  GenerateEmbedReturns,
+  GenerateEmbedThumbnailUrl,
+  GenerateEmbedTitle,
+  GenerateTitleKey,
+  GenerateTitleReturns,
 } from '../types';
 
 /**
- * Add embed.
+ * Generate color.
  *
- * @param {string}                     title        - Embed title.
- * @param {string}                     description  - Embed description.
- * @param {string|undefined}           thumbnailUrl - Embed thumbnail url.
- * @param {EmbedFieldData[]|undefined} fields       - Embed fields.
- * @param {string}                     footer       - Embed footer message.
- * @param {ColorResolvable}            color        - Embed hex color.
+ * @param {GenerateColorKey} key - Key.
  *
- * @returns {MessageEmbed}
+ * @returns {GenerateColorReturns}
  *
  * @since 1.0.0
  */
-function addEmbed(title: string, description: string, thumbnailUrl: string | undefined, fields: EmbedFieldData[] | undefined, footer: string, color: ColorResolvable = '#808080'): MessageEmbed {
-  const embed = new MessageEmbed()
-    .setColor(color)
-    .setTitle(title)
-    .setDescription(description)
-    .setTimestamp()
-    .setFooter({
-      text: footer,
-    });
-
-  if (thumbnailUrl !== undefined) {
-    embed.setThumbnail(thumbnailUrl);
+export function generateColor(key: GenerateColorKey): GenerateColorReturns {
+  switch (key) {
+    case 'complete':
+    case 'success':
+      return '#5fdc46';
+    case 'fail':
+    case 'error':
+      return '#de564f';
+    case 'in-progress':
+    case 'warn':
+      return '#eea942';
+    case 'info':
+      return '#4798e0';
+    case 'default':
+    default:
+      return '#808080';
   }
-
-  if (fields !== undefined) {
-    embed.addFields(fields);
-  }
-
-  return embed;
 }
 
 /**
- * Add message fields.
+ * Generate embed.
  *
- * @param {string} message    - Message content.
- * @param {string} fieldTitle - Field title.
+ * @param {GenerateEmbedTitle}        title        - Title.
+ * @param {GenerateEmbedDescription}  description  - Description.
+ * @param {GenerateEmbedFields}       fields       - Fields.
+ * @param {GenerateEmbedColor}        color        - Color.
+ * @param {GenerateEmbedFooterText}   footerText   - Footer text.
+ * @param {GenerateEmbedThumbnailUrl} thumbnailUrl - Thumbnail url.
  *
- * @returns {EmbedFieldData[]}
+ * @returns {GenerateEmbedReturns}
  *
  * @since 1.0.0
  */
-export function addMessageFields(message: string, fieldTitle: string = 'Message'): EmbedFieldData[] {
-  const theMessages = splitStringChunks(message, 1020);
+export function generateEmbed(title: GenerateEmbedTitle, description: GenerateEmbedDescription, fields: GenerateEmbedFields, color: GenerateEmbedColor, footerText: GenerateEmbedFooterText, thumbnailUrl: GenerateEmbedThumbnailUrl): GenerateEmbedReturns {
+  const messageEmbed = new MessageEmbed()
+    .setTitle(title)
+    .setDescription(description)
+    .setColor(color)
+    .setFooter({
+      text: footerText,
+    })
+    .setTimestamp();
+
+  if (fields !== undefined) {
+    messageEmbed.addFields(fields);
+  }
+
+  if (thumbnailUrl !== undefined) {
+    messageEmbed.setThumbnail(thumbnailUrl);
+  }
+
+  return messageEmbed;
+}
+
+/**
+ * Generate title.
+ *
+ * @param {GenerateTitleKey} key - Key.
+ *
+ * @returns {GenerateTitleReturns}
+ *
+ * @since 1.0.0
+ */
+export function generateTitle(key: GenerateTitleKey): GenerateTitleReturns {
+  switch (key) {
+    case 'bulk-ban-complete':
+      return 'Banned Members';
+    case 'bulk-ban-fail':
+      return 'Failed to Ban Members';
+    case 'bulk-ban-in-progress':
+      return 'Banning Members';
+    case 'role-manager-add-complete':
+      return 'Roles Added';
+    case 'role-manager-add-fail':
+      return 'Failed to Add Roles';
+    case 'role-manager-add-in-progress':
+      return 'Adding Roles';
+    case 'role-manager-remove-complete':
+      return 'Roles Removed';
+    case 'role-manager-remove-fail':
+      return 'Failed to Remove Roles';
+    case 'role-manager-remove-in-progress':
+      return 'Removing Roles';
+    case 'voice-tools-disconnect-complete':
+      return 'Disconnected';
+    case 'voice-tools-disconnect-fail':
+      return 'Failed to Disconnect';
+    case 'voice-tools-disconnect-in-progress':
+      return 'Disconnecting';
+    case 'voice-tools-unmute-complete':
+      return 'Unmuted';
+    case 'voice-tools-unmute-fail':
+      return 'Failed to Unmute';
+    case 'voice-tools-unmute-in-progress':
+      return 'Unmuting';
+    case 'voice-tools-invite-complete':
+      return 'Invited to Speak';
+    case 'voice-tools-invite-fail':
+      return 'Failed to Invite to Speak';
+    case 'voice-tools-invite-in-progress':
+      return 'Inviting to Speak';
+    default:
+      return 'Unknown';
+  }
+}
+
+/**
+ * Add attachment fields.
+ *
+ * @param {AddAttachmentFieldsMessageAttachments} messageAttachments - Message attachments.
+ *
+ * @returns {AddAttachmentFieldsReturns}
+ *
+ * @since 1.0.0
+ */
+export function addAttachmentFields(messageAttachments: AddAttachmentFieldsMessageAttachments): AddAttachmentFieldsReturns {
   const fields: EmbedFieldData[] = [];
 
-  _.forEach(theMessages, (theMessage, key) => {
+  messageAttachments.forEach((messageAttachment, messageAttachmentKey) => {
+    const messageAttachmentUrl = messageAttachment.url;
+
     fields.push({
-      name: [
-        '**',
-        fieldTitle,
-        ...(key > 0) ? ['(cont.)'] : [],
-        '**',
-      ].join(' '),
-      value: `>>> ${theMessage}`,
+      name: `**Attachment ${messageAttachmentKey + 1}**`,
+      value: messageAttachmentUrl,
     });
   });
 
@@ -86,24 +272,97 @@ export function addMessageFields(message: string, fieldTitle: string = 'Message'
 }
 
 /**
- * Add attachment fields.
+ * Add message fields.
  *
- * @param {Collection<Snowflake, MessageAttachment>} attachments - The attachments.
- * @param {string}                                   fieldTitle  - Field title.
+ * @param {AddMessageFieldsTitle}          title          - Title.
+ * @param {AddMessageFieldsMessageContent} messageContent - Message content.
  *
- * @returns {EmbedFieldData[]}
+ * @returns {AddMessageFieldsReturns}
  *
  * @since 1.0.0
  */
-export function addAttachmentFields(attachments: Collection<Snowflake, MessageAttachment>, fieldTitle: string = 'Attachment'): EmbedFieldData[] {
+export function addMessageFields(title: AddMessageFieldsTitle, messageContent: AddMessageFieldsMessageContent): AddMessageFieldsReturns {
+  const messageChunks = splitStringChunks(messageContent, 1020);
+
   const fields: EmbedFieldData[] = [];
 
-  _.forEach([...attachments.values()], (attachment, key) => {
+  messageChunks.forEach((messageChunk, messageChunkKey) => {
     fields.push({
-      name: `**${fieldTitle} ${key + 1}**`,
-      value: attachment.url,
+      name: [
+        '**',
+        title,
+        ...(messageChunkKey > 0) ? [' (cont.)'] : [],
+        '**',
+      ].join(''),
+      value: `>>> ${messageChunk}`, // 1024 characters max per field (">>> " is 4 characters).
     });
   });
+
+  return fields;
+}
+
+/**
+ * Add time duration fields.
+ *
+ * @param {AddTimeDurationFieldsAccountAge} accountAge   - Account age.
+ * @param {AddTimeDurationFieldsTimeOfStay} [timeOfStay] - Time of stay.
+ *
+ * @returns {AddTimeDurationFieldsReturns}
+ *
+ * @since 1.0.0
+ */
+export function addTimeDurationFields(accountAge: AddTimeDurationFieldsAccountAge, timeOfStay?: AddTimeDurationFieldsTimeOfStay): AddTimeDurationFieldsReturns {
+  const fields: EmbedFieldData[] = [];
+
+  fields.push({
+    name: '**Account Age**',
+    value: fetchFormattedDuration(accountAge),
+  });
+
+  if (timeOfStay !== undefined) {
+    fields.push({
+      name: '**Time of Stay**',
+      value: fetchFormattedDuration(timeOfStay),
+    });
+  }
+
+  return fields;
+}
+
+/**
+ * Add user information fields.
+ *
+ * @param {AddUserInformationFieldsUserTag}     userTag     - User tag.
+ * @param {AddUserInformationFieldsUserMention} userMention - User mention.
+ * @param {AddUserInformationFieldsUserAvatar}  userAvatar  - User avatar.
+ *
+ * @returns {AddUserInformationFieldsReturns}
+ *
+ * @since 1.0.0
+ */
+export function addUserInformationFields(userTag: AddUserInformationFieldsUserTag, userMention: AddUserInformationFieldsUserMention, userAvatar: AddUserInformationFieldsUserAvatar): AddUserInformationFieldsReturns {
+  const id = userMention.replace(/[<@!>]/g, '');
+
+  const fields: EmbedFieldData[] = [];
+
+  fields.push({
+    name: '**ID**',
+    value: `\`${id}\``,
+    inline: true,
+  });
+
+  fields.push({
+    name: '**Tag**',
+    value: `\`${userTag}\``,
+    inline: true,
+  });
+
+  if (userAvatar !== null) {
+    fields.push({
+      name: '**Avatar**',
+      value: `\`${userAvatar}\``,
+    });
+  }
 
   return fields;
 }
@@ -111,68 +370,46 @@ export function addAttachmentFields(attachments: Collection<Snowflake, MessageAt
 /**
  * Create bulk ban embed.
  *
- * @param {string}      message - Embed message.
- * @param {EmbedStatus} status  - Status of role command.
- * @param {string}      userTag - User tag of initiator.
+ * @param {CreateBulkBanEmbedProgressMessage} progressMessage - Progress message.
+ * @param {CreateBulkBanEmbedStatus}          status          - Status.
+ * @param {CreateBulkBanEmbedUserTag}         userTag         - User tag.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateBulkBanEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createBulkBanEmbed(message: string, status: EmbedStatus, userTag: string): MessageEmbed {
-  const generateTitle = (theStatus: EmbedStatus): string => {
-    switch (theStatus) {
-      case 'complete':
-        return 'Banned Members';
-      case 'fail':
-        return 'Failed to Ban Members';
-      case 'in-progress':
-        return 'Banning Members';
-      default:
-        return 'Unknown';
-    }
-  };
-  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
-    switch (theStatus) {
-      case 'complete':
-        return '#5fdc46';
-      case 'fail':
-        return '#de564f';
-      case 'in-progress':
-      default:
-        return '#eea942';
-    }
-  };
-
-  return addEmbed(
-    generateTitle(status),
-    message,
+export function createBulkBanEmbed(progressMessage: CreateBulkBanEmbedProgressMessage, status: CreateBulkBanEmbedStatus, userTag: CreateBulkBanEmbedUserTag): CreateBulkBanEmbedReturns {
+  return generateEmbed(
+    generateTitle(`bulk-ban-${status}`),
+    progressMessage,
     undefined,
-    undefined,
-    `Initiated by @${userTag}`,
     generateColor(status),
+    `Initiated by ${userTag}`,
+    undefined,
   );
 }
 
 /**
  * Create change nickname embed.
  *
- * @param {string|null}      oldNickname - Old nickname.
- * @param {string|null}      newNickname - New nickname.
- * @param {string}           userMention - User mention.
- * @param {string|undefined} avatarUrl   - Avatar url.
+ * @param {CreateChangeNicknameEmbedOldNickname}   oldNickname   - Nickname (old).
+ * @param {CreateChangeNicknameEmbedNewNickname}   newNickname   - Nickname (new).
+ * @param {CreateChangeNicknameEmbedUserMention}   userMention   - User mention.
+ * @param {CreateChangeNicknameEmbedUserAvatarUrl} userAvatarUrl - User avatar url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateChangeNicknameEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createChangeNicknameEmbed(oldNickname: string | null, newNickname: string | null, userMention: string, avatarUrl: string | undefined): MessageEmbed {
-  const fields = [];
+export function createChangeNicknameEmbed(oldNickname: CreateChangeNicknameEmbedOldNickname, newNickname: CreateChangeNicknameEmbedNewNickname, userMention: CreateChangeNicknameEmbedUserMention, userAvatarUrl: CreateChangeNicknameEmbedUserAvatarUrl): CreateChangeNicknameEmbedReturns {
+  const id = userMention.replace(/[<@!>]/g, '');
+
+  const fields: EmbedFieldData[] = [];
 
   let actionTitle;
   let actionDescription;
 
-  if (oldNickname) {
+  if (oldNickname !== null) {
     fields.push({
       name: '**Old nickname**',
       value: `\`${oldNickname}\``,
@@ -180,7 +417,7 @@ export function createChangeNicknameEmbed(oldNickname: string | null, newNicknam
     });
   }
 
-  if (newNickname) {
+  if (newNickname !== null) {
     fields.push({
       name: '**New nickname**',
       value: `\`${newNickname}\``,
@@ -199,591 +436,560 @@ export function createChangeNicknameEmbed(oldNickname: string | null, newNicknam
     actionDescription = 'changed their nickname';
   }
 
-  return addEmbed(
+  return generateEmbed(
     `Nickname ${actionTitle}`,
     `:clown: ${userMention} ${actionDescription}`,
-    avatarUrl,
     fields,
-    `User ID: ${_.replace(userMention, /[<@!>]/g, '')}`,
-    '#4798e0',
+    generateColor('info'),
+    `User ID: ${id}`,
+    userAvatarUrl,
   );
 }
 
 /**
  * Create change username embed.
  *
- * @param {string|null} oldTag      - Old tag.
- * @param {string|null} newTag      - New tag.
- * @param {string}      userMention - User mention.
- * @param {string}      avatarUrl   - Avatar url.
+ * @param {CreateChangeUsernameEmbedOldUserTag}    oldUserTag    - User tag (old).
+ * @param {CreateChangeUsernameEmbedNewUserTag}    newUserTag    - User tag (new).
+ * @param {CreateChangeUsernameEmbedUserMention}   userMention   - User mention.
+ * @param {CreateChangeUsernameEmbedUserAvatarUrl} userAvatarUrl - User avatar url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateChangeUsernameEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createChangeUsernameEmbed(oldTag: string | null, newTag: string | null, userMention: string, avatarUrl: string): MessageEmbed {
-  const fields = [];
+export function createChangeUsernameEmbed(oldUserTag: CreateChangeUsernameEmbedOldUserTag, newUserTag: CreateChangeUsernameEmbedNewUserTag, userMention: CreateChangeUsernameEmbedUserMention, userAvatarUrl: CreateChangeUsernameEmbedUserAvatarUrl): CreateChangeUsernameEmbedReturns {
+  const id = userMention.replace(/[<@!>]/g, '');
 
-  if (oldTag) {
+  const fields: EmbedFieldData[] = [];
+
+  if (oldUserTag !== null) {
     fields.push({
       name: '**Old username**',
-      value: `\`@${oldTag}\``,
+      value: `\`${oldUserTag}\``,
       inline: true,
     });
   }
 
-  if (newTag) {
-    fields.push({
-      name: '**New username**',
-      value: `\`@${newTag}\``,
-      inline: true,
-    });
-  }
+  fields.push({
+    name: '**New username**',
+    value: `\`${newUserTag}\``,
+    inline: true,
+  });
 
-  return addEmbed(
+  return generateEmbed(
     'Username Changed',
     `:clown: ${userMention} changed their username`,
-    avatarUrl,
     fields,
-    `User ID: ${_.replace(userMention, /[<@!>]/g, '')}`,
-    '#4798e0',
+    generateColor('info'),
+    `User ID: ${id}`,
+    userAvatarUrl,
   );
 }
 
 /**
  * Create command error embed.
  *
- * @param {string} reason  - The reason of the command error.
- * @param {string} userTag - User tag of initiator.
+ * @param {CreateCommandErrorEmbedReason}  reason  - Reason.
+ * @param {CreateCommandErrorEmbedUserTag} userTag - User tag.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateCommandErrorEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createCommandErrorEmbed(reason: string, userTag: string): MessageEmbed {
-  return addEmbed(
+export function createCommandErrorEmbed(reason: CreateCommandErrorEmbedReason, userTag: CreateCommandErrorEmbedUserTag): CreateCommandErrorEmbedReturns {
+  return generateEmbed(
     'Error',
     reason,
     undefined,
+    generateColor('error'),
+    `Initiated by ${userTag}`,
     undefined,
-    `Initiated by @${userTag}`,
-    '#de564f',
   );
 }
 
 /**
  * Create delete message embed.
  *
- * @param {string}                                   userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {string}                                   content        - Message content.
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
+ * @param {CreateDeleteMessageEmbedUserMention}        userMention        - User mention.
+ * @param {CreateDeleteMessageEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateDeleteMessageEmbedMessageId}          messageId          - Message id.
+ * @param {CreateDeleteMessageEmbedMessageContent}     messageContent     - Message content.
+ * @param {CreateDeleteMessageEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateDeleteMessageEmbedMessageUrl}         messageUrl         - Message url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateDeleteMessageEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createDeleteMessageEmbed(userMention: string, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
-  const fields = [];
+export function createDeleteMessageEmbed(userMention: CreateDeleteMessageEmbedUserMention, channelMention: CreateDeleteMessageEmbedChannelMention, messageId: CreateDeleteMessageEmbedMessageId, messageContent: CreateDeleteMessageEmbedMessageContent, messageAttachments: CreateDeleteMessageEmbedMessageAttachments, messageUrl: CreateDeleteMessageEmbedMessageUrl): CreateDeleteMessageEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (content) {
-    fields.push(...addMessageFields(content));
+  if (!_.isEmpty(messageContent)) {
+    fields.push(...addMessageFields('Message', messageContent));
   }
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments));
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
   }
 
-  return addEmbed(
+  return generateEmbed(
     'Message Deleted',
-    `:wastebasket: [Message](${url}) sent by ${userMention} was deleted in ${channelMention}`,
-    undefined,
+    `:wastebasket: [Message](${messageUrl}) sent by ${userMention} was deleted in ${channelMention}`,
     fields,
-    `Message ID: ${id}`,
-    '#de564f',
+    generateColor('error'),
+    `Message ID: ${messageId}`,
+    undefined,
   );
 }
 
 /**
- * Create help menu embed.
+ * Create guild join embed.
  *
- * @param {HelpMenuEmbedCommands} commands - Array of commands.
- * @param {string}                                        userTag  - User tag of initiator.
+ * @param {CreateGuildJoinEmbedUserTag}       userTag       - User tag.
+ * @param {CreateGuildJoinEmbedUserMention}   userMention   - User mention.
+ * @param {CreateGuildJoinEmbedUserAvatar}    userAvatar    - User avatar.
+ * @param {CreateGuildJoinEmbedUserAvatarUrl} userAvatarUrl - User avatar url.
+ * @param {CreateGuildJoinEmbedUserCreatedAt} userCreatedAt - User created at.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateGuildJoinEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createHelpMenuEmbed(commands: HelpMenuEmbedCommands, userTag: string): MessageEmbed {
-  const fields: string[] = [];
+export function createGuildJoinEmbed(userTag: CreateGuildJoinEmbedUserTag, userMention: CreateGuildJoinEmbedUserMention, userAvatar: CreateGuildJoinEmbedUserAvatar, userAvatarUrl: CreateGuildJoinEmbedUserAvatarUrl, userCreatedAt: CreateGuildJoinEmbedUserCreatedAt): CreateGuildJoinEmbedReturns {
+  const currentDateTime = fetchFormattedDate('now', undefined, 'config', 'DDDD ttt');
 
-  _.forEach(commands, (command) => {
-    fields.push(`\`${command.queries.join('`\n`')}\`\n${command.description}`);
-  });
+  const id = userMention.replace(/[<@!>]/g, '');
 
-  return addEmbed(
-    'Command Help Menu',
-    fields.join('\n\n'),
-    undefined,
-    undefined,
-    `Initiated by @${userTag}`,
+  const fields: EmbedFieldData[] = [];
+
+  fields.push(...addUserInformationFields(userTag, userMention, userAvatar));
+
+  fields.push(...addTimeDurationFields(userCreatedAt));
+
+  return generateEmbed(
+    'Member Joined the Guild',
+    `:point_right: ${userMention} has joined the guild on **${currentDateTime}**`,
+    fields,
+    generateColor('warn'),
+    `User ID: ${id}`,
+    userAvatarUrl,
+  );
+}
+
+/**
+ * Create guild leave embed.
+ *
+ * @param {CreateGuildLeaveEmbedUserTag}        userTag        - User tag.
+ * @param {CreateGuildLeaveEmbedUserMention}    userMention    - User mention.
+ * @param {CreateGuildLeaveEmbedUserAvatar}     userAvatar     - User avatar.
+ * @param {CreateGuildLeaveEmbedUserAvatarUrl}  userAvatarUrl  - User avatar url.
+ * @param {CreateGuildLeaveEmbedUserCreatedAt}  userCreatedAt  - User created at.
+ * @param {CreateGuildLeaveEmbedMemberJoinedAt} memberJoinedAt - Member joined at.
+ * @param {CreateGuildLeaveEmbedMemberRoles}    memberRoles    - Member roles.
+ *
+ * @returns {CreateGuildLeaveEmbedReturns}
+ *
+ * @since 1.0.0
+ */
+export function createGuildLeaveEmbed(userTag: CreateGuildLeaveEmbedUserTag, userMention: CreateGuildLeaveEmbedUserMention, userAvatar: CreateGuildLeaveEmbedUserAvatar, userAvatarUrl: CreateGuildLeaveEmbedUserAvatarUrl, userCreatedAt: CreateGuildLeaveEmbedUserCreatedAt, memberJoinedAt: CreateGuildLeaveEmbedMemberJoinedAt, memberRoles: CreateGuildLeaveEmbedMemberRoles): CreateGuildLeaveEmbedReturns {
+  const currentDateTime = fetchFormattedDate('now', undefined, 'config', 'DDDD ttt');
+
+  const assignedRoles = _.filter(memberRoles, (memberRole) => memberRole.name !== '@everyone');
+  const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
+  const assignedRolesDisplay = (assignedRoles.length > 0) ? assignedRolesMention.join(', ') : '';
+  const id = userMention.replace(/[<@!>]/g, '');
+
+  const fields: EmbedFieldData[] = [];
+
+  fields.push(...addUserInformationFields(userTag, userMention, userAvatar));
+
+  fields.push(...addTimeDurationFields(userCreatedAt, memberJoinedAt));
+
+  if (assignedRoles.length > 0) {
+    fields.push({
+      name: '**Assigned Roles**',
+      value: assignedRolesDisplay,
+    });
+  }
+
+  return generateEmbed(
+    'Member Left the Guild',
+    `:point_left: ${userMention} has left the guild on **${currentDateTime}**`,
+    fields,
+    generateColor('warn'),
+    `User ID: ${id}`,
+    userAvatarUrl,
   );
 }
 
 /**
  * Create includes link embed.
  *
- * @param {string|undefined}                         userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {string}                                   content        - Message content.
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
+ * @param {CreateIncludesLinkEmbedUserMention}        userMention        - User mention.
+ * @param {CreateIncludesLinkEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateIncludesLinkEmbedMessageId}          messageId          - Message id.
+ * @param {CreateIncludesLinkEmbedMessageContent}     messageContent     - Message content.
+ * @param {CreateIncludesLinkEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateIncludesLinkEmbedMessageUrl}         messageUrl         - Message url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateIncludesLinkEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createIncludesLinkEmbed(userMention: string | undefined, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
-  const fields = [];
+export function createIncludesLinkEmbed(userMention: CreateIncludesLinkEmbedUserMention, channelMention: CreateIncludesLinkEmbedChannelMention, messageId: CreateIncludesLinkEmbedMessageId, messageContent: CreateIncludesLinkEmbedMessageContent, messageAttachments: CreateIncludesLinkEmbedMessageAttachments, messageUrl: CreateIncludesLinkEmbedMessageUrl): CreateIncludesLinkEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (content) {
-    fields.push(...addMessageFields(content));
+  if (!_.isEmpty(messageContent)) {
+    fields.push(...addMessageFields('Message', messageContent));
   }
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments));
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
   }
 
-  return addEmbed(
+  return generateEmbed(
     'Links Detected',
-    `:link: [Message](${url}) sent by ${userMention} includes links in ${channelMention}`,
-    undefined,
+    `:link: [Message](${messageUrl}) sent by ${userMention} includes links in ${channelMention}`,
     fields,
-    `Message ID: ${id}`,
-    '#4798e0',
+    generateColor('info'),
+    `Message ID: ${messageId}`,
+    undefined,
+  );
+}
+
+/**
+ * Create list emojis embed.
+ *
+ * @param {CreateListEmojisEmbedRoute}   route   - Route.
+ * @param {CreateListEmojisEmbedUserTag} userTag - User tag.
+ *
+ * @returns {CreateListEmojisEmbedReturns}
+ *
+ * @since 1.0.0
+ */
+export function createListEmojisEmbed(route: CreateListEmojisEmbedRoute, userTag: CreateListEmojisEmbedUserTag): CreateListEmojisEmbedReturns {
+  const routeCapitalized = `${route[0].toUpperCase()}${route.substring(1)}`;
+
+  return generateEmbed(
+    `List of ${routeCapitalized} Emojis`,
+    [
+      'Both inline-formatted and table-formatted attachments are available for your convenience.',
+      '**You may download the attached files or partially expand and review them directly on Discord.**',
+    ].join('\n\n'),
+    undefined,
+    generateColor('info'),
+    `Initiated by ${userTag}`,
+    undefined,
   );
 }
 
 /**
  * Create list members embed.
  *
- * @param {string}           title     - The embed title.
- * @param {string[]}         mentions  - List of member mentions.
- * @param {string|undefined} thumbnail - The thumbnail url.
- * @param {string}           userTag   - User tag of initiator.
+ * @param {CreateListMembersEmbedTitle}        title          - Title.
+ * @param {CreateListMembersEmbedUserTag}      userTag        - User tag.
+ * @param {CreateListMembersEmbedThumbnailUrl} [thumbnailUrl] - Thumbnail url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateListMembersEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createListMembersEmbed(title: string, mentions: string[], thumbnail: string | undefined, userTag: string): MessageEmbed {
-  return addEmbed(
+export function createListMembersEmbed(title: CreateListMembersEmbedTitle, userTag: CreateListMembersEmbedUserTag, thumbnailUrl?: CreateListMembersEmbedThumbnailUrl): CreateListMembersEmbedReturns {
+  return generateEmbed(
     title,
-    mentions.join(' '),
-    thumbnail,
+    [
+      'Both inline-formatted and table-formatted attachments are available for your convenience.',
+      '**You may download the attached files or partially expand and review them directly on Discord.**',
+    ].join('\n\n'),
     undefined,
-    `Initiated by @${userTag}`,
-    '#4798e0',
-  );
-}
-
-/**
- * Create member monitor embed.
- *
- * @param {MemberMonitorMode}      mode      - Whether a user joined or left a guild.
- * @param {string}                 tag       - User tag.
- * @param {string}                 mention   - User mention.
- * @param {string|null}            avatar    - User avatar.
- * @param {string}                 avatarUrl - User avatar url.
- * @param {Date}                   createdAt - User created at.
- * @param {Date}                   joinedAt  - User joined at.
- * @param {GuildMemberRoleManager} roles     - User roles.
- *
- * @returns {MessageEmbed}
- *
- * @since 1.0.0
- */
-export function createMemberMonitorEmbed(mode: MemberMonitorMode, tag: string, mention: string, avatar: string | null, avatarUrl: string, createdAt: Date, joinedAt: Date, roles: GuildMemberRoleManager): MessageEmbed {
-  const fields = [];
-  const serverJoin = (mode === 'join') ? ['Joined', 'joined'] : [];
-  const serverLeave = (mode === 'leave') ? ['Left', 'left'] : [];
-  const timeZone = _.get(config, 'settings.time-zone', 'Etc/UTC');
-  const dateNow = DateTime.now();
-  const toDurationUnit: DurationUnit[] = [
-    'years',
-    'months',
-    'days',
-    'hours',
-    'minutes',
-    'seconds',
-    'milliseconds',
-  ];
-  const accountAge = Interval.fromDateTimes(createdAt, dateNow).toDuration(toDurationUnit).toObject();
-  const timeOfStay = Interval.fromDateTimes(joinedAt, dateNow).toDuration(toDurationUnit).toObject();
-
-  if (mention) {
-    fields.push({
-      name: '**ID**',
-      value: `\`${_.replace(mention, /[<@!>]/g, '')}\``,
-      inline: true,
-    });
-  }
-
-  if (tag) {
-    fields.push({
-      name: '**Tag**',
-      value: `\`@${tag}\``,
-      inline: true,
-    });
-  }
-
-  if (avatar !== null) {
-    fields.push({
-      name: '**Avatar Hash**',
-      value: `\`${avatar}\``,
-    });
-  }
-
-  fields.push({
-    name: '**Account Age**',
-    value: getReadableDuration(accountAge),
-  });
-
-  if (mode === 'leave') {
-    const timeOfStayDuration = getReadableDuration(timeOfStay);
-    const assignedRoles = _.filter([...roles.cache.values()], (role) => role.name !== '@everyone');
-    const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
-    const displayRoles = (_.size(assignedRoles) > 0) ? `roles (${assignedRolesMention.join(', ')})` : 'no roles';
-
-    fields.push({
-      name: '**Additional Information**',
-      value: `Member stayed in the guild for ${timeOfStayDuration} and has ${displayRoles}.`,
-    });
-  }
-
-  return addEmbed(
-    `Member ${serverJoin[0] || serverLeave[0]} the Guild`,
-    `${mention} has ${serverJoin[1] || serverLeave[1]} the guild on **${dateNow.setZone(timeZone).toFormat('DDDD ttt')}**`,
-    avatarUrl,
-    fields,
-    `User ID: ${_.replace(mention, /[<@!>]/g, '')}`,
-    '#eea942',
+    generateColor('info'),
+    `Initiated by ${userTag}`,
+    thumbnailUrl,
   );
 }
 
 /**
  * Create no results embed.
  *
- * @param {string} message - The reason of no results.
- * @param {string} userTag - User tag of initiator.
+ * @param {CreateNoResultsEmbedReason}  reason  - Reason.
+ * @param {CreateNoResultsEmbedUserTag} userTag - User tag.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateNoResultsEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createNoResultsEmbed(message: string, userTag: string): MessageEmbed {
-  return addEmbed(
+export function createNoResultsEmbed(reason: CreateNoResultsEmbedReason, userTag: CreateNoResultsEmbedUserTag): CreateNoResultsEmbedReturns {
+  return generateEmbed(
     'No Results',
-    message,
+    reason,
     undefined,
+    generateColor('default'),
+    `Initiated by ${userTag}`,
     undefined,
-    `Initiated by @${userTag}`,
   );
 }
 
 /**
- * Create remove affiliate links embed.
+ * Create remove affiliates embed.
  *
- * @param {string}                                   userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {string}                                   content        - Message content.
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
- * @param {string[]}                                 websites       - Websites match.
+ * @param {CreateRemoveAffiliatesEmbedUserMention}        userMention        - User mention.
+ * @param {CreateRemoveAffiliatesEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateRemoveAffiliatesEmbedMessageId}          messageId          - Message id.
+ * @param {CreateRemoveAffiliatesEmbedMessageContent}     messageContent     - Message content.
+ * @param {CreateRemoveAffiliatesEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateRemoveAffiliatesEmbedMessageUrl}         messageUrl         - Message url.
+ * @param {CreateRemoveAffiliatesEmbedPlatforms}          platforms          - Platforms.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateRemoveAffiliatesEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createRemoveAffiliateLinksEmbed(userMention: string, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string, websites: string[]): MessageEmbed {
-  const fields = [];
+export function createRemoveAffiliatesEmbed(userMention: CreateRemoveAffiliatesEmbedUserMention, channelMention: CreateRemoveAffiliatesEmbedChannelMention, messageId: CreateRemoveAffiliatesEmbedMessageId, messageContent: CreateRemoveAffiliatesEmbedMessageContent, messageAttachments: CreateRemoveAffiliatesEmbedMessageAttachments, messageUrl: CreateRemoveAffiliatesEmbedMessageUrl, platforms: CreateRemoveAffiliatesEmbedPlatforms): CreateRemoveAffiliatesEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (websites) {
+  fields.push({
+    name: '**Platforms**',
+    value: platforms.join(', '),
+  });
+
+  if (!_.isEmpty(messageContent)) {
+    fields.push(...addMessageFields('Message', messageContent));
+  }
+
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
+  }
+
+  return generateEmbed(
+    'Affiliates Detected',
+    `:rotating_light: [Message](${messageUrl}) sent by ${userMention} includes affiliates in ${channelMention}`,
+    fields,
+    generateColor('warn'),
+    `Message ID: ${messageId}`,
+    undefined,
+  );
+}
+
+/**
+ * Create role change embed.
+ *
+ * @param {CreateRoleChangeEmbedUserMention}        userMention        - User mention.
+ * @param {CreateRoleChangeEmbedUserAvatarUrl}      userAvatarUrl      - User avatar url.
+ * @param {CreateRoleChangeEmbedAddedMemberRoles}   addedMemberRoles   - Member roles (added).
+ * @param {CreateRoleChangeEmbedRemovedMemberRoles} removedMemberRoles - Member roles (removed).
+ *
+ * @returns {CreateRoleChangeEmbedReturns}
+ *
+ * @since 1.0.0
+ */
+export function createRoleChangeEmbed(userMention: CreateRoleChangeEmbedUserMention, userAvatarUrl: CreateRoleChangeEmbedUserAvatarUrl, addedMemberRoles: CreateRoleChangeEmbedAddedMemberRoles, removedMemberRoles: CreateRoleChangeEmbedRemovedMemberRoles): CreateRoleChangeEmbedReturns {
+  const id = userMention.replace(/[<@!>]/g, '');
+
+  const rolesAddedDisplay = _.map(addedMemberRoles, (addedMemberRole) => addedMemberRole.toString()).join(', ');
+  const rolesRemovedDisplay = _.map(removedMemberRoles, (removedMemberRole) => removedMemberRole.toString()).join(', ');
+
+  const fields: EmbedFieldData[] = [];
+
+  if (addedMemberRoles.length > 0) {
     fields.push({
-      name: '**Websites**',
-      value: websites.join(', '),
+      name: '**Added**',
+      value: rolesAddedDisplay,
     });
   }
 
-  if (content) {
-    fields.push(...addMessageFields(content));
+  if (removedMemberRoles.length > 0) {
+    fields.push({
+      name: '**Removed**',
+      value: rolesRemovedDisplay,
+    });
   }
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments));
-  }
-
-  return addEmbed(
-    'Affiliate Link Detected',
-    `:rotating_light: [Message](${url}) sent by ${userMention} includes affiliate links in ${channelMention}.`,
-    undefined,
+  return generateEmbed(
+    'Member Role Changed',
+    `:roller_skate: ${userMention} roles have been changed`,
     fields,
-    `Message ID: ${id}`,
-    '#eea942',
+    generateColor('warn'),
+    `User ID: ${id}`,
+    userAvatarUrl,
   );
 }
 
 /**
  * Create role manager embed.
  *
- * @param {RoleRoute}   route   - Role command route.
- * @param {string}      message - Embed message.
- * @param {EmbedStatus} status  - Status of role command.
- * @param {string}      userTag - User tag of initiator.
+ * @param {CreateRoleManagerEmbedProgressMessage} progressMessage - Progress message.
+ * @param {CreateRoleManagerEmbedRoute}           route           - Route.
+ * @param {CreateRoleManagerEmbedStatus}          status          - Status.
+ * @param {CreateRoleManagerEmbedUserTag}         userTag         - User tag.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateRoleManagerEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createRoleManagerEmbed(route: RoleRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
-  const generateTitle = (theRoute: RoleRoute, theStatus: EmbedStatus): string => {
-    const mode = `${theRoute}-${theStatus}`;
-
-    switch (mode) {
-      case 'add-complete':
-        return 'Roles Added';
-      case 'remove-complete':
-        return 'Roles Removed';
-      case 'add-fail':
-        return 'Failed to Add Roles';
-      case 'remove-fail':
-        return 'Failed to Add Roles';
-      case 'add-in-progress':
-        return 'Adding Roles';
-      case 'remove-in-progress':
-        return 'Removing Roles';
-      default:
-        return 'Unknown';
-    }
-  };
-  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
-    switch (theStatus) {
-      case 'complete':
-        return '#5fdc46';
-      case 'fail':
-        return '#de564f';
-      case 'in-progress':
-      default:
-        return '#eea942';
-    }
-  };
-
-  return addEmbed(
-    generateTitle(route, status),
-    message,
+export function createRoleManagerEmbed(progressMessage: CreateRoleManagerEmbedProgressMessage, route: CreateRoleManagerEmbedRoute, status: CreateRoleManagerEmbedStatus, userTag: CreateRoleManagerEmbedUserTag): CreateRoleManagerEmbedReturns {
+  return generateEmbed(
+    generateTitle(`role-manager-${route}-${status}`),
+    progressMessage,
     undefined,
-    undefined,
-    `Initiated by @${userTag}`,
     generateColor(status),
+    `Initiated by ${userTag}`,
+    undefined,
   );
 }
 
 /**
  * Create suspicious words embed.
  *
- * @param {string|undefined}                         userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {string}                                   content        - Message content.
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
- * @param {string[]}                                 categories     - Categories match.
+ * @param {CreateSuspiciousWordsEmbedUserMention}        userMention        - User mention.
+ * @param {CreateSuspiciousWordsEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateSuspiciousWordsEmbedMessageId}          messageId          - Message id.
+ * @param {CreateSuspiciousWordsEmbedMessageContent}     messageContent     - Message content.
+ * @param {CreateSuspiciousWordsEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateSuspiciousWordsEmbedMessageUrl}         messageUrl         - Message url.
+ * @param {CreateSuspiciousWordsEmbedCategories}         categories         - Categories.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateSuspiciousWordsEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createSuspiciousWordsEmbed(userMention: string | undefined, channelMention: string, id: Snowflake, content: string, attachments: Collection<Snowflake, MessageAttachment>, url: string, categories: string[]): MessageEmbed {
-  const fields = [];
+export function createSuspiciousWordsEmbed(userMention: CreateSuspiciousWordsEmbedUserMention, channelMention: CreateSuspiciousWordsEmbedChannelMention, messageId: CreateSuspiciousWordsEmbedMessageId, messageContent: CreateSuspiciousWordsEmbedMessageContent, messageAttachments: CreateSuspiciousWordsEmbedMessageAttachments, messageUrl: CreateSuspiciousWordsEmbedMessageUrl, categories: CreateSuspiciousWordsEmbedCategories): CreateSuspiciousWordsEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (categories) {
-    fields.push({
-      name: '**Categories**',
-      value: categories.join(', '),
-    });
+  fields.push({
+    name: '**Categories**',
+    value: categories.join(', '),
+  });
+
+  if (!_.isEmpty(messageContent)) {
+    fields.push(...addMessageFields('Message', messageContent));
   }
 
-  if (content) {
-    fields.push(...addMessageFields(content));
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
   }
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments));
-  }
-
-  return addEmbed(
+  return generateEmbed(
     'Suspicious Word Detected',
-    `:detective: [Message](${url}) sent by ${userMention} includes suspicious words in ${channelMention}`,
-    undefined,
+    `:detective: [Message](${messageUrl}) sent by ${userMention} includes suspicious words in ${channelMention}`,
     fields,
-    `Message ID: ${id}`,
-    '#4798e0',
+    generateColor('info'),
+    `Message ID: ${messageId}`,
+    undefined,
   );
 }
 
 /**
  * Create toggle perms embed.
  *
- * @param {string}  message - Embed message.
- * @param {boolean} success - Is toggle perms task completed.
- * @param {string}  userTag - User tag of initiator.
+ * @param {CreateTogglePermsEmbedProgressMessage} progressMessage - Progress message.
+ * @param {CreateTogglePermsEmbedSuccess}         success         - Success.
+ * @param {CreateTogglePermsEmbedUserTag}         userTag         - User tag.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateTogglePermsEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createTogglePermsEmbed(message: string, success: boolean, userTag: string): MessageEmbed {
-  return addEmbed(
+export function createTogglePermsEmbed(progressMessage: CreateTogglePermsEmbedProgressMessage, success: CreateTogglePermsEmbedSuccess, userTag: CreateTogglePermsEmbedUserTag): CreateTogglePermsEmbedReturns {
+  return generateEmbed(
     'Toggle Permissions',
-    message,
+    progressMessage,
     undefined,
+    (success) ? generateColor('success') : generateColor('error'),
+    `Initiated by ${userTag}`,
     undefined,
-    `Initiated by @${userTag}`,
-    (success) ? '#5fdc46' : '#de564f',
   );
 }
 
 /**
  * Create update message embed.
  *
- * @param {undefined|string}                         userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {string}                                   oldContent     - Message content (old).
- * @param {string}                                   newContent     - Message content (new).
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
+ * @param {CreateUpdateMessageEmbedUserMention}        userMention        - User mention.
+ * @param {CreateUpdateMessageEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateUpdateMessageEmbedMessageId}          messageId          - Message id.
+ * @param {CreateUpdateMessageEmbedOldMessageContent}  oldMessageContent  - Message content (old).
+ * @param {CreateUpdateMessageEmbedNewMessageContent}  newMessageContent  - Message content (new).
+ * @param {CreateUpdateMessageEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateUpdateMessageEmbedMessageUrl}         messageUrl         - Message url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateUpdateMessageEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createUpdateMessageEmbed(userMention: undefined | string, channelMention: string, id: Snowflake, oldContent: string, newContent: string, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
-  const fields = [];
+export function createUpdateMessageEmbed(userMention: CreateUpdateMessageEmbedUserMention, channelMention: CreateUpdateMessageEmbedChannelMention, messageId: CreateUpdateMessageEmbedMessageId, oldMessageContent: CreateUpdateMessageEmbedOldMessageContent, newMessageContent: CreateUpdateMessageEmbedNewMessageContent, messageAttachments: CreateUpdateMessageEmbedMessageAttachments, messageUrl: CreateUpdateMessageEmbedMessageUrl): CreateUpdateMessageEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (oldContent) {
-    fields.push(...addMessageFields(oldContent, 'Old message'));
+  if (!_.isEmpty(oldMessageContent)) {
+    fields.push(...addMessageFields('Old message', oldMessageContent));
   }
 
-  if (newContent) {
-    fields.push(...addMessageFields(newContent, 'New message'));
+  if (!_.isEmpty(newMessageContent)) {
+    fields.push(...addMessageFields('New message', newMessageContent));
   }
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments));
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
   }
 
-  return addEmbed(
+  return generateEmbed(
     'Message Updated',
-    `:pencil: [Message](${url}) sent by ${userMention} was updated in ${channelMention}`,
-    undefined,
+    `:pencil: [Message](${messageUrl}) sent by ${userMention} was updated in ${channelMention}`,
     fields,
-    `Message ID: ${id}`,
-    '#eea942',
-  );
-}
-
-/**
- * Create voice tools embed.
- *
- * @param {VoiceRoute}  route   - Voice command route.
- * @param {string}      message - Embed message.
- * @param {EmbedStatus} status  - Status of voice command.
- * @param {string}      userTag - User tag of initiator.
- *
- * @returns {MessageEmbed}
- *
- * @since 1.0.0
- */
-export function createVoiceToolsEmbed(route: VoiceRoute, message: string, status: EmbedStatus, userTag: string): MessageEmbed {
-  const generateTitle = (theRoute: VoiceRoute, theStatus: EmbedStatus): string => {
-    const mode = `${theRoute}-${theStatus}`;
-
-    switch (mode) {
-      case 'disconnect-complete':
-        return 'Disconnected';
-      case 'unmute-complete':
-        return 'Unmuted';
-      case 'invite-complete':
-        return 'Invited to Speak';
-      case 'disconnect-fail':
-        return 'Failed to Disconnect';
-      case 'unmute-fail':
-        return 'Failed to Unmute';
-      case 'invite-fail':
-        return 'Failed to Invite to Speak';
-      case 'disconnect-in-progress':
-        return 'Disconnecting';
-      case 'unmute-in-progress':
-        return 'Unmuting';
-      case 'invite-in-progress':
-        return 'Inviting to Speak';
-      default:
-        return 'Unknown';
-    }
-  };
-  const generateColor = (theStatus: EmbedStatus): ColorResolvable => {
-    switch (theStatus) {
-      case 'complete':
-        return '#5fdc46';
-      case 'fail':
-        return '#de564f';
-      case 'in-progress':
-      default:
-        return '#eea942';
-    }
-  };
-
-  return addEmbed(
-    generateTitle(route, status),
-    message,
+    generateColor('warn'),
+    `Message ID: ${messageId}`,
     undefined,
-    undefined,
-    `Initiated by @${userTag}`,
-    generateColor(status),
   );
 }
 
 /**
  * Create upload attachment embed.
  *
- * @param {undefined|string}                         userMention    - User mention.
- * @param {string}                                   channelMention - Channel mention.
- * @param {Snowflake}                                id             - Message id.
- * @param {Collection<Snowflake, MessageAttachment>} attachments    - Message attachments.
- * @param {string}                                   url            - Message url.
+ * @param {CreateUploadAttachmentEmbedUserMention}        userMention        - User mention.
+ * @param {CreateUploadAttachmentEmbedChannelMention}     channelMention     - Channel mention.
+ * @param {CreateUploadAttachmentEmbedMessageId}          messageId          - Message id.
+ * @param {CreateUploadAttachmentEmbedMessageAttachments} messageAttachments - Message attachments.
+ * @param {CreateUploadAttachmentEmbedMessageUrl}         messageUrl         - Message url.
  *
- * @returns {MessageEmbed}
+ * @returns {CreateUploadAttachmentEmbedReturns}
  *
  * @since 1.0.0
  */
-export function createUploadAttachmentEmbed(userMention: undefined | string, channelMention: string, id: Snowflake, attachments: Collection<Snowflake, MessageAttachment>, url: string): MessageEmbed {
-  const fields = [];
+export function createUploadAttachmentEmbed(userMention: CreateUploadAttachmentEmbedUserMention, channelMention: CreateUploadAttachmentEmbedChannelMention, messageId: CreateUploadAttachmentEmbedMessageId, messageAttachments: CreateUploadAttachmentEmbedMessageAttachments, messageUrl: CreateUploadAttachmentEmbedMessageUrl): CreateUploadAttachmentEmbedReturns {
+  const fields: EmbedFieldData[] = [];
 
-  if (attachments) {
-    fields.push(...addAttachmentFields(attachments, 'Original attachment'));
+  if (messageAttachments.length > 0) {
+    fields.push(...addAttachmentFields(messageAttachments));
   }
 
-  return addEmbed(
+  return generateEmbed(
     'Attachment Uploaded',
-    `:dividers: [Message](${url}) sent by ${userMention} includes attachments in ${channelMention}`,
-    undefined,
+    `:dividers: [Message](${messageUrl}) sent by ${userMention} includes attachments in ${channelMention}`,
     fields,
-    `Message ID: ${id}`,
-    '#4798e0',
+    generateColor('info'),
+    `Message ID: ${messageId}`,
+    undefined,
+  );
+}
+
+/**
+ * Create voice tools embed.
+ *
+ * @param {CreateVoiceToolsEmbedProgressMessage} progressMessage - Progress message.
+ * @param {CreateVoiceToolsEmbedRoute}           route           - Route.
+ * @param {CreateVoiceToolsEmbedStatus}          status          - Status.
+ * @param {CreateVoiceToolsEmbedUserTag}         userTag         - User tag.
+ *
+ * @returns {CreateVoiceToolsEmbedReturns}
+ *
+ * @since 1.0.0
+ */
+export function createVoiceToolsEmbed(progressMessage: CreateVoiceToolsEmbedProgressMessage, route: CreateVoiceToolsEmbedRoute, status: CreateVoiceToolsEmbedStatus, userTag: CreateVoiceToolsEmbedUserTag): CreateVoiceToolsEmbedReturns {
+  return generateEmbed(
+    generateTitle(`voice-tools-${route}-${status}`),
+    progressMessage,
+    undefined,
+    generateColor(status),
+    `Initiated by ${userTag}`,
+    undefined,
   );
 }

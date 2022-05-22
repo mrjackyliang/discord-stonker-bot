@@ -1,271 +1,190 @@
-import { Client, Guild } from 'discord.js';
-import express from 'express';
-import fs from 'fs';
 import _ from 'lodash';
 
 import config from '../../config.json';
 
 import {
-  antiRaidAutoBan,
-  antiRaidMembershipGate,
-  antiRaidMonitor,
-} from './anti-raid';
-import { etherscanGasOracle, stocktwitsTrending } from './api-fetch';
+  generateLogMessage,
+  getCollectionItems,
+  trackMessage,
+  trackMessageIsDuplicate,
+} from '../lib/utility';
+import { antiRaidAutoBan, antiRaidMembershipGate } from './anti-raid';
+import { etherscanGasOracle, finnhubEarnings, stocktwitsTrending } from './api-fetch';
+import { rssFeeds, schedulePosts } from './content';
+import { broadcastAlertsViaGuildScheduledEventCreate, broadcastAlertsViaGuildScheduledEventDelete, broadcastAlertsViaGuildScheduledEventUpdate } from './event';
+import { autoReplies, messageCopiers } from './messenger';
+import {
+  detectSuspiciousWords,
+  impersonatorAlertsViaGuildMemberAdd,
+  impersonatorAlertsViaGuildMemberUpdate,
+  impersonatorAlertsViaUserUpdate,
+  regexRules,
+  removeAffiliates,
+} from './moderator';
+import { togglePerms } from './permission';
+import { roleMessages, syncRoles } from './role';
 import {
   bulkBan,
   fetchDuplicates,
+  fetchEmojis,
   fetchMembers,
-  helpMenu,
   roleManager,
-  togglePerms,
   voiceTools,
-} from './commands';
-import { rssFeed, schedulePost } from './content';
-import { inviteGenerator } from './invite';
-import { autoReply, messageCopier } from './messenger';
+} from './server-tool';
 import {
-  checkRegexChannels,
-  detectImpersonation,
-  detectSuspiciousWords,
-  removeAffiliateLinks,
-} from './moderator';
-import { changeRoleAlert, syncRoles } from './roles';
-import {
-  userChangeNickname,
-  userChangeUsername,
-  userDeleteMessage,
-  userDeleteMessage as userDeleteMessageBulk,
-  userIncludesLink,
-  userUpdateMessage,
-  userUploadAttachment,
+  changeNickname,
+  changeUsername,
+  deleteMessage,
+  guildJoin,
+  guildLeave,
+  includesLink,
+  roleChange,
+  updateMessage,
+  uploadAttachment,
 } from './snitch';
-import { bumpThreads } from './threads';
+import { bumpThreads } from './thread';
+import { twitterFeeds } from './twitter';
+import { webApplicationsSetup } from './web-app';
 import {
-  generateLogMessage,
-  getTextBasedChannel,
-  trackMessage,
-  trackMessageIsDuplicate,
-} from '../lib/utilities';
-import {
-  AffiliateLinks,
-  AntiRaidAutoBan,
-  AntiRaidMembershipGate,
-  ChangeRoles,
-  ImpersonatorAlerts,
-  MessageCopiers,
-  RegexRules,
-  Replies,
-  Snitch,
-  SnitchIncludesLink,
-  SuspiciousWords,
-  SyncRoles,
+  AntiRaidAutoBanSettings,
+  AntiRaidMembershipGateSettings,
+  AutoRepliesEvents,
+  BroadcastAlertsEvents,
+  BulkBanSettings,
+  BumpThreadsEvents,
+  ChangeNicknameSettings,
+  ChangeUsernameSettings,
+  DeleteMessageSettings,
+  DetectSuspiciousWordsSettings,
+  EtherscanGasOracleSettings,
+  FetchDuplicatesSettings,
+  FetchEmojisSettings,
+  FetchMembersSettings,
+  FinnhubEarningsSettings,
+  GuildJoinSettings,
+  GuildLeaveSettings,
+  ImpersonatorAlertsSettings,
+  IncludesLinkSettings,
+  InitializeDiscordClient,
+  InitializeGuild,
+  InitializeReturns,
+  InitializeTwitterClient,
+  MessageCopiersEvents,
+  RegexRulesEvents,
+  RemoveAffiliatesSettings,
+  RoleChangeSettings,
+  RoleManagerSettings,
+  RoleMessagesEvents,
+  RssFeedsEvents,
+  SchedulePostsEvents,
+  StocktwitsTrendingSettings,
+  SyncRolesSettings,
+  TogglePermsEvents,
+  TwitterFeedsEvents,
+  UpdateMessageSettings,
+  UploadAttachmentSettings,
+  VoiceToolsSettings,
+  WebApplicationsSetupSettings,
 } from '../types';
-import { webServerSetup } from './server';
 
 /**
- * Bot configuration.
+ * Config.
  *
  * @since 1.0.0
  */
-const configSettingsBotPrefix = _.get(config, 'settings.bot-prefix');
-const configSettingsServerHttpPort = _.get(config, 'settings.server-http-port');
-const configSettingsServerHttpsPort = _.get(config, 'settings.server-https-port');
-const configSettingsServerHttpsKey = _.get(config, 'settings.server-https-key');
-const configSettingsServerHttpsCert = _.get(config, 'settings.server-https-cert');
-const configSettingsServerHttpsCa = _.get(config, 'settings.server-https-ca');
-const configSnitchChangeNickname = _.get(config, 'snitch.change-nickname');
-const configSnitchChangeUsername = _.get(config, 'snitch.change-username');
-const configSnitchDeleteMessage = _.get(config, 'snitch.delete-message');
-const configSnitchIncludesLink = _.get(config, 'snitch.includes-link');
-const configSnitchUpdateMessage = _.get(config, 'snitch.update-message');
-const configSnitchUploadAttachment = _.get(config, 'snitch.upload-attachment');
-const configCommandsBulkBan = _.get(config, 'commands.bulk-ban');
-const configCommandsFetchDuplicates = _.get(config, 'commands.fetch-duplicates');
-const configCommandsFetchMembers = _.get(config, 'commands.fetch-members');
-const configCommandsHelpMenu = _.get(config, 'commands.help-menu');
-const configCommandsRoleManager = _.get(config, 'commands.role-manager');
-const configCommandsTogglePerms = _.get(config, 'commands.toggle-perms');
-const configCommandsVoiceTools = _.get(config, 'commands.voice-tools');
-const configApiFetchEtherscanGasOracle = _.get(config, 'api-fetch.etherscan-gas-oracle');
-const configApiFetchStocktwitsTrending = _.get(config, 'api-fetch.stocktwits-trending');
-const configAntiRaidAutoBan = _.get(config, 'anti-raid.auto-ban');
-const configAntiRaidMembershipGate = _.get(config, 'anti-raid.membership-gate');
-const configAntiRaidMonitor = _.get(config, 'anti-raid.monitor');
-const configSchedulePosts = _.get(config, 'schedule-posts');
-const configRssFeeds = _.get(config, 'rss-feeds');
-const configRegexRules = _.get(config, 'regex-rules');
-const configSuspiciousWords = _.get(config, 'suspicious-words');
-const configRoleSync = _.get(config, 'role-sync');
-const configRoleMessages = _.get(config, 'role-messages');
-const configAutoReply = _.get(config, 'auto-reply');
-const configMessageCopier = _.get(config, 'message-copier');
-const configRemoveAffiliateLinks = _.get(config, 'remove-affiliate-links');
-const configTogglePerms = _.get(config, 'toggle-perms');
-const configBumpThreads = _.get(config, 'bump-threads');
-const configInviteGenerator = _.get(config, 'invite-generator');
-const configImpersonatorAlerts = _.get(config, 'impersonator-alerts');
+const configSnitchChangeNickname = <ChangeNicknameSettings>_.get(config, ['snitch', 'change-nickname']);
+const configSnitchChangeUsername = <ChangeUsernameSettings>_.get(config, ['snitch', 'change-username']);
+const configSnitchDeleteMessage = <DeleteMessageSettings>_.get(config, ['snitch', 'delete-message']);
+const configSnitchGuildJoin = <GuildJoinSettings>_.get(config, ['snitch', 'guild-join']);
+const configSnitchGuildLeave = <GuildLeaveSettings>_.get(config, ['snitch', 'guild-leave']);
+const configSnitchIncludesLink = <IncludesLinkSettings>_.get(config, ['snitch', 'includes-link']);
+const configSnitchRoleChange = <RoleChangeSettings>_.get(config, ['snitch', 'role-change']);
+const configSnitchUpdateMessage = <UpdateMessageSettings>_.get(config, ['snitch', 'update-message']);
+const configSnitchUploadAttachment = <UploadAttachmentSettings>_.get(config, ['snitch', 'upload-attachment']);
+const configServerToolsBulkBan = <BulkBanSettings>_.get(config, ['server-tools', 'bulk-ban']);
+const configServerToolsFetchDuplicates = <FetchDuplicatesSettings>_.get(config, ['server-tools', 'fetch-duplicates']);
+const configServerToolsFetchEmojis = <FetchEmojisSettings>_.get(config, ['server-tools', 'fetch-emojis']);
+const configServerToolsFetchMembers = <FetchMembersSettings>_.get(config, ['server-tools', 'fetch-members']);
+const configServerToolsRoleManager = <RoleManagerSettings>_.get(config, ['server-tools', 'role-manager']);
+const configServerToolsVoiceTools = <VoiceToolsSettings>_.get(config, ['server-tools', 'voice-tools']);
+const configWebApplications = <WebApplicationsSetupSettings>_.get(config, ['web-applications']);
+const configApiFetchEtherscanGasOracle = <EtherscanGasOracleSettings>_.get(config, ['api-fetch', 'etherscan-gas-oracle']);
+const configApiFetchFinnhubEarnings = <FinnhubEarningsSettings>_.get(config, ['api-fetch', 'finnhub-earnings']);
+const configApiFetchStocktwitsTrending = <StocktwitsTrendingSettings>_.get(config, ['api-fetch', 'stocktwits-trending']);
+const configAntiRaidAutoBan = <AntiRaidAutoBanSettings>_.get(config, ['anti-raid', 'auto-ban']);
+const configAntiRaidMembershipGate = <AntiRaidMembershipGateSettings>_.get(config, ['anti-raid', 'membership-gate']);
+const configSchedulePosts = <SchedulePostsEvents>_.get(config, ['schedule-posts']);
+const configRssFeeds = <RssFeedsEvents>_.get(config, ['rss-feeds']);
+const configRegexRules = <RegexRulesEvents>_.get(config, ['regex-rules']);
+const configDetectSuspiciousWords = <DetectSuspiciousWordsSettings>_.get(config, ['detect-suspicious-words']);
+const configSyncRoles = <SyncRolesSettings>_.get(config, ['sync-roles']);
+const configRoleMessages = <RoleMessagesEvents>_.get(config, ['role-messages']);
+const configAutoReplies = <AutoRepliesEvents>_.get(config, ['auto-replies']);
+const configMessageCopiers = <MessageCopiersEvents>_.get(config, ['message-copiers']);
+const configRemoveAffiliates = <RemoveAffiliatesSettings>_.get(config, ['remove-affiliates']);
+const configTogglePerms = <TogglePermsEvents>_.get(config, ['toggle-perms']);
+const configBumpThreads = <BumpThreadsEvents>_.get(config, ['bump-threads']);
+const configImpersonatorAlerts = <ImpersonatorAlertsSettings>_.get(config, ['impersonator-alerts']);
+const configTwitterFeeds = <TwitterFeedsEvents>_.get(config, ['twitter-feeds']);
+const configBroadcastAlerts = <BroadcastAlertsEvents>_.get(config, ['broadcast-alerts']);
 
 /**
  * Initialize.
  *
- * @param {Client} client - Discord client.
- * @param {Guild}  guild  - Discord guild.
+ * @param {InitializeDiscordClient} discordClient - Discord client.
+ * @param {InitializeTwitterClient} twitterClient - Twitter client.
+ * @param {InitializeGuild}         guild         - Guild.
  *
- * @returns {void}
+ * @returns {InitializeReturns}
  *
  * @since 1.0.0
  */
-export function initialize(client: Client, guild: Guild): void {
+export function initialize(discordClient: InitializeDiscordClient, twitterClient: InitializeTwitterClient, guild: InitializeGuild): InitializeReturns {
+  const guildAvailable = guild.available;
+  const guildId = guild.id;
+
   /**
-   * When user creates a message.
+   * Discord client on "messageCreate".
    *
    * @since 1.0.0
    */
-  client.on('messageCreate', (message) => {
+  discordClient.on('messageCreate', (message) => {
+    if (message.guild === null) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: messageCreate)',
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: messageCreate)',
+      ].join(' '),
+      40,
+    );
+
+    const messageAuthorBot = message.author.bot;
+    const messageGuildAvailable = message.guild.available;
+    const messageGuildId = message.guild.id;
+    const messageSystem = message.system;
+
     if (
-      message.guild
-      && message.guild.available // If guild is online.
-      && message.guild.id === guild.id // If message was sent in the guild.
-      && !message.author.bot // If message is not sent by a bot.
-      && !message.system // If message is not sent by system.
+      messageGuildAvailable // If guild (where message was sent in) is online.
+      && messageGuildId === guildId // If message was sent in configured guild.
+      && !messageAuthorBot // If message is not sent by a bot.
+      && !messageSystem // If message is not sent by system.
     ) {
-      const messageContent = message.toString();
       const trackedMessage = trackMessage(message);
       const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
       /**
-       * If message is a command.
-       *
-       * @since 1.0.0
-       */
-      if (
-        _.isString(configSettingsBotPrefix) // If bot prefix is a string.
-        && !_.isEmpty(configSettingsBotPrefix) // If bot prefix is not empty.
-        && messageContent.startsWith(configSettingsBotPrefix) // If message starts with the bot prefix.
-      ) {
-        /**
-         * Bulk ban.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(bulk-ban|ban|bb)`).test(messageContent)) {
-          bulkBan(message, configCommandsBulkBan).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: bulkBan)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Fetch duplicates.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(fetch-duplicates|duplicates|fd)`).test(messageContent)) {
-          fetchDuplicates(message, configCommandsFetchDuplicates).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: fetchDuplicates)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Fetch members.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(fetch-members|members|fm)`).test(messageContent)) {
-          fetchMembers(message, configCommandsFetchMembers).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: fetchMembers)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Help menu.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(help-menu|help|hm)`).test(messageContent)) {
-          helpMenu(message, configCommandsHelpMenu, {
-            botPrefix: configSettingsBotPrefix,
-            bulkBan: configCommandsBulkBan,
-            fetchDuplicates: configCommandsFetchDuplicates,
-            fetchMembers: configCommandsFetchMembers,
-            roleManager: configCommandsRoleManager,
-            togglePerms: configCommandsTogglePerms,
-            voiceTools: configCommandsVoiceTools,
-          }).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: helpMenu)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Role manager.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(role-manager|role|rm)`).test(messageContent)) {
-          roleManager(message, configCommandsRoleManager).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: roleManager)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Toggle perms.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(toggle-perms|perms|tp)`).test(messageContent)) {
-          togglePerms(message, configCommandsTogglePerms, configTogglePerms).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: togglePerms)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-
-        /**
-         * Voice tools.
-         *
-         * @since 1.0.0
-         */
-        if (new RegExp(`^${configSettingsBotPrefix}(voice-tools|voice|vt)`).test(messageContent)) {
-          voiceTools(message, configCommandsVoiceTools).catch((error) => generateLogMessage(
-            [
-              'Failed to invoke function',
-              '(function: voiceTools)',
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-      }
-
-      /**
-       * If message is not a repeat.
+       * If message is not a duplicate.
        *
        * Discord creates embeds from links and fires the "messageUpdate"
        * event causing repeated executions.
@@ -274,90 +193,174 @@ export function initialize(client: Client, guild: Guild): void {
        */
       if (!trackedMessageIsDuplicate) {
         /**
-         * Check regex channels.
-         *
-         * @since 1.0.0
-         */
-        checkRegexChannels(message, <RegexRules>configRegexRules);
-
-        /**
          * Detect suspicious words.
          *
          * @since 1.0.0
          */
-        detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
+        detectSuspiciousWords(message, configDetectSuspiciousWords);
 
         /**
-         * Remove affiliate links.
+         * Includes link.
          *
          * @since 1.0.0
          */
-        removeAffiliateLinks(message, <AffiliateLinks>configRemoveAffiliateLinks);
+        includesLink(message, guild, configSnitchIncludesLink);
 
         /**
-         * User includes link.
+         * Regex rules.
          *
          * @since 1.0.0
          */
-        userIncludesLink(message, <SnitchIncludesLink>configSnitchIncludesLink);
+        regexRules(message, configRegexRules);
+
+        /**
+         * Remove affiliates.
+         *
+         * @since 1.0.0
+         */
+        removeAffiliates(message, configRemoveAffiliates);
       }
 
       /**
-       * Auto reply.
+       * Auto replies.
        *
        * @since 1.0.0
        */
-      autoReply(message, <Replies>configAutoReply);
+      autoReplies(message, configAutoReplies);
+
+      /**
+       * Bulk ban.
+       *
+       * @since 1.0.0
+       */
+      bulkBan(message, configServerToolsBulkBan);
 
       /**
        * Etherscan gas oracle.
        *
        * @since 1.0.0
        */
-      etherscanGasOracle(guild, configApiFetchEtherscanGasOracle, message);
+      etherscanGasOracle(message, guild, configApiFetchEtherscanGasOracle);
 
       /**
-       * Message copier.
+       * Fetch duplicates.
        *
        * @since 1.0.0
        */
-      messageCopier(message, <MessageCopiers>configMessageCopier);
+      fetchDuplicates(message, configServerToolsFetchDuplicates);
+
+      /**
+       * Fetch emojis.
+       *
+       * @since 1.0.0
+       */
+      fetchEmojis(message, configServerToolsFetchEmojis);
+
+      /**
+       * Fetch members.
+       *
+       * @since 1.0.0
+       */
+      fetchMembers(message, configServerToolsFetchMembers);
+
+      /**
+       * Finnhub earnings.
+       *
+       * @since 1.0.0
+       */
+      finnhubEarnings(message, guild, configApiFetchFinnhubEarnings);
+
+      /**
+       * Message copiers.
+       *
+       * @since 1.0.0
+       */
+      messageCopiers(message, twitterClient, configMessageCopiers);
+
+      /**
+       * Role manager.
+       *
+       * @since 1.0.0
+       */
+      roleManager(message, configServerToolsRoleManager);
 
       /**
        * Stocktwits trending.
        *
        * @since 1.0.0
        */
-      stocktwitsTrending(guild, configApiFetchStocktwitsTrending, message);
+      stocktwitsTrending(message, guild, configApiFetchStocktwitsTrending);
 
       /**
-       * User upload attachment.
+       * Toggle perms.
        *
        * @since 1.0.0
        */
-      userUploadAttachment(message, <Snitch>configSnitchUploadAttachment);
+      togglePerms(message, guild, configTogglePerms);
+
+      /**
+       * Upload attachment.
+       *
+       * @since 1.0.0
+       */
+      uploadAttachment(message, guild, configSnitchUploadAttachment);
+
+      /**
+       * Voice tools.
+       *
+       * @since 1.0.0
+       */
+      voiceTools(message, configServerToolsVoiceTools);
     }
   });
 
   /**
-   * When user updates a message.
+   * Discord client on "messageUpdate".
    *
    * @since 1.0.0
    */
-  client.on('messageUpdate', (message) => {
+  discordClient.on('messageUpdate', (message) => {
     if (
-      message.guild
-      && message.author
-      && message.guild.available // If guild is online.
-      && message.guild.id === guild.id // If message was sent in the guild.
-      && !message.author.bot // If message is not sent by a bot.
-      && !message.system // If message is not sent by system.
+      message.author === null
+      || message.guild === null
+    ) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: messageUpdate)',
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: messageUpdate)',
+      ].join(' '),
+      40,
+    );
+
+    const messageAuthorBot = message.author.bot;
+    const messageGuildAvailable = message.guild.available;
+    const messageGuildId = message.guild.id;
+    const messagePartial = message.partial;
+    const messageSystem = message.system;
+
+    if (
+      !messagePartial
+      && messageGuildAvailable // If guild (where message was sent in) is online.
+      && messageGuildId === guildId // If message was sent in configured guild.
+      && !messageAuthorBot // If message is not sent by a bot.
+      && !messageSystem // If message is not sent by system.
     ) {
       const trackedMessage = trackMessage(message);
       const trackedMessageIsDuplicate = trackMessageIsDuplicate(trackedMessage);
 
       /**
-       * If message is not a repeat.
+       * If message is not a duplicate.
        *
        * Discord creates embeds from links and fires the "messageUpdate"
        * event causing repeated executions.
@@ -366,314 +369,560 @@ export function initialize(client: Client, guild: Guild): void {
        */
       if (!trackedMessageIsDuplicate) {
         /**
-         * Check regex channels.
-         *
-         * @since 1.0.0
-         */
-        checkRegexChannels(message, <RegexRules>configRegexRules);
-
-        /**
          * Detect suspicious words.
          *
          * @since 1.0.0
          */
-        detectSuspiciousWords(message, <SuspiciousWords>configSuspiciousWords);
+        detectSuspiciousWords(message, configDetectSuspiciousWords);
 
         /**
-         * Remove affiliate links.
+         * Includes link.
          *
          * @since 1.0.0
          */
-        removeAffiliateLinks(message, <AffiliateLinks>configRemoveAffiliateLinks);
+        includesLink(message, guild, configSnitchIncludesLink);
 
         /**
-         * User includes link.
+         * Regex rules.
          *
          * @since 1.0.0
          */
-        userIncludesLink(message, <SnitchIncludesLink>configSnitchIncludesLink);
+        regexRules(message, configRegexRules);
+
+        /**
+         * Remove affiliates.
+         *
+         * @since 1.0.0
+         */
+        removeAffiliates(message, configRemoveAffiliates);
       }
 
       /**
-       * User update message.
+       * Update message.
        *
        * @since 1.0.0
        */
-      userUpdateMessage(message, <Snitch>configSnitchUpdateMessage);
+      updateMessage(message, guild, configSnitchUpdateMessage);
     }
   });
 
   /**
-   * When user deletes a message.
+   * Discord client on "messageDelete".
    *
    * @since 1.0.0
    */
-  client.on('messageDelete', (message) => {
+  discordClient.on('messageDelete', (message) => {
     if (
-      message.guild
-      && message.author
-      && message.client.user
-      && message.guild.available // If guild is online.
-      && message.guild.id === guild.id // If message was sent in the guild.
-      && message.author.id !== message.client.user.id // If message was not sent by Stonker Bot.
+      message.author === null
+      || message.guild === null
+    ) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: messageDelete)',
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: messageDelete)',
+      ].join(' '),
+      40,
+    );
+
+    const messageAuthorBot = message.author.bot;
+    const messageGuildAvailable = message.guild.available;
+    const messageGuildId = message.guild.id;
+    const messagePartial = message.partial;
+    const messageSystem = message.system;
+
+    if (
+      !messagePartial
+      && messageGuildAvailable // If guild (where message was sent in) is online.
+      && messageGuildId === guildId // If message was sent in configured guild.
+      && !messageAuthorBot // If message is not sent by a bot.
+      && !messageSystem // If message is not sent by system.
     ) {
       /**
-       * Delete message notification.
+       * Delete message.
        *
        * @since 1.0.0
        */
-      userDeleteMessage(message, <Snitch>configSnitchDeleteMessage);
+      deleteMessage(message, guild, configSnitchDeleteMessage);
     }
   });
 
   /**
-   * When user deletes bulk messages.
+   * Discord client on "messageDeleteBulk".
    *
    * @since 1.0.0
    */
-  client.on('messageDeleteBulk', (messages) => {
-    _.forEach([...messages.values()], (message) => {
+  discordClient.on('messageDeleteBulk', (messagesCollection) => {
+    const messages = getCollectionItems(messagesCollection);
+
+    messages.forEach((message) => {
       if (
-        message.guild
-        && message.author
-        && message.client.user
-        && message.guild.available // If guild is online.
-        && message.guild.id === guild.id // If message was sent in the guild.
-        && message.author.id !== message.client.user.id // If message was not sent by Stonker Bot.
+        message.author === null
+        || message.guild === null
+      ) {
+        generateLogMessage(
+          [
+            'Failed to invoke event',
+            '(event: messageDeleteBulk)',
+          ].join(' '),
+          10,
+        );
+
+        return;
+      }
+
+      generateLogMessage(
+        [
+          'Invoked event',
+          '(event: messageDeleteBulk)',
+        ].join(' '),
+        40,
+      );
+
+      const messageAuthorBot = message.author.bot;
+      const messageGuildAvailable = message.guild.available;
+      const messageGuildId = message.guild.id;
+      const messagePartial = message.partial;
+      const messageSystem = message.system;
+
+      if (
+        !messagePartial
+        && messageGuildAvailable // If guild (where message was sent in) is online.
+        && messageGuildId === guildId // If message was sent in configured guild.
+        && !messageAuthorBot // If message is not sent by a bot.
+        && !messageSystem // If message is not sent by system.
       ) {
         /**
-         * Delete message notification.
+         * Delete message.
          *
          * @since 1.0.0
          */
-        userDeleteMessageBulk(message, <Snitch>configSnitchDeleteMessage);
+        deleteMessage(message, guild, configSnitchDeleteMessage);
       }
     });
   });
 
   /**
-   * When guild member is added.
+   * Discord client on "guildMemberAdd".
    *
    * @since 1.0.0
    */
-  client.on('guildMemberAdd', (member) => {
+  discordClient.on('guildMemberAdd', (member) => {
+    const memberGuildAvailable = member.guild.available;
+    const memberGuildId = member.guild.id;
+    const memberUserBot = member.user.bot;
+    const memberUserSystem = member.user.system;
+
     if (
-      guild.available // If guild is online.
-      && member.guild.id === guild.id // If member is in the guild.
+      memberGuildAvailable // If guild (where member is) is online.
+      && memberGuildId === guildId // If member is in configured guild.
+      && !memberUserBot // If member is not a bot.
+      && !memberUserSystem // If member is not system.
     ) {
-      const guildJoinChannelId = _.get(configAntiRaidMonitor, 'guild-join.channel-id');
-      const guildJoinChannel = getTextBasedChannel(guild, guildJoinChannelId);
-
       /**
-       * Anti-raid monitor.
+       * Anti-raid auto ban.
        *
        * @since 1.0.0
        */
-      antiRaidMonitor(member, 'join', guildJoinChannel);
+      antiRaidAutoBan(member, configAntiRaidAutoBan);
 
       /**
-       * Detect impersonation.
+       * Guild join.
        *
        * @since 1.0.0
        */
-      detectImpersonation(member, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
+      guildJoin(member, guild, configSnitchGuildJoin);
 
       /**
-       * Anti-raid auto-ban.
+       * Impersonator alerts via "guildMemberAdd".
        *
        * @since 1.0.0
        */
-      antiRaidAutoBan(member, <AntiRaidAutoBan>configAntiRaidAutoBan);
+      impersonatorAlertsViaGuildMemberAdd(member, guild, configImpersonatorAlerts);
     }
   });
 
   /**
-   * When guild member is removed.
+   * Discord client on "guildMemberUpdate".
    *
    * @since 1.0.0
    */
-  client.on('guildMemberRemove', (member) => {
-    if (
-      guild.available // If guild is online.
-      && member.guild.id === guild.id // If member is in the guild.
-    ) {
-      const guildLeaveChannelId = _.get(configAntiRaidMonitor, 'guild-leave.channel-id');
-      const guildLeaveChannel = getTextBasedChannel(guild, guildLeaveChannelId);
+  discordClient.on('guildMemberUpdate', (oldMember, newMember) => {
+    const oldMemberGuildAvailable = oldMember.guild.available;
+    const oldMemberGuildId = oldMember.guild.id;
+    const oldMemberPartial = oldMember.partial;
+    const oldMemberUserBot = oldMember.user.bot;
+    const oldMemberUserSystem = oldMember.user.system;
 
-      /**
-       * Anti-raid monitor.
-       *
-       * @since 1.0.0
-       */
-      antiRaidMonitor(member, 'leave', guildLeaveChannel);
-    }
-  });
+    const newMemberGuildAvailable = newMember.guild.available;
+    const newMemberGuildId = newMember.guild.id;
+    const newMemberUserBot = newMember.user.bot;
+    const newMemberUserSystem = newMember.user.system;
 
-  /**
-   * When guild member is updated.
-   *
-   * @since 1.0.0
-   */
-  client.on('guildMemberUpdate', (oldMember, newMember) => {
     if (
-      guild.available // If guild is online.
-      && oldMember.guild.id === guild.id // If old member is in the guild.
-      && newMember.guild.id === guild.id // If new member is in the guild.
+      !oldMemberPartial
+      && oldMemberGuildAvailable // If guild (where old member is) is online.
+      && newMemberGuildAvailable // If guild (where new member is) is online.
+      && oldMemberGuildId === guildId // If old member is in configured guild.
+      && newMemberGuildId === guildId // If new member is in configured guild.
+      && !oldMemberUserBot // If old member is not a bot.
+      && !newMemberUserBot // If new member is not a bot.
+      && !oldMemberUserSystem // If old member is not system.
+      && !newMemberUserSystem // If new member is not system.
     ) {
       /**
        * Anti-raid membership gate.
        *
        * @since 1.0.0
        */
-      antiRaidMembershipGate(oldMember, newMember, <AntiRaidMembershipGate>configAntiRaidMembershipGate);
+      antiRaidMembershipGate(oldMember, newMember, guild, configAntiRaidMembershipGate);
+
+      /**
+       * Change nickname.
+       *
+       * @since 1.0.0
+       */
+      changeNickname(oldMember, newMember, guild, configSnitchChangeNickname);
+
+      /**
+       * Impersonator alerts via "guildMemberUpdate".
+       *
+       * @since 1.0.0
+       */
+      impersonatorAlertsViaGuildMemberUpdate(oldMember, newMember, guild, configImpersonatorAlerts);
+
+      /**
+       * Role change.
+       *
+       * @since 1.0.0
+       */
+      roleChange(oldMember, newMember, guild, configSnitchRoleChange);
+
+      /**
+       * Role messages.
+       *
+       * @since 1.0.0
+       */
+      roleMessages(oldMember, newMember, guild, configRoleMessages);
 
       /**
        * Sync roles.
        *
        * @since 1.0.0
        */
-      syncRoles(oldMember, newMember, <SyncRoles>configRoleSync);
-
-      /**
-       * Change role alert.
-       *
-       * @since 1.0.0
-       */
-      changeRoleAlert(oldMember, newMember, <ChangeRoles>configRoleMessages);
-
-      /**
-       * Change nickname notification.
-       *
-       * @since 1.0.0
-       */
-      userChangeNickname(oldMember, newMember, <Snitch>configSnitchChangeNickname);
-
-      /**
-       * Detect impersonation.
-       *
-       * @since 1.0.0
-       */
-      detectImpersonation(newMember, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
+      syncRoles(newMember, guild, configSyncRoles);
     }
   });
 
   /**
-   * When user is updated.
+   * Discord client on "guildMemberRemove".
    *
    * @since 1.0.0
    */
-  client.on('userUpdate', (oldUser, newUser) => {
+  discordClient.on('guildMemberRemove', (member) => {
+    const memberGuildAvailable = member.guild.available;
+    const memberGuildId = member.guild.id;
+    const memberPartial = member.partial;
+    const memberUserBot = member.user.bot;
+    const memberUserSystem = member.user.system;
+
     if (
-      guild.available // If guild is online.
+      !memberPartial
+      && memberGuildAvailable // If guild (where member is) is online.
+      && memberGuildId === guildId // If member is in configured guild.
+      && !memberUserBot // If member is not a bot.
+      && !memberUserSystem // If member is not system.
     ) {
       /**
-       * Change username notification.
+       * Guild leave.
        *
        * @since 1.0.0
        */
-      userChangeUsername(guild, oldUser, newUser, <Snitch>configSnitchChangeUsername);
-
-      /**
-       * Detect impersonation.
-       *
-       * @since 1.0.0
-       */
-      detectImpersonation(newUser, guild, <ImpersonatorAlerts>configImpersonatorAlerts);
+      guildLeave(member, guild, configSnitchGuildLeave);
     }
   });
 
   /**
-   * Schedule post.
+   * Discord client on "userUpdate".
    *
    * @since 1.0.0
    */
-  if (_.isArray(configSchedulePosts) && !_.isEmpty(configSchedulePosts)) {
-    _.forEach(configSchedulePosts, (configSchedulePost) => {
-      const sendToChannel = getTextBasedChannel(guild, _.get(configSchedulePost, 'channel.channel-id'));
+  discordClient.on('userUpdate', (oldUser, newUser) => {
+    const oldUserBot = oldUser.bot;
+    const oldUserPartial = oldUser.partial;
+    const oldUserSystem = oldUser.system;
 
-      schedulePost(configSchedulePost, sendToChannel);
-    });
-  }
+    const newUserBot = newUser.bot;
+    const newUserSystem = newUser.system;
+
+    if (
+      !oldUserPartial
+      && guildAvailable // If guild is online.
+      && !oldUserBot // If old user is not a bot.
+      && !newUserBot // If new user is not a bot.
+      && !oldUserSystem // If old user is not system.
+      && !newUserSystem // If new user is not system.
+    ) {
+      /**
+       * Change username.
+       *
+       * @since 1.0.0
+       */
+      changeUsername(oldUser, newUser, guild, configSnitchChangeUsername);
+
+      /**
+       * Impersonator alerts via "userUpdate".
+       *
+       * @since 1.0.0
+       */
+      impersonatorAlertsViaUserUpdate(oldUser, newUser, guild, configImpersonatorAlerts);
+    }
+  });
 
   /**
-   * RSS feed.
+   * Discord client on "guildScheduledEventCreate".
    *
    * @since 1.0.0
    */
-  if (_.isArray(configRssFeeds) && !_.isEmpty(configRssFeeds)) {
-    _.forEach(configRssFeeds, (configRssFeed) => {
-      const sendToChannel = getTextBasedChannel(guild, _.get(configRssFeed, 'channel.channel-id'));
+  discordClient.on('guildScheduledEventCreate', (scheduledEvent) => {
+    if (
+      scheduledEvent.creator === null
+      || scheduledEvent.guild === null
+    ) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: guildScheduledEventCreate)',
+        ].join(' '),
+        10,
+      );
 
-      rssFeed(configRssFeed, sendToChannel);
-    });
-  }
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: guildScheduledEventCreate)',
+      ].join(' '),
+      40,
+    );
+
+    const scheduledEventCreatorBot = scheduledEvent.creator.bot;
+    const scheduledEventCreatorSystem = scheduledEvent.creator.system;
+    const scheduledEventGuildAvailable = scheduledEvent.guild.available;
+    const scheduledEventGuildId = scheduledEvent.guild.id;
+
+    if (
+      scheduledEventGuildAvailable // If guild (where scheduled event was created in) is online.
+      && scheduledEventGuildId === guildId // If scheduled event was created in configured guild.
+      && !scheduledEventCreatorBot // If scheduled event creator is not a bot.
+      && !scheduledEventCreatorSystem // If scheduled event creator is not system.
+    ) {
+      /**
+       * Broadcast alerts via "guildScheduledEventCreate".
+       *
+       * @since 1.0.0
+       */
+      broadcastAlertsViaGuildScheduledEventCreate(scheduledEvent, twitterClient, guild, configBroadcastAlerts);
+    }
+  });
+
+  /**
+   * Discord client on "guildScheduledEventUpdate".
+   *
+   * @since 1.0.0
+   */
+  discordClient.on('guildScheduledEventUpdate', (oldScheduledEvent, newScheduledEvent) => {
+    if (
+      oldScheduledEvent.creator === null
+      || oldScheduledEvent.guild === null
+      || newScheduledEvent.creator === null
+      || newScheduledEvent.guild === null
+    ) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: guildScheduledEventUpdate)',
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: guildScheduledEventUpdate)',
+      ].join(' '),
+      40,
+    );
+
+    const oldScheduledEventCreatorBot = oldScheduledEvent.creator.bot;
+    const oldScheduledEventCreatorSystem = oldScheduledEvent.creator.system;
+    const oldScheduledEventGuildAvailable = oldScheduledEvent.guild.available;
+    const oldScheduledEventGuildId = oldScheduledEvent.guild.id;
+
+    const newScheduledEventCreatorBot = newScheduledEvent.creator.bot;
+    const newScheduledEventCreatorSystem = newScheduledEvent.creator.system;
+    const newScheduledEventGuildAvailable = newScheduledEvent.guild.available;
+    const newScheduledEventGuildId = newScheduledEvent.guild.id;
+
+    if (
+      oldScheduledEventGuildAvailable // If guild (where old scheduled event was created in) is online.
+      && newScheduledEventGuildAvailable // If guild (where new scheduled event was created in) is online.
+      && oldScheduledEventGuildId === guildId // If old scheduled event was created in configured guild.
+      && newScheduledEventGuildId === guildId // If new scheduled event was created in configured guild.
+      && !oldScheduledEventCreatorBot // If old scheduled event creator is not a bot.
+      && !newScheduledEventCreatorBot // If new scheduled event creator is not a bot.
+      && !oldScheduledEventCreatorSystem // If old scheduled event creator is not system.
+      && !newScheduledEventCreatorSystem // If new scheduled event creator is not system.
+    ) {
+      /**
+       * Broadcast alerts via "guildScheduledEventUpdate".
+       *
+       * @since 1.0.0
+       */
+      broadcastAlertsViaGuildScheduledEventUpdate(oldScheduledEvent, newScheduledEvent, twitterClient, guild, configBroadcastAlerts);
+    }
+  });
+
+  /**
+   * Discord client on "guildScheduledEventDelete".
+   *
+   * @since 1.0.0
+   */
+  discordClient.on('guildScheduledEventDelete', (scheduledEvent) => {
+    if (
+      scheduledEvent.creator === null
+      || scheduledEvent.guild === null
+    ) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          '(event: guildScheduledEventDelete)',
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Invoked event',
+        '(event: guildScheduledEventDelete)',
+      ].join(' '),
+      40,
+    );
+
+    const scheduledEventCreatorBot = scheduledEvent.creator.bot;
+    const scheduledEventCreatorSystem = scheduledEvent.creator.system;
+    const scheduledEventGuildAvailable = scheduledEvent.guild.available;
+    const scheduledEventGuildId = scheduledEvent.guild.id;
+
+    if (
+      scheduledEventGuildAvailable // If guild (where scheduled event was created in) is online.
+      && scheduledEventGuildId === guildId // If scheduled event was created in configured guild.
+      && !scheduledEventCreatorBot // If scheduled event creator is not a bot.
+      && !scheduledEventCreatorSystem // If scheduled event creator is not system.
+    ) {
+      /**
+       * Broadcast alerts via "guildScheduledEventDelete".
+       *
+       * @since 1.0.0
+       */
+      broadcastAlertsViaGuildScheduledEventDelete(scheduledEvent, twitterClient, guild, configBroadcastAlerts);
+    }
+  });
+
+  /**
+   * Discord client on "error".
+   *
+   * @since 1.0.0
+   */
+  discordClient.on('error', (error) => {
+    generateLogMessage(
+      [
+        'A client error has occurred',
+        '(event: error)',
+      ].join(' '),
+      10,
+      error,
+    );
+  });
 
   /**
    * Bump threads.
    *
    * @since 1.0.0
    */
-  if (_.isArray(configBumpThreads) && !_.isEmpty(configBumpThreads)) {
-    _.forEach(configBumpThreads, (configBumpThread) => {
-      bumpThreads(guild, configBumpThread);
-    });
-  }
+  bumpThreads(guild, configBumpThreads);
 
   /**
    * Etherscan gas oracle.
    *
    * @since 1.0.0
    */
-  if (_.isPlainObject(configApiFetchEtherscanGasOracle) && !_.isEmpty(configApiFetchEtherscanGasOracle)) {
-    etherscanGasOracle(guild, configApiFetchEtherscanGasOracle);
-  }
+  etherscanGasOracle(undefined, guild, configApiFetchEtherscanGasOracle);
+
+  /**
+   * Finnhub earnings.
+   *
+   * @since 1.0.0
+   */
+  finnhubEarnings(undefined, guild, configApiFetchFinnhubEarnings);
+
+  /**
+   * Rss feeds.
+   *
+   * @since 1.0.0
+   */
+  rssFeeds(guild, configRssFeeds);
+
+  /**
+   * Schedule posts.
+   *
+   * @since 1.0.0
+   */
+  schedulePosts(guild, configSchedulePosts);
 
   /**
    * Stocktwits trending.
    *
    * @since 1.0.0
    */
-  if (_.isPlainObject(configApiFetchStocktwitsTrending) && !_.isEmpty(configApiFetchStocktwitsTrending)) {
-    stocktwitsTrending(guild, configApiFetchStocktwitsTrending);
-  }
+  stocktwitsTrending(undefined, guild, configApiFetchStocktwitsTrending);
 
   /**
-   * Web server.
+   * Toggle perms.
    *
    * @since 1.0.0
    */
-  if (
-    _.inRange(configSettingsServerHttpPort, 1, 65536)
-    || (
-      _.inRange(configSettingsServerHttpsPort, 1, 65536)
-      && fs.existsSync(configSettingsServerHttpsKey)
-      && fs.existsSync(configSettingsServerHttpsCert)
-      && fs.existsSync(configSettingsServerHttpsCa)
-    )
-  ) {
-    const server = express();
+  togglePerms(undefined, guild, configTogglePerms);
 
-    /**
-     * Web server setup.
-     *
-     * @since 1.0.0
-     */
-    webServerSetup(
-      server,
-      configSettingsServerHttpPort,
-      configSettingsServerHttpsPort,
-      configSettingsServerHttpsKey,
-      configSettingsServerHttpsCert,
-      configSettingsServerHttpsCa,
-    );
+  /**
+   * Twitter feeds.
+   *
+   * @since 1.0.0
+   */
+  twitterFeeds(twitterClient, guild, configTwitterFeeds);
 
-    /**
-     * Invite generator.
-     *
-     * @since 1.0.0
-     */
-    if (_.isPlainObject(configInviteGenerator)) {
-      inviteGenerator(server, guild, configInviteGenerator);
-    }
-  }
+  /**
+   * Web applications setup.
+   *
+   * @since 1.0.0
+   */
+  webApplicationsSetup(guild, configWebApplications);
 }

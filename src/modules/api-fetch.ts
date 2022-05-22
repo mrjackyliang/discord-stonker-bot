@@ -1,86 +1,328 @@
 import axios from 'axios';
-import { Guild, Message, Permissions } from 'discord.js';
+import { MessageOptions } from 'discord.js';
 import _ from 'lodash';
-import { scheduleJob } from 'node-schedule';
+import cron from 'node-cron';
+import numeral from 'numeral';
 
-import { ApiFetchSettings } from '../types';
-import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
+import { createEarningsTableAttachment } from '../lib/attachment';
+import {
+  fetchFormattedDate,
+  generateLogMessage,
+  getTextBasedChannel,
+  memberHasPermissions,
+} from '../lib/utility';
+import {
+  EtherscanGasOracleGuild,
+  EtherscanGasOracleMessage,
+  EtherscanGasOracleReplaceVariablesConfigPayload,
+  EtherscanGasOracleReplaceVariablesReturns,
+  EtherscanGasOracleReturns,
+  EtherscanGasOracleSettings,
+  EtherscanGasOracleSettingsChannelChannelId,
+  EtherscanGasOracleSettingsCommandAllowedRoleRoleId,
+  EtherscanGasOracleSettingsCommandAllowedRoles,
+  EtherscanGasOracleSettingsCommandBaseCommands,
+  EtherscanGasOracleSettingsCommandNoPermsPayload,
+  EtherscanGasOracleSettingsSettingsApiKey,
+  FinnhubEarningsCalculateSurpriseActual,
+  FinnhubEarningsCalculateSurpriseEstimate,
+  FinnhubEarningsCalculateSurpriseReturns,
+  FinnhubEarningsFormatEpsEarningsPerShare,
+  FinnhubEarningsFormatEpsReturns,
+  FinnhubEarningsFormatRevenueReturns,
+  FinnhubEarningsFormatRevenueRevenue,
+  FinnhubEarningsGuild,
+  FinnhubEarningsMessage,
+  FinnhubEarningsReplaceVariablesConfigPayload,
+  FinnhubEarningsReplaceVariablesReturns,
+  FinnhubEarningsReturns,
+  FinnhubEarningsSettings,
+  FinnhubEarningsSettingsChannelChannelId,
+  FinnhubEarningsSettingsCommandAllowedRoleRoleId,
+  FinnhubEarningsSettingsCommandAllowedRoles,
+  FinnhubEarningsSettingsCommandBaseCommands,
+  FinnhubEarningsSettingsCommandNoPermsPayload,
+  FinnhubEarningsSettingsSettingsApiKey,
+  StocktwitsTrendingGuild,
+  StocktwitsTrendingMessage,
+  StocktwitsTrendingReplaceVariablesConfigPayload,
+  StocktwitsTrendingReplaceVariablesReturns,
+  StocktwitsTrendingReturns,
+  StocktwitsTrendingSettings,
+  StocktwitsTrendingSettingsChannelChannelId,
+  StocktwitsTrendingSettingsCommandAllowedRoleRoleId,
+  StocktwitsTrendingSettingsCommandAllowedRoles,
+  StocktwitsTrendingSettingsCommandBaseCommands,
+  StocktwitsTrendingSettingsCommandNoPermsPayload,
+} from '../types';
+import {
+  ApiEtherscanGasOracle,
+  ApiEtherscanGasOracleResult,
+  ApiEtherscanGasOracleResultFastGasPrice,
+  ApiEtherscanGasOracleResultProposeGasPrice,
+  ApiEtherscanGasOracleResultSafeGasPrice,
+  ApiEtherscanGasOracleStatus,
+  ApiFinnhubEarnings,
+  ApiFinnhubEarningsEvents,
+  ApiStocktwitsTrending,
+  ApiStocktwitsTrendingResponseStatus,
+  ApiStocktwitsTrendingSymbols,
+} from '../types/api';
+import { MemoryEtherscanGasOracle, MemoryFinnhubEarnings, MemoryStocktwitsTrending } from '../types/memory';
 
-const apiCache = {
-  etherscanGasOracle: {
-    content: null,
-  },
-  stocktwitsTrending: {
-    content: null,
-  },
-};
+/**
+ * Memory.
+ *
+ * @since 1.0.0
+ */
+let memoryEtherscanGasOracle: MemoryEtherscanGasOracle = null;
+let memoryFinnhubEarnings: MemoryFinnhubEarnings = null;
+let memoryStocktwitsTrending: MemoryStocktwitsTrending = null;
 
 /**
  * Etherscan gas oracle.
  *
- * @param {Guild}            guild    - Discord guild.
- * @param {ApiFetchSettings} settings - API fetch settings.
- * @param {Message}          message  - Message object.
+ * @param {EtherscanGasOracleMessage}  message  - Message.
+ * @param {EtherscanGasOracleGuild}    guild    - Guild.
+ * @param {EtherscanGasOracleSettings} settings - Settings.
  *
- * @returns {void}
+ * @returns {EtherscanGasOracleReturns}
  *
  * @since 1.0.0
  */
-export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, message?: Message): void {
-  const settingsApiKey = _.get(settings, 'settings.api-key');
-  const feedChannelId = _.get(settings, 'feed.channel-id');
-  const feedChannel = getTextBasedChannel(guild, feedChannelId);
-  const commandRegexPattern = _.get(settings, 'command.regex.pattern');
-  const commandRegexFlags = _.get(settings, 'command.regex.flags');
-  const commandAllowedRoles = _.get(settings, 'command.allowed-roles');
+export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: EtherscanGasOracleGuild, settings: EtherscanGasOracleSettings): EtherscanGasOracleReturns {
+  const guildRoles = guild.roles;
 
-  if (!feedChannel && (!commandRegexPattern || !commandRegexFlags)) {
+  const settingsSettingsApiKey = <EtherscanGasOracleSettingsSettingsApiKey>_.get(settings, ['settings', 'api-key']);
+  const settingsChannelChannelId = <EtherscanGasOracleSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
+  const settingsCommandBaseCommands = <EtherscanGasOracleSettingsCommandBaseCommands>_.get(settings, ['command', 'base-commands']);
+  const settingsCommandAllowedRoles = <EtherscanGasOracleSettingsCommandAllowedRoles>_.get(settings, ['command', 'allowed-roles']);
+  const settingsCommandNoPermsPayload = <EtherscanGasOracleSettingsCommandNoPermsPayload>_.get(settings, ['command', 'no-perms-payload']);
+
+  const channel = getTextBasedChannel(guild, settingsChannelChannelId);
+
+  /**
+   * Etherscan gas oracle - Replace variables.
+   *
+   * @param {EtherscanGasOracleReplaceVariablesConfigPayload} configPayload - Config payload.
+   *
+   * @returns {EtherscanGasOracleReplaceVariablesReturns}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configPayload: EtherscanGasOracleReplaceVariablesConfigPayload): EtherscanGasOracleReplaceVariablesReturns => {
+    const editedPayload = JSON.stringify(configPayload)
+      .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
+
+    return JSON.parse(editedPayload);
+  };
+
+  const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <EtherscanGasOracleSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
+
+  let payload: MessageOptions = {};
+
+  // If "api-fetch.etherscan-gas-oracle" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle" is not configured',
+        `(function: etherscanGasOracle, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.channel.channel-id" and "api-fetch.etherscan-gas-oracle.command.base-commands" is not configured properly.
+  if (
+    settingsChannelChannelId === undefined
+    && settingsCommandBaseCommands === undefined
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.channel.channel-id" and "api-fetch.etherscan-gas-oracle.command.base-commands" is not configured properly',
+        `(function: etherscanGasOracle, channel id: ${JSON.stringify(settingsChannelChannelId)}, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.settings.api-key" is not configured properly.
+  if (
+    settingsSettingsApiKey !== undefined
+    && (
+      !_.isString(settingsSettingsApiKey)
+      || _.isEmpty(settingsSettingsApiKey)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.settings.api-key" is not configured properly',
+        `(function: etherscanGasOracle, api key: ${JSON.stringify(settingsSettingsApiKey)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.channel.channel-id" is not configured properly.
+  if (
+    settingsChannelChannelId !== undefined
+    && (
+      channel === undefined
+      || channel === null
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.channel.channel-id" is not configured properly',
+        `(function: etherscanGasOracle, channel id: ${JSON.stringify(settingsChannelChannelId)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.command.base-commands" is not configured properly.
+  if (
+    settingsCommandBaseCommands !== undefined
+    && (
+      !_.isArray(settingsCommandBaseCommands)
+      || _.isEmpty(settingsCommandBaseCommands)
+      || !_.every(settingsCommandBaseCommands, (settingsCommandBaseCommand) => _.isString(settingsCommandBaseCommand) && !_.isEmpty(settingsCommandBaseCommand))
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.command.base-commands" is not configured properly',
+        `(function: etherscanGasOracle, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.command.allowed-roles" is not configured properly.
+  if (
+    settingsCommandAllowedRoles !== undefined
+    && (
+      !_.isArray(settingsCommandAllowedRoles)
+      || _.isEmpty(settingsCommandAllowedRoles)
+      || !_.every(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => _.isPlainObject(settingsCommandAllowedRole) && !_.isEmpty(settingsCommandAllowedRole))
+      || !_.every(allowedRoleIds, (allowedRoleId) => allowedRoleId !== undefined && guildRoles.resolve(allowedRoleId) !== null)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.command.allowed-roles" is not configured properly',
+        `(function: etherscanGasOracle, allowed roles: ${JSON.stringify(settingsCommandAllowedRoles)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.etherscan-gas-oracle.command.no-perms-payload" is not configured properly.
+  if (
+    settingsCommandNoPermsPayload !== undefined
+    && (
+      !_.isPlainObject(settingsCommandNoPermsPayload)
+      || _.isEmpty(settingsCommandNoPermsPayload)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.etherscan-gas-oracle.command.no-perms-payload" is not configured properly',
+        `(function: etherscanGasOracle, no perms payload: ${JSON.stringify(settingsCommandNoPermsPayload)})`,
+      ].join(' '),
+      10,
+    );
+
     return;
   }
 
   // Cache and update feed.
-  if (_.get(apiCache, 'etherscanGasOracle.content') === null) {
+  if (memoryEtherscanGasOracle === null) {
     /**
      * Etherscan API (Unauthenticated).
      * Unauthenticated allows 1 call/5 seconds, up to 17,280 calls/day.
      *
      * Used: 1 call/10 seconds, 8,640 API calls/day.
+     *
+     * @since 1.0.0
      */
-    scheduleJob('0/10 * * * * *', () => {
-      const apiKeyParam = settingsApiKey ? `&apikey=${settingsApiKey}` : '';
+    cron.schedule('0/10 * * * * *', () => {
+      const apiKeyParameter = (settingsSettingsApiKey !== undefined) ? `&apikey=${settingsSettingsApiKey}` : '';
 
-      axios.get(`https://api.etherscan.io/api?module=gastracker&action=gasoracle${apiKeyParam}`).then((response) => {
-        const data = _.get(response, 'data');
-        const status = _.get(data, 'status');
-        const result = _.get(data, 'result');
+      axios.get<ApiEtherscanGasOracle>(`https://api.etherscan.io/api?module=gastracker&action=gasoracle${apiKeyParameter}`).then((getResponse) => {
+        const getResponseData = getResponse.data;
+
+        const getResponseDataStatus = <ApiEtherscanGasOracleStatus>_.get(getResponseData, ['status']);
+        const getResponseDataResult = <ApiEtherscanGasOracleResult>_.get(getResponseData, ['result']);
+
+        generateLogMessage(
+          [
+            'Contacted API',
+            `(function: etherscanGasOracle, data: ${JSON.stringify(getResponseData)})`,
+          ].join(' '),
+          40,
+        );
 
         // Status with "1" means OK.
-        if (status === '1') {
+        if (getResponseDataStatus === '1') {
           const content = {
-            slow: _.get(result, 'SafeGasPrice'),
-            average: _.get(result, 'ProposeGasPrice'),
-            fast: _.get(result, 'FastGasPrice'),
+            slow: <ApiEtherscanGasOracleResultSafeGasPrice>_.get(getResponseDataResult, ['SafeGasPrice']),
+            average: <ApiEtherscanGasOracleResultProposeGasPrice>_.get(getResponseDataResult, ['ProposeGasPrice']),
+            fast: <ApiEtherscanGasOracleResultFastGasPrice>_.get(getResponseDataResult, ['FastGasPrice']),
           };
 
-          // Prevents bot from spamming same item after reboot.
-          if (_.get(apiCache, 'etherscanGasOracle.content') === null) {
-            _.set(apiCache, 'etherscanGasOracle.content', content);
+          generateLogMessage(
+            [
+              'Fetched API content',
+              `(function: etherscanGasOracle, content: ${JSON.stringify(content)})`,
+            ].join(' '),
+            40,
+          );
+
+          // Prevent possible duplicate responses after bot reboot.
+          if (memoryEtherscanGasOracle === null) {
+            memoryEtherscanGasOracle = content;
           }
 
           // If there are updates.
-          if (!_.isEqual(_.get(apiCache, 'etherscanGasOracle.content'), content)) {
-            _.set(apiCache, 'etherscanGasOracle.content', content);
+          if (!_.isEqual(memoryEtherscanGasOracle, content)) {
+            memoryEtherscanGasOracle = content;
 
-            // If feed channel is set.
-            if (feedChannel) {
-              const payload = {
-                content: `**${content.slow} Gwei** (slow), **${content.average} Gwei** (average), **${content.fast} Gwei** (fast)`,
+            if (channel) {
+              const contentSlow = content.slow;
+              const contentAverage = content.average;
+              const contentFast = content.fast;
+
+              payload = {
+                content: `**${contentSlow} Gwei** (slow), **${contentAverage} Gwei** (average), **${contentFast} Gwei** (fast)`,
               };
 
-              feedChannel.send(payload).catch((error) => generateLogMessage(
+              channel.send(payload).then((sendResponse) => {
+                const sendResponseUrl = sendResponse.url;
+
+                generateLogMessage(
+                  [
+                    'Sent message',
+                    `(function: etherscanGasOracle, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+                  ].join(' '),
+                  40,
+                );
+              }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',
-                  `(function: etherscanGasOracle, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+                  `(function: etherscanGasOracle, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
                 ].join(' '),
                 10,
                 error,
@@ -90,13 +332,13 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
         } else {
           generateLogMessage(
             [
-              'Failed to fetch content',
-              `(function: etherscanGasOracle, data: ${JSON.stringify(data)})`,
+              'Failed to fetch API content',
+              `(function: etherscanGasOracle, data: ${JSON.stringify(getResponseData)})`,
             ].join(' '),
             10,
           );
         }
-      }).catch((error) => generateLogMessage(
+      }).catch((error: Error) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: etherscanGasOracle)',
@@ -104,146 +346,825 @@ export function etherscanGasOracle(guild: Guild, settings: ApiFetchSettings, mes
         10,
         error,
       ));
+    }, {
+      scheduled: true,
     });
   }
 
   // Fetch command.
-  if (message && commandRegexPattern && commandRegexFlags) {
-    const {
-      channel,
-      id,
-      member,
-    } = message;
+  if (
+    message !== undefined
+    && settingsCommandBaseCommands !== undefined
+  ) {
+    if (message.member === null) {
+      generateLogMessage(
+        [
+          'Failed to process command',
+          '(function: etherscanGasOracle)',
+        ].join(' '),
+        10,
+      );
 
-    if (!channel || !member) {
       return;
     }
 
-    try {
-      if (
-        new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
-        && (
-          _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
-          || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-        )
-      ) {
-        const content = _.get(apiCache, 'etherscanGasOracle.content');
-        const slowFee = _.get(content, 'slow');
-        const averageFee = _.get(content, 'average');
-        const fastFee = _.get(content, 'fast');
+    generateLogMessage(
+      [
+        'Processed command',
+        '(function: etherscanGasOracle)',
+      ].join(' '),
+      40,
+    );
 
-        // Only show the latest cached content.
-        if (content !== null) {
-          const payload = {
-            content: `The average gas prices are **${slowFee} Gwei** (slow), **${averageFee} Gwei** (average), **${fastFee} Gwei** (fast)`,
-            reply: {
-              messageReference: id,
-            },
-          };
+    const messageChannel = message.channel;
+    const messageContent = message.content;
+    const messageMember = message.member;
 
-          channel.send(payload).catch((error) => generateLogMessage(
-            [
-              'Failed to send message',
-              `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-            ].join(' '),
-            10,
-            error,
-          ));
-        } else {
-          const payload = {
-            content: 'Failed to retrieve gas prices. Please try again later.',
-            reply: {
-              messageReference: id,
-            },
-          };
-
-          channel.send(payload).catch((error) => generateLogMessage(
-            [
-              'Failed to send message',
-              `(function: etherscanGasOracle, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-      }
-    } catch (error) {
+    if (!settingsCommandBaseCommands.includes(messageContent)) {
       generateLogMessage(
         [
-          '"regex.pattern" or "regex.flags" is invalid',
-          `(function: etherscanGasOracle, pattern: ${commandRegexPattern}, flags: ${commandRegexFlags})`,
+          'Skipped task',
+          `(function: etherscanGasOracle, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
+        ].join(' '),
+        40,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Continued task',
+        `(function: etherscanGasOracle, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
+      ].join(' '),
+      40,
+    );
+
+    if (!memberHasPermissions(messageMember, settingsCommandAllowedRoles)) {
+      if (settingsCommandNoPermsPayload !== undefined) {
+        payload = replaceVariables(settingsCommandNoPermsPayload);
+      } else {
+        payload = {
+          content: 'You do not have sufficient permissions.',
+        };
+      }
+
+      _.assign(payload, {
+        reply: {
+          messageReference: message,
+        },
+      });
+    } else if (memoryEtherscanGasOracle !== null) {
+      const memoryEtherscanGasOracleSlow = memoryEtherscanGasOracle.slow;
+      const memoryEtherscanGasOracleAverage = memoryEtherscanGasOracle.average;
+      const memoryEtherscanGasOracleFast = memoryEtherscanGasOracle.fast;
+
+      payload = {
+        content: `The average gas prices are **${memoryEtherscanGasOracleSlow} Gwei** (slow), **${memoryEtherscanGasOracleAverage} Gwei** (average), **${memoryEtherscanGasOracleFast} Gwei** (fast)`,
+        reply: {
+          messageReference: message,
+        },
+      };
+    } else {
+      payload = {
+        content: 'Failed to retrieve gas prices. Please try again later.',
+        reply: {
+          messageReference: message,
+        },
+      };
+    }
+
+    messageChannel.send(payload).then((sendResponse) => {
+      const sendResponseUrl = sendResponse.url;
+
+      generateLogMessage(
+        [
+          'Sent message',
+          `(function: etherscanGasOracle, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+        ].join(' '),
+        40,
+      );
+    }).catch((error: Error) => generateLogMessage(
+      [
+        'Failed to send message',
+        `(function: etherscanGasOracle, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      ].join(' '),
+      10,
+      error,
+    ));
+  }
+}
+
+/**
+ * Finnhub earnings.
+ *
+ * @param {FinnhubEarningsMessage}  message  - Message.
+ * @param {FinnhubEarningsGuild}    guild    - Guild.
+ * @param {FinnhubEarningsSettings} settings - Settings.
+ *
+ * @returns {FinnhubEarningsReturns}
+ *
+ * @since 1.0.0
+ */
+export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubEarningsGuild, settings: FinnhubEarningsSettings): FinnhubEarningsReturns {
+  const guildRoles = guild.roles;
+
+  const settingsSettingsApiKey = <FinnhubEarningsSettingsSettingsApiKey>_.get(settings, ['settings', 'api-key']);
+  const settingsChannelChannelId = <FinnhubEarningsSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
+  const settingsCommandBaseCommands = <FinnhubEarningsSettingsCommandBaseCommands>_.get(settings, ['command', 'base-commands']);
+  const settingsCommandAllowedRoles = <FinnhubEarningsSettingsCommandAllowedRoles>_.get(settings, ['command', 'allowed-roles']);
+  const settingsCommandNoPermsPayload = <FinnhubEarningsSettingsCommandNoPermsPayload>_.get(settings, ['command', 'no-perms-payload']);
+
+  const channel = getTextBasedChannel(guild, settingsChannelChannelId);
+
+  /**
+   * Finnhub earnings - Calculate surprise.
+   *
+   * @param {FinnhubEarningsCalculateSurpriseEstimate} estimate - Estimate.
+   * @param {FinnhubEarningsCalculateSurpriseActual}   actual   - Actual.
+   *
+   * @returns {FinnhubEarningsCalculateSurpriseReturns}
+   *
+   * @since 1.0.0
+   */
+  const calculateSurprise = (estimate: FinnhubEarningsCalculateSurpriseEstimate, actual: FinnhubEarningsCalculateSurpriseActual): FinnhubEarningsCalculateSurpriseReturns => {
+    let surprise = (actual - estimate) / estimate;
+
+    if (estimate === 0) {
+      surprise = actual;
+    }
+
+    if (estimate < 0) {
+      surprise = (estimate * -1) + actual;
+    }
+
+    return numeral(surprise).format('0,0.00%').replace(/\.00/g, '');
+  };
+  /**
+   * Finnhub earnings - Format eps.
+   *
+   * @param {FinnhubEarningsFormatEpsEarningsPerShare} earningsPerShare - Earnings per share.
+   *
+   * @returns {FinnhubEarningsFormatEpsReturns}
+   *
+   * @since 1.0.0
+   */
+  const formatEps = (earningsPerShare: FinnhubEarningsFormatEpsEarningsPerShare): FinnhubEarningsFormatEpsReturns => numeral(earningsPerShare).format('$0,0.00');
+  /**
+   * Finnhub earnings - Format revenue.
+   *
+   * @param {FinnhubEarningsFormatRevenueRevenue} revenue - Revenue.
+   *
+   * @returns {FinnhubEarningsFormatRevenueReturns}
+   *
+   * @since 1.0.0
+   */
+  const formatRevenue = (revenue: FinnhubEarningsFormatRevenueRevenue): FinnhubEarningsFormatRevenueReturns => numeral(revenue).format('$0,0.00a').replace(/\.00/g, '').toUpperCase();
+  /**
+   * Finnhub earnings - Replace variables.
+   *
+   * @param {FinnhubEarningsReplaceVariablesConfigPayload} configPayload - Config payload.
+   *
+   * @returns {FinnhubEarningsReplaceVariablesReturns}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configPayload: FinnhubEarningsReplaceVariablesConfigPayload): FinnhubEarningsReplaceVariablesReturns => {
+    const editedPayload = JSON.stringify(configPayload)
+      .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
+
+    return JSON.parse(editedPayload);
+  };
+
+  const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <FinnhubEarningsSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
+
+  let payload: MessageOptions = {};
+
+  // If "api-fetch.finnhub-earnings" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings" is not configured',
+        `(function: finnhubEarnings, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.channel.channel-id" and "api-fetch.finnhub-earnings.command.base-commands" is not configured properly.
+  if (
+    settingsChannelChannelId === undefined
+    && settingsCommandBaseCommands === undefined
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.channel.channel-id" and "api-fetch.finnhub-earnings.command.base-commands" is not configured properly',
+        `(function: finnhubEarnings, channel id: ${JSON.stringify(settingsChannelChannelId)}, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.settings.api-key" is not configured properly.
+  if (
+    !_.isString(settingsSettingsApiKey)
+    || _.isEmpty(settingsSettingsApiKey)
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.settings.api-key" is not configured properly',
+        `(function: finnhubEarnings, api key: ${JSON.stringify(settingsSettingsApiKey)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.channel.channel-id" is not configured properly.
+  if (
+    settingsChannelChannelId !== undefined
+    && (
+      channel === undefined
+      || channel === null
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.channel.channel-id" is not configured properly',
+        `(function: finnhubEarnings, channel id: ${JSON.stringify(settingsChannelChannelId)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.command.base-commands" is not configured properly.
+  if (
+    settingsCommandBaseCommands !== undefined
+    && (
+      !_.isArray(settingsCommandBaseCommands)
+      || _.isEmpty(settingsCommandBaseCommands)
+      || !_.every(settingsCommandBaseCommands, (settingsCommandBaseCommand) => _.isString(settingsCommandBaseCommand) && !_.isEmpty(settingsCommandBaseCommand))
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.command.base-commands" is not configured properly',
+        `(function: finnhubEarnings, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.command.allowed-roles" is not configured properly.
+  if (
+    settingsCommandAllowedRoles !== undefined
+    && (
+      !_.isArray(settingsCommandAllowedRoles)
+      || _.isEmpty(settingsCommandAllowedRoles)
+      || !_.every(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => _.isPlainObject(settingsCommandAllowedRole) && !_.isEmpty(settingsCommandAllowedRole))
+      || !_.every(allowedRoleIds, (allowedRoleId) => allowedRoleId !== undefined && guildRoles.resolve(allowedRoleId) !== null)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.command.allowed-roles" is not configured properly',
+        `(function: finnhubEarnings, allowed roles: ${JSON.stringify(settingsCommandAllowedRoles)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.finnhub-earnings.command.no-perms-payload" is not configured properly.
+  if (
+    settingsCommandNoPermsPayload !== undefined
+    && (
+      !_.isPlainObject(settingsCommandNoPermsPayload)
+      || _.isEmpty(settingsCommandNoPermsPayload)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.finnhub-earnings.command.no-perms-payload" is not configured properly',
+        `(function: finnhubEarnings, no perms payload: ${JSON.stringify(settingsCommandNoPermsPayload)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // Cache and update feed.
+  if (memoryFinnhubEarnings === null) {
+    /**
+     * Finnhub API (Free).
+     * Free plan allows 1 call/1 second, up to 86,400 calls/day.
+     *
+     * Used: 1 call/10 seconds, 8,640 API calls/day.
+     *
+     * @since 1.0.0
+     */
+    cron.schedule('0/10 * * * * *', () => {
+      axios.get<ApiFinnhubEarnings>(`https://finnhub.io/api/v1/calendar/earnings?token=${settingsSettingsApiKey}`).then((getResponse) => {
+        const getResponseData = getResponse.data;
+
+        const getResponseDataEarningsCalendar = <ApiFinnhubEarningsEvents>_.get(getResponseData, ['earningsCalendar']);
+
+        generateLogMessage(
+          [
+            'Contacted API',
+            `(function: finnhubEarnings, data: ${JSON.stringify(getResponseData)})`,
+          ].join(' '),
+          40,
+        );
+
+        if (getResponseDataEarningsCalendar !== undefined) {
+          const sortedEarnings = _.orderBy(getResponseDataEarningsCalendar, ['date', 'symbol'], ['desc', 'asc']);
+          const filteredEarnings = _.filter(sortedEarnings, (sortedEarning) => {
+            const sortedEarningEpsActual = sortedEarning.epsActual;
+            const sortedEarningEpsEstimate = sortedEarning.epsEstimate;
+            const sortedEarningRevenueActual = sortedEarning.revenueActual;
+            const sortedEarningRevenueEstimate = sortedEarning.revenueEstimate;
+
+            return sortedEarningEpsActual !== null || sortedEarningEpsEstimate !== null || sortedEarningRevenueActual !== null || sortedEarningRevenueEstimate !== null;
+          });
+          const content = {
+            earnings: _.map(filteredEarnings, (filteredEarning) => {
+              const filteredEarningDate = filteredEarning.date;
+              const filteredEarningEpsActual = filteredEarning.epsActual;
+              const filteredEarningEpsEstimate = filteredEarning.epsEstimate;
+              const filteredEarningHour = filteredEarning.hour;
+              const filteredEarningQuarter = filteredEarning.quarter;
+              const filteredEarningRevenueActual = filteredEarning.revenueActual;
+              const filteredEarningRevenueEstimate = filteredEarning.revenueEstimate;
+              const filteredEarningSymbol = filteredEarning.symbol;
+              const filteredEarningYear = filteredEarning.year;
+
+              let earningsCallTime = null;
+
+              switch (filteredEarningHour) {
+                case 'bmo':
+                  earningsCallTime = 'Before Market Open';
+                  break;
+                case 'amc':
+                  earningsCallTime = 'After Market Close';
+                  break;
+                case 'dmh':
+                  earningsCallTime = 'During Market Hour';
+                  break;
+                default:
+                  break;
+              }
+
+              return {
+                date: fetchFormattedDate('iso', filteredEarningDate, 'config', 'DDDD'),
+                symbol: filteredEarningSymbol,
+                fiscalQuarter: `${filteredEarningYear} Q${filteredEarningQuarter}`,
+                callTime: earningsCallTime,
+                epsEstimate: (filteredEarningEpsEstimate !== null) ? formatEps(filteredEarningEpsEstimate) : null,
+                epsActual: (filteredEarningEpsActual !== null) ? formatEps(filteredEarningEpsActual) : null,
+                epsSurprise: (filteredEarningEpsEstimate !== null && filteredEarningEpsActual !== null) ? calculateSurprise(filteredEarningEpsEstimate, filteredEarningEpsActual) : null,
+                revenueEstimate: (filteredEarningRevenueEstimate !== null) ? formatRevenue(filteredEarningRevenueEstimate) : null,
+                revenueActual: (filteredEarningRevenueActual !== null) ? formatRevenue(filteredEarningRevenueActual) : null,
+                revenueSurprise: (filteredEarningRevenueEstimate !== null && filteredEarningRevenueActual !== null) ? calculateSurprise(filteredEarningRevenueEstimate, filteredEarningRevenueActual) : null,
+              };
+            }),
+          };
+
+          generateLogMessage(
+            [
+              'Fetched API content',
+              `(function: finnhubEarnings, content: ${JSON.stringify(content)})`,
+            ].join(' '),
+            40,
+          );
+
+          // Prevent possible duplicate responses after bot reboot.
+          if (memoryFinnhubEarnings === null) {
+            memoryFinnhubEarnings = content;
+          }
+
+          // If there are updates.
+          if (!_.isEqual(memoryFinnhubEarnings, content)) {
+            const newContent = content.earnings;
+            const oldContent = memoryFinnhubEarnings.earnings;
+            const earnings = _.differenceWith(newContent, oldContent, _.isEqual);
+
+            memoryFinnhubEarnings = content;
+
+            if (channel) {
+              earnings.forEach((earning) => {
+                const earningDate = earning.date;
+                const earningSymbol = earning.symbol;
+                const earningFiscalQuarter = earning.fiscalQuarter;
+                const earningCallTime = earning.callTime;
+                const earningEpsEstimate = earning.epsEstimate;
+                const earningEpsActual = earning.epsActual;
+                const earningEpsSurprise = earning.epsSurprise;
+                const earningRevenueEstimate = earning.revenueEstimate;
+                const earningRevenueActual = earning.revenueActual;
+                const earningRevenueSurprise = earning.revenueSurprise;
+
+                payload = {
+                  content: [
+                    `**${earningSymbol} ${earningFiscalQuarter} Earnings (${(earningEpsActual !== null || earningRevenueActual !== null) ? 'ACTUAL' : 'ESTIMATED'} REPORT)**`,
+                    `__Reporting on ${earningDate}__${(earningCallTime !== null) ? ` :: __${earningCallTime.toUpperCase()}S__` : ''}`,
+                    ...(earningEpsEstimate !== null || earningEpsActual !== null || earningEpsSurprise !== null) ? [
+                      `**EPS:** ${[
+                        ...(earningEpsEstimate !== null) ? [`\`${earningEpsEstimate}\` (estimate)`] : [],
+                        ...(earningEpsActual !== null) ? [`\`${earningEpsActual}\` (actual)`] : [],
+                        ...(earningEpsSurprise !== null) ? [`\`${earningEpsSurprise}\` (surprise)`] : [],
+                      ].join(', ')}`,
+                    ] : [],
+                    ...(earningRevenueEstimate !== null || earningRevenueActual !== null || earningRevenueSurprise !== null) ? [
+                      `**Revenue:** ${[
+                        ...(earningRevenueEstimate !== null) ? [`\`${earningRevenueEstimate}\` (estimate)`] : [],
+                        ...(earningRevenueActual !== null) ? [`\`${earningRevenueActual}\` (actual)`] : [],
+                        ...(earningRevenueSurprise !== null) ? [`\`${earningRevenueSurprise}\` (surprise)`] : [],
+                      ].join(', ')}`,
+                    ] : [],
+                  ].join('\n'),
+                };
+
+                channel.send(payload).then((sendResponse) => {
+                  const sendResponseUrl = sendResponse.url;
+
+                  generateLogMessage(
+                    [
+                      'Sent message',
+                      `(function: finnhubEarnings, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+                    ].join(' '),
+                    40,
+                  );
+                }).catch((error: Error) => generateLogMessage(
+                  [
+                    'Failed to send message',
+                    `(function: finnhubEarnings, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                  ].join(' '),
+                  10,
+                  error,
+                ));
+              });
+            }
+          }
+        } else {
+          generateLogMessage(
+            [
+              'Failed to fetch API content',
+              `(function: finnhubEarnings, data: ${JSON.stringify(getResponseData)})`,
+            ].join(' '),
+            10,
+          );
+        }
+      }).catch((error: Error) => generateLogMessage(
+        [
+          'Failed to contact API',
+          '(function: finnhubEarnings)',
         ].join(' '),
         10,
         error,
+      ));
+    }, {
+      scheduled: true,
+    });
+  }
+
+  // Fetch command.
+  if (
+    message !== undefined
+    && settingsCommandBaseCommands !== undefined
+  ) {
+    if (message.member === null) {
+      generateLogMessage(
+        [
+          'Failed to process command',
+          '(function: finnhubEarnings)',
+        ].join(' '),
+        10,
       );
+
+      return;
     }
+
+    generateLogMessage(
+      [
+        'Processed command',
+        '(function: finnhubEarnings)',
+      ].join(' '),
+      40,
+    );
+
+    const messageChannel = message.channel;
+    const messageContent = message.content;
+    const messageMember = message.member;
+
+    if (!settingsCommandBaseCommands.includes(messageContent)) {
+      generateLogMessage(
+        [
+          'Skipped task',
+          `(function: finnhubEarnings, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
+        ].join(' '),
+        40,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Continued task',
+        `(function: finnhubEarnings, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
+      ].join(' '),
+      40,
+    );
+
+    if (!memberHasPermissions(messageMember, settingsCommandAllowedRoles)) {
+      if (settingsCommandNoPermsPayload !== undefined) {
+        payload = replaceVariables(settingsCommandNoPermsPayload);
+      } else {
+        payload = {
+          content: 'You do not have sufficient permissions.',
+        };
+      }
+
+      _.assign(payload, {
+        reply: {
+          messageReference: message,
+        },
+      });
+    } else if (memoryFinnhubEarnings !== null) {
+      payload = {
+        content: 'Here are the latest earnings information up to today:',
+        files: [
+          createEarningsTableAttachment(
+            memoryFinnhubEarnings.earnings,
+          ),
+        ],
+        reply: {
+          messageReference: message,
+        },
+      };
+    } else {
+      payload = {
+        content: 'Failed to retrieve latest earnings data. Please try again later.',
+        reply: {
+          messageReference: message,
+        },
+      };
+    }
+
+    messageChannel.send(payload).then((sendResponse) => {
+      const sendResponseUrl = sendResponse.url;
+
+      generateLogMessage(
+        [
+          'Sent message',
+          `(function: finnhubEarnings, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+        ].join(' '),
+        40,
+      );
+    }).catch((error: Error) => generateLogMessage(
+      [
+        'Failed to send message',
+        `(function: finnhubEarnings, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      ].join(' '),
+      10,
+      error,
+    ));
   }
 }
 
 /**
  * Stocktwits trending.
  *
- * @param {Guild}            guild    - Discord guild.
- * @param {ApiFetchSettings} settings - API fetch settings.
- * @param {Message}          message  - Message object.
+ * @param {StocktwitsTrendingMessage}  message  - Message.
+ * @param {StocktwitsTrendingGuild}    guild    - Guild.
+ * @param {StocktwitsTrendingSettings} settings - Settings.
  *
- * @returns {void}
+ * @returns {StocktwitsTrendingReturns}
  *
  * @since 1.0.0
  */
-export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, message?: Message): void {
-  const feedChannelId = _.get(settings, 'feed.channel-id');
-  const feedChannel = getTextBasedChannel(guild, feedChannelId);
-  const commandRegexPattern = _.get(settings, 'command.regex.pattern');
-  const commandRegexFlags = _.get(settings, 'command.regex.flags');
-  const commandAllowedRoles = _.get(settings, 'command.allowed-roles');
+export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: StocktwitsTrendingGuild, settings: StocktwitsTrendingSettings): StocktwitsTrendingReturns {
+  const guildRoles = guild.roles;
 
-  if (!feedChannel && (!commandRegexPattern || !commandRegexFlags)) {
+  const settingsChannelChannelId = <StocktwitsTrendingSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
+  const settingsCommandBaseCommands = <StocktwitsTrendingSettingsCommandBaseCommands>_.get(settings, ['command', 'base-commands']);
+  const settingsCommandAllowedRoles = <StocktwitsTrendingSettingsCommandAllowedRoles>_.get(settings, ['command', 'allowed-roles']);
+  const settingsCommandNoPermsPayload = <StocktwitsTrendingSettingsCommandNoPermsPayload>_.get(settings, ['command', 'no-perms-payload']);
+
+  const channel = getTextBasedChannel(guild, settingsChannelChannelId);
+
+  /**
+   * Stocktwits trending - Replace variables.
+   *
+   * @param {StocktwitsTrendingReplaceVariablesConfigPayload} configPayload - Config payload.
+   *
+   * @returns {StocktwitsTrendingReplaceVariablesReturns}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configPayload: StocktwitsTrendingReplaceVariablesConfigPayload): StocktwitsTrendingReplaceVariablesReturns => {
+    const editedPayload = JSON.stringify(configPayload)
+      .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
+
+    return JSON.parse(editedPayload);
+  };
+
+  const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <StocktwitsTrendingSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
+
+  let payload: MessageOptions = {};
+
+  // If "api-fetch.stocktwits-trending" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending" is not configured',
+        `(function: stocktwitsTrending, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.channel.channel-id" and "api-fetch.stocktwits-trending.command.base-commands" is not configured properly.
+  if (
+    settingsChannelChannelId === undefined
+    && settingsCommandBaseCommands === undefined
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.channel.channel-id" and "api-fetch.stocktwits-trending.command.base-commands" is not configured properly',
+        `(function: stocktwitsTrending, channel id: ${JSON.stringify(settingsChannelChannelId)}, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.channel.channel-id" is not configured properly.
+  if (
+    settingsChannelChannelId !== undefined
+    && (
+      channel === undefined
+      || channel === null
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.channel.channel-id" is not configured properly',
+        `(function: stocktwitsTrending, channel id: ${JSON.stringify(settingsChannelChannelId)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.command.base-commands" is not configured properly.
+  if (
+    settingsCommandBaseCommands !== undefined
+    && (
+      !_.isArray(settingsCommandBaseCommands)
+      || _.isEmpty(settingsCommandBaseCommands)
+      || !_.every(settingsCommandBaseCommands, (settingsCommandBaseCommand) => _.isString(settingsCommandBaseCommand) && !_.isEmpty(settingsCommandBaseCommand))
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.command.base-commands" is not configured properly',
+        `(function: stocktwitsTrending, base commands: ${JSON.stringify(settingsCommandBaseCommands)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.command.allowed-roles" is not configured properly.
+  if (
+    settingsCommandAllowedRoles !== undefined
+    && (
+      !_.isArray(settingsCommandAllowedRoles)
+      || _.isEmpty(settingsCommandAllowedRoles)
+      || !_.every(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => _.isPlainObject(settingsCommandAllowedRole) && !_.isEmpty(settingsCommandAllowedRole))
+      || !_.every(allowedRoleIds, (allowedRoleId) => allowedRoleId !== undefined && guildRoles.resolve(allowedRoleId) !== null)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.command.allowed-roles" is not configured properly',
+        `(function: stocktwitsTrending, allowed roles: ${JSON.stringify(settingsCommandAllowedRoles)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "api-fetch.stocktwits-trending.command.no-perms-payload" is not configured properly.
+  if (
+    settingsCommandNoPermsPayload !== undefined
+    && (
+      !_.isPlainObject(settingsCommandNoPermsPayload)
+      || _.isEmpty(settingsCommandNoPermsPayload)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"api-fetch.stocktwits-trending.command.no-perms-payload" is not configured properly',
+        `(function: stocktwitsTrending, no perms payload: ${JSON.stringify(settingsCommandNoPermsPayload)})`,
+      ].join(' '),
+      10,
+    );
+
     return;
   }
 
   // Cache and update feed.
-  if (_.get(apiCache, 'stocktwitsTrending.content') === null) {
+  if (memoryStocktwitsTrending === null) {
     /**
      * Stocktwits API (Unauthenticated).
      * Unauthenticated allows 200 requests/hour, up to 4,800 calls/day.
      *
      * Used: 1 call/20 seconds, 4,320 calls/day.
+     *
+     * @since 1.0.0
      */
-    scheduleJob('0/20 * * * * *', () => {
-      axios.get('https://api.stocktwits.com/api/2/trending/symbols.json?limit=15').then((response) => {
-        const data = _.get(response, 'data');
-        const status = _.get(data, 'response.status');
-        const symbols = _.get(data, 'symbols');
-        const sortedSymbols = _.orderBy(symbols, ['watchlist_count'], ['desc']);
+    cron.schedule('0/20 * * * * *', () => {
+      axios.get<ApiStocktwitsTrending>('https://api.stocktwits.com/api/2/trending/symbols.json?limit=15').then((getResponse) => {
+        const getResponseData = getResponse.data;
 
-        // Status with 200 means OK.
-        if (status === 200) {
+        const getResponseDataResponseStatus = <ApiStocktwitsTrendingResponseStatus>_.get(getResponseData, ['response', 'status']);
+        const getResponseDataSymbols = <ApiStocktwitsTrendingSymbols>_.get(getResponseData, ['symbols']);
+
+        generateLogMessage(
+          [
+            'Contacted API',
+            `(function: stocktwitsTrending, data: ${JSON.stringify(getResponseData)})`,
+          ].join(' '),
+          40,
+        );
+
+        if (
+          getResponseDataResponseStatus === 200
+          && getResponseDataSymbols !== undefined
+        ) {
+          const sortedSymbols = _.orderBy(getResponseDataSymbols, ['watchlist_count'], ['desc']);
           const content = {
-            symbols: _.map(sortedSymbols, (sortedSymbol) => ({
-              symbol: sortedSymbol.symbol,
-            })),
+            symbols: _.map(sortedSymbols, (sortedSymbol) => sortedSymbol.symbol),
           };
 
-          // Prevents bot from spamming same item after reboot.
-          if (_.get(apiCache, 'stocktwitsTrending.content') === null) {
-            _.set(apiCache, 'stocktwitsTrending.content', content);
+          generateLogMessage(
+            [
+              'Fetched API content',
+              `(function: stocktwitsTrending, content: ${JSON.stringify(content)})`,
+            ].join(' '),
+            40,
+          );
+
+          // Prevent possible duplicate responses after bot reboot.
+          if (memoryStocktwitsTrending === null) {
+            memoryStocktwitsTrending = content;
           }
 
           // If there are updates.
-          if (!_.isEqual(_.get(apiCache, 'stocktwitsTrending.content'), content)) {
-            _.set(apiCache, 'stocktwitsTrending.content', content);
+          if (!_.isEqual(memoryStocktwitsTrending, content)) {
+            memoryStocktwitsTrending = content;
 
-            // If feed channel is set.
-            if (feedChannel) {
-              const payload = {
-                content: _.map(content.symbols, (symbol) => `**${symbol.symbol}**`).join(', '),
+            if (channel) {
+              const contentSymbols = content.symbols;
+
+              payload = {
+                content: _.map(contentSymbols, (contentSymbol) => `**${contentSymbol}**`).join(', '),
               };
 
-              feedChannel.send(payload).catch((error) => generateLogMessage(
+              channel.send(payload).then((sendResponse) => {
+                const sendResponseUrl = sendResponse.url;
+
+                generateLogMessage(
+                  [
+                    'Sent message',
+                    `(function: stocktwitsTrending, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+                  ].join(' '),
+                  40,
+                );
+              }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',
-                  `(function: stocktwitsTrending, channel: ${feedChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+                  `(function: stocktwitsTrending, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
                 ].join(' '),
                 10,
                 error,
@@ -253,13 +1174,13 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
         } else {
           generateLogMessage(
             [
-              'Failed to fetch content',
-              `(function: stocktwitsTrending, data: ${JSON.stringify(data)})`,
+              'Failed to fetch API content',
+              `(function: stocktwitsTrending, data: ${JSON.stringify(getResponseData)})`,
             ].join(' '),
             10,
           );
         }
-      }).catch((error) => generateLogMessage(
+      }).catch((error: Error) => generateLogMessage(
         [
           'Failed to contact API',
           '(function: stocktwitsTrending)',
@@ -267,76 +1188,109 @@ export function stocktwitsTrending(guild: Guild, settings: ApiFetchSettings, mes
         10,
         error,
       ));
+    }, {
+      scheduled: true,
     });
   }
 
   // Fetch command.
-  if (message && commandRegexPattern && commandRegexFlags) {
-    const {
-      channel,
-      id,
-      member,
-    } = message;
+  if (
+    message !== undefined
+    && settingsCommandBaseCommands !== undefined
+  ) {
+    if (message.member === null) {
+      generateLogMessage(
+        [
+          'Failed to process command',
+          '(function: stocktwitsTrending)',
+        ].join(' '),
+        10,
+      );
 
-    if (!channel || !member) {
       return;
     }
 
-    try {
-      if (
-        new RegExp(commandRegexPattern, commandRegexFlags).test(message.toString())
-        && (
-          _.some(commandAllowedRoles, (commandAllowedRole) => member.roles.resolve(commandAllowedRole['role-id']) !== null)
-          || member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
-        )
-      ) {
-        const content = _.get(apiCache, 'stocktwitsTrending.content');
+    generateLogMessage(
+      [
+        'Processed command',
+        '(function: stocktwitsTrending)',
+      ].join(' '),
+      40,
+    );
 
-        // Only show the latest cached content.
-        if (content !== null) {
-          const payload = {
-            content: `The top trending symbols are ${_.map(content.symbols, (symbol) => `**${symbol.symbol}**`)
-              .join(', ')}`,
-            reply: {
-              messageReference: id,
-            },
-          };
+    const messageChannel = message.channel;
+    const messageContent = message.content;
+    const messageMember = message.member;
 
-          channel.send(payload).catch((error) => generateLogMessage(
-            [
-              'Failed to send message',
-              `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-            ].join(' '),
-            10,
-            error,
-          ));
-        } else {
-          const payload = {
-            content: 'Failed to retrieve top trending symbols. Please try again later.',
-            reply: {
-              messageReference: id,
-            },
-          };
-
-          channel.send(payload).catch((error) => generateLogMessage(
-            [
-              'Failed to send message',
-              `(function: stocktwitsTrending, channel: ${channel.toString()}, payload: ${JSON.stringify(payload)})`,
-            ].join(' '),
-            10,
-            error,
-          ));
-        }
-      }
-    } catch (error) {
+    if (!settingsCommandBaseCommands.includes(messageContent)) {
       generateLogMessage(
         [
-          '"regex.pattern" or "regex.flags" is invalid',
-          `(function: stocktwitsTrending, pattern: ${commandRegexPattern}, flags: ${commandRegexFlags})`,
+          'Skipped task',
+          `(function: stocktwitsTrending, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
         ].join(' '),
-        10,
-        error,
+        40,
       );
+
+      return;
     }
+
+    generateLogMessage(
+      [
+        'Continued task',
+        `(function: stocktwitsTrending, specified base commands: ${JSON.stringify(settingsCommandBaseCommands)}, current base command: ${JSON.stringify(messageContent)})`,
+      ].join(' '),
+      40,
+    );
+
+    if (!memberHasPermissions(messageMember, settingsCommandAllowedRoles)) {
+      if (settingsCommandNoPermsPayload !== undefined) {
+        payload = replaceVariables(settingsCommandNoPermsPayload);
+      } else {
+        payload = {
+          content: 'You do not have sufficient permissions.',
+        };
+      }
+
+      _.assign(payload, {
+        reply: {
+          messageReference: message,
+        },
+      });
+    } else if (memoryStocktwitsTrending !== null) {
+      const cacheSymbols = memoryStocktwitsTrending.symbols;
+
+      payload = {
+        content: `The top trending symbols are ${_.map(cacheSymbols, (cacheSymbol) => `**${cacheSymbol}**`).join(', ')}`,
+        reply: {
+          messageReference: message,
+        },
+      };
+    } else {
+      payload = {
+        content: 'Failed to retrieve top trending symbols. Please try again later.',
+        reply: {
+          messageReference: message,
+        },
+      };
+    }
+
+    messageChannel.send(payload).then((sendResponse) => {
+      const sendResponseUrl = sendResponse.url;
+
+      generateLogMessage(
+        [
+          'Sent message',
+          `(function: stocktwitsTrending, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+        ].join(' '),
+        40,
+      );
+    }).catch((error: Error) => generateLogMessage(
+      [
+        'Failed to send message',
+        `(function: stocktwitsTrending, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      ].join(' '),
+      10,
+      error,
+    ));
   }
 }

@@ -1,190 +1,323 @@
-import { GuildMember, PartialGuildMember, TextBasedChannel } from 'discord.js';
+import { MessageOptions } from 'discord.js';
 import _ from 'lodash';
 
-import { createMemberMonitorEmbed } from '../lib/embed';
-import { generateLogMessage, getTextBasedChannel } from '../lib/utilities';
-import { AntiRaidAutoBan, AntiRaidMembershipGate, MemberMonitorMode } from '../types';
+import { fetchFormattedDate, generateLogMessage, getTextBasedChannel } from '../lib/utility';
+import {
+  AntiRaidAutoBanMember,
+  AntiRaidAutoBanReturns,
+  AntiRaidAutoBanSettings,
+  AntiRaidAutoBanSettingsAvatarAvatar,
+  AntiRaidAutoBanSettingsAvatars,
+  AntiRaidAutoBanSettingsUsernames,
+  AntiRaidAutoBanSettingsUsernameUsername,
+  AntiRaidMembershipGateGuild,
+  AntiRaidMembershipGateNewMember,
+  AntiRaidMembershipGateOldMember,
+  AntiRaidMembershipGateReplaceVariablesConfigPayload,
+  AntiRaidMembershipGateReplaceVariablesReturns,
+  AntiRaidMembershipGateReturns,
+  AntiRaidMembershipGateSettings,
+  AntiRaidMembershipGateSettingsChannelChannelId,
+  AntiRaidMembershipGateSettingsPayload,
+  AntiRaidMembershipGateSettingsRoleRoleId,
+  AntiRaidMembershipGateSettingsRoles,
+} from '../types';
 
 /**
- * Anti-raid auto-ban.
+ * Anti-raid auto ban.
  *
- * @param {GuildMember}     member   - Member information.
- * @param {AntiRaidAutoBan} settings - Banned users from configuration.
+ * @param {AntiRaidAutoBanMember}   member   - Member.
+ * @param {AntiRaidAutoBanSettings} settings - Settings.
  *
- * @returns {void}
+ * @returns {AntiRaidAutoBanReturns}
  *
  * @since 1.0.0
  */
-export function antiRaidAutoBan(member: GuildMember, settings: AntiRaidAutoBan): void {
-  const userAvatar = member.user.avatar;
-  const userUsername = member.user.username;
-  const avatars = _.map(_.get(settings, 'avatars'), (avatar) => avatar['avatar-hash']);
-  const usernames = _.map(_.get(settings, 'usernames'), (username) => username.username);
+export function antiRaidAutoBan(member: AntiRaidAutoBanMember, settings: AntiRaidAutoBanSettings): AntiRaidAutoBanReturns {
+  const memberUserAvatar = member.user.avatar;
+  const memberUserUsername = member.user.username;
+
+  const settingsAvatars = <AntiRaidAutoBanSettingsAvatars>_.get(settings, ['avatars']);
+  const settingsUsernames = <AntiRaidAutoBanSettingsUsernames>_.get(settings, ['usernames']);
+
+  const avatars = _.map(settingsAvatars, (settingsAvatar) => <AntiRaidAutoBanSettingsAvatarAvatar>_.get(settingsAvatar, ['avatar']));
+  const usernames = _.map(settingsUsernames, (settingsUsername) => <AntiRaidAutoBanSettingsUsernameUsername>_.get(settingsUsername, ['username']));
+
+  // If "anti-raid.auto-ban" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"anti-raid.auto-ban" is not configured',
+        `(function: antiRaidAutoBan, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.auto-ban.avatars" and "anti-raid.auto-ban.usernames" is not configured properly.
+  if (
+    settingsAvatars === undefined
+    && settingsUsernames === undefined
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.auto-ban.avatars" and "anti-raid.auto-ban.usernames" is not configured properly',
+        `(function: antiRaidAutoBan, avatars: ${JSON.stringify(settingsAvatars)}, usernames: ${JSON.stringify(settingsUsernames)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.auto-ban.avatars" is not configured properly.
+  if (
+    settingsAvatars !== undefined
+    && (
+      !_.isArray(settingsAvatars)
+      || _.isEmpty(settingsAvatars)
+      || !_.every(settingsAvatars, (settingsAvatar) => _.isPlainObject(settingsAvatar) && !_.isEmpty(settingsAvatar))
+      || !_.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar))
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.auto-ban.avatars" is not configured properly',
+        `(function: antiRaidAutoBan, avatars: ${JSON.stringify(settingsAvatars)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.auto-ban.usernames" is not configured properly.
+  if (
+    settingsUsernames !== undefined
+    && (
+      !_.isArray(settingsUsernames)
+      || _.isEmpty(settingsUsernames)
+      || !_.every(settingsUsernames, (settingsUsername) => _.isPlainObject(settingsUsername) && !_.isEmpty(settingsUsername))
+      || !_.every(usernames, (username) => _.isString(username) && !_.isEmpty(username))
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.auto-ban.usernames" is not configured properly',
+        `(function: antiRaidAutoBan, usernames: ${JSON.stringify(settingsUsernames)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  const hasBannedAvatar = memberUserAvatar !== null && avatars.includes(memberUserAvatar);
+  const hasBannedUsername = usernames.includes(memberUserUsername);
 
   if (
-    (_.isArray(avatars) && !_.isEmpty(avatars) && _.every(avatars, (avatar) => _.isString(avatar) && !_.isEmpty(avatar)))
-    || (_.isArray(usernames) && !_.isEmpty(usernames) && _.every(usernames, (username) => _.isString(username) && !_.isEmpty(username)))
+    hasBannedAvatar
+    || hasBannedUsername
   ) {
-    const bannedAvatar = userAvatar !== null && _.includes(avatars, userAvatar);
-    const bannedUsername = _.includes(usernames, userUsername);
-
-    // If user has a banned avatar hash or username.
-    if (bannedAvatar || bannedUsername) {
-      member.ban(
-        {
-          reason: [
-            'Member has a forbidden',
-            ...(bannedAvatar) ? [`avatar hash (${userAvatar})`] : [],
-            ...(bannedAvatar && bannedUsername) ? ['and'] : [],
-            ...(bannedUsername) ? [`username (${userUsername})`] : [],
-          ].join(' '),
-        },
-      ).then(() => {
-        generateLogMessage(
-          [
-            'Member banned',
-            `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
-          ].join(' '),
-          30,
-        );
-      }).catch((error) => generateLogMessage(
-        [
-          'Failed to ban member',
-          `(function: antiRaidAutoBan, member: ${member.toString()}, banned avatar: ${bannedAvatar}, banned username: ${bannedUsername})`,
+    member.ban(
+      {
+        reason: [
+          'Member has a forbidden',
+          ...(hasBannedAvatar) ? [`avatar (${memberUserAvatar})`] : [],
+          ...(hasBannedAvatar && hasBannedUsername) ? ['and'] : [],
+          ...(hasBannedUsername) ? [`username (${memberUserUsername})`] : [],
         ].join(' '),
-        10,
-        error,
-      ));
-    }
+      },
+    ).then(() => generateLogMessage(
+      [
+        'Banned member',
+        `(function: antiRaidAutoBan, member: ${JSON.stringify(member.toString())}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
+      ].join(' '),
+      40,
+    )).catch((error: Error) => generateLogMessage(
+      [
+        'Failed to ban member',
+        `(function: antiRaidAutoBan, member: ${JSON.stringify(member.toString())}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
+      ].join(' '),
+      10,
+      error,
+    ));
   }
 }
 
 /**
  * Anti-raid membership gate.
  *
- * @param {GuildMember|PartialGuildMember} oldMember - Member information (old).
- * @param {GuildMember|PartialGuildMember} newMember - Member information (new).
- * @param {AntiRaidMembershipGate}         settings  - Membership gate settings.
+ * @param {AntiRaidMembershipGateOldMember} oldMember - Member (old).
+ * @param {AntiRaidMembershipGateNewMember} newMember - Member (new).
+ * @param {AntiRaidMembershipGateGuild}     guild     - Guild.
+ * @param {AntiRaidMembershipGateSettings}  settings  - Settings.
  *
- * @returns {void}
+ * @returns {AntiRaidMembershipGateReturns}
  *
  * @since 1.0.0
  */
-export function antiRaidMembershipGate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember | PartialGuildMember, settings: AntiRaidMembershipGate): void {
-  const guild = newMember.guild ?? oldMember.guild;
+export function antiRaidMembershipGate(oldMember: AntiRaidMembershipGateOldMember, newMember: AntiRaidMembershipGateNewMember, guild: AntiRaidMembershipGateGuild, settings: AntiRaidMembershipGateSettings): AntiRaidMembershipGateReturns {
   const oldMemberPending = oldMember.pending;
+
   const newMemberPending = newMember.pending;
-  const roleId = _.get(settings, 'role.role-id');
-  const channelId = _.get(settings, 'channel.channel-id');
-  const message = _.get(settings, 'message');
-  const sendToChannel = getTextBasedChannel(guild, channelId);
+  const newMemberRoles = newMember.roles;
+
+  const guildName = guild.name;
+  const guildRoles = guild.roles;
+
+  const settingsRoles = <AntiRaidMembershipGateSettingsRoles>_.get(settings, ['roles']);
+  const settingsPayload = <AntiRaidMembershipGateSettingsPayload>_.get(settings, ['payload']);
+  const settingsChannelChannelId = <AntiRaidMembershipGateSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
+
+  const channel = getTextBasedChannel(guild, settingsChannelChannelId);
+
   /**
-   * Replace variables.
+   * Anti-raid membership gate - Replace variables.
    *
-   * @param {string} configMessage - Message from configuration.
+   * @param {AntiRaidMembershipGateReplaceVariablesConfigPayload} configPayload - Config payload.
    *
-   * @returns {string}
+   * @returns {AntiRaidMembershipGateReplaceVariablesReturns}
    *
    * @since 1.0.0
    */
-  const replaceVariables = (configMessage: string): string => {
-    if (_.isString(configMessage) && !_.isEmpty(configMessage)) {
-      return configMessage
-        .replace(/%MEMBER_MENTION%/g, newMember.toString())
-        .replace(/%GUILD_NAME%/g, guild.name);
-    }
+  const replaceVariables = (configPayload: AntiRaidMembershipGateReplaceVariablesConfigPayload): AntiRaidMembershipGateReplaceVariablesReturns => {
+    const editedPayload = JSON.stringify(configPayload)
+      .replace(/%GUILD_NAME%/g, guildName)
+      .replace(/%MEMBER_MENTION%/g, newMember.toString())
+      .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
 
-    return 'Thanks for verifying!';
+    return JSON.parse(editedPayload);
   };
 
+  const roleIds = _.map(settingsRoles, (settingsRole) => <AntiRaidMembershipGateSettingsRoleRoleId>_.get(settingsRole, ['role-id']));
+
+  let payload: MessageOptions = {};
+
+  // If "anti-raid.membership-gate" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"anti-raid.membership-gate" is not configured',
+        `(function: antiRaidMembershipGate, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.membership-gate.roles" is not configured properly.
   if (
-    roleId
-    && guild.roles.resolve(roleId) !== null
-    && oldMemberPending
+    !_.isArray(settingsRoles)
+    || _.isEmpty(settingsRoles)
+    || !_.every(settingsRoles, (settingsRole) => _.isPlainObject(settingsRole) && !_.isEmpty(settingsRole))
+    || !_.every(roleIds, (roleId) => roleId !== undefined && guildRoles.resolve(roleId) !== null)
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.membership-gate.roles" is not configured properly',
+        `(function: antiRaidMembershipGate, roles: ${JSON.stringify(settingsRoles)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.membership-gate.payload" is not configured properly.
+  if (
+    settingsPayload !== undefined
+    && (
+      !_.isPlainObject(settingsPayload)
+      || _.isEmpty(settingsPayload)
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.membership-gate.payload" is not configured properly',
+        `(function: antiRaidMembershipGate, payload: ${JSON.stringify(settingsPayload)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "anti-raid.membership-gate.channel.channel-id" is not configured properly.
+  if (
+    settingsChannelChannelId !== undefined
+    && (
+      channel === undefined
+      || channel === null
+    )
+  ) {
+    generateLogMessage(
+      [
+        '"anti-raid.membership-gate.channel.channel-id" is not configured properly',
+        `(function: antiRaidMembershipGate, channel id: ${JSON.stringify(settingsChannelChannelId)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  if (
+    oldMemberPending
     && !newMemberPending
   ) {
-    newMember.roles.add(
-      roleId,
+    newMemberRoles.add(
+      _.filter(roleIds, _.isString),
       'Member passed the membership gate',
-    ).then(() => {
-      generateLogMessage(
-        [
-          'Role added',
-          `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
-        ].join(' '),
-        30,
-      );
-    }).catch((error) => generateLogMessage(
+    ).then(() => generateLogMessage(
       [
-        'Failed to add role',
-        `(function: antiRaidMembershipGate, member: ${newMember.toString()}, role id: ${roleId})`,
+        'Added roles',
+        `(function: antiRaidMembershipGate, member: ${JSON.stringify(newMember.toString())}, roles: ${JSON.stringify(settingsRoles)})`,
+      ].join(' '),
+      40,
+    )).catch((error: Error) => generateLogMessage(
+      [
+        'Failed to add roles',
+        `(function: antiRaidMembershipGate, member: ${JSON.stringify(newMember.toString())}, roles: ${JSON.stringify(settingsRoles)})`,
       ].join(' '),
       10,
       error,
     ));
 
-    if (sendToChannel && message) {
-      const payload = {
-        content: replaceVariables(message),
-      };
+    if (channel) {
+      if (
+        settingsPayload !== undefined
+        && _.isPlainObject(settingsPayload)
+        && !_.isEmpty(settingsPayload)
+      ) {
+        payload = replaceVariables(settingsPayload);
+      } else {
+        payload = {
+          content: 'You have successfully passed the membership gate.',
+        };
+      }
 
-      sendToChannel.send(payload).catch((error) => generateLogMessage(
+      channel.send(payload).then((sendResponse) => {
+        const sendResponseUrl = sendResponse.url;
+
+        generateLogMessage(
+          [
+            'Sent message',
+            `(function: antiRaidMembershipGate, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+          ].join(' '),
+          40,
+        );
+      }).catch((error: Error) => generateLogMessage(
         [
           'Failed to send message',
-          `(function: antiRaidMembershipGate, channel: ${sendToChannel.toString()}, payload: ${JSON.stringify(payload)})`,
+          `(function: antiRaidMembershipGate, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
         ].join(' '),
         10,
         error,
       ));
     }
-  }
-}
-
-/**
- * Anti-raid monitor.
- *
- * @param {GuildMember|PartialGuildMember} member        - Member information.
- * @param {MemberMonitorMode}              mode          - Whether a user joined or left a guild.
- * @param {TextBasedChannel|undefined}     sendToChannel - Send message to channel.
- *
- * @returns {void}
- *
- * @since 1.0.0
- */
-export function antiRaidMonitor(member: GuildMember | PartialGuildMember, mode: MemberMonitorMode, sendToChannel: TextBasedChannel | undefined): void {
-  if (sendToChannel && member.user && member.joinedAt) {
-    generateLogMessage(
-      [
-        'Guild member joined or left guild',
-        `(function: antiRaidMonitor, member: ${member.toString()}, mode: ${mode})`,
-      ].join(' '),
-      30,
-    );
-
-    sendToChannel.send({
-      embeds: [
-        createMemberMonitorEmbed(
-          mode,
-          member.user.tag,
-          member.user.toString(),
-          member.user.avatar,
-          member.user.displayAvatarURL({
-            format: 'webp',
-            dynamic: true,
-            size: 4096,
-          }),
-          member.user.createdAt,
-          member.joinedAt,
-          member.roles,
-        ),
-      ],
-    }).catch((error) => generateLogMessage(
-      [
-        'Failed to send embed',
-        `(function: antiRaidMonitor, channel: ${sendToChannel.toString()})`,
-      ].join(' '),
-      10,
-      error,
-    ));
   }
 }

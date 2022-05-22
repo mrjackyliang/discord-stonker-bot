@@ -1,13 +1,18 @@
 {
   "settings": {
-    "client-token": "",
-    "guild-id": "",
-    "bot-prefix": "!",
-    "server-http-port": 8080,
-    "server-https-port": 8443,
-    "server-https-key": "",
-    "server-https-cert": "",
-    "server-https-ca": "",
+    "discord": {
+      "token": "",
+      "guild": {
+        "description": "",
+        "guild-id": ""
+      }
+    },
+    "twitter": {
+      "api-key": "",
+      "api-key-secret": "",
+      "access-token": "",
+      "access-token-secret": ""
+    },
     "time-zone": "Etc/UTC",
     "log-level": 30
   },
@@ -30,20 +35,39 @@
         "channel-id": "000000000000000000"
       }
     },
+    "guild-join": {
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
+    },
+    "guild-leave": {
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
+    },
     "includes-link": {
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
-      "exclude-links": [
+      "excluded-links": [
         {
-          "description": "Sample regex",
+          "name": "Sample",
           "regex": {
+            "description": "Sample regex",
             "pattern": "(?:)",
             "flags": "g"
           }
         }
       ]
+    },
+    "role-change": {
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
     },
     "update-message": {
       "channel": {
@@ -58,47 +82,191 @@
       }
     }
   },
-  "commands": {
-    "bulk-ban": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
+  "server-tools": {
+    "bulk-ban": {
+      "base-commands": [
+        "!ban"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-duplicates": {
+      "base-commands": [
+        "!duplicates"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-emojis": {
+      "base-commands": [
+        "!emojis"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-members": {
+      "base-commands": [
+        "!members"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "role-manager": {
+      "base-commands": [
+        "!role"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "voice-tools": {
+      "base-commands": [
+        "!voice"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ]
+    }
+  },
+  "web-applications": {
+    "http-server": {
+      "port": 8080
+    },
+    "https-server": {
+      "port": 8443,
+      "key": "",
+      "cert": "",
+      "ca": ""
+    },
+    "invite-generator": {
+      "options": {
+        "path": "/invite",
+        "error-postfix": "Please contact your server administrator.",
+        "max-age": 120,
+        "max-uses": 1
+      },
+      "design": {
+        "background-color": "",
+        "link-color": "",
+        "text-color": ""
+      },
+      "images": {
+        "logo-url": "",
+        "favicon-url": ""
+      },
+      "inject-code": {
+        "header-areas": [
+          {
+            "description": "Sample code",
+            "code": ""
+          }
+        ],
+        "footer-areas": [
+          {
+            "description": "Sample code",
+            "code": ""
+          }
+        ],
+        "submit-successes": [
+          {
+            "description": "Sample code",
+            "code": ""
+          }
+        ],
+        "submit-fails": [
+          {
+            "description": "Sample code",
+            "code": ""
+          }
+        ]
+      },
+      "recaptcha": {
+        "site-key": "",
+        "secret-key": ""
       }
-    ],
-    "fetch-duplicates": [
+    },
+    "map-webhooks": [
       {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ],
-    "fetch-members": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ],
-    "help-menu": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ],
-    "role-manager": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ],
-    "toggle-perms": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ],
-    "voice-tools": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
+        "name": "Sample",
+        "path": "/webhooks/sample",
+        "variables": [
+          {
+            "id": "SAMPLE_TEXT",
+            "type": "string",
+            "path": "path.to[0].sample-text"
+          },
+          {
+            "id": "SAMPLE_TOGGLE",
+            "type": "boolean",
+            "path": "path.to[1].sample-toggle"
+          },
+          {
+            "id": "SAMPLE_SECONDS",
+            "type": "ts-seconds",
+            "path": "path.to[2].sample-seconds"
+          },
+          {
+            "id": "SAMPLE_MILLIS",
+            "type": "ts-millis",
+            "path": "path.to[3].sample-millis"
+          },
+          {
+            "id": "SAMPLE_USD_DOLLARS",
+            "type": "usd-dollars",
+            "path": "path.to[4].sample-dollars"
+          },
+          {
+            "id": "SAMPLE_USD_CENTS",
+            "type": "usd-cents",
+            "path": "path.to[5].sample-cents"
+          }
+        ],
+        "replacements": [
+          {
+            "description": "Sample regex",
+            "pattern": "(?:)",
+            "flags": "g",
+            "replace-with": "$1"
+          }
+        ],
+        "payload": {
+          "content": "@SAMPLE_TEXT@ - @SAMPLE_TOGGLE@ - @SAMPLE_SECONDS@ - @SAMPLE_MILLIS@ - @SAMPLE_USD_DOLLARS@ - @SAMPLE_USD_CENTS@",
+          "footer": {
+            "text": "Copyright © %YEAR% Your Company"
+          }
+        },
+        "channel": {
+          "description": "Sample channel",
+          "channel-id": "000000000000000000"
+        }
       }
     ]
   },
@@ -107,39 +275,75 @@
       "settings": {
         "api-key": ""
       },
-      "feed": {
+      "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
       "command": {
-        "regex": {
-          "pattern": "(?:)",
-          "flags": "g"
-        },
+        "base-commands": [
+          "!gas"
+        ],
         "allowed-roles": [
           {
             "description": "Sample role",
             "role-id": "000000000000000000"
           }
-        ]
+        ],
+        "no-perms-payload": {
+          "content": "You do not have sufficient permissions.",
+          "footer": {
+            "text": "Copyright © %YEAR% Your Company"
+          }
+        }
+      }
+    },
+    "finnhub-earnings": {
+      "settings": {
+        "api-key": ""
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "command": {
+        "base-commands": [
+          "!earnings"
+        ],
+        "allowed-roles": [
+          {
+            "description": "Sample role",
+            "role-id": "000000000000000000"
+          }
+        ],
+        "no-perms-payload": {
+          "content": "You do not have sufficient permissions.",
+          "footer": {
+            "text": "Copyright © %YEAR% Your Company"
+          }
+        }
       }
     },
     "stocktwits-trending": {
-      "feed": {
+      "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
       "command": {
-        "regex": {
-          "pattern": "(?:)",
-          "flags": "g"
-        },
+        "base-commands": [
+          "!trending"
+        ],
         "allowed-roles": [
           {
             "description": "Sample role",
             "role-id": "000000000000000000"
           }
-        ]
+        ],
+        "no-perms-payload": {
+          "content": "You do not have sufficient permissions.",
+          "footer": {
+            "text": "Copyright © %YEAR% Your Company"
+          }
+        }
       }
     }
   },
@@ -147,8 +351,8 @@
     "auto-ban": {
       "avatars": [
         {
-          "description": "Sample avatar hash",
-          "avatar-hash": "00000000000000000000000000000000"
+          "description": "Sample avatar",
+          "avatar": "00000000000000000000000000000000"
         }
       ],
       "usernames": [
@@ -159,22 +363,19 @@
       ]
     },
     "membership-gate": {
-      "role": {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
+      "roles": [
+        {
+          "description": "Sample role",
+          "role-id": "000000000000000000"
+        }
+      ],
+      "payload": {
+        "content": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%.",
+        "footer": {
+          "text": "Copyright © %YEAR% Your Company"
+        }
       },
       "channel": {
-        "description": "Sample channel",
-        "channel-id": "000000000000000000"
-      },
-      "message": "Welcome to %GUILD_NAME%! Thank you for verifying, %MEMBER_MENTION%."
-    },
-    "monitor": {
-      "guild-join": {
-        "description": "Sample channel",
-        "channel-id": "000000000000000000"
-      },
-      "guild-leave": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       }
@@ -183,19 +384,22 @@
   "schedule-posts": [
     {
       "name": "Sample",
-      "channel": {
-        "description": "Sample channel",
-        "channel-id": "000000000000000000"
-      },
       "payload": {
-        "content": "This is a sample scheduled post"
+        "content": "This is a sample scheduled post",
+        "footer": {
+          "text": "Copyright © %YEAR% Your Company"
+        }
       },
       "reactions": [
         "🟢",
         "🟡",
         "🔴"
       ],
-      "send-every": {
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "send-on": {
         "time-zone": "Etc/UTC",
         "days-of-week": [
           0,
@@ -206,26 +410,23 @@
           5,
           6
         ],
-        "year": [
-          2020
-        ],
-        "month": [
-          0
-        ],
-        "date": [
+        "months": [
           1
         ],
-        "hour": [
+        "dates": [
+          1
+        ],
+        "hours": [
           0
         ],
-        "minute": [
+        "minutes": [
           0
         ],
-        "second": [
+        "seconds": [
           0
         ]
       },
-      "skip-days": [
+      "skip-dates": [
         "2021-01-01",
         "2021-02-01"
       ]
@@ -234,41 +435,70 @@
   "rss-feeds": [
     {
       "name": "Sample",
+      "url": "https://www.example.com/feed",
+      "follow-redirects": true,
+      "remove-parameters": true,
+      "payload": {
+        "content": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
+      },
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
-      "interval": "* * * * *",
-      "url": "https://www.example.com/feed",
-      "message": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
+      "fetch-on": {
+        "time-zone": "Etc/UTC",
+        "days-of-week": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "months": [
+          1
+        ],
+        "dates": [
+          1
+        ],
+        "hours": [
+          0
+        ],
+        "minutes": [
+          0
+        ],
+        "seconds": [
+          0
+        ]
+      }
     }
   ],
   "regex-rules": [
     {
-      "name": "Sample Regex",
+      "name": "Sample",
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
+      "match": false,
       "regex": {
+        "description": "Sample regex",
         "pattern": "(?:)",
         "flags": "g"
       },
-      "match": false,
-      "direct-message": "This type of text is not allowed in this channel!",
-      "exclude-roles": [
+      "excluded-roles": [
         {
           "description": "Sample role",
           "role-id": "000000000000000000"
         }
-      ]
+      ],
+      "direct-message-payload": {
+        "content": "This type of text is not allowed in this channel!"
+      }
     }
   ],
-  "suspicious-words": {
-    "channel": {
-      "description": "Sample channel",
-      "channel-id": "000000000000000000"
-    },
+  "detect-suspicious-words": {
     "categories": [
       {
         "category": "Sample",
@@ -277,127 +507,88 @@
           "really suspicious"
         ]
       }
+    ],
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    }
+  },
+  "sync-roles": {
+    "timeout": 1,
+    "events": [
+      {
+        "name": "Sample",
+        "some-roles": [
+          {
+            "description": "A role",
+            "role-id": "000000000000000000"
+          }
+        ],
+        "has-some-roles": true,
+        "to-remove-roles": [
+          {
+            "description": "B role",
+            "role-id": "000000000000000000"
+          }
+        ]
+      },
+      {
+        "name": "Sample",
+        "some-roles": [
+          {
+            "description": "A role",
+            "role-id": "000000000000000000"
+          }
+        ],
+        "has-some-roles": false,
+        "to-add-roles": [
+          {
+            "description": "B role",
+            "role-id": "000000000000000000"
+          }
+        ]
+      }
     ]
   },
-  "role-sync": [
-    {
-      "name": "Remove B role if member is A",
-      "type": "yes-to-yes",
-      "before": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "after": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "to-remove": [
-        {
-          "description": "B role",
-          "role-id": "000000000000000000"
-        }
-      ]
-    },
-    {
-      "name": "Remove B role if member is not A",
-      "type": "no-to-no",
-      "before": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "after": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "to-remove": [
-        {
-          "description": "B role",
-          "role-id": "000000000000000000"
-        }
-      ]
-    },
-    {
-      "name": "Add B role if member went from A to not A",
-      "type": "yes-to-no",
-      "before": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "after": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "to-add": [
-        {
-          "description": "B role",
-          "role-id": "000000000000000000"
-        }
-      ]
-    },
-    {
-      "name": "Remove B role if member went from not A to A",
-      "type": "no-to-yes",
-      "before": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "after": [
-        {
-          "description": "A role",
-          "role-id": "000000000000000000"
-        }
-      ],
-      "to-remove": [
-        {
-          "description": "B role",
-          "role-id": "000000000000000000"
-        }
-      ]
-    }
-  ],
   "role-messages": [
     {
       "name": "Sample",
-      "direction": "add",
       "role": {
         "description": "Sample role",
         "role-id": "000000000000000000"
       },
+      "direction": "add",
+      "payload": {
+        "content": "%MEMBER_MENTION% has obtained a role.",
+        "footer": {
+          "text": "Copyright © %YEAR% Your Company"
+        }
+      },
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "message": "%MEMBER_MENTION% has obtained a role."
+      }
     },
     {
       "name": "Sample",
-      "direction": "remove",
       "role": {
         "description": "Sample role",
         "role-id": "000000000000000000"
       },
+      "direction": "remove",
+      "payload": {
+        "content": "%MEMBER_MENTION% has relinquished a role.",
+        "footer": {
+          "text": "Copyright © %YEAR% Your Company"
+        }
+      },
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
-      },
-      "message": "%MEMBER_MENTION% has relinquished a role."
+      }
     }
   ],
-  "auto-reply": [
+  "auto-replies": [
     {
       "name": "Sample",
       "channels": [
@@ -406,38 +597,30 @@
           "channel-id": "000000000000000000"
         }
       ],
-      "reply": true,
       "regex": {
+        "description": "Sample regex",
         "pattern": "(?:)",
         "flags": "gi"
       },
-      "messages": [
-        "reply 1",
-        "reply 2"
-      ]
+      "payloads": [
+        {
+          "content": "reply 1"
+        },
+        {
+          "content": "reply 2"
+        }
+      ],
+      "reply": true
     }
   ],
-  "message-copier": [
+  "message-copiers": [
     {
       "name": "Sample",
-      "channel": {
-        "description": "Sample channel",
-        "channel-id": "000000000000000000"
-      },
       "regex": {
+        "description": "Sample regex",
         "pattern": "(?:)",
         "flags": "g"
       },
-      "replacements": [
-        {
-          "pattern": "",
-          "flags": "",
-          "replace-with": ""
-        }
-      ],
-      "message": "Author Mention: %AUTHOR_MENTION%\nAuthor Tag: %AUTHOR_TAG%\nChannel Mention: %CHANNEL_MENTION%\nMessage Content: %MESSAGE_CONTENT%\nMessage Excerpt: %MESSAGE_EXCERPT%\nMessage URL: %MESSAGE_URL%",
-      "include-attachments": true,
-      "delete-message": false,
       "allowed-users": [
         {
           "description": "Sample user",
@@ -461,56 +644,118 @@
           "description": "Sample channel",
           "channel-id": "000000000000000000"
         }
+      ],
+      "replacements": [
+        {
+          "description": "Sample regex",
+          "pattern": "(?:)",
+          "flags": "g",
+          "replace-with": "$1"
+        }
+      ],
+      "message": "Channel Mention: %CHANNEL_MENTION%\nMember Mention: %MEMBER_MENTION%\nMember Tag: %MEMBER_TAG%\nMessage Content: %MESSAGE_CONTENT%\nMessage Excerpt: %MESSAGE_EXCERPT%\nMessage URL: %MESSAGE_URL%",
+      "include-attachments": true,
+      "destinations": [
+        {
+          "description": "Send to Discord channel",
+          "method": "discord-channel",
+          "channel": {
+            "description": "Sample channel",
+            "channel-id": "000000000000000000"
+          }
+        },
+        {
+          "description": "Send to Discord webhook",
+          "method": "discord-webhook",
+          "webhook": {
+            "description": "Sample webhook",
+            "username": "Author",
+            "avatar-url": "https://example.com/example.jpg",
+            "url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
+          }
+        },
+        {
+          "description": "Send to Twitter account",
+          "method": "twitter-account"
+        }
       ]
     }
   ],
-  "remove-affiliate-links": {
-    "links": [
+  "remove-affiliates": {
+    "platforms": [
       {
-        "website": "Affiliate Company",
+        "platform": "Sample",
         "regex": {
+          "description": "Sample regex",
           "pattern": "(?:)",
           "flags": "gi"
         }
+      }
+    ],
+    "excluded-roles": [
+      {
+        "description": "Sample role",
+        "role-id": "000000000000000000"
       }
     ],
     "channel": {
       "description": "Sample channel",
       "channel-id": "000000000000000000"
     },
-    "direct-message": "Please do not send affiliate links!",
-    "excluded-roles": [
-      {
-        "description": "Sample role",
-        "role-id": "000000000000000000"
-      }
-    ]
+    "direct-message-payload": {
+      "content": "Please do not send affiliate content!"
+    }
   },
   "toggle-perms": [
     {
       "name": "Sample",
-      "id": "sample",
-      "on": [
-        {
-          "channel": {
-            "description": "#sample-channel",
-            "channel-id": "000000000000000000"
-          },
-          "permissions": [
-            {
-              "description": "Sample role",
-              "user-or-role-id": "000000000000000000",
-              "user-or-role-perms": {
-                "SEND_MESSAGES": false
-              }
-            }
-          ]
-        }
+      "command": {
+        "base-commands": [
+          "!sample-on"
+        ],
+        "allowed-roles": [
+          {
+            "description": "Sample role",
+            "role-id": "000000000000000000"
+          }
+        ]
+      },
+      "toggle-on": {
+        "time-zone": "Etc/UTC",
+        "days-of-week": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "months": [
+          1
+        ],
+        "dates": [
+          1
+        ],
+        "hours": [
+          0
+        ],
+        "minutes": [
+          0
+        ],
+        "seconds": [
+          0
+        ]
+      },
+      "skip-dates": [
+        "2021-01-01",
+        "2021-02-01"
       ],
-      "off": [
+      "toggles": [
         {
+          "description": "Allow view channel and send messages for Sample channel",
           "channel": {
-            "description": "#sample-channel",
+            "description": "Sample channel",
             "channel-id": "000000000000000000"
           },
           "permissions": [
@@ -518,7 +763,8 @@
               "description": "Sample role",
               "user-or-role-id": "000000000000000000",
               "user-or-role-perms": {
-                "SEND_MESSAGES": false
+                "VIEW_CHANNEL": true,
+                "SEND_MESSAGES": true
               }
             }
           ]
@@ -528,7 +774,7 @@
   ],
   "bump-threads": [
     {
-      "name": "#sample-channel ➜ #sample-thread",
+      "name": "Sample",
       "channel": {
         "description": "Sample channel",
         "channel-id": "000000000000000000"
@@ -539,47 +785,114 @@
       }
     }
   ],
-  "invite-generator": {
-    "path": "/invite",
-    "options": {
-      "max-age": 120,
-      "max-uses": 1
-    },
-    "design": {
-      "logo-url": "",
-      "favicon-url": "",
-      "background-color": "",
-      "link-color": "",
-      "text-color": ""
-    },
-    "inject-code": {
-      "header": "",
-      "submit-success": "",
-      "submit-fail": ""
-    },
-    "recaptcha": {
-      "site-key": "",
-      "secret-key": ""
-    }
-  },
   "impersonator-alerts": {
-    "users": [
+    "entities": [
       {
-        "name": "Sample name",
+        "name": "Sample",
         "user": {
           "description": "Sample user",
           "user-id": "000000000000000000"
         },
         "regex": {
+          "description": "Sample regex",
           "pattern": "(?:)",
           "flags": "g"
+        },
+        "payload": {
+          "content": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION%."
         }
       }
     ],
     "channel": {
       "description": "Sample channel",
       "channel-id": "000000000000000000"
+    }
+  },
+  "twitter-feeds": [
+    {
+      "name": "Sample",
+      "twitter-id": "000000",
+      "exclude-retweets": false,
+      "exclude-replies": false,
+      "payload": {
+        "content": "Sample: %TWEET_LINK%"
+      },
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      }
+    }
+  ],
+  "broadcast-alerts": [
+    {
+      "name": "Sample",
+      "status": "SCHEDULED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Sample user",
+        "user-id": "000000000000000000"
+      },
+      "message": "Event scheduled\nName: %EVENT_NAME%\nDescription: %EVENT_DESCRIPTION%\nCreator Tag: %CREATOR_TAG%\nTime: %SCHEDULED_TIME%\nChannel Tag: %CHANNEL_TAG%\nLocation: %LOCATION%\nUser Count: %USER_COUNT%"
     },
-    "message": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION%."
-  }
+    {
+      "name": "Sample",
+      "status": "UPDATED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Sample user",
+        "user-id": "000000000000000000"
+      },
+      "message": "Event updated\nName: %EVENT_NAME%\nDescription: %EVENT_DESCRIPTION%\nCreator Tag: %CREATOR_TAG%\nTime: %SCHEDULED_TIME%\nChannel Tag: %CHANNEL_TAG%\nLocation: %LOCATION%\nUser Count: %USER_COUNT%"
+    },
+    {
+      "name": "Sample",
+      "status": "ACTIVE",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Sample user",
+        "user-id": "000000000000000000"
+      },
+      "message": "Event active\nName: %EVENT_NAME%\nDescription: %EVENT_DESCRIPTION%\nCreator Tag: %CREATOR_TAG%\nTime: %SCHEDULED_TIME%\nChannel Tag: %CHANNEL_TAG%\nLocation: %LOCATION%\nUser Count: %USER_COUNT%"
+    },
+    {
+      "name": "Sample",
+      "status": "COMPLETED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Sample user",
+        "user-id": "000000000000000000"
+      },
+      "message": "Event completed\nName: %EVENT_NAME%\nDescription: %EVENT_DESCRIPTION%\nCreator Tag: %CREATOR_TAG%\nTime: %SCHEDULED_TIME%\nChannel Tag: %CHANNEL_TAG%\nLocation: %LOCATION%\nUser Count: %USER_COUNT%"
+    },
+    {
+      "name": "Sample",
+      "status": "CANCELED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Sample user",
+        "user-id": "000000000000000000"
+      },
+      "message": "Event canceled\nName: %EVENT_NAME%\nDescription: %EVENT_DESCRIPTION%\nCreator Tag: %CREATOR_TAG%\nTime: %SCHEDULED_TIME%\nChannel Tag: %CHANNEL_TAG%\nLocation: %LOCATION%\nUser Count: %USER_COUNT%"
+    }
+  ]
 }

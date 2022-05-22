@@ -42,9 +42,6 @@
     "no-unused-vars": [
       "off"
     ],
-    "prefer-regex-literals": [
-      "off"
-    ],
     "@typescript-eslint/no-unused-vars": [
       "error"
     ]
