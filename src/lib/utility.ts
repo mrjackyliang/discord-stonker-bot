@@ -7,6 +7,8 @@ import { serializeError } from 'serialize-error';
 import config from '../../config.json';
 
 import {
+  EscapeCharactersReturns,
+  EscapeCharactersString,
   FetchFormattedDateFormat,
   FetchFormattedDateFrom,
   FetchFormattedDateReturns,
@@ -74,6 +76,26 @@ const configSettingsTimeZone = <SettingsTimeZone>_.get(config, ['settings', 'tim
  */
 let memoryTrackedMessages: MemoryTrackedMessages = [];
 let memoryTrackedRoutes: MemoryTrackedRoutes = [];
+
+/**
+ * Escape characters.
+ *
+ * @param {EscapeCharactersString} string - String.
+ *
+ * @returns {EscapeCharactersReturns}
+ *
+ * @since 1.0.0
+ */
+export function escapeCharacters(string: EscapeCharactersString): EscapeCharactersReturns {
+  return string
+    .replace(/[\\]/g, '\\\\') // Escape double-backslashes.
+    .replace(/[/]/g, '\\/') // Escape forward slashes.
+    .replace(/[\b]/g, '\\b') // Escape backspaces.
+    .replace(/[\f]/g, '\\f') // Escape form feeds.
+    .replace(/[\n]/g, '\\n') // Escape newlines.
+    .replace(/[\r]/g, '\\r') // Escape carriage returns.
+    .replace(/[\t]/g, '\\t'); // Escape tabs.
+}
 
 /**
  * Fetch formatted date.

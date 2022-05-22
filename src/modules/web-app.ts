@@ -8,6 +8,7 @@ import numeral from 'numeral';
 import path from 'path';
 
 import {
+  escapeCharacters,
   fetchFormattedDate,
   generateLogMessage,
   generateUserAgent,
@@ -697,15 +698,12 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
 
         const fetchedValue = <unknown>_.get(requestBody, thePath);
 
-        let editedValue = String(fetchedValue);
+        let editedValue = escapeCharacters(String(fetchedValue));
 
         switch (theType) {
           case 'string':
             if (_.isString(fetchedValue)) {
-              editedValue = fetchedValue
-                .replace(/\n/g, '\\n') // Escape new lines.
-                .replace(/\r/g, '\\r') // Escape carriage returns.
-                .replace(/\t/g, '\\t'); // Escape tabs.
+              editedValue = escapeCharacters(fetchedValue);
             }
             break;
           case 'boolean':
@@ -981,7 +979,7 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
       webServer.post(thePath, (request, response) => {
         const requestBody = request.body;
 
-        const message = 'Webhook event processed.';
+        const message = `Successfully processed "${theName}" webhook.`;
         const payload = replaceVariablesAndText(theName, eventKey, theVariables, theReplacements, thePayload, requestBody);
 
         channel.send(payload).then((sendResponse) => {

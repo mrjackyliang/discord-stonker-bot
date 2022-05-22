@@ -842,6 +842,15 @@ export type DetectSuspiciousWordsSettings = {
 export type DetectSuspiciousWordsReturns = void;
 
 /**
+ * Escape characters.
+ *
+ * @since 1.0.0
+ */
+export type EscapeCharactersString = string;
+
+export type EscapeCharactersReturns = string;
+
+/**
  * Etherscan gas oracle.
  *
  * @since 1.0.0
