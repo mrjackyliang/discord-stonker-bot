@@ -302,7 +302,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: deleteMessage)',
+        `(function: deleteMessage, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -313,7 +313,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
   generateLogMessage(
     [
       'Invoked function',
-      '(function: deleteMessage)',
+      `(function: deleteMessage, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -544,7 +544,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: guildLeave)',
+        `(function: guildLeave, joined at: ${JSON.stringify(member.joinedAt)})`,
       ].join(' '),
       10,
     );
@@ -555,7 +555,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
   generateLogMessage(
     [
       'Invoked function',
-      '(function: guildLeave)',
+      `(function: guildLeave, joined at: ${JSON.stringify(member.joinedAt)})`,
     ].join(' '),
     40,
   );
@@ -679,7 +679,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: includesLink)',
+        `(function: includesLink, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -690,7 +690,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
   generateLogMessage(
     [
       'Invoked function',
-      '(function: includesLink)',
+      `(function: includesLink, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -1049,7 +1049,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: updateMessage)',
+        `(function: updateMessage, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -1060,7 +1060,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
   generateLogMessage(
     [
       'Invoked function',
-      '(function: updateMessage)',
+      `(function: updateMessage, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -1181,7 +1181,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: uploadAttachment)',
+        `(function: uploadAttachment, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -1192,7 +1192,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
   generateLogMessage(
     [
       'Invoked function',
-      '(function: uploadAttachment)',
+      `(function: uploadAttachment, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );

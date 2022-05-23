@@ -87,7 +87,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: detectSuspiciousWords)',
+        `(function: detectSuspiciousWords, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -98,7 +98,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
   generateLogMessage(
     [
       'Invoked function',
-      '(function: detectSuspiciousWords)',
+      `(function: detectSuspiciousWords, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -688,7 +688,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: regexRules)',
+        `(function: regexRules, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -699,7 +699,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
   generateLogMessage(
     [
       'Invoked function',
-      '(function: regexRules)',
+      `(function: regexRules, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -1063,7 +1063,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: removeAffiliates)',
+        `(function: removeAffiliates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -1074,7 +1074,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
   generateLogMessage(
     [
       'Invoked function',
-      '(function: removeAffiliates)',
+      `(function: removeAffiliates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );

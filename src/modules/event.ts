@@ -52,7 +52,7 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: broadcastAlerts)',
+        `(function: broadcastAlerts, creator: ${JSON.stringify(instance.creator)})`,
       ].join(' '),
       10,
     );
@@ -63,7 +63,7 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
   generateLogMessage(
     [
       'Invoked function',
-      '(function: broadcastAlerts)',
+      `(function: broadcastAlerts, creator: ${JSON.stringify(instance.creator)})`,
     ].join(' '),
     40,
   );

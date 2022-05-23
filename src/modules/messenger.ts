@@ -80,7 +80,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: autoReplies)',
+        `(function: autoReplies, guild: ${JSON.stringify(message.guild)})`,
       ].join(' '),
       10,
     );
@@ -91,7 +91,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
   generateLogMessage(
     [
       'Invoked function',
-      '(function: autoReplies)',
+      `(function: autoReplies, guild: ${JSON.stringify(message.guild)})`,
     ].join(' '),
     40,
   );
@@ -343,7 +343,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: messageCopiers)',
+        `(function: messageCopiers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -354,7 +354,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
   generateLogMessage(
     [
       'Invoked function',
-      '(function: messageCopiers)',
+      `(function: messageCopiers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );

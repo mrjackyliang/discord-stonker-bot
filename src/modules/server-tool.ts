@@ -279,7 +279,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: bulkBan)',
+        `(function: bulkBan, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -290,7 +290,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   generateLogMessage(
     [
       'Invoked function',
-      '(function: bulkBan)',
+      `(function: bulkBan, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -555,7 +555,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: fetchDuplicates)',
+        `(function: fetchDuplicates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -566,7 +566,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
   generateLogMessage(
     [
       'Invoked function',
-      '(function: fetchDuplicates)',
+      `(function: fetchDuplicates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -818,7 +818,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: fetchEmojis)',
+        `(function: fetchEmojis, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -829,7 +829,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
   generateLogMessage(
     [
       'Invoked function',
-      '(function: fetchEmojis)',
+      `(function: fetchEmojis, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -1075,7 +1075,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: fetchMembers)',
+        `(function: fetchMembers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -1086,7 +1086,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
   generateLogMessage(
     [
       'Invoked function',
-      '(function: fetchMembers)',
+      `(function: fetchMembers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -1605,7 +1605,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: roleManager)',
+        `(function: roleManager, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -1616,7 +1616,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
   generateLogMessage(
     [
       'Invoked function',
-      '(function: roleManager)',
+      `(function: roleManager, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );
@@ -2006,7 +2006,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
     generateLogMessage(
       [
         'Failed to invoke function',
-        '(function: voiceTools)',
+        `(function: voiceTools, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
       ].join(' '),
       10,
     );
@@ -2017,7 +2017,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
   generateLogMessage(
     [
       'Invoked function',
-      '(function: voiceTools)',
+      `(function: voiceTools, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
     ].join(' '),
     40,
   );

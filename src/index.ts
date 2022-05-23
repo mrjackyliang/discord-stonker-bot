@@ -249,12 +249,19 @@ discordClient.on('ready', () => {
 
   const discordClientUserTag = discordClientUser.tag;
 
+  const guildAvailable = guild.available;
   const guildChannelsCache = guild.channels.cache;
   const guildMembersCache = guild.members.cache;
   const guildName = guild.name;
 
   const guildChannels = getCollectionItems(guildChannelsCache);
   const guildMembers = getCollectionItems(guildMembersCache);
+
+  if (!guildAvailable) {
+    generateServerMessage('Guild is not available');
+
+    process.exit(1);
+  }
 
   if (discordClientUser.presence.status !== 'online') {
     discordClientUser.setStatus('online');
