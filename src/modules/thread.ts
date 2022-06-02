@@ -158,6 +158,7 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
           ));
         }
       }, {
+        recoverMissedExecutions: false,
         scheduled: true,
       });
     } catch (error) {

@@ -353,6 +353,7 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
         error,
       ));
     }, {
+      recoverMissedExecutions: false,
       scheduled: true,
     });
   }
@@ -723,21 +724,21 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
 
               switch (filteredEarningHour) {
                 case 'bmo':
-                  earningsCallTime = 'Before Market Open';
-                  break;
-                case 'amc':
-                  earningsCallTime = 'After Market Close';
+                  earningsCallTime = 'Before Open';
                   break;
                 case 'dmh':
-                  earningsCallTime = 'During Market Hour';
+                  earningsCallTime = 'During Market';
+                  break;
+                case 'amc':
+                  earningsCallTime = 'After Close';
                   break;
                 default:
                   break;
               }
 
               return {
-                isoDate: filteredEarningDate,
-                date: fetchFormattedDate('iso', filteredEarningDate, 'config', 'DDDD'),
+                sortIso: `${filteredEarningDate}T00:00:00Z`,
+                date: fetchFormattedDate('iso', filteredEarningDate, undefined, 'DDDD'),
                 symbol: filteredEarningSymbol,
                 fiscalQuarter: `${filteredEarningYear} Q${filteredEarningQuarter}`,
                 callTime: earningsCallTime,
@@ -769,7 +770,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
             const newContent = content.earnings;
             const oldContent = memoryFinnhubEarnings.earnings;
             const earnings = _.differenceWith(newContent, oldContent, _.isEqual);
-            const sortedEarnings = _.orderBy(earnings, ['isoDate'], ['asc']);
+            const sortedEarnings = _.orderBy(earnings, ['sortIso'], ['asc']);
 
             memoryFinnhubEarnings = content;
 
@@ -846,6 +847,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
         error,
       ));
     }, {
+      recoverMissedExecutions: false,
       scheduled: true,
     });
   }
@@ -914,7 +916,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
         },
       });
     } else if (memoryFinnhubEarnings !== null) {
-      const sortedEarnings = _.orderBy(memoryFinnhubEarnings.earnings, ['isoDate', 'symbol'], ['desc', 'asc']);
+      const sortedEarnings = _.orderBy(memoryFinnhubEarnings.earnings, ['sortIso', 'symbol'], ['desc', 'asc']);
 
       payload = {
         content: 'Here are the latest earnings information up to today:',
@@ -1228,6 +1230,7 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
         error,
       ));
     }, {
+      recoverMissedExecutions: false,
       scheduled: true,
     });
   }

@@ -575,6 +575,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
             }
           });
         }, {
+          recoverMissedExecutions: false,
           scheduled: true,
           timezone: theToggleOnTimeZone,
         });

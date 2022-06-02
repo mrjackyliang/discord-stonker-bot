@@ -564,6 +564,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
           error,
         ));
       }, {
+        recoverMissedExecutions: false,
         scheduled: true,
         timezone: theFetchOnTimeZone,
       });
@@ -1039,6 +1040,7 @@ export function schedulePosts(guild: SchedulePostsGuild, events: SchedulePostsEv
           error,
         ));
       }, {
+        recoverMissedExecutions: false,
         scheduled: true,
         timezone: theSendOnTimeZone,
       });
