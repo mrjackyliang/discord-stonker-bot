@@ -101,6 +101,8 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
   const messageContent = message.content;
   const messageGuildChannels = message.guild.channels;
 
+  let alreadyMatched = false;
+
   // If "auto-replies" is not configured.
   if (events === undefined) {
     generateLogMessage(
@@ -142,6 +144,27 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
     const channelIds = _.map(theChannels, (theChannel) => <AutoRepliesEventChannelChannelId>_.get(theChannel, ['channel-id']));
 
     let payload: MessageOptions = {};
+
+    // If previous regex rule already matched.
+    if (alreadyMatched) {
+      generateLogMessage(
+        [
+          'Skipped task',
+          `(function: autoReplies, name: ${JSON.stringify(theName)}, already matched: ${JSON.stringify(alreadyMatched)})`,
+        ].join(' '),
+        40,
+      );
+
+      return;
+    }
+
+    generateLogMessage(
+      [
+        'Continued task',
+        `(function: autoReplies, name: ${JSON.stringify(theName)}, already matched: ${JSON.stringify(alreadyMatched)})`,
+      ].join(' '),
+      40,
+    );
 
     // If "auto-replies[${eventKey}].name" is not configured properly.
     if (
@@ -282,6 +305,16 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
       );
 
       if (regExp.test(messageContent)) {
+        alreadyMatched = true;
+
+        generateLogMessage(
+          [
+            'Passed regex rule match',
+            `(function: autoReplies, name: ${JSON.stringify(theName)}, message content: ${JSON.stringify(messageContent)}, test: ${JSON.stringify(regExp.test(messageContent))})`,
+          ].join(' '),
+          40,
+        );
+
         payload = _.sample(thePayloads as MessageOptions[]) ?? thePayloads[0] as MessageOptions;
 
         if (theReply === true) {
@@ -310,6 +343,14 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
           10,
           error,
         ));
+      } else {
+        generateLogMessage(
+          [
+            'Failed regex rule match',
+            `(function: autoReplies, name: ${JSON.stringify(theName)}, message content: ${JSON.stringify(messageContent)}, test: ${JSON.stringify(regExp.test(messageContent))})`,
+          ].join(' '),
+          40,
+        );
       }
     } catch (error) {
       generateLogMessage(

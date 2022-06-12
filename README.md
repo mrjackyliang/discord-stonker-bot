@@ -1131,6 +1131,8 @@ Sends out messages when a role is added to or removed from a user. Perfect for s
 ### 13. Auto Replies
 Reply to a message without requiring human interaction. Great for automated customer service or to plant hidden Easter eggs!
 
+__NOTE:__ Please prioritize channel-restricted replies before server-wide replies because only the first match will be considered.
+
 | __Key__                                   | __Type__   | __Description__                                                                             | __Required__ | __Accepted Values__                                                                                                                                                 |
 | ----------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto-replies`                            | `object[]` |                                                                                             | no           |                                                                                                                                                                     |

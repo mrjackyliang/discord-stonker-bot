@@ -163,7 +163,7 @@ export function createEmojisTableAttachment(emojis: CreateEmojisTableAttachmentE
 
     return [
       emojiId,
-      (emojiName !== null) ? emojiName.normalize('NFKC') : '',
+      (emojiName !== null) ? emojiName : '',
       emoji.toString(),
       (emojiAnimated === true) ? 'Yes' : 'No',
       fetchFormattedDate('date', emojiCreatedAt, 'config', 'DDDD ttt'),
@@ -237,8 +237,8 @@ export function createMembersTableAttachment(members: CreateMembersTableAttachme
 
     return [
       memberUserId,
-      memberUserTag.normalize('NFKC'),
-      (memberNickname !== null) ? memberNickname.normalize('NFKC') : '',
+      memberUserTag,
+      (memberNickname !== null) ? memberNickname : '',
       (memberUserAvatar !== null) ? memberUserAvatar : '',
       (memberPending) ? 'Yes' : 'No',
       fetchFormattedDate('date', memberUserCreatedAt, 'config', 'DDDD ttt'),

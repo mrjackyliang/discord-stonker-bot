@@ -89,7 +89,7 @@ let memoryTrackedRoutes: MemoryTrackedRoutes = [];
 export function escapeCharacters(string: EscapeCharactersString): EscapeCharactersReturns {
   return string
     .replace(/[\\]/g, '\\\\') // Escape double-backslashes.
-    .replace(/[\\"]/g, '\\"') // Escape double-quotes.
+    .replace(/["]/g, '\\"') // Escape double-quotes.
     .replace(/[/]/g, '\\/') // Escape forward slashes.
     .replace(/[\b]/g, '\\b') // Escape backspaces.
     .replace(/[\f]/g, '\\f') // Escape form feeds.
@@ -484,6 +484,7 @@ export function getTextBasedChannel(guild: GetTextBasedChannelGuild, id: GetText
   if (
     textBasedChannel !== null
     && textBasedChannel.isText()
+    && !textBasedChannel.isVoice()
   ) {
     return textBasedChannel;
   }
@@ -513,6 +514,7 @@ export function getTextBasedNonThreadChannel(guild: GetTextBasedNonThreadChannel
   if (
     textBasedNonThreadChannel !== null
     && textBasedNonThreadChannel.isText()
+    && !textBasedNonThreadChannel.isVoice()
     && !textBasedNonThreadChannel.isThread()
   ) {
     return textBasedNonThreadChannel;

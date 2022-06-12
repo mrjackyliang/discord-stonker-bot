@@ -77,6 +77,7 @@ import {
   ShowNoPermissionsMessageReturns,
   ShowNoPermissionsMessageUserTag,
   ShowNoResultsMessageChannel,
+  ShowNoResultsMessageDeleteMessage,
   ShowNoResultsMessageMessage,
   ShowNoResultsMessageReason,
   ShowNoResultsMessageReturns,
@@ -219,16 +220,17 @@ export function showNoPermissionsMessage(baseCommand: ShowNoPermissionsMessageBa
 /**
  * Show no results message.
  *
- * @param {ShowNoResultsMessageReason}  reason  - Reason.
- * @param {ShowNoResultsMessageMessage} message - Message.
- * @param {ShowNoResultsMessageUserTag} userTag - User tag.
- * @param {ShowNoResultsMessageChannel} channel - Channel.
+ * @param {ShowNoResultsMessageReason}        reason        - Reason.
+ * @param {ShowNoResultsMessageDeleteMessage} deleteMessage - Delete message.
+ * @param {ShowNoResultsMessageMessage}       message       - Message.
+ * @param {ShowNoResultsMessageUserTag}       userTag       - User tag.
+ * @param {ShowNoResultsMessageChannel}       channel       - Channel.
  *
  * @returns {ShowNoResultsMessageReturns}
  *
  * @since 1.0.0
  */
-export function showNoResultsMessage(reason: ShowNoResultsMessageReason, message: ShowNoResultsMessageMessage, userTag: ShowNoResultsMessageUserTag, channel: ShowNoResultsMessageChannel): ShowNoResultsMessageReturns {
+export function showNoResultsMessage(reason: ShowNoResultsMessageReason, deleteMessage: ShowNoResultsMessageDeleteMessage, message: ShowNoResultsMessageMessage, userTag: ShowNoResultsMessageUserTag, channel: ShowNoResultsMessageChannel): ShowNoResultsMessageReturns {
   const payload: MessageOptions = {
     embeds: [
       createNoResultsEmbed(
@@ -236,9 +238,11 @@ export function showNoResultsMessage(reason: ShowNoResultsMessageReason, message
         userTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(deleteMessage === false) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   channel.send(payload).then((sendResponse) => {
@@ -450,9 +454,11 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage === false) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -761,9 +767,11 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage === false) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
 
     messageChannel.send(payload).then((sendResponse) => {
@@ -793,6 +801,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
         `**${messageGuild.toString()}**`,
         'guild.',
       ].join(' '),
+      settingsDeleteMessage,
       message,
       messageMemberUserTag,
       messageChannel,
@@ -1007,6 +1016,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
         `**${messageGuild.toString()}**`,
         'guild.',
       ].join(' '),
+      settingsDeleteMessage,
       message,
       messageMemberUserTag,
       messageChannel,
@@ -1032,9 +1042,11 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage === false) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -1337,9 +1349,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           }),
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage === false) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1374,9 +1388,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage === false) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1421,6 +1437,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           selectedRole.toString(),
           'role is empty.',
         ].join(' '),
+        settingsDeleteMessage,
         message,
         messageMemberUserTag,
         messageChannel,
@@ -1457,9 +1474,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage === false) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1525,6 +1544,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           'No results were found using',
           `\`${query}\`.`,
         ].join(' '),
+        settingsDeleteMessage,
         message,
         messageMemberUserTag,
         messageChannel,
@@ -1561,9 +1581,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage === false) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1838,9 +1860,11 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage === false) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -2202,9 +2226,11 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage === false) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {

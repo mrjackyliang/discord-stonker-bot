@@ -2201,6 +2201,8 @@ export type ShowNoPermissionsMessageReturns = void;
  */
 export type ShowNoResultsMessageReason = string;
 
+export type ShowNoResultsMessageDeleteMessage = boolean | undefined;
+
 export type ShowNoResultsMessageMessage = Message;
 
 export type ShowNoResultsMessageUserTag = string;

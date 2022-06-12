@@ -1,4 +1,5 @@
 import { ChannelMention, MessageOptions } from 'discord.js';
+import latinize from 'latinize';
 import _ from 'lodash';
 
 import { createRemoveAffiliatesEmbed, createSuspiciousWordsEmbed } from '../lib/embed';
@@ -117,7 +118,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
   const attachments = getCollectionItems(messageAttachments);
   const channel = getTextBasedChannel(messageGuild, settingsChannelChannelId);
 
-  const cleanedMessage = messageContent
+  const cleanedMessageContent = latinize(messageContent)
     .normalize('NFKC')
     .replace(/[.,\\/<>@#!?$%^&*;:{}=+|\-_'“"”`~[\]()]/g, '') // Remove all special characters.
     .replace(/0/g, 'o') // Convert "0" to "o".
@@ -129,6 +130,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     .replace(/6/g, 'g') // Convert "6" to "g".
     .replace(/7/g, 't') // Convert "7" to "t".
     .replace(/8/g, 'b') // Convert "8" to "b".
+    .replace(/9/g, 'q') // Convert "9" to "q".
     .toLowerCase();
 
   const detectedCategories: MemoryDetectSuspiciousWordsDetectedCategories = [];
@@ -229,7 +231,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
         40,
       );
 
-      if (regExp.test(cleanedMessage)) {
+      if (regExp.test(cleanedMessageContent)) {
         detectedCategories.push(theCategory);
       }
     } catch (error) {
@@ -248,7 +250,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     generateLogMessage(
       [
         'Failed suspicious words match',
-        `(function: detectSuspiciousWords, cleaned message: ${JSON.stringify(cleanedMessage)}, detected categories: ${JSON.stringify(detectedCategories)})`,
+        `(function: detectSuspiciousWords, cleaned message content: ${JSON.stringify(cleanedMessageContent)}, detected categories: ${JSON.stringify(detectedCategories)})`,
       ].join(' '),
       40,
     );
@@ -259,7 +261,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
   generateLogMessage(
     [
       'Passed suspicious words match',
-      `(function: detectSuspiciousWords, cleaned message: ${JSON.stringify(cleanedMessage)}, detected categories: ${JSON.stringify(detectedCategories)})`,
+      `(function: detectSuspiciousWords, cleaned message content: ${JSON.stringify(cleanedMessageContent)}, detected categories: ${JSON.stringify(detectedCategories)})`,
     ].join(' '),
     40,
   );
@@ -336,6 +338,9 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
 
     return JSON.parse(editedPayload);
   };
+
+  const cleanedNicknameOrUsername = latinize(nicknameOrUsername)
+    .normalize('NFKC');
 
   // If "impersonator-alerts" is not configured.
   if (settings === undefined) {
@@ -472,7 +477,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
       return;
     }
 
-    // User cannot impersonate themself.
+    // User cannot impersonate themselves.
     if (
       theUserUserId !== undefined
       && theUserUserId === memberOrUserId
@@ -507,7 +512,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
         40,
       );
 
-      if (regExp.test(nicknameOrUsername)) {
+      if (regExp.test(cleanedNicknameOrUsername)) {
         if (
           thePayload !== undefined
           && _.isPlainObject(thePayload)
@@ -523,7 +528,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
         generateLogMessage(
           [
             'Passed regex rule match',
-            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(memberOrUser.toString())}, test: ${JSON.stringify(regExp.test(nicknameOrUsername))})`,
+            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(memberOrUser.toString())}, test: ${JSON.stringify(regExp.test(cleanedNicknameOrUsername))})`,
           ].join(' '),
           40,
         );
