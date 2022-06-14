@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import cron from 'node-cron';
 
-import { generateLogMessage, getTextBasedNonThreadChannel } from '../lib/utility';
+import { generateLogMessage, getTextBasedNonThreadNonVoiceChannel } from '../lib/utility';
 import {
   BumpThreadsEventChannelChannelId,
   BumpThreadsEventName,
@@ -57,7 +57,7 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
     const theChannelChannelId = <BumpThreadsEventChannelChannelId>_.get(event, ['channel', 'channel-id']);
     const theThreadThreadId = <BumpThreadsEventThreadThreadId>_.get(event, ['thread', 'thread-id']);
 
-    const channel = getTextBasedNonThreadChannel(guild, theChannelChannelId);
+    const channel = getTextBasedNonThreadNonVoiceChannel(guild, theChannelChannelId);
 
     // If "bump-threads[${eventKey}].name" is not configured properly.
     if (

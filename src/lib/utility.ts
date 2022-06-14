@@ -34,6 +34,9 @@ import {
   GetTextBasedNonThreadChannelGuild,
   GetTextBasedNonThreadChannelId,
   GetTextBasedNonThreadChannelReturns,
+  GetTextBasedNonThreadNonVoiceChannelGuild,
+  GetTextBasedNonThreadNonVoiceChannelId,
+  GetTextBasedNonThreadNonVoiceChannelReturns,
   GetVoiceBasedChannelGuild,
   GetVoiceBasedChannelId,
   GetVoiceBasedChannelReturns,
@@ -484,7 +487,6 @@ export function getTextBasedChannel(guild: GetTextBasedChannelGuild, id: GetText
   if (
     textBasedChannel !== null
     && textBasedChannel.isText()
-    && !textBasedChannel.isVoice()
   ) {
     return textBasedChannel;
   }
@@ -514,10 +516,40 @@ export function getTextBasedNonThreadChannel(guild: GetTextBasedNonThreadChannel
   if (
     textBasedNonThreadChannel !== null
     && textBasedNonThreadChannel.isText()
-    && !textBasedNonThreadChannel.isVoice()
     && !textBasedNonThreadChannel.isThread()
   ) {
     return textBasedNonThreadChannel;
+  }
+
+  return null;
+}
+
+/**
+ * Get text-based non-thread non-voice channel.
+ *
+ * @param {GetTextBasedNonThreadNonVoiceChannelGuild} guild - Guild.
+ * @param {GetTextBasedNonThreadNonVoiceChannelId}    id    - Id.
+ *
+ * @returns {GetTextBasedNonThreadNonVoiceChannelReturns}
+ *
+ * @since 1.0.0
+ */
+export function getTextBasedNonThreadNonVoiceChannel(guild: GetTextBasedNonThreadNonVoiceChannelGuild, id: GetTextBasedNonThreadNonVoiceChannelId): GetTextBasedNonThreadNonVoiceChannelReturns {
+  const guildChannels = guild.channels;
+
+  if (id === undefined) {
+    return undefined;
+  }
+
+  const textBasedNonThreadNonVoiceChannel = guildChannels.resolve(id);
+
+  if (
+    textBasedNonThreadNonVoiceChannel !== null
+    && textBasedNonThreadNonVoiceChannel.isText()
+    && !textBasedNonThreadNonVoiceChannel.isThread()
+    && !textBasedNonThreadNonVoiceChannel.isVoice()
+  ) {
+    return textBasedNonThreadNonVoiceChannel;
   }
 
   return null;

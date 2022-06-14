@@ -1213,7 +1213,7 @@ export type GetTextBasedChannelGuild = Guild;
 
 export type GetTextBasedChannelId = Snowflake | undefined;
 
-export type GetTextBasedChannelReturns = NewsChannel | TextChannel | ThreadChannel | null | undefined;
+export type GetTextBasedChannelReturns = NewsChannel | TextChannel | ThreadChannel | VoiceChannel | null | undefined;
 
 /**
  * Get text-based non-thread channel.
@@ -1224,7 +1224,18 @@ export type GetTextBasedNonThreadChannelGuild = Guild;
 
 export type GetTextBasedNonThreadChannelId = Snowflake | undefined;
 
-export type GetTextBasedNonThreadChannelReturns = NewsChannel | TextChannel | null | undefined;
+export type GetTextBasedNonThreadChannelReturns = NewsChannel | TextChannel | VoiceChannel | null | undefined;
+
+/**
+ * Get text-based non-thread non-voice channel.
+ *
+ * @since 1.0.0
+ */
+export type GetTextBasedNonThreadNonVoiceChannelGuild = Guild;
+
+export type GetTextBasedNonThreadNonVoiceChannelId = Snowflake | undefined;
+
+export type GetTextBasedNonThreadNonVoiceChannelReturns = NewsChannel | TextChannel | null | undefined;
 
 /**
  * Get voice-based channel.
@@ -2201,8 +2212,6 @@ export type ShowNoPermissionsMessageReturns = void;
  */
 export type ShowNoResultsMessageReason = string;
 
-export type ShowNoResultsMessageDeleteMessage = boolean | undefined;
-
 export type ShowNoResultsMessageMessage = Message;
 
 export type ShowNoResultsMessageUserTag = string;
@@ -2549,7 +2558,7 @@ export type TwitterFeedsStreamEventExcludeReplies = boolean | undefined;
 
 export type TwitterFeedsStreamEventPayload = MessageOptions | undefined;
 
-export type TwitterFeedsStreamChannel = NewsChannel | TextChannel | ThreadChannel;
+export type TwitterFeedsStreamChannel = NewsChannel | TextChannel | ThreadChannel | VoiceChannel;
 
 export type TwitterFeedsStreamStartTime = number;
 
