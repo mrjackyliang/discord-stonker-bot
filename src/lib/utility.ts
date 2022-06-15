@@ -26,6 +26,9 @@ import {
   GenerateServerMessageLogMessage,
   GenerateServerMessageReturns,
   GenerateUserAgentReturns,
+  GetCategoryChannelGuild,
+  GetCategoryChannelId,
+  GetCategoryChannelReturns,
   GetCollectionItemsCollection,
   GetCollectionItemsReturns,
   GetTextBasedChannelGuild,
@@ -450,6 +453,35 @@ export function generateUserAgent(): GenerateUserAgentReturns {
   ];
 
   return _.sample(userAgents) ?? userAgents[0];
+}
+
+/**
+ * Get category channel.
+ *
+ * @param {GetCategoryChannelGuild} guild - Guild.
+ * @param {GetCategoryChannelId}    id    - Id.
+ *
+ * @returns {GetCategoryChannelReturns}
+ *
+ * @since 1.0.0
+ */
+export function getCategoryChannel(guild: GetCategoryChannelGuild, id: GetCategoryChannelId): GetCategoryChannelReturns {
+  const guildChannels = guild.channels;
+
+  if (id === undefined) {
+    return undefined;
+  }
+
+  const categoryChannel = guildChannels.resolve(id);
+
+  if (
+    categoryChannel !== null
+    && categoryChannel.type === 'GUILD_CATEGORY'
+  ) {
+    return categoryChannel;
+  }
+
+  return null;
 }
 
 /**

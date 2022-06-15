@@ -1,5 +1,6 @@
 import {
   BufferResolvable,
+  CategoryChannel,
   ChannelMention,
   Client,
   Collection,
@@ -1203,6 +1204,17 @@ export type GenerateUserAgentReturns = string;
 export type GetCollectionItemsCollection<Key, Value> = Collection<Key, Value>;
 
 export type GetCollectionItemsReturns<Value> = Value[];
+
+/**
+ * Get category channel.
+ *
+ * @since 1.0.0
+ */
+export type GetCategoryChannelGuild = Guild;
+
+export type GetCategoryChannelId = Snowflake | undefined;
+
+export type GetCategoryChannelReturns = CategoryChannel | null | undefined;
 
 /**
  * Get text-based channel.

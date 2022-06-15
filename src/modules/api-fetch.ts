@@ -724,13 +724,13 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
 
               switch (filteredEarningHour) {
                 case 'bmo':
-                  earningsCallTime = 'Before Open';
+                  earningsCallTime = 'Before Market Open';
                   break;
                 case 'dmh':
-                  earningsCallTime = 'During Market';
+                  earningsCallTime = 'During Market Hour';
                   break;
                 case 'amc':
-                  earningsCallTime = 'After Close';
+                  earningsCallTime = 'After Market Close';
                   break;
                 default:
                   break;

@@ -7,6 +7,7 @@ import {
   fetchFormattedDate,
   generateCron,
   generateLogMessage,
+  getCategoryChannel,
   getTextBasedNonThreadChannel,
   getVoiceBasedChannel,
   isTimeZoneValid,
@@ -87,7 +88,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
         const theChannelChannelId = <TogglePermsEventToggleChannelChannelId>_.get(eventToggle, ['channel', 'channel-id']);
         const thePermissions = <TogglePermsEventTogglePermissions>_.get(eventToggle, ['permissions']);
 
-        const channel = getTextBasedNonThreadChannel(guild, theChannelChannelId) ?? getVoiceBasedChannel(guild, theChannelChannelId);
+        const channel = getCategoryChannel(guild, theChannelChannelId) ?? getTextBasedNonThreadChannel(guild, theChannelChannelId) ?? getVoiceBasedChannel(guild, theChannelChannelId);
 
         // If "toggle-perms[${eventKey}].toggles[${eventToggleKey}].channel.channel-id" is not configured properly.
         if (
