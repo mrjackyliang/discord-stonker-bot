@@ -312,7 +312,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   const commandArgumentsTags = commandArguments.slice(1);
 
   const allowedRoleIds = _.map(settingsAllowedRoles, (settingsAllowedRole) => <BulkBanSettingsAllowedRoleRoleId>_.get(settingsAllowedRole, ['role-id']));
-  const unverifiedMemberIds = _.map(commandArgumentsTags, (commandArgumentsTag) => commandArgumentsTag.replace(/<@!?([0-9]+)>/g, '$1'));
+  const unverifiedMemberIds = _.map(commandArgumentsTags, (commandArgumentsTag) => commandArgumentsTag.replace(/<@!?(\d+)>/g, '$1'));
 
   const verifiedMembers: MemoryBulkBanVerifiedMembers = [];
 
@@ -496,7 +496,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
     });
 
     Promise.all(banResults).then((banResponses) => {
-      const success = _.every(banResponses, (banResponse) => banResponse === true);
+      const success = _.every(banResponses, (banResponse) => banResponse);
 
       editPayload = {
         embeds: [
@@ -979,8 +979,8 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
   }
 
   guildEmojis.forEach((guildEmoji) => {
-    const regExpAnimatedEmoji = /^<a:(.+):([0-9]+)>$/;
-    const regExpStaticEmoji = /^<:(.+):([0-9]+)>$/;
+    const regExpAnimatedEmoji = /^<a:(.+):(\d+)>$/;
+    const regExpStaticEmoji = /^<:(.+):(\d+)>$/;
 
     if (
       commandArgumentsRoute === 'all' // Fetch all emojis.
@@ -1941,7 +1941,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
     });
 
     Promise.all(roleResults).then((roleResponses) => {
-      const success = _.every(roleResponses, (roleResponse) => roleResponse === true);
+      const success = _.every(roleResponses, (roleResponse) => roleResponse);
 
       editPayload = {
         embeds: [
@@ -2292,7 +2292,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
     });
 
     Promise.all(voiceResults).then((voiceResponses) => {
-      const success = _.every(voiceResponses, (voiceResponse) => voiceResponse === true);
+      const success = _.every(voiceResponses, (voiceResponse) => voiceResponse);
 
       editPayload = {
         embeds: [

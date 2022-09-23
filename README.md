@@ -77,18 +77,19 @@ __NOTE:__ It is recommended that you configure the bot with a freshly made `conf
 12. [Role Messages](#12-role-messages)
 13. [Auto Replies](#13-auto-replies)
 14. [Message Copiers](#14-message-copiers)
-15. [Remove Affiliates](#15-remove-affiliates)
-16. [Toggle Permissions](#16-toggle-permissions)
-17. [Bump Threads](#17-bump-threads)
-18. [Impersonator Alerts](#18-impersonator-alerts)
-19. [Twitter Feeds](#19-twitter-feeds)
-20. [Broadcast Alerts](#20-broadcast-alerts)
+15. [Message Proxies](#15-message-proxies)
+16. [Remove Affiliates](#16-remove-affiliates)
+17. [Toggle Permissions](#17-toggle-permissions)
+18. [Bump Threads](#18-bump-threads)
+19. [Impersonator Alerts](#19-impersonator-alerts)
+20. [Twitter Feeds](#20-twitter-feeds)
+21. [Broadcast Alerts](#21-broadcast-alerts)
 
 ### 1. Base Settings
 For Stonker Bot to start, the required settings should be filled.
 
 | __Key__                                | __Type__ | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                           |
-| -------------------------------------- | -------- | ------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------|----------|---------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `settings`                             | `object` |                                                         | yes          |                                                                                                                                                                               |
 | `settings.discord`                     | `object` |                                                         | yes          |                                                                                                                                                                               |
 | `settings.discord.token`               | `string` | Token used to login to the Discord application          | yes          | Token found in [Discord Developer Portal](https://discord.com/developers/applications) after [configuring the Discord application](#configure-discord-application)            |
@@ -131,7 +132,7 @@ Get notifications from user actions surrounding your server. You can pick betwee
 __NOTE:__ Only messages cached (during the current session or last edited within 30 days) will be tracked. To preserve cached events, you may create multiple configurable bot instances.
 
 | __Key__                                                    | __Type__   | __Description__                                                     | __Required__ | __Accepted Values__                                                                                                                                                 |
-| ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|------------------------------------------------------------|------------|---------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `snitch`                                                   | `object`   |                                                                     | no           |                                                                                                                                                                     |
 | `snitch.change-nickname`                                   | `object`   |                                                                     | no           |                                                                                                                                                                     |
 | `snitch.change-nickname.channel`                           | `object`   |                                                                     | yes          |                                                                                                                                                                     |
@@ -251,7 +252,7 @@ __NOTE:__ Only messages cached (during the current session or last edited within
 Easily manage your Discord server with these tools. Fetch information, manage roles, voice and stage channel controls, and ban multiple users with one command.
 
 | __Key__                                                      | __Type__   | __Description__                  | __Required__ | __Accepted Values__                                         |
-| ------------------------------------------------------------ | ---------- | -------------------------------- | ------------ | ----------------------------------------------------------- |
+|--------------------------------------------------------------|------------|----------------------------------|--------------|-------------------------------------------------------------|
 | `server-tools`                                               | `object`   |                                  | no           |                                                             |
 | `server-tools.bulk-ban`                                      | `object`   |                                  | no           |                                                             |
 | `server-tools.bulk-ban.base-commands`                        | `string[]` | Keywords to initiate command     | yes          | If there are prefixes, it is recommended to keep them exact |
@@ -378,7 +379,7 @@ Connect external applications and traffic into your Discord server. To enable we
 __NOTE:__ During reboots, all web applications will be taken offline. To increase uptime, you may create multiple configurable bot instances.
 
 | __Key__                              | __Type__ | __Description__                        | __Required__ | __Accepted Values__                                            |
-| ------------------------------------ | -------- | -------------------------------------- | ------------ | -------------------------------------------------------------- |
+|--------------------------------------|----------|----------------------------------------|--------------|----------------------------------------------------------------|
 | `web-applications`                   | `object` |                                        | no           |                                                                |
 | `web-applications.http-server`       | `object` |                                        | no           |                                                                |
 | `web-applications.http-server.port`  | `number` | Web server HTTP port                   | yes          | From `1` to `65535`                                            |
@@ -408,7 +409,7 @@ __NOTE:__ During reboots, all web applications will be taken offline. To increas
 A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. Customization includes color design, custom images, and code injection.
 
 | __Key__                                                                         | __Type__   | __Description__                                                 | __Required__ | __Accepted Values__                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|---------------------------------------------------------------------------------|------------|-----------------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `web-applications.invite-generator`                                             | `object`   |                                                                 | no           |                                                                                                                                                                                                                 |
 | `web-applications.invite-generator.options`                                     | `object`   |                                                                 | yes          |                                                                                                                                                                                                                 |
 | `web-applications.invite-generator.options.path`                                | `string`   | Path for accessing invite generator                             | yes          | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                                                                                                     |
@@ -497,7 +498,7 @@ A membership invite gate to protect your Discord server from being raided and sp
 Convert external webhooks (JSON-based) and send them as Discord messages. Use Discord as a back-office and stick to one platform!
 
 | __Key__                                                         | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                                                                                                                                          |
-| --------------------------------------------------------------- | ---------- | ------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------------------------------------|------------|---------------------------------------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `web-applications.map-webhooks`                                 | `object[]` |                                                         | no           |                                                                                                                                                                                                                                                                                              |
 | `web-applications.map-webhooks[x].name`                         | `string`   | Name of the event                                       | no           |                                                                                                                                                                                                                                                                                              |
 | `web-applications.map-webhooks[x].path`                         | `string`   | Path for sending webhooks to                            | yes          | Paths begin with `/`. For example, a URL of `https://www.example.com/webhooks/sample` would have a path of `/webhooks/sample`                                                                                                                                                                |
@@ -582,7 +583,7 @@ Convert external webhooks (JSON-based) and send them as Discord messages. Use Di
 Retrieve updated information through a live feed and via a customizable keyword (like a command). Current APIs available are Etherscan, Finnhub, and Stocktwits.
 
 | __Key__                                                               | __Type__   | __Description__                                           | __Required__ | __Accepted Values__                                                                                                                                  |
-| --------------------------------------------------------------------- | ---------- | --------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------------------------------------------|------------|-----------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `api-fetch`                                                           | `object`   |                                                           | no           |                                                                                                                                                      |
 | `api-fetch.etherscan-gas-oracle`                                      | `object`   |                                                           | no           |                                                                                                                                                      |
 | `api-fetch.etherscan-gas-oracle.settings`                             | `object`   |                                                           | no           |                                                                                                                                                      |
@@ -712,7 +713,7 @@ A set of tools to ban members (based on their avatar or username), and helps aut
 __NOTE:__ Anti-raid will not auto ban or assign roles during restarts. To increase uptime, you may create multiple configurable bot instances.
 
 | __Key__                                          | __Type__   | __Description__                                              | __Required__ | __Accepted Values__                                                                                                                                                                          |
-| ------------------------------------------------ | ---------- | ------------------------------------------------------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------------------------------|------------|--------------------------------------------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `anti-raid`                                      | `object`   |                                                              | no           |                                                                                                                                                                                              |
 | `anti-raid.auto-ban`                             | `object`   |                                                              | no           |                                                                                                                                                                                              |
 | `anti-raid.auto-ban.avatars`                     | `object[]` |                                                              | no           |                                                                                                                                                                                              |
@@ -773,7 +774,7 @@ __NOTE:__ Anti-raid will not auto ban or assign roles during restarts. To increa
 You can schedule messages to be sent out to a specific text-based channel. No more inconsistently timed messages! You are also able to skip specific dates from posting (like a holiday, for instance) and even send on a specific day.
 
 | __Key__                                  | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                  |
-| ---------------------------------------- | ---------- | ------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+|------------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `schedule-posts`                         | `object[]` |                                                         | no           |                                                                                                                                                      |
 | `schedule-posts[x].name`                 | `string`   | Name of the event                                       | no           |                                                                                                                                                      |
 | `schedule-posts[x].payload`              | `object`   | Message content to send when time ticks                 | yes          | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%YEAR%` |
@@ -851,7 +852,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 Sends out messages when an update from external RSS feeds are detected. Control how often you want the bot to fetch updates. You may also choose to have links resolved to their final destination and have parameters removed as well.
 
 | __Key__                              | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                          |
-| ------------------------------------ | ---------- | ------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `rss-feeds`                          | `object[]` |                                                         | no           |                                                                                                                                                                              |
 | `rss-feeds[x].name`                  | `string`   | Name of the event                                       | no           |                                                                                                                                                                              |
 | `rss-feeds[x].url`                   | `string`   | Link to RSS feed                                        | yes          | Fully qualified URL                                                                                                                                                          |
@@ -927,7 +928,7 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 __NOTE:__ Please prioritize channel restrictions before server-wide restrictions because only the first match will be considered.
 
 | __Key__                                        | __Type__   | __Description__                                                | __Required__ | __Accepted Values__                                                                                                                                                 |
-| ---------------------------------------------- | ---------- | -------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|------------------------------------------------|------------|----------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `regex-rules`                                  | `object[]` |                                                                | no           |                                                                                                                                                                     |
 | `regex-rules[x].name`                          | `string`   | Name of the event                                              | no           |                                                                                                                                                                     |
 | `regex-rules[x].channel`                       | `object`   |                                                                | no           |                                                                                                                                                                     |
@@ -976,7 +977,7 @@ __NOTE:__ Please prioritize channel restrictions before server-wide restrictions
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often do not require warnings or deletion.
 
 | __Key__                                          | __Type__   | __Description__                                            | __Required__ | __Accepted Values__                                                       |
-| ------------------------------------------------ | ---------- | ---------------------------------------------------------- | ------------ | ------------------------------------------------------------------------- |
+|--------------------------------------------------|------------|------------------------------------------------------------|--------------|---------------------------------------------------------------------------|
 | `detect-suspicious-words`                        | `object`   |                                                            | no           |                                                                           |
 | `detect-suspicious-words.categories`             | `object[]` |                                                            | yes          |                                                                           |
 | `detect-suspicious-words.categories[x].category` | `string`   | Name of the category                                       | no           |                                                                           |
@@ -1011,7 +1012,7 @@ Add or remove selected roles from members automatically if a user has or does no
 __NOTE:__ Please prioritize role removals before role additions due to how Discord processes role changes.
 
 | __Key__                                               | __Type__   | __Description__                                  | __Required__ | __Accepted Values__                         |
-| ----------------------------------------------------- | ---------- | ------------------------------------------------ | ------------ | ------------------------------------------- |
+|-------------------------------------------------------|------------|--------------------------------------------------|--------------|---------------------------------------------|
 | `sync-roles`                                          | `object`   |                                                  | no           |                                             |
 | `sync-roles.timeout`                                  | `number`   | Time to wait after the last role change          | yes          | Time in seconds (e.g. 1 minute equals `60`) |
 | `sync-roles.events`                                   | `object[]` |                                                  | yes          |                                             |
@@ -1073,7 +1074,7 @@ __NOTE:__ Please prioritize role removals before role additions due to how Disco
 Sends out messages when a role is added to or removed from a user. Perfect for social proof, welcoming new members, and internal analytics!
 
 | __Key__                                | __Type__   | __Description__                                                  | __Required__ | __Accepted Values__                                                                                                                                                         |
-| -------------------------------------- | ---------- | ---------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------|------------|------------------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `role-messages`                        | `object[]` |                                                                  | no           |                                                                                                                                                                             |
 | `role-messages[x].name`                | `string`   | Name of the event                                                | no           |                                                                                                                                                                             |
 | `role-messages[x].role`                | `object`   |                                                                  | yes          |                                                                                                                                                                             |
@@ -1134,7 +1135,7 @@ Reply to a message without requiring human interaction. Great for automated cust
 __NOTE:__ Please prioritize channel-restricted replies before server-wide replies because only the first match will be considered.
 
 | __Key__                                   | __Type__   | __Description__                                                                             | __Required__ | __Accepted Values__                                                                                                                                                 |
-| ----------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------------------------------|------------|---------------------------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `auto-replies`                            | `object[]` |                                                                                             | no           |                                                                                                                                                                     |
 | `auto-replies[x].name`                    | `string`   | Name of the event                                                                           | no           |                                                                                                                                                                     |
 | `auto-replies[x].channels`                | `object[]` |                                                                                             | no           |                                                                                                                                                                     |
@@ -1183,7 +1184,7 @@ Automatically copy the original message that matches the regular expression (in 
 __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (GIF) is allowed per tweet. Images first, then GIFs. If both limits are not respected, no attachments will be uploaded to Twitter.
 
 | __Key__                                                  | __Type__   | __Description__                                                        | __Required__                               | __Accepted Values__                                                                                                                                                                                    |
-| -------------------------------------------------------- | ---------- | ---------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|----------------------------------------------------------|------------|------------------------------------------------------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `message-copiers`                                        | `object[]` |                                                                        | no                                         |                                                                                                                                                                                                        |
 | `message-copiers[x].name`                                | `string`   | Name of the event                                                      | no                                         |                                                                                                                                                                                                        |
 | `message-copiers[x].regex`                               | `object`   |                                                                        | yes                                        |                                                                                                                                                                                                        |
@@ -1294,13 +1295,51 @@ __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (
 }
 ```
 
-### 15. Remove Affiliates
+### 15. Message Proxies
+Allows you to containerize third-party Discord bots away from the primary Discord server. Forward bot messages via webhooks. Designed for corporate environments and greatly enhances security measures.
+
+__NOTE:__ Only the content, attachments, and embeds will be forwarded.
+
+| __Key__                                  | __Type__   | __Description__                                        | __Required__ | __Accepted Values__  |
+|------------------------------------------|------------|--------------------------------------------------------|--------------|----------------------|
+| `message-proxies`                        | `object[]` |                                                        | no           |                      |
+| `message-proxies[x].name`                | `string`   | Name of the event                                      | no           |                      |
+| `message-proxies[x].channel`             | `object`   |                                                        | yes          |                      |
+| `message-proxies[x].channel.description` | `string`   | Description of the channel used to detect bot messages | no           |                      |
+| `message-proxies[x].channel.channel-id`  | `string`   | Channel used to detect bot messages                    | yes          | Discord channel ID   |
+| `message-proxies[x].webhook`             | `object`   |                                                        | yes          |                      |
+| `message-proxies[x].webhook.description` | `string`   | Description of the webhook                             | no           |                      |
+| `message-proxies[x].webhook.username`    | `string`   | Webhook default username                               | no           |                      |
+| `message-proxies[x].webhook.avatar-url`  | `string`   | Webhook default avatar URL                             | no           | Fully qualified URL  |
+| `message-proxies[x].webhook.url`         | `string`   | Link to webhook                                        | yes          | Discord webhook link |
+
+```json
+{
+  "message-proxies": [
+    {
+      "name": "Sample",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "webhook": {
+        "description": "Sample webhook",
+        "username": "Author",
+        "avatar-url": "https://example.com/example.jpg",
+        "url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
+      }
+    }
+  ]
+}
+```
+
+### 16. Remove Affiliates
 Easily remove content used to advertise for self gain, many of them unauthorized and undetected. This feature will automatically remove them, send a direct message to the user, and logs the message.
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
 | __Key__                                            | __Type__   | __Description__                                           | __Required__ | __Accepted Values__                                                                                                                                                 |
-| -------------------------------------------------- | ---------- | --------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------------------|------------|-----------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `remove-affiliates`                                | `object`   |                                                           | no           |                                                                                                                                                                     |
 | `remove-affiliates.platforms`                      | `object[]` |                                                           | yes          |                                                                                                                                                                     |
 | `remove-affiliates.platforms[x].platform`          | `string`   | Name of the platform                                      | no           |                                                                                                                                                                     |
@@ -1345,13 +1384,13 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
 }
 ```
 
-### 16. Toggle Permissions
+### 17. Toggle Permissions
 Configure channel and category permissions automatically through a scheduler or manually through a command! Great for showing and hiding channels during special events!
 
 _This feature can be extended with [Schedule Posts](#7-schedule-posts)._
 
 | __Key__                                                        | __Type__   | __Description__                                          | __Required__ | __Accepted Values__                                                                                                                                                    |
-| -------------------------------------------------------------- | ---------- | -------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------------------------------|------------|----------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `toggle-perms`                                                 | `object[]` |                                                          | no           |                                                                                                                                                                        |
 | `toggle-perms[x].name`                                         | `string`   | Name of the event                                        | no           |                                                                                                                                                                        |
 | `toggle-perms[x].command`                                      | `object`   |                                                          | no           |                                                                                                                                                                        |
@@ -1449,13 +1488,13 @@ _This feature can be extended with [Schedule Posts](#7-schedule-posts)._
 }
 ```
 
-### 17. Bump Threads
+### 18. Bump Threads
 Stretch the world of threads and make them like sub-channels! Create threads that _never_ archive, even if you don't have _boosted_ servers.
 
 __NOTE:__ If threads are un-archived immediately after bot startup and one or more features send messages through threads, please restart the bot again to ensure proper operation.
 
 | __Key__                               | __Type__   | __Description__                                   | __Required__ | __Accepted Values__ |
-| ------------------------------------- | ---------- | ------------------------------------------------- | ------------ | ------------------- |
+|---------------------------------------|------------|---------------------------------------------------|--------------|---------------------|
 | `bump-threads`                        | `object[]` |                                                   | no           |                     |
 | `bump-threads[x].name`                | `string`   | Name of the event                                 | no           |                     |
 | `bump-threads[x].channel`             | `object`   |                                                   | yes          |                     |
@@ -1483,11 +1522,11 @@ __NOTE:__ If threads are un-archived immediately after bot startup and one or mo
 }
 ```
 
-### 18. Impersonator Alerts
+### 19. Impersonator Alerts
 Get notifications when your Discord identity or entity (e.g. your company's name) is being used without your knowledge (especially when scams and fraudulent activity is on the rise).
 
 | __Key__                                             | __Type__   | __Description__                                                       | __Required__ | __Accepted Values__                                                                                                                                                 |
-| --------------------------------------------------- | ---------- | --------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------------------------|------------|-----------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `impersonator-alerts`                               | `object`   |                                                                       | no           |                                                                                                                                                                     |
 | `impersonator-alerts.entities`                      | `object[]` |                                                                       | yes          |                                                                                                                                                                     |
 | `impersonator-alerts.entities[x].name`              | `string`   | Name of the entity                                                    | no           |                                                                                                                                                                     |
@@ -1531,13 +1570,13 @@ Get notifications when your Discord identity or entity (e.g. your company's name
 }
 ```
 
-### 19. Twitter Feeds
+### 20. Twitter Feeds
 Receive tweets from other users on Twitter and send them directly to your channel or threads. Optionally exclude retweets and replies as well.
 
 __NOTE:__ To ensure feed availability even when the user protects their tweets, it is recommended that you follow the Twitter handle.
 
 | __Key__                                | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                        |
-| -------------------------------------- | ---------- | ------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `twitter-feeds`                        | `object[]` |                                                         | no           |                                                                                                                                                            |
 | `twitter-feeds[x].name`                | `string`   | Name of the event                                       | no           |                                                                                                                                                            |
 | `twitter-feeds[x].twitter-id`          | `string`   | User ID                                                 | yes          | Visit [Find Twitter ID](https://tools.codeofaninja.com/find-twitter-id)                                                                                    |
@@ -1568,11 +1607,11 @@ __NOTE:__ To ensure feed availability even when the user protects their tweets, 
 }
 ```
 
-### 20. Broadcast Alerts
+### 21. Broadcast Alerts
 Automatically send Discord events to Twitter. Event broadcast alerts are determined by the status, the entity types, and the creator.
 
 | __Key__                                   | __Type__   | __Description__                                   | __Required__ | __Accepted Values__                                                                                                                                                     |
-| ----------------------------------------- | ---------- | ------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------------------------------|------------|---------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `broadcast-alerts`                        | `object[]` |                                                   | no           |                                                                                                                                                                         |
 | `broadcast-alerts[x].name`                | `string`   | Name of the event                                 | no           |                                                                                                                                                                         |
 | `broadcast-alerts[x].status`              | `string`   | Event status                                      | yes          | `SCHEDULED`, `UPDATED`, `ACTIVE`, `COMPLETED`, or `CANCELED`                                                                                                            |

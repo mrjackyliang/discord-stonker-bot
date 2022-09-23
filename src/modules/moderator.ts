@@ -221,7 +221,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     }
 
     try {
-      const regExp = new RegExp(`(?:[\\s]|^)(${theWords.join('|')})(?=[\\s]|$)`);
+      const regExp = new RegExp(`(?:\\s|^)(${theWords.join('|')})(?=\\s|$)`);
 
       generateLogMessage(
         [

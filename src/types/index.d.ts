@@ -1798,6 +1798,67 @@ export type MessageCopiersSendToDestinationsOriginalMessageAttachments = Message
 export type MessageCopiersSendToDestinationsReturns = void;
 
 /**
+ * Message proxies.
+ *
+ * @since 1.0.0
+ */
+export type MessageProxiesMessage = Message;
+
+export type MessageProxiesEventName = string | undefined;
+
+export type MessageProxiesEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
+
+export type MessageProxiesEventChannel = ConfigChannel | undefined;
+
+export type MessageProxiesEventWebhookDescription = string | undefined;
+
+export type MessageProxiesEventWebhookUsername = string | undefined;
+
+export type MessageProxiesEventWebhookAvatarUrl = string | undefined;
+
+export type MessageProxiesEventWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}` | undefined;
+
+export type MessageProxiesEventWebhook = {
+  description: MessageProxiesEventWebhookDescription;
+  username: MessageProxiesEventWebhookUsername;
+  'avatar-url': MessageProxiesEventWebhookAvatarUrl;
+  url: MessageProxiesEventWebhookUrl;
+} | undefined;
+
+export type MessageProxiesEvent = {
+  name: MessageProxiesEventName;
+  channel: MessageProxiesEventChannel;
+  webhook: MessageProxiesEventWebhook;
+} | undefined;
+
+export type MessageProxiesEvents = MessageProxiesEvent[] | undefined;
+
+export type MessageProxiesReturns = void;
+
+/**
+ * Message proxies - Send via webhook.
+ *
+ * @since 1.0.0
+ */
+export type MessageProxiesSendViaWebhookEventName = string;
+
+export type MessageProxiesSendViaWebhookEventKey = number;
+
+export type MessageProxiesSendViaWebhookWebhookUsername = MessageProxiesEventWebhookUsername;
+
+export type MessageProxiesSendViaWebhookWebhookAvatarUrl = MessageProxiesEventWebhookAvatarUrl;
+
+export type MessageProxiesSendViaWebhookWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}`;
+
+export type MessageProxiesSendViaWebhookOriginalMessageContent = string;
+
+export type MessageProxiesSendViaWebhookOriginalMessageEmbeds = MessageEmbed[];
+
+export type MessageProxiesSendViaWebhookOriginalMessageAttachments = MessageAttachment[];
+
+export type MessageProxiesSendViaWebhookReturns = void;
+
+/**
  * Regex rules.
  *
  * @since 1.0.0

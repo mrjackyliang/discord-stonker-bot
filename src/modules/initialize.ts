@@ -22,6 +22,7 @@ import {
   removeAffiliates,
 } from './moderator';
 import { togglePerms } from './permission';
+import { messageProxies } from './proxy';
 import { roleMessages, syncRoles } from './role';
 import {
   bulkBan,
@@ -70,6 +71,7 @@ import {
   InitializeReturns,
   InitializeTwitterClient,
   MessageCopiersEvents,
+  MessageProxiesEvents,
   RegexRulesEvents,
   RemoveAffiliatesSettings,
   RoleChangeSettings,
@@ -121,6 +123,7 @@ const configSyncRoles = <SyncRolesSettings>_.get(config, ['sync-roles']);
 const configRoleMessages = <RoleMessagesEvents>_.get(config, ['role-messages']);
 const configAutoReplies = <AutoRepliesEvents>_.get(config, ['auto-replies']);
 const configMessageCopiers = <MessageCopiersEvents>_.get(config, ['message-copiers']);
+const configMessageProxies = <MessageProxiesEvents>_.get(config, ['message-proxies']);
 const configRemoveAffiliates = <RemoveAffiliatesSettings>_.get(config, ['remove-affiliates']);
 const configTogglePerms = <TogglePermsEvents>_.get(config, ['toggle-perms']);
 const configBumpThreads = <BumpThreadsEvents>_.get(config, ['bump-threads']);
@@ -174,6 +177,30 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     const messageGuildId = message.guild.id;
     const messageSystem = message.system;
 
+    /**
+     * If message is sent by bots.
+     *
+     * @since 1.0.0
+     */
+    if (
+      messageGuildAvailable // If guild (where message was sent in) is online.
+      && messageGuildId === guildId // If message was sent in configured guild.
+      && messageAuthorBot // If message is sent by a bot.
+      && !messageSystem // If message is not sent by system.
+    ) {
+      /**
+       * Message proxies.
+       *
+       * @since 1.0.0
+       */
+      messageProxies(message, configMessageProxies);
+    }
+
+    /**
+     * If message is sent by humans.
+     *
+     * @since 1.0.0
+     */
     if (
       messageGuildAvailable // If guild (where message was sent in) is online.
       && messageGuildId === guildId // If message was sent in configured guild.

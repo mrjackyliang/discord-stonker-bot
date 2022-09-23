@@ -1281,7 +1281,7 @@ export function webApplicationsSetup(guild: WebApplicationsSetupGuild, settings:
   };
 
   Promise.all([httpServer(), httpsServer()]).then((listeningResponses) => {
-    const success = _.some(listeningResponses, (listeningResponse) => listeningResponse === true);
+    const success = _.some(listeningResponses, (listeningResponse) => listeningResponse);
 
     if (success) {
       generateLogMessage(

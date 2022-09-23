@@ -735,7 +735,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
           // If "message-copiers[${eventKey}].destinations[${eventDestinationKey}].webhook.url" is not configured properly.
           if (
             !_.isString(theUrl)
-            || !/^https:\/\/discord\.com\/api\/webhooks\/([0-9]+)\/(.+)$/.test(theUrl)
+            || !/^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/(.+)$/.test(theUrl)
           ) {
             generateLogMessage(
               [

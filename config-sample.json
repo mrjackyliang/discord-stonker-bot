@@ -685,6 +685,21 @@
       ]
     }
   ],
+  "message-proxies": [
+    {
+      "name": "Sample",
+      "channel": {
+        "description": "Sample channel",
+        "channel-id": "000000000000000000"
+      },
+      "webhook": {
+        "description": "Sample webhook",
+        "username": "Author",
+        "avatar-url": "https://example.com/example.jpg",
+        "url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
+      }
+    }
+  ],
   "remove-affiliates": {
     "platforms": [
       {

@@ -136,6 +136,28 @@ export type MemoryMessageCopiersSendToDestinationsAttachment = {
 export type MemoryMessageCopiersSendToDestinationsAttachments = MemoryMessageCopiersSendToDestinationsAttachment[];
 
 /**
+ * Message proxies - Send via webhook.
+ *
+ * @since 1.0.0
+ */
+export type MemoryMessageProxiesSendViaWebhookAttachmentName = string;
+
+export type MemoryMessageProxiesSendViaWebhookAttachmentDescription = string | null;
+
+export type MemoryMessageProxiesSendViaWebhookAttachmentType = string;
+
+export type MemoryMessageProxiesSendViaWebhookAttachmentContent = Buffer;
+
+export type MemoryMessageProxiesSendViaWebhookAttachment = {
+  name: MemoryMessageProxiesSendViaWebhookAttachmentName;
+  description: MemoryMessageProxiesSendViaWebhookAttachmentDescription;
+  type: MemoryMessageProxiesSendViaWebhookAttachmentType;
+  content: MemoryMessageProxiesSendViaWebhookAttachmentContent;
+};
+
+export type MemoryMessageProxiesSendViaWebhookAttachments = MemoryMessageProxiesSendViaWebhookAttachment[];
+
+/**
  * Remove affiliates.
  *
  * @since 1.0.0

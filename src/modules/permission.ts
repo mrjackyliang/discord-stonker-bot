@@ -252,7 +252,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
     const theToggles = <TogglePermsEventToggles>_.get(event, ['toggles']);
 
     const allowedRoleIds = _.map(theCommandAllowedRoles, (theCommandAllowedRole) => <TogglePermsEventCommandAllowedRoleRoleId>_.get(theCommandAllowedRole, ['role-id']));
-    const regExpIsoDate = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    const regExpIsoDate = /^\d{4}-\d{2}-\d{2}$/;
 
     let payload: MessageOptions = {};
 
@@ -555,7 +555,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
 
           toggler(theName, eventKey, theToggles).then((toggleResponses) => {
             const answers = _.flattenDeep([toggleResponses]);
-            const success = _.every(answers, (answer) => answer === true);
+            const success = _.every(answers, (answer) => answer);
 
             if (success) {
               generateLogMessage(
@@ -687,7 +687,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
 
       toggler(theName, eventKey, theToggles, messageMemberUserTag).then((toggleResponses) => {
         const answers = _.flattenDeep([toggleResponses]);
-        const success = _.every(answers, (answer) => answer === true);
+        const success = _.every(answers, (answer) => answer);
 
         if (success) {
           payload = {

@@ -663,7 +663,7 @@ export function schedulePosts(guild: SchedulePostsGuild, events: SchedulePostsEv
 
     const channel = getTextBasedChannel(guild, theChannelChannelId);
 
-    const regExpIsoDate = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    const regExpIsoDate = /^\d{4}-\d{2}-\d{2}$/;
 
     let payload: MessageOptions = {};
 
