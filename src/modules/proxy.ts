@@ -2,27 +2,40 @@ import axios from 'axios';
 import FormData from 'form-data';
 import _ from 'lodash';
 
-import { generateLogMessage, generateUserAgent, getCollectionItems } from '../lib/utility';
 import {
+  generateLogMessage,
+  generateOutputMessage,
+  generateUserAgent,
+  getCollectionItems,
+} from '../lib/utility';
+import {
+  MessageProxiesBuildAndSendEventKey,
+  MessageProxiesBuildAndSendEventName,
+  MessageProxiesBuildAndSendEventPrintPayload,
+  MessageProxiesBuildAndSendEventReplacements,
+  MessageProxiesBuildAndSendEventWebhookUrl,
+  MessageProxiesBuildAndSendPayloadAttachments,
+  MessageProxiesBuildAndSendPayloadAvatarUrl,
+  MessageProxiesBuildAndSendPayloadContent,
+  MessageProxiesBuildAndSendPayloadEmbeds,
+  MessageProxiesBuildAndSendPayloadMentions,
+  MessageProxiesBuildAndSendPayloadTts,
+  MessageProxiesBuildAndSendPayloadUsername,
+  MessageProxiesBuildAndSendReturns,
   MessageProxiesEventChannelChannelId,
   MessageProxiesEventName,
+  MessageProxiesEventPrintPayload,
+  MessageProxiesEventReplacementFlags,
+  MessageProxiesEventReplacementPattern,
+  MessageProxiesEventReplacementReplaceWith,
+  MessageProxiesEventReplacements,
   MessageProxiesEvents,
-  MessageProxiesEventWebhookAvatarUrl,
-  MessageProxiesEventWebhookUrl,
-  MessageProxiesEventWebhookUsername,
+  MessageProxiesEventWebhookWebhookUrl,
   MessageProxiesMessage,
   MessageProxiesReturns,
-  MessageProxiesSendViaWebhookEventKey,
-  MessageProxiesSendViaWebhookEventName,
-  MessageProxiesSendViaWebhookOriginalMessageAttachments,
-  MessageProxiesSendViaWebhookOriginalMessageContent,
-  MessageProxiesSendViaWebhookOriginalMessageEmbeds,
-  MessageProxiesSendViaWebhookWebhookAvatarUrl,
-  MessageProxiesSendViaWebhookWebhookUrl,
-  MessageProxiesSendViaWebhookWebhookUsername,
 } from '../types';
 import { ApiDiscordWebhook } from '../types/api';
-import { MemoryMessageProxiesSendViaWebhookAttachments } from '../types/memory';
+import { MemoryMessageProxiesBuildAndSendAttachments, MemoryMessageProxiesBuildAndSendRequests } from '../types/memory';
 
 /**
  * Message proxies.
@@ -56,37 +69,50 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
   );
 
   const messageAttachments = message.attachments;
+  const messageAuthor = message.author;
+  const messageAuthorUsername = message.author.username;
   const messageChannelId = message.channel.id;
   const messageContent = message.content;
   const messageGuildChannels = message.guild.channels;
   const messageEmbeds = message.embeds;
+  const messageMentions = message.mentions;
+  const messageTts = message.tts;
 
   /**
-   * Message proxies - Send via webhook.
+   * Message proxies - Build and send.
    *
-   * @param {MessageProxiesSendViaWebhookEventName}                  eventName                  - Event name.
-   * @param {MessageProxiesSendViaWebhookEventKey}                   eventKey                   - Event key.
-   * @param {MessageProxiesSendViaWebhookWebhookUsername}            webhookUsername            - Webhook username.
-   * @param {MessageProxiesSendViaWebhookWebhookAvatarUrl}           webhookAvatarUrl           - Webhook avatar url.
-   * @param {MessageProxiesSendViaWebhookWebhookUrl}                 webhookUrl                 - Webhook url.
-   * @param {MessageProxiesSendViaWebhookOriginalMessageContent}     originalMessageContent     - Original message content.
-   * @param {MessageProxiesSendViaWebhookOriginalMessageEmbeds}      originalMessageEmbeds      - Original message embeds.
-   * @param {MessageProxiesSendViaWebhookOriginalMessageAttachments} originalMessageAttachments - Original message attachments.
+   * @param {MessageProxiesBuildAndSendEventName}          eventName          - Event name.
+   * @param {MessageProxiesBuildAndSendEventKey}           eventKey           - Event key.
+   * @param {MessageProxiesBuildAndSendEventReplacements}  eventReplacements  - Event replacements.
+   * @param {MessageProxiesBuildAndSendEventPrintPayload}  eventPrintPayload  - Event print payload.
+   * @param {MessageProxiesBuildAndSendEventWebhookUrl}    eventWebhookUrl    - Event webhook url.
+   * @param {MessageProxiesBuildAndSendPayloadUsername}    payloadUsername    - Payload username.
+   * @param {MessageProxiesBuildAndSendPayloadAvatarUrl}   payloadAvatarUrl   - Payload avatar url.
+   * @param {MessageProxiesBuildAndSendPayloadContent}     payloadContent     - Payload content.
+   * @param {MessageProxiesBuildAndSendPayloadEmbeds}      payloadEmbeds      - Payload embeds.
+   * @param {MessageProxiesBuildAndSendPayloadTts}         payloadTts         - Payload tts.
+   * @param {MessageProxiesBuildAndSendPayloadMentions}    payloadMentions    - Payload mentions.
+   * @param {MessageProxiesBuildAndSendPayloadAttachments} payloadAttachments - Payload attachments.
    *
-   * @returns {MessageProxiesSendViaWebhookReturns}
+   * @returns {MessageProxiesBuildAndSendReturns}
    *
    * @since 1.0.0
    */
-  const sendViaWebhook = (eventName: MessageProxiesSendViaWebhookEventName, eventKey: MessageProxiesSendViaWebhookEventKey, webhookUsername: MessageProxiesSendViaWebhookWebhookUsername, webhookAvatarUrl: MessageProxiesSendViaWebhookWebhookAvatarUrl, webhookUrl: MessageProxiesSendViaWebhookWebhookUrl, originalMessageContent: MessageProxiesSendViaWebhookOriginalMessageContent, originalMessageEmbeds: MessageProxiesSendViaWebhookOriginalMessageEmbeds, originalMessageAttachments: MessageProxiesSendViaWebhookOriginalMessageAttachments) => {
+  const buildAndSend = (eventName: MessageProxiesBuildAndSendEventName, eventKey: MessageProxiesBuildAndSendEventKey, eventReplacements: MessageProxiesBuildAndSendEventReplacements, eventPrintPayload: MessageProxiesBuildAndSendEventPrintPayload, eventWebhookUrl: MessageProxiesBuildAndSendEventWebhookUrl, payloadUsername: MessageProxiesBuildAndSendPayloadUsername, payloadAvatarUrl: MessageProxiesBuildAndSendPayloadAvatarUrl, payloadContent: MessageProxiesBuildAndSendPayloadContent, payloadEmbeds: MessageProxiesBuildAndSendPayloadEmbeds, payloadTts: MessageProxiesBuildAndSendPayloadTts, payloadMentions: MessageProxiesBuildAndSendPayloadMentions, payloadAttachments: MessageProxiesBuildAndSendPayloadAttachments): MessageProxiesBuildAndSendReturns => {
+    const payloadMentionsRoles = payloadMentions.roles;
+    const payloadMentionsRolesSize = payloadMentions.roles.size;
+    const payloadMentionsUsers = payloadMentions.users;
+    const payloadMentionsUsersSize = payloadMentions.users.size;
+
     const form = new FormData();
 
-    const attachmentRequests = _.map(originalMessageAttachments, (originalMessageAttachment) => {
-      const originalMessageAttachmentContentType = originalMessageAttachment.contentType;
-      const originalMessageAttachmentDescription = originalMessageAttachment.description;
-      const originalMessageAttachmentName = originalMessageAttachment.name;
-      const originalMessageAttachmentUrl = originalMessageAttachment.url;
+    const requests: MemoryMessageProxiesBuildAndSendRequests = _.map(payloadAttachments, (payloadAttachment) => {
+      const payloadAttachmentContentType = payloadAttachment.contentType;
+      const payloadAttachmentDescription = payloadAttachment.description;
+      const payloadAttachmentName = payloadAttachment.name;
+      const payloadAttachmentUrl = payloadAttachment.url;
 
-      return axios.get<Buffer>(originalMessageAttachmentUrl, {
+      return axios.get<Buffer>(payloadAttachmentUrl, {
         headers: {
           'User-Agent': generateUserAgent(),
         },
@@ -97,38 +123,38 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         generateLogMessage(
           [
             'Fetched attachment',
-            `(function: messageProxies, name: ${JSON.stringify(eventName)}, content type: ${JSON.stringify(originalMessageAttachmentContentType)}, url: ${JSON.stringify(originalMessageAttachmentUrl)})`,
+            `(function: messageProxies, name: ${JSON.stringify(eventName)}, content type: ${JSON.stringify(payloadAttachmentContentType)}, url: ${JSON.stringify(payloadAttachmentUrl)})`,
           ].join(' '),
           40,
         );
 
         return {
-          name: originalMessageAttachmentName,
-          description: originalMessageAttachmentDescription,
-          type: originalMessageAttachmentContentType,
+          name: payloadAttachmentName,
+          description: payloadAttachmentDescription,
+          type: payloadAttachmentContentType,
           content: getResponseData,
         };
       }).catch((error: Error) => {
         generateLogMessage(
           [
             'Failed to fetch attachment',
-            `(function: messageProxies, name: ${JSON.stringify(eventName)}, content type: ${JSON.stringify(originalMessageAttachmentContentType)}, url: ${JSON.stringify(originalMessageAttachmentUrl)})`,
+            `(function: messageProxies, name: ${JSON.stringify(eventName)}, content type: ${JSON.stringify(payloadAttachmentContentType)}, url: ${JSON.stringify(payloadAttachmentUrl)})`,
           ].join(' '),
           10,
           error,
         );
 
         return {
-          name: originalMessageAttachmentName,
-          description: originalMessageAttachmentDescription,
-          type: originalMessageAttachmentContentType,
+          name: payloadAttachmentName,
+          description: payloadAttachmentDescription,
+          type: payloadAttachmentContentType,
           content: null,
         };
       });
     });
 
-    Promise.all(attachmentRequests).then(async (fetchedRequests) => {
-      const attachments = <MemoryMessageProxiesSendViaWebhookAttachments>_.filter(fetchedRequests, (fetchedRequest) => {
+    Promise.all(requests).then((fetchedRequests) => {
+      const attachments = <MemoryMessageProxiesBuildAndSendAttachments>_.filter(fetchedRequests, (fetchedRequest) => {
         const fetchedRequestName = fetchedRequest.name;
         const fetchedRequestType = fetchedRequest.type;
         const fetchedRequestContent = fetchedRequest.content;
@@ -136,19 +162,29 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         return fetchedRequestName !== null && fetchedRequestType !== null && fetchedRequestContent !== null;
       });
 
-      // Construct the form payload.
-      form.append('payload_json', JSON.stringify({
-        ...(webhookUsername !== undefined) ? {
-          username: webhookUsername,
-        } : {},
-        ...(webhookAvatarUrl !== undefined) ? {
-          avatar_url: webhookAvatarUrl,
-        } : {},
-        ...(!_.isEmpty(originalMessageContent)) ? {
-          content: originalMessageContent,
-        } : {},
-        ...(originalMessageEmbeds.length > 0) ? {
-          embeds: originalMessageEmbeds,
+      // Create a "payload_json" object.
+      let payloadJson = JSON.stringify({
+        username: payloadUsername,
+        avatar_url: payloadAvatarUrl,
+        content: payloadContent,
+        embeds: payloadEmbeds,
+        tts: payloadTts,
+        ...(payloadMentionsRolesSize > 0 || payloadMentionsUsersSize > 0 || payloadMentions.everyone) ? {
+          allowed_mentions: {
+            ...(payloadMentionsRolesSize > 100 || payloadMentionsUsersSize > 100 || payloadMentions.everyone) ? {
+              parse: [
+                ...(payloadMentionsRolesSize > 100) ? ['roles'] : [],
+                ...(payloadMentionsUsersSize > 100) ? ['users'] : [],
+                ...(payloadMentions.everyone) ? ['everyone'] : [],
+              ],
+            } : {},
+            ...(_.inRange(payloadMentionsRolesSize, 1, 101)) ? {
+              roles: [...payloadMentionsRoles.keys()],
+            } : {},
+            ...(_.inRange(payloadMentionsUsersSize, 1, 101)) ? {
+              users: [...payloadMentionsUsers.keys()],
+            } : {},
+          },
         } : {},
         ...(attachments.length > 0) ? {
           attachments: _.map(attachments, (attachment, attachmentKey) => {
@@ -162,9 +198,96 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
             };
           }),
         } : {},
-      }), {
-        contentType: 'application/json',
       });
+
+      // Replace text from "payload_json" object.
+      if (
+        _.isArray(eventReplacements)
+        && !_.isEmpty(eventReplacements)
+        && _.every(eventReplacements, (eventReplacement) => _.isPlainObject(eventReplacement) && !_.isEmpty(eventReplacement))
+      ) {
+        eventReplacements.forEach((eventReplacement, eventReplacementKey) => {
+          const thePattern = <MessageProxiesEventReplacementPattern>_.get(eventReplacement, ['pattern']);
+          const theFlags = <MessageProxiesEventReplacementFlags>_.get(eventReplacement, ['flags']);
+          const theReplaceWith = <MessageProxiesEventReplacementReplaceWith>_.get(eventReplacement, ['replace-with']);
+
+          // If "message-proxies[${eventKey}].replacements[${eventReplacementKey}].pattern" is not configured properly.
+          if (!_.isString(thePattern)) {
+            generateLogMessage(
+              [
+                `"message-proxies[${eventKey}].replacements[${eventReplacementKey}].pattern" is not configured properly`,
+                `(function: messageProxies, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)})`,
+              ].join(' '),
+              10,
+            );
+
+            return;
+          }
+
+          // If "message-proxies[${eventKey}].replacements[${eventReplacementKey}].flags" is not configured properly.
+          if (
+            theFlags !== undefined
+            && !_.isString(theFlags)
+          ) {
+            generateLogMessage(
+              [
+                `"message-proxies[${eventKey}].replacements[${eventReplacementKey}].flags" is not configured properly`,
+                `(function: messageProxies, name: ${JSON.stringify(eventName)}, flags: ${JSON.stringify(theFlags)})`,
+              ].join(' '),
+              10,
+            );
+
+            return;
+          }
+
+          // If "message-proxies[${eventKey}].replacements[${eventReplacementKey}].replace-with" is not configured properly.
+          if (!_.isString(theReplaceWith)) {
+            generateLogMessage(
+              [
+                `"message-proxies[${eventKey}].replacements[${eventReplacementKey}].replace-with" is not configured properly`,
+                `(function: messageProxies, name: ${JSON.stringify(eventName)}, replace with: ${JSON.stringify(theReplaceWith)})`,
+              ].join(' '),
+              10,
+            );
+
+            return;
+          }
+
+          try {
+            const regExp = new RegExp(thePattern, theFlags);
+
+            generateLogMessage(
+              [
+                'Constructed regular expression object',
+                `(function: messageProxies, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)}, flags: ${JSON.stringify(theFlags)})`,
+              ].join(' '),
+              40,
+            );
+
+            payloadJson = payloadJson.replace(regExp, theReplaceWith);
+          } catch (error) {
+            generateLogMessage(
+              [
+                'Failed to construct regular expression object',
+                `(function: messageProxies, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)}, flags: ${JSON.stringify(theFlags)})`,
+              ].join(' '),
+              10,
+              error,
+            );
+          }
+        });
+      }
+
+      // Print the "payload_json" object.
+      if (eventPrintPayload === true) {
+        generateOutputMessage(
+          `"payload_json" for ${eventName}`,
+          payloadJson,
+        );
+      }
+
+      // Construct the form payload.
+      form.append('payload_json', payloadJson);
 
       // Construct the form attachments.
       if (attachments.length > 0) {
@@ -180,30 +303,24 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         });
       }
 
-      try {
-        await axios.post<ApiDiscordWebhook>(webhookUrl, form, {
-          headers: form.getHeaders({
-            'User-Agent': generateUserAgent(),
-          }),
-        });
-
-        generateLogMessage(
-          [
-            'Sent message via webhook',
-            `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(webhookUrl)}, form: ${JSON.stringify(form)})`,
-          ].join(' '),
-          40,
-        );
-      } catch (error) {
-        generateLogMessage(
-          [
-            'Failed to send message via webhook',
-            `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(webhookUrl)}, form: ${JSON.stringify(form)})`,
-          ].join(' '),
-          10,
-          error,
-        );
-      }
+      axios.post<ApiDiscordWebhook>(eventWebhookUrl, form, {
+        headers: form.getHeaders({
+          'User-Agent': generateUserAgent(),
+        }),
+      }).then(() => generateLogMessage(
+        [
+          'Sent message via webhook',
+          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(form)})`,
+        ].join(' '),
+        40,
+      )).catch((error) => generateLogMessage(
+        [
+          'Failed to send message via webhook',
+          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(form)})`,
+        ].join(' '),
+        10,
+        error,
+      ));
     });
   };
 
@@ -240,9 +357,9 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
   events.forEach((event, eventKey) => {
     const theName = <MessageProxiesEventName>_.get(event, ['name']) ?? 'Unknown';
     const theChannelChannelId = <MessageProxiesEventChannelChannelId>_.get(event, ['channel', 'channel-id']);
-    const theWebhookUsername = <MessageProxiesEventWebhookUsername>_.get(event, ['webhook', 'username']);
-    const theWebhookAvatarUrl = <MessageProxiesEventWebhookAvatarUrl>_.get(event, ['webhook', 'avatar-url']);
-    const theWebhookUrl = <MessageProxiesEventWebhookUrl>_.get(event, ['webhook', 'url']);
+    const theReplacements = <MessageProxiesEventReplacements>_.get(event, ['replacements']);
+    const thePrintPayload = <MessageProxiesEventPrintPayload>_.get(event, ['print-payload']);
+    const theWebhookWebhookUrl = <MessageProxiesEventWebhookWebhookUrl>_.get(event, ['webhook', 'webhook-url']);
 
     // If "message-proxies[${eventKey}].name" is not configured properly.
     if (
@@ -276,18 +393,19 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
       return;
     }
 
-    // If "message-proxies[${eventKey}].webhook.username" is not configured properly.
+    // If "message-proxies[${eventKey}].replacements" is not configured properly.
     if (
-      theWebhookUsername !== undefined
+      theReplacements !== undefined
       && (
-        !_.isString(theWebhookUsername)
-        || _.isEmpty(theWebhookUsername)
+        !_.isArray(theReplacements)
+        || _.isEmpty(theReplacements)
+        || !_.every(theReplacements, (theReplacement) => _.isPlainObject(theReplacement) && !_.isEmpty(theReplacement))
       )
     ) {
       generateLogMessage(
         [
-          `"message-proxies[${eventKey}].webhook.username" is not configured properly`,
-          `(function: messageProxies, name: ${JSON.stringify(theName)}, username: ${JSON.stringify(theWebhookUsername)})`,
+          `"message-proxies[${eventKey}].replacements" is not configured properly`,
+          `(function: messageProxies, name: ${JSON.stringify(theName)}, replacements: ${JSON.stringify(theReplacements)})`,
         ].join(' '),
         10,
       );
@@ -295,18 +413,15 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
       return;
     }
 
-    // If "message-proxies[${eventKey}].webhook.avatar-url" is not configured properly.
+    // If "message-proxies[${eventKey}].print-payload" is not configured properly.
     if (
-      theWebhookAvatarUrl !== undefined
-      && (
-        !_.isString(theWebhookAvatarUrl)
-        || _.isEmpty(theWebhookAvatarUrl)
-      )
+      thePrintPayload !== undefined
+      && !_.isBoolean(thePrintPayload)
     ) {
       generateLogMessage(
         [
-          `"message-proxies[${eventKey}].webhook.avatar-url" is not configured properly`,
-          `(function: messageProxies, name: ${JSON.stringify(theName)}, avatar url: ${JSON.stringify(theWebhookAvatarUrl)})`,
+          `"message-proxies[${eventKey}].print-payload" is not configured properly`,
+          `(function: messageProxies, name: ${JSON.stringify(theName)}, print payload: ${JSON.stringify(thePrintPayload)})`,
         ].join(' '),
         10,
       );
@@ -314,15 +429,15 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
       return;
     }
 
-    // If "message-proxies[${eventKey}].webhook.url" is not configured properly.
+    // If "message-proxies[${eventKey}].webhook.webhook-url" is not configured properly.
     if (
-      !_.isString(theWebhookUrl)
-      || !/^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/(.+)$/.test(theWebhookUrl)
+      !_.isString(theWebhookWebhookUrl)
+      || !/^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/(.+)$/.test(theWebhookWebhookUrl)
     ) {
       generateLogMessage(
         [
-          `"message-proxies[${eventKey}].webhook.url" is not configured properly`,
-          `(function: messageProxies, name: ${JSON.stringify(theName)}, url: ${JSON.stringify(theWebhookUrl)})`,
+          `"message-proxies[${eventKey}].webhook.webhook-url" is not configured properly`,
+          `(function: messageProxies, name: ${JSON.stringify(theName)}, webhook url: ${JSON.stringify(theWebhookWebhookUrl)})`,
         ].join(' '),
         10,
       );
@@ -351,14 +466,18 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
       40,
     );
 
-    sendViaWebhook(
+    buildAndSend(
       theName,
       eventKey,
-      theWebhookUsername,
-      theWebhookAvatarUrl,
-      theWebhookUrl,
+      theReplacements,
+      thePrintPayload,
+      theWebhookWebhookUrl,
+      messageAuthorUsername,
+      messageAuthor.displayAvatarURL(),
       messageContent,
       messageEmbeds,
+      messageTts,
+      messageMentions,
       getCollectionItems(messageAttachments),
     );
   });

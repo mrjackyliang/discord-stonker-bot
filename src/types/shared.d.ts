@@ -108,6 +108,20 @@ export type ConfigUser = {
 };
 
 /**
+ * Config webhook.
+ *
+ * @since 1.0.0
+ */
+export type ConfigWebhookDescription = string | undefined;
+
+export type ConfigWebhookWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}` | undefined;
+
+export type ConfigWebhook = {
+  description: ConfigWebhookDescription;
+  'webhook-url': ConfigWebhookWebhookUrl;
+};
+
+/**
  * Credential-like.
  *
  * @since 1.0.0

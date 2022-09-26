@@ -136,26 +136,43 @@ export type MemoryMessageCopiersSendToDestinationsAttachment = {
 export type MemoryMessageCopiersSendToDestinationsAttachments = MemoryMessageCopiersSendToDestinationsAttachment[];
 
 /**
- * Message proxies - Send via webhook.
+ * Message proxies - Build and send.
  *
  * @since 1.0.0
  */
-export type MemoryMessageProxiesSendViaWebhookAttachmentName = string;
+export type MemoryMessageProxiesBuildAndSendRequestName = string | null;
 
-export type MemoryMessageProxiesSendViaWebhookAttachmentDescription = string | null;
+export type MemoryMessageProxiesBuildAndSendRequestDescription = string | null;
 
-export type MemoryMessageProxiesSendViaWebhookAttachmentType = string;
+export type MemoryMessageProxiesBuildAndSendRequestType = string | null;
 
-export type MemoryMessageProxiesSendViaWebhookAttachmentContent = Buffer;
+export type MemoryMessageProxiesBuildAndSendRequestContent = Buffer | null;
 
-export type MemoryMessageProxiesSendViaWebhookAttachment = {
-  name: MemoryMessageProxiesSendViaWebhookAttachmentName;
-  description: MemoryMessageProxiesSendViaWebhookAttachmentDescription;
-  type: MemoryMessageProxiesSendViaWebhookAttachmentType;
-  content: MemoryMessageProxiesSendViaWebhookAttachmentContent;
+export type MemoryMessageProxiesBuildAndSendRequest = {
+  name: MemoryMessageProxiesBuildAndSendRequestName;
+  description: MemoryMessageProxiesBuildAndSendRequestDescription;
+  type: MemoryMessageProxiesBuildAndSendRequestType;
+  content: MemoryMessageProxiesBuildAndSendRequestContent;
 };
 
-export type MemoryMessageProxiesSendViaWebhookAttachments = MemoryMessageProxiesSendViaWebhookAttachment[];
+export type MemoryMessageProxiesBuildAndSendRequests = Promise<MemoryMessageProxiesBuildAndSendRequest>[];
+
+export type MemoryMessageProxiesBuildAndSendAttachmentName = string;
+
+export type MemoryMessageProxiesBuildAndSendAttachmentDescription = string | null;
+
+export type MemoryMessageProxiesBuildAndSendAttachmentType = string;
+
+export type MemoryMessageProxiesBuildAndSendAttachmentContent = Buffer;
+
+export type MemoryMessageProxiesBuildAndSendAttachment = {
+  name: MemoryMessageProxiesBuildAndSendAttachmentName;
+  description: MemoryMessageProxiesBuildAndSendAttachmentDescription;
+  type: MemoryMessageProxiesBuildAndSendAttachmentType;
+  content: MemoryMessageProxiesBuildAndSendAttachmentContent;
+};
+
+export type MemoryMessageProxiesBuildAndSendAttachments = MemoryMessageProxiesBuildAndSendAttachment[];
 
 /**
  * Remove affiliates.

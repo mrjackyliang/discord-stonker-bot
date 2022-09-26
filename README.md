@@ -220,7 +220,7 @@ __NOTE:__ Only messages cached (during the current session or last edited within
           "name": "Sample",
           "regex": {
             "description": "Sample regex",
-            "pattern": "(?:)",
+            "pattern": "(.+)",
             "flags": "g"
           }
         }
@@ -558,7 +558,7 @@ Convert external webhooks (JSON-based) and send them as Discord messages. Use Di
         "replacements": [
           {
             "description": "Sample regex",
-            "pattern": "(?:)",
+            "pattern": "(.+)",
             "flags": "g",
             "replace-with": "$1"
           }
@@ -956,7 +956,7 @@ __NOTE:__ Please prioritize channel restrictions before server-wide restrictions
       "match": false,
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "g"
       },
       "excluded-roles": [
@@ -1161,7 +1161,7 @@ __NOTE:__ Please prioritize channel-restricted replies before server-wide replie
       ],
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "gi"
       },
       "payloads": [
@@ -1229,7 +1229,7 @@ __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (
       "name": "Sample",
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "g"
       },
       "allowed-users": [
@@ -1259,7 +1259,7 @@ __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (
       "replacements": [
         {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "g",
           "replace-with": "$1"
         }
@@ -1298,20 +1298,24 @@ __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (
 ### 15. Message Proxies
 Allows you to containerize third-party Discord bots away from the primary Discord server. Forward bot messages via webhooks. Designed for corporate environments and greatly enhances security measures.
 
-__NOTE:__ Only the content, attachments, and embeds will be forwarded.
+__NOTE:__ Replacements will expose the entire payload using regular expression. Please use with caution.
 
-| __Key__                                  | __Type__   | __Description__                                        | __Required__ | __Accepted Values__  |
-|------------------------------------------|------------|--------------------------------------------------------|--------------|----------------------|
-| `message-proxies`                        | `object[]` |                                                        | no           |                      |
-| `message-proxies[x].name`                | `string`   | Name of the event                                      | no           |                      |
-| `message-proxies[x].channel`             | `object`   |                                                        | yes          |                      |
-| `message-proxies[x].channel.description` | `string`   | Description of the channel used to detect bot messages | no           |                      |
-| `message-proxies[x].channel.channel-id`  | `string`   | Channel used to detect bot messages                    | yes          | Discord channel ID   |
-| `message-proxies[x].webhook`             | `object`   |                                                        | yes          |                      |
-| `message-proxies[x].webhook.description` | `string`   | Description of the webhook                             | no           |                      |
-| `message-proxies[x].webhook.username`    | `string`   | Webhook default username                               | no           |                      |
-| `message-proxies[x].webhook.avatar-url`  | `string`   | Webhook default avatar URL                             | no           | Fully qualified URL  |
-| `message-proxies[x].webhook.url`         | `string`   | Link to webhook                                        | yes          | Discord webhook link |
+| __Key__                                           | __Type__   | __Description__                                           | __Required__ | __Accepted Values__                                                                                                                                                                               |
+|---------------------------------------------------|------------|-----------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `message-proxies`                                 | `object[]` |                                                           | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].name`                         | `string`   | Name of the event                                         | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].channel`                      | `object`   |                                                           | yes          |                                                                                                                                                                                                   |
+| `message-proxies[x].channel.description`          | `string`   | Description of the channel used to detect bot messages    | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].channel.channel-id`           | `string`   | Channel used to detect bot messages                       | yes          | Discord channel ID                                                                                                                                                                                |
+| `message-proxies[x].replacements`                 | `object[]` |                                                           | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].replacements[x].description`  | `string`   | Description of the replacement regex                      | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].replacements[x].pattern`      | `string`   | Regex pattern                                             | yes          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                               |
+| `message-proxies[x].replacements[x].flags`        | `string`   | Regex flags                                               | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                             |
+| `message-proxies[x].replacements[x].replace-with` | `string`   | Replace with                                              | yes          | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format) |
+| `message-proxies[x].print-payload`                | `boolean`  | Print the "payload_json" value before sending the webhook | no           | `true` or `false`                                                                                                                                                                                 |
+| `message-proxies[x].webhook`                      | `object`   |                                                           | yes          |                                                                                                                                                                                                   |
+| `message-proxies[x].webhook.description`          | `string`   | Description of the webhook                                | no           |                                                                                                                                                                                                   |
+| `message-proxies[x].webhook.webhook-url`          | `string`   | Link to webhook                                           | yes          | Discord webhook link                                                                                                                                                                              |
 
 ```json
 {
@@ -1322,11 +1326,18 @@ __NOTE:__ Only the content, attachments, and embeds will be forwarded.
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
+      "replacements": [
+        {
+          "description": "Sample regex",
+          "pattern": "(.+)",
+          "flags": "g",
+          "replace-with": "$1"
+        }
+      ],
+      "print-payload": false,
       "webhook": {
         "description": "Sample webhook",
-        "username": "Author",
-        "avatar-url": "https://example.com/example.jpg",
-        "url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
+        "webhook-url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
       }
     }
   ]
@@ -1362,7 +1373,7 @@ _This feature can be extended with the [delete message](#2-snitch-notifications)
         "platform": "Sample",
         "regex": {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "gi"
         }
       }
@@ -1554,7 +1565,7 @@ Get notifications when your Discord identity or entity (e.g. your company's name
         },
         "regex": {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "g"
         },
         "payload": {

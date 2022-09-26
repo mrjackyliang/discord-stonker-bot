@@ -3,6 +3,7 @@ import { Permissions } from 'discord.js';
 import _ from 'lodash';
 import { DateTime, DurationUnits, Interval } from 'luxon';
 import { serializeError } from 'serialize-error';
+import util from 'util';
 
 import config from '../../config.json';
 
@@ -22,6 +23,9 @@ import {
   GenerateLogMessageLogMessage,
   GenerateLogMessagePriority,
   GenerateLogMessageReturns,
+  GenerateOutputMessageOutput,
+  GenerateOutputMessageReturns,
+  GenerateOutputMessageSource,
   GenerateServerMessageErrorObject,
   GenerateServerMessageLogMessage,
   GenerateServerMessageReturns,
@@ -353,6 +357,24 @@ export function generateLogMessage(logMessage: GenerateLogMessageLogMessage, pri
         break;
     }
   }
+}
+
+/**
+ * Generate output message.
+ *
+ * @param {GenerateOutputMessageSource} source - Source.
+ * @param {GenerateOutputMessageOutput} output - Output.
+ *
+ * @returns {GenerateOutputMessageReturns}
+ *
+ * @since 1.0.0
+ */
+export function generateOutputMessage(source: GenerateOutputMessageSource, output: GenerateOutputMessageOutput): GenerateOutputMessageReturns {
+  const currentDateTime = fetchFormattedDate('now', undefined, 'config', 'yyyy-MM-dd HH:mm:ss ZZZZ');
+  const sourceDisplay = (_.isEmpty(source)) ? 'unknown source' : source;
+
+  console.log(`${currentDateTime} - ${chalk.magenta('INFO')} - Logging output from ${sourceDisplay} ...`);
+  console.log(util.inspect(output, false, null, true));
 }
 
 /**

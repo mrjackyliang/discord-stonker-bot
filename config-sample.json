@@ -57,7 +57,7 @@
           "name": "Sample",
           "regex": {
             "description": "Sample regex",
-            "pattern": "(?:)",
+            "pattern": "(.+)",
             "flags": "g"
           }
         }
@@ -252,7 +252,7 @@
         "replacements": [
           {
             "description": "Sample regex",
-            "pattern": "(?:)",
+            "pattern": "(.+)",
             "flags": "g",
             "replace-with": "$1"
           }
@@ -488,7 +488,7 @@
       "match": false,
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "g"
       },
       "excluded-roles": [
@@ -603,7 +603,7 @@
       ],
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "gi"
       },
       "payloads": [
@@ -622,7 +622,7 @@
       "name": "Sample",
       "regex": {
         "description": "Sample regex",
-        "pattern": "(?:)",
+        "pattern": "(.+)",
         "flags": "g"
       },
       "allowed-users": [
@@ -652,7 +652,7 @@
       "replacements": [
         {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "g",
           "replace-with": "$1"
         }
@@ -692,11 +692,18 @@
         "description": "Sample channel",
         "channel-id": "000000000000000000"
       },
+      "replacements": [
+        {
+          "description": "Sample regex",
+          "pattern": "(.+)",
+          "flags": "g",
+          "replace-with": "$1"
+        }
+      ],
+      "print-payload": false,
       "webhook": {
         "description": "Sample webhook",
-        "username": "Author",
-        "avatar-url": "https://example.com/example.jpg",
-        "url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
+        "webhook-url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
       }
     }
   ],
@@ -706,7 +713,7 @@
         "platform": "Sample",
         "regex": {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "gi"
         }
       }
@@ -814,7 +821,7 @@
         },
         "regex": {
           "description": "Sample regex",
-          "pattern": "(?:)",
+          "pattern": "(.+)",
           "flags": "g"
         },
         "payload": {

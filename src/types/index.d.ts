@@ -15,6 +15,7 @@ import {
   Message,
   MessageAttachment,
   MessageEmbed,
+  MessageMentions,
   MessageOptions,
   NewsChannel,
   PermissionOverwriteOptions,
@@ -40,6 +41,7 @@ import {
   ConfigRole,
   ConfigThread,
   ConfigUser,
+  ConfigWebhook,
   CredentialLike,
   EmbedStatus,
   LogLevel,
@@ -1170,6 +1172,17 @@ export type GenerateLogMessageErrorObject = Error | unknown;
 export type GenerateLogMessageReturns = void;
 
 /**
+ * Generate output message.
+ *
+ * @since 1.0.0
+ */
+export type GenerateOutputMessageSource = string;
+
+export type GenerateOutputMessageOutput = any;
+
+export type GenerateOutputMessageReturns = void;
+
+/**
  * Generate server message.
  *
  * @since 1.0.0
@@ -1810,24 +1823,27 @@ export type MessageProxiesEventChannelChannelId = ConfigChannel['channel-id'] | 
 
 export type MessageProxiesEventChannel = ConfigChannel | undefined;
 
-export type MessageProxiesEventWebhookDescription = string | undefined;
+export type MessageProxiesEventReplacementPattern = ConfigReplacement['pattern'] | undefined;
 
-export type MessageProxiesEventWebhookUsername = string | undefined;
+export type MessageProxiesEventReplacementFlags = ConfigReplacement['flags'] | undefined;
 
-export type MessageProxiesEventWebhookAvatarUrl = string | undefined;
+export type MessageProxiesEventReplacementReplaceWith = ConfigReplacement['replace-with'] | undefined;
 
-export type MessageProxiesEventWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}` | undefined;
+export type MessageProxiesEventReplacement = ConfigReplacement | undefined;
 
-export type MessageProxiesEventWebhook = {
-  description: MessageProxiesEventWebhookDescription;
-  username: MessageProxiesEventWebhookUsername;
-  'avatar-url': MessageProxiesEventWebhookAvatarUrl;
-  url: MessageProxiesEventWebhookUrl;
-} | undefined;
+export type MessageProxiesEventReplacements = MessageProxiesEventReplacement[] | undefined;
+
+export type MessageProxiesEventPrintPayload = boolean | undefined;
+
+export type MessageProxiesEventWebhookWebhookUrl = ConfigWebhook['webhook-url'] | undefined;
+
+export type MessageProxiesEventWebhook = ConfigWebhook | undefined;
 
 export type MessageProxiesEvent = {
   name: MessageProxiesEventName;
   channel: MessageProxiesEventChannel;
+  replacements: MessageProxiesEventReplacements;
+  'print-payload': MessageProxiesEventPrintPayload;
   webhook: MessageProxiesEventWebhook;
 } | undefined;
 
@@ -1836,27 +1852,35 @@ export type MessageProxiesEvents = MessageProxiesEvent[] | undefined;
 export type MessageProxiesReturns = void;
 
 /**
- * Message proxies - Send via webhook.
+ * Message proxies - Build and send.
  *
  * @since 1.0.0
  */
-export type MessageProxiesSendViaWebhookEventName = string;
+export type MessageProxiesBuildAndSendEventName = string;
 
-export type MessageProxiesSendViaWebhookEventKey = number;
+export type MessageProxiesBuildAndSendEventKey = number;
 
-export type MessageProxiesSendViaWebhookWebhookUsername = MessageProxiesEventWebhookUsername;
+export type MessageProxiesBuildAndSendEventReplacements = MessageProxiesEventReplacements;
 
-export type MessageProxiesSendViaWebhookWebhookAvatarUrl = MessageProxiesEventWebhookAvatarUrl;
+export type MessageProxiesBuildAndSendEventPrintPayload = MessageProxiesEventPrintPayload;
 
-export type MessageProxiesSendViaWebhookWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}`;
+export type MessageProxiesBuildAndSendEventWebhookUrl = `https://discord.com/api/webhooks/${string}/${string}`;
 
-export type MessageProxiesSendViaWebhookOriginalMessageContent = string;
+export type MessageProxiesBuildAndSendPayloadUsername = string;
 
-export type MessageProxiesSendViaWebhookOriginalMessageEmbeds = MessageEmbed[];
+export type MessageProxiesBuildAndSendPayloadAvatarUrl = string;
 
-export type MessageProxiesSendViaWebhookOriginalMessageAttachments = MessageAttachment[];
+export type MessageProxiesBuildAndSendPayloadContent = string;
 
-export type MessageProxiesSendViaWebhookReturns = void;
+export type MessageProxiesBuildAndSendPayloadEmbeds = MessageEmbed[];
+
+export type MessageProxiesBuildAndSendPayloadTts = boolean;
+
+export type MessageProxiesBuildAndSendPayloadMentions = MessageMentions;
+
+export type MessageProxiesBuildAndSendPayloadAttachments = MessageAttachment[];
+
+export type MessageProxiesBuildAndSendReturns = void;
 
 /**
  * Regex rules.
