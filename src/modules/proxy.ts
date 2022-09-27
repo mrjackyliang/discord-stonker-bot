@@ -3,6 +3,7 @@ import FormData from 'form-data';
 import _ from 'lodash';
 
 import {
+  fetchFormattedDate,
   generateLogMessage,
   generateOutputMessage,
   generateUserAgent,
@@ -103,6 +104,7 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
     const payloadMentionsRolesSize = payloadMentions.roles.size;
     const payloadMentionsUsers = payloadMentions.users;
     const payloadMentionsUsersSize = payloadMentions.users.size;
+    const payloadMentionsEveryone = payloadMentions.everyone;
 
     const form = new FormData();
 
@@ -162,20 +164,81 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         return fetchedRequestName !== null && fetchedRequestType !== null && fetchedRequestContent !== null;
       });
 
-      // Create a "payload_json" object.
+      // Build a "payload_json" object.
       let payloadJson = JSON.stringify({
         username: payloadUsername,
         avatar_url: payloadAvatarUrl,
         content: payloadContent,
-        embeds: payloadEmbeds,
+        embeds: _.map(payloadEmbeds, (payloadEmbed) => {
+          const payloadEmbedColor = payloadEmbed.color;
+          const payloadEmbedAuthor = payloadEmbed.author;
+          const payloadEmbedTitle = payloadEmbed.title;
+          const payloadEmbedUrl = payloadEmbed.url;
+          const payloadEmbedDescription = payloadEmbed.description;
+          const payloadEmbedFields = payloadEmbed.fields;
+          const payloadEmbedThumbnail = payloadEmbed.thumbnail;
+          const payloadEmbedImage = payloadEmbed.image;
+          const payloadEmbedFooter = payloadEmbed.footer;
+          const payloadEmbedTimestamp = payloadEmbed.timestamp;
+
+          return {
+            color: payloadEmbedColor,
+            ...(payloadEmbedAuthor !== null) ? {
+              author: {
+                name: payloadEmbedAuthor.name,
+                ...(payloadEmbedAuthor.url) ? {
+                  url: payloadEmbedAuthor.url,
+                } : {},
+                ...(payloadEmbedAuthor.iconURL) ? {
+                  icon_url: payloadEmbedAuthor.iconURL,
+                } : {},
+              },
+            } : {},
+            title: payloadEmbedTitle,
+            url: payloadEmbedUrl,
+            description: payloadEmbedDescription,
+            fields: _.map(payloadEmbedFields, (payloadEmbedField) => {
+              const payloadEmbedFieldName = payloadEmbedField.name;
+              const payloadEmbedFieldValue = payloadEmbedField.value;
+              const payloadEmbedFieldInline = payloadEmbedField.inline;
+
+              return {
+                name: payloadEmbedFieldName,
+                value: payloadEmbedFieldValue,
+                inline: payloadEmbedFieldInline,
+              };
+            }),
+            ...(payloadEmbedThumbnail !== null) ? {
+              thumbnail: {
+                url: payloadEmbedThumbnail.url,
+              },
+            } : {},
+            ...(payloadEmbedImage !== null) ? {
+              image: {
+                url: payloadEmbedImage.url,
+              },
+            } : {},
+            ...(payloadEmbedFooter !== null) ? {
+              footer: {
+                text: payloadEmbedFooter.text,
+                ...(payloadEmbedFooter.iconURL) ? {
+                  icon_url: payloadEmbedFooter.iconURL,
+                } : {},
+              },
+            } : {},
+            ...(payloadEmbedTimestamp !== null) ? {
+              timestamp: fetchFormattedDate('ts-millis', payloadEmbedTimestamp, 'UTC', 'iso'),
+            } : {},
+          };
+        }),
         tts: payloadTts,
-        ...(payloadMentionsRolesSize > 0 || payloadMentionsUsersSize > 0 || payloadMentions.everyone) ? {
+        ...(payloadMentionsRolesSize > 0 || payloadMentionsUsersSize > 0 || payloadMentionsEveryone) ? {
           allowed_mentions: {
-            ...(payloadMentionsRolesSize > 100 || payloadMentionsUsersSize > 100 || payloadMentions.everyone) ? {
+            ...(payloadMentionsRolesSize > 100 || payloadMentionsUsersSize > 100 || payloadMentionsEveryone) ? {
               parse: [
                 ...(payloadMentionsRolesSize > 100) ? ['roles'] : [],
                 ...(payloadMentionsUsersSize > 100) ? ['users'] : [],
-                ...(payloadMentions.everyone) ? ['everyone'] : [],
+                ...(payloadMentionsEveryone) ? ['everyone'] : [],
               ],
             } : {},
             ...(_.inRange(payloadMentionsRolesSize, 1, 101)) ? {
@@ -199,6 +262,14 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
           }),
         } : {},
       });
+
+      // Print the "payload_json" object before modification.
+      if (eventPrintPayload === true) {
+        generateOutputMessage(
+          `"payload_json" for ${eventName} (before modification)`,
+          payloadJson,
+        );
+      }
 
       // Replace text from "payload_json" object.
       if (
@@ -278,10 +349,10 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         });
       }
 
-      // Print the "payload_json" object.
+      // Print the "payload_json" object after modification.
       if (eventPrintPayload === true) {
         generateOutputMessage(
-          `"payload_json" for ${eventName}`,
+          `"payload_json" for ${eventName} (after modification)`,
           payloadJson,
         );
       }
