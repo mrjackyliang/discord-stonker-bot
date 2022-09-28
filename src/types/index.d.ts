@@ -1178,7 +1178,7 @@ export type GenerateLogMessageReturns = void;
  */
 export type GenerateOutputMessageSource = string;
 
-export type GenerateOutputMessageOutput = any;
+export type GenerateOutputMessageOutput = string;
 
 export type GenerateOutputMessageReturns = void;
 

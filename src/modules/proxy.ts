@@ -182,7 +182,9 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
           const payloadEmbedTimestamp = payloadEmbed.timestamp;
 
           return {
-            color: payloadEmbedColor,
+            ...(payloadEmbedColor !== null) ? {
+              color: payloadEmbedColor,
+            } : {},
             ...(payloadEmbedAuthor !== null) ? {
               author: {
                 name: payloadEmbedAuthor.name,
@@ -194,20 +196,28 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
                 } : {},
               },
             } : {},
-            title: payloadEmbedTitle,
-            url: payloadEmbedUrl,
-            description: payloadEmbedDescription,
-            fields: _.map(payloadEmbedFields, (payloadEmbedField) => {
-              const payloadEmbedFieldName = payloadEmbedField.name;
-              const payloadEmbedFieldValue = payloadEmbedField.value;
-              const payloadEmbedFieldInline = payloadEmbedField.inline;
+            ...(payloadEmbedTitle !== null) ? {
+              title: payloadEmbedTitle,
+            } : {},
+            ...(payloadEmbedUrl !== null) ? {
+              url: payloadEmbedUrl,
+            } : {},
+            ...(payloadEmbedDescription !== null) ? {
+              description: payloadEmbedDescription,
+            } : {},
+            ...(payloadEmbedFields.length > 0) ? {
+              fields: _.map(payloadEmbedFields, (payloadEmbedField) => {
+                const payloadEmbedFieldName = payloadEmbedField.name;
+                const payloadEmbedFieldValue = payloadEmbedField.value;
+                const payloadEmbedFieldInline = payloadEmbedField.inline;
 
-              return {
-                name: payloadEmbedFieldName,
-                value: payloadEmbedFieldValue,
-                inline: payloadEmbedFieldInline,
-              };
-            }),
+                return {
+                  name: payloadEmbedFieldName,
+                  value: payloadEmbedFieldValue,
+                  inline: payloadEmbedFieldInline,
+                };
+              }),
+            } : {},
             ...(payloadEmbedThumbnail !== null) ? {
               thumbnail: {
                 url: payloadEmbedThumbnail.url,

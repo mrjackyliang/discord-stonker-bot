@@ -3,7 +3,6 @@ import { Permissions } from 'discord.js';
 import _ from 'lodash';
 import { DateTime, DurationUnits, Interval } from 'luxon';
 import { serializeError } from 'serialize-error';
-import util from 'util';
 
 import config from '../../config.json';
 
@@ -374,7 +373,7 @@ export function generateOutputMessage(source: GenerateOutputMessageSource, outpu
   const sourceDisplay = (_.isEmpty(source)) ? 'unknown source' : source;
 
   console.log(`${currentDateTime} - ${chalk.magenta('INFO')} - Logging output from ${sourceDisplay} ...`);
-  console.log(util.inspect(output, false, null, true));
+  console.log(output);
 }
 
 /**
