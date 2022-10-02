@@ -2636,6 +2636,8 @@ export type TwitterFeedsReturns = void;
  */
 export type TwitterFeedsReplaceVariablesConfigPayload = MessageOptions;
 
+export type TwitterFeedsReplaceVariablesTweetText = string;
+
 export type TwitterFeedsReplaceVariablesTweetLink = string;
 
 export type TwitterFeedsReplaceVariablesReturns = MessageOptions;

@@ -1586,17 +1586,17 @@ Receive tweets from other users on Twitter and send them directly to your channe
 
 __NOTE:__ To ensure feed availability even when the user protects their tweets, it is recommended that you follow the Twitter handle.
 
-| __Key__                                | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                        |
-|----------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `twitter-feeds`                        | `object[]` |                                                         | no           |                                                                                                                                                            |
-| `twitter-feeds[x].name`                | `string`   | Name of the event                                       | no           |                                                                                                                                                            |
-| `twitter-feeds[x].twitter-id`          | `string`   | User ID                                                 | yes          | Visit [Find Twitter ID](https://tools.codeofaninja.com/find-twitter-id)                                                                                    |
-| `twitter-feeds[x].exclude-retweets`    | `boolean`  | Exclude retweets                                        | no           | `true` or `false`                                                                                                                                          |
-| `twitter-feeds[x].exclude-replies`     | `boolean`  | Exclude replies                                         | no           | `true` or `false`                                                                                                                                          |
-| `twitter-feeds[x].payload`             | `object`   | Message content to send for each Twitter feed update    | no           | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%TWEET_LINK%` |
-| `twitter-feeds[x].channel`             | `object`   |                                                         | yes          |                                                                                                                                                            |
-| `twitter-feeds[x].channel.description` | `string`   | Description of the channel used to send message content | no           |                                                                                                                                                            |
-| `twitter-feeds[x].channel.channel-id`  | `string`   | Channel used to send message content                    | yes          | Discord channel ID                                                                                                                                         |
+| __Key__                                | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                           |
+|----------------------------------------|------------|---------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `twitter-feeds`                        | `object[]` |                                                         | no           |                                                                                                                                                                               |
+| `twitter-feeds[x].name`                | `string`   | Name of the event                                       | no           |                                                                                                                                                                               |
+| `twitter-feeds[x].twitter-id`          | `string`   | User ID                                                 | yes          | Visit [Find Twitter ID](https://tools.codeofaninja.com/find-twitter-id)                                                                                                       |
+| `twitter-feeds[x].exclude-retweets`    | `boolean`  | Exclude retweets                                        | no           | `true` or `false`                                                                                                                                                             |
+| `twitter-feeds[x].exclude-replies`     | `boolean`  | Exclude replies                                         | no           | `true` or `false`                                                                                                                                                             |
+| `twitter-feeds[x].payload`             | `object`   | Message content to send for each Twitter feed update    | no           | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%TWEET_TEXT%` and `%TWEET_LINK%` |
+| `twitter-feeds[x].channel`             | `object`   |                                                         | yes          |                                                                                                                                                                               |
+| `twitter-feeds[x].channel.description` | `string`   | Description of the channel used to send message content | no           |                                                                                                                                                                               |
+| `twitter-feeds[x].channel.channel-id`  | `string`   | Channel used to send message content                    | yes          | Discord channel ID                                                                                                                                                            |
 
 ```json
 {
@@ -1607,7 +1607,7 @@ __NOTE:__ To ensure feed availability even when the user protects their tweets, 
       "exclude-retweets": false,
       "exclude-replies": false,
       "payload": {
-        "content": "Sample: %TWEET_LINK%"
+        "content": "Sample: %TWEET_TEXT% - %TWEET_LINK%"
       },
       "channel": {
         "description": "Sample channel",

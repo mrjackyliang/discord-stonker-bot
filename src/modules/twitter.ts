@@ -15,6 +15,7 @@ import {
   TwitterFeedsReplaceVariablesConfigPayload,
   TwitterFeedsReplaceVariablesReturns,
   TwitterFeedsReplaceVariablesTweetLink,
+  TwitterFeedsReplaceVariablesTweetText,
   TwitterFeedsReturns,
   TwitterFeedsStreamChannel,
   TwitterFeedsStreamEventExcludeReplies,
@@ -53,14 +54,16 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
    * Twitter feeds - Replace variables.
    *
    * @param {TwitterFeedsReplaceVariablesConfigPayload} configPayload - Config payload.
+   * @param {TwitterFeedsReplaceVariablesTweetText}     tweetText     - Tweet text.
    * @param {TwitterFeedsReplaceVariablesTweetLink}     tweetLink     - Tweet link.
    *
    * @returns {TwitterFeedsReplaceVariablesReturns}
    *
    * @since 1.0.0
    */
-  const replaceVariables = (configPayload: TwitterFeedsReplaceVariablesConfigPayload, tweetLink: TwitterFeedsReplaceVariablesTweetLink): TwitterFeedsReplaceVariablesReturns => {
+  const replaceVariables = (configPayload: TwitterFeedsReplaceVariablesConfigPayload, tweetText: TwitterFeedsReplaceVariablesTweetText, tweetLink: TwitterFeedsReplaceVariablesTweetLink): TwitterFeedsReplaceVariablesReturns => {
     const editedPayload = JSON.stringify(configPayload)
+      .replace(/%TWEET_TEXT%/g, tweetText)
       .replace(/%TWEET_LINK%/g, tweetLink);
 
     return JSON.parse(editedPayload);
@@ -138,6 +141,7 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
       userTimelineResponse.tweets.forEach((userTimelineResponseTweet) => {
         const userTimelineResponseTweetAuthorId = userTimelineResponseTweet.author_id;
         const userTimelineResponseTweetId = userTimelineResponseTweet.id;
+        const userTimelineResponseTweetText = userTimelineResponseTweet.text;
 
         const author = userTimelineResponse.includes.author(userTimelineResponseTweet);
         const authorUsername = (author !== undefined) ? author.username : undefined;
@@ -148,7 +152,7 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
           && _.isPlainObject(eventPayload)
           && !_.isEmpty(eventPayload)
         ) {
-          payload = replaceVariables(eventPayload, tweetUrl);
+          payload = replaceVariables(eventPayload, userTimelineResponseTweetText, tweetUrl);
         } else {
           payload = {
             content: tweetUrl,

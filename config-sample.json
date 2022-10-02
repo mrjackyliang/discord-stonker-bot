@@ -841,7 +841,7 @@
       "exclude-retweets": false,
       "exclude-replies": false,
       "payload": {
-        "content": "Sample: %TWEET_LINK%"
+        "content": "Sample: %TWEET_TEXT% - %TWEET_LINK%"
       },
       "channel": {
         "description": "Sample channel",
