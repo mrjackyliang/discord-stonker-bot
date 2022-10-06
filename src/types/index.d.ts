@@ -2142,6 +2142,15 @@ export type RssFeedsEvents = RssFeedsEvent[] | undefined;
 export type RssFeedsReturns = void;
 
 /**
+ * Rss feeds - Remove source from google news rss title.
+ *
+ * @since 1.0.0
+ */
+export type RssFeedsRemoveSourceFromGoogleNewsRssTitleItemTitle = string | undefined;
+
+export type RssFeedsRemoveSourceFromGoogleNewsRssTitleReturns = string | undefined;
+
+/**
  * Rss feeds - Remove parameters.
  *
  * @since 1.0.0

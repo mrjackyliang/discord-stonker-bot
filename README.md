@@ -851,6 +851,8 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 ### 8. RSS Feeds
 Sends out messages when an update from external RSS feeds are detected. Control how often you want the bot to fetch updates. You may also choose to have links resolved to their final destination and have parameters removed as well.
 
+__NOTE:__ For Google News RSS Feeds, the source will be stripped from the title automatically.
+
 | __Key__                              | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                          |
 |--------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `rss-feeds`                          | `object[]` |                                                         | no           |                                                                                                                                                                              |
@@ -1183,6 +1185,8 @@ Automatically copy the original message that matches the regular expression (in 
 
 __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (GIF) is allowed per tweet. Images first, then GIFs. If both limits are not respected, no attachments will be uploaded to Twitter.
 
+__NOTE:__ Message edits and deletions will not be passed onto their offsets.
+
 | __Key__                                                  | __Type__   | __Description__                                                        | __Required__                               | __Accepted Values__                                                                                                                                                                                    |
 |----------------------------------------------------------|------------|------------------------------------------------------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `message-copiers`                                        | `object[]` |                                                                        | no                                         |                                                                                                                                                                                                        |
@@ -1299,6 +1303,8 @@ __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (
 Allows you to containerize third-party Discord bots away from the primary Discord server. Forward bot messages via webhooks. Designed for corporate environments and greatly enhances security measures.
 
 __NOTE:__ Replacements will expose the entire payload using regular expression. Please use with caution.
+
+__NOTE:__ Message edits and deletions will not be passed onto their offsets.
 
 | __Key__                                           | __Type__   | __Description__                                              | __Required__ | __Accepted Values__                                                                                                                                                                               |
 |---------------------------------------------------|------------|--------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

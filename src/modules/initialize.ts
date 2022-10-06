@@ -10,9 +10,9 @@ import {
 } from '../lib/utility';
 import { antiRaidAutoBan, antiRaidMembershipGate } from './anti-raid';
 import { etherscanGasOracle, finnhubEarnings, stocktwitsTrending } from './api-fetch';
-import { rssFeeds, schedulePosts } from './content';
+import { rssFeeds, schedulePosts, twitterFeeds } from './content';
 import { broadcastAlertsViaGuildScheduledEventCreate, broadcastAlertsViaGuildScheduledEventDelete, broadcastAlertsViaGuildScheduledEventUpdate } from './event';
-import { autoReplies, messageCopiers } from './messenger';
+import { autoReplies, messageCopiers, messageProxies } from './messenger';
 import {
   detectSuspiciousWords,
   impersonatorAlertsViaGuildMemberAdd,
@@ -22,7 +22,6 @@ import {
   removeAffiliates,
 } from './moderator';
 import { togglePerms } from './permission';
-import { messageProxies } from './proxy';
 import { roleMessages, syncRoles } from './role';
 import {
   bulkBan,
@@ -44,7 +43,6 @@ import {
   uploadAttachment,
 } from './snitch';
 import { bumpThreads } from './thread';
-import { twitterFeeds } from './twitter';
 import { webApplicationsSetup } from './web-app';
 import {
   AntiRaidAutoBanSettings,

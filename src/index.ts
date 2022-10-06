@@ -268,13 +268,13 @@ discordClient.on('ready', () => {
   }
 
   discordClientUser.setActivity({
-    name: 'Discord Stonker Bot | Fork or contribute at https://liang.nyc/dsb',
+    name: `Discord Stonker Bot v${process.env.npm_package_version} | Fork or contribute at https://liang.nyc/dsb`,
     type: 'PLAYING',
   });
 
   generateServerMessage(
     [
-      chalk.green('Server is ready!'),
+      chalk.green(`DSB v${process.env.npm_package_version} is ready!`),
       'Logged in as',
       discordClientUserTag,
     ].join(' '),
