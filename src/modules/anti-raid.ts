@@ -1,7 +1,7 @@
 import { MessageOptions } from 'discord.js';
 import _ from 'lodash';
 
-import { fetchFormattedDate, generateLogMessage, getTextBasedChannel } from '../lib/utility';
+import { escapeCharacters, fetchFormattedDate, generateLogMessage, getTextBasedChannel } from '../lib/utility';
 import {
   AntiRaidAutoBanMember,
   AntiRaidAutoBanReturns,
@@ -185,7 +185,7 @@ export function antiRaidMembershipGate(oldMember: AntiRaidMembershipGateOldMembe
    */
   const replaceVariables = (configPayload: AntiRaidMembershipGateReplaceVariablesConfigPayload): AntiRaidMembershipGateReplaceVariablesReturns => {
     const editedPayload = JSON.stringify(configPayload)
-      .replace(/%GUILD_NAME%/g, guildName)
+      .replace(/%GUILD_NAME%/g, escapeCharacters(guildName))
       .replace(/%MEMBER_MENTION%/g, newMember.toString())
       .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
 

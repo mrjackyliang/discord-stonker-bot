@@ -1476,7 +1476,7 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         username: payloadUsername,
         avatar_url: payloadAvatarUrl,
         content: payloadContent,
-        embeds: _.map(payloadEmbeds, (payloadEmbed) => {
+        embeds: _.reject(_.map(payloadEmbeds, (payloadEmbed) => {
           const payloadEmbedColor = payloadEmbed.color;
           const payloadEmbedAuthor = payloadEmbed.author;
           const payloadEmbedTitle = payloadEmbed.title;
@@ -1487,6 +1487,25 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
           const payloadEmbedImage = payloadEmbed.image;
           const payloadEmbedFooter = payloadEmbed.footer;
           const payloadEmbedTimestamp = payloadEmbed.timestamp;
+
+          // If current embed does not have any of these fields, mark as removal.
+          if (
+            payloadEmbedAuthor === null
+            && payloadEmbedTitle === null
+            && payloadEmbedDescription === null
+            && payloadEmbedFields.length === 0
+            && (
+              payloadEmbedThumbnail === null
+              || (
+                // Prevents thumbnails from being automatically swept into a generated embed.
+                payloadEmbedThumbnail.url === payloadEmbedUrl
+              )
+            )
+            && payloadEmbedImage === null
+            && payloadEmbedFooter === null
+          ) {
+            return null;
+          }
 
           return {
             ...(payloadEmbedColor !== null) ? {
@@ -1547,7 +1566,7 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
               timestamp: fetchFormattedDate('ts-millis', payloadEmbedTimestamp, 'UTC', 'iso'),
             } : {},
           };
-        }),
+        }), _.isNull),
         tts: payloadTts,
         ...(payloadMentionsRolesSize > 0 || payloadMentionsUsersSize > 0 || payloadMentionsEveryone) ? {
           allowed_mentions: {

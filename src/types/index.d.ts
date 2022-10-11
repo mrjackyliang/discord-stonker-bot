@@ -1467,89 +1467,14 @@ export type InviteGeneratorWebServer = Express;
 
 export type InviteGeneratorSettingsOptionsPath = string | undefined;
 
-export type InviteGeneratorSettingsOptionsErrorPostfix = string | undefined;
-
 export type InviteGeneratorSettingsOptionsMaxAge = number | undefined;
 
 export type InviteGeneratorSettingsOptionsMaxUses = number | undefined;
 
 export type InviteGeneratorSettingsOptions = {
   path: InviteGeneratorSettingsOptionsPath;
-  'error-postfix': InviteGeneratorSettingsOptionsErrorPostfix;
   'max-age': InviteGeneratorSettingsOptionsMaxAge;
   'max-uses': InviteGeneratorSettingsOptionsMaxUses;
-} | undefined;
-
-export type InviteGeneratorSettingsDesignBackgroundColor = string | undefined;
-
-export type InviteGeneratorSettingsDesignLinkColor = string | undefined;
-
-export type InviteGeneratorSettingsDesignTextColor = string | undefined;
-
-export type InviteGeneratorSettingsDesign = {
-  'background-color': InviteGeneratorSettingsDesignBackgroundColor;
-  'link-color': InviteGeneratorSettingsDesignLinkColor;
-  'text-color': InviteGeneratorSettingsDesignTextColor;
-} | undefined;
-
-export type InviteGeneratorSettingsImagesLogoUrl = string | undefined;
-
-export type InviteGeneratorSettingsImagesFaviconUrl = string | undefined;
-
-export type InviteGeneratorSettingsImages = {
-  'logo-url': InviteGeneratorSettingsImagesLogoUrl;
-  'favicon-url': InviteGeneratorSettingsImagesFaviconUrl;
-} | undefined;
-
-export type InviteGeneratorSettingsInjectCodeHeaderAreaDescription = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeHeaderAreaCode = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeHeaderArea = {
-  description: InviteGeneratorSettingsInjectCodeHeaderAreaDescription;
-  code: InviteGeneratorSettingsInjectCodeHeaderAreaCode;
-} | undefined;
-
-export type InviteGeneratorSettingsInjectCodeHeaderAreas = InviteGeneratorSettingsInjectCodeHeaderArea[] | undefined;
-
-export type InviteGeneratorSettingsInjectCodeFooterAreaDescription = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeFooterAreaCode = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeFooterArea = {
-  description: InviteGeneratorSettingsInjectCodeFooterAreaDescription;
-  code: InviteGeneratorSettingsInjectCodeFooterAreaCode;
-} | undefined;
-
-export type InviteGeneratorSettingsInjectCodeFooterAreas = InviteGeneratorSettingsInjectCodeFooterArea[] | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitSuccessDescription = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitSuccessCode = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitSuccess = {
-  description: InviteGeneratorSettingsInjectCodeSubmitSuccessDescription;
-  code: InviteGeneratorSettingsInjectCodeSubmitSuccessCode;
-} | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitSuccesses = InviteGeneratorSettingsInjectCodeSubmitSuccess[] | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitFailDescription = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitFailCode = string | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitFail = {
-  description: InviteGeneratorSettingsInjectCodeSubmitFailDescription;
-  code: InviteGeneratorSettingsInjectCodeSubmitFailCode;
-} | undefined;
-
-export type InviteGeneratorSettingsInjectCodeSubmitFails = InviteGeneratorSettingsInjectCodeSubmitFail[] | undefined;
-
-export type InviteGeneratorSettingsInjectCode = {
-  'header-areas': InviteGeneratorSettingsInjectCodeHeaderAreas;
-  'footer-areas': InviteGeneratorSettingsInjectCodeFooterAreas;
-  'submit-successes': InviteGeneratorSettingsInjectCodeSubmitSuccesses;
-  'submit-fails': InviteGeneratorSettingsInjectCodeSubmitFails;
 } | undefined;
 
 export type InviteGeneratorSettingsRecaptchaSiteKey = string | undefined;
@@ -1563,13 +1488,17 @@ export type InviteGeneratorSettingsRecaptcha = {
 
 export type InviteGeneratorSettings = {
   options: InviteGeneratorSettingsOptions;
-  design: InviteGeneratorSettingsDesign;
-  images: InviteGeneratorSettingsImages;
-  'inject-code': InviteGeneratorSettingsInjectCode;
   recaptcha: InviteGeneratorSettingsRecaptcha;
 } | undefined;
 
 export type InviteGeneratorReturns = void;
+
+/**
+ * Invite generator - Load template.
+ *
+ * @since 1.0.0
+ */
+export type InviteGeneratorLoadTemplateReturns = string;
 
 /**
  * Is time zone valid.
@@ -1607,16 +1536,6 @@ export type MapWebhooksEventVariable = {
 
 export type MapWebhooksEventVariables = MapWebhooksEventVariable[] | undefined;
 
-export type MapWebhooksEventReplacementPattern = ConfigReplacement['pattern'] | undefined;
-
-export type MapWebhooksEventReplacementFlags = ConfigReplacement['flags'] | undefined;
-
-export type MapWebhooksEventReplacementReplaceWith = ConfigReplacement['replace-with'] | undefined;
-
-export type MapWebhooksEventReplacement = ConfigReplacement | undefined;
-
-export type MapWebhooksEventReplacements = MapWebhooksEventReplacement[] | undefined;
-
 export type MapWebhooksEventPayload = MessageOptions | undefined;
 
 export type MapWebhooksEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
@@ -1627,7 +1546,6 @@ export type MapWebhooksEvent = {
   name: MapWebhooksEventName;
   path: MapWebhooksEventPath;
   variables: MapWebhooksEventVariables;
-  replacements: MapWebhooksEventReplacements;
   payload: MapWebhooksEventPayload;
   channel: MapWebhooksEventChannel;
 } | undefined;
@@ -1646,8 +1564,6 @@ export type MapWebhooksReplaceVariablesAndTextEventName = string;
 export type MapWebhooksReplaceVariablesAndTextEventKey = number;
 
 export type MapWebhooksReplaceVariablesAndTextEventVariables = MapWebhooksEventVariables;
-
-export type MapWebhooksReplaceVariablesAndTextEventReplacements = MapWebhooksEventReplacements;
 
 export type MapWebhooksReplaceVariablesAndTextEventPayload = MapWebhooksEventPayload;
 

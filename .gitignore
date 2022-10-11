@@ -45,3 +45,4 @@ modules.xml
 ### Project Excludes ###
 build/
 config.json
+invites.ejs

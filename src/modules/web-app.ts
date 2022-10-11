@@ -18,22 +18,9 @@ import {
 } from '../lib/utility';
 import {
   InviteGeneratorGuild,
+  InviteGeneratorLoadTemplateReturns,
   InviteGeneratorReturns,
   InviteGeneratorSettings,
-  InviteGeneratorSettingsDesignBackgroundColor,
-  InviteGeneratorSettingsDesignLinkColor,
-  InviteGeneratorSettingsDesignTextColor,
-  InviteGeneratorSettingsImagesFaviconUrl,
-  InviteGeneratorSettingsImagesLogoUrl,
-  InviteGeneratorSettingsInjectCodeFooterAreaCode,
-  InviteGeneratorSettingsInjectCodeFooterAreas,
-  InviteGeneratorSettingsInjectCodeHeaderAreaCode,
-  InviteGeneratorSettingsInjectCodeHeaderAreas,
-  InviteGeneratorSettingsInjectCodeSubmitFailCode,
-  InviteGeneratorSettingsInjectCodeSubmitFails,
-  InviteGeneratorSettingsInjectCodeSubmitSuccessCode,
-  InviteGeneratorSettingsInjectCodeSubmitSuccesses,
-  InviteGeneratorSettingsOptionsErrorPostfix,
   InviteGeneratorSettingsOptionsMaxAge,
   InviteGeneratorSettingsOptionsMaxUses,
   InviteGeneratorSettingsOptionsPath,
@@ -44,10 +31,6 @@ import {
   MapWebhooksEventName,
   MapWebhooksEventPath,
   MapWebhooksEventPayload,
-  MapWebhooksEventReplacementFlags,
-  MapWebhooksEventReplacementPattern,
-  MapWebhooksEventReplacementReplaceWith,
-  MapWebhooksEventReplacements,
   MapWebhooksEvents,
   MapWebhooksEventVariableId,
   MapWebhooksEventVariablePath,
@@ -57,7 +40,6 @@ import {
   MapWebhooksReplaceVariablesAndTextEventKey,
   MapWebhooksReplaceVariablesAndTextEventName,
   MapWebhooksReplaceVariablesAndTextEventPayload,
-  MapWebhooksReplaceVariablesAndTextEventReplacements,
   MapWebhooksReplaceVariablesAndTextEventVariables,
   MapWebhooksReplaceVariablesAndTextRequestBody,
   MapWebhooksReplaceVariablesAndTextReturns,
@@ -102,25 +84,28 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
   const guildRulesChannel = guild.rulesChannel;
 
   const settingsOptionsPath = <InviteGeneratorSettingsOptionsPath>_.get(settings, ['options', 'path']);
-  const settingsOptionsErrorPostfix = <InviteGeneratorSettingsOptionsErrorPostfix>_.get(settings, ['options', 'error-postfix']);
   const settingsOptionsMaxAge = <InviteGeneratorSettingsOptionsMaxAge>_.get(settings, ['options', 'max-age']);
   const settingsOptionsMaxUses = <InviteGeneratorSettingsOptionsMaxUses>_.get(settings, ['options', 'max-uses']);
-  const settingsDesignBackgroundColor = <InviteGeneratorSettingsDesignBackgroundColor>_.get(settings, ['design', 'background-color']);
-  const settingsDesignLinkColor = <InviteGeneratorSettingsDesignLinkColor>_.get(settings, ['design', 'link-color']);
-  const settingsDesignTextColor = <InviteGeneratorSettingsDesignTextColor>_.get(settings, ['design', 'text-color']);
-  const settingsImagesFaviconUrl = <InviteGeneratorSettingsImagesFaviconUrl>_.get(settings, ['images', 'favicon-url']);
-  const settingsImagesLogoUrl = <InviteGeneratorSettingsImagesLogoUrl>_.get(settings, ['images', 'logo-url']);
-  const settingsInjectCodeHeaderAreas = <InviteGeneratorSettingsInjectCodeHeaderAreas>_.get(settings, ['inject-code', 'header-areas']);
-  const settingsInjectCodeFooterAreas = <InviteGeneratorSettingsInjectCodeFooterAreas>_.get(settings, ['inject-code', 'footer-areas']);
-  const settingsInjectCodeSubmitSuccesses = <InviteGeneratorSettingsInjectCodeSubmitSuccesses>_.get(settings, ['inject-code', 'submit-successes']);
-  const settingsInjectCodeSubmitFails = <InviteGeneratorSettingsInjectCodeSubmitFails>_.get(settings, ['inject-code', 'submit-fails']);
   const settingsRecaptchaSiteKey = <InviteGeneratorSettingsRecaptchaSiteKey>_.get(settings, ['recaptcha', 'site-key']);
   const settingsRecaptchaSecretKey = <InviteGeneratorSettingsRecaptchaSecretKey>_.get(settings, ['recaptcha', 'secret-key']);
 
-  const headerAreaCodes = _.map(settingsInjectCodeHeaderAreas, (settingsInjectCodeHeaderArea) => <InviteGeneratorSettingsInjectCodeHeaderAreaCode>_.get(settingsInjectCodeHeaderArea, ['code']));
-  const footerAreaCodes = _.map(settingsInjectCodeFooterAreas, (settingsInjectCodeFooterArea) => <InviteGeneratorSettingsInjectCodeFooterAreaCode>_.get(settingsInjectCodeFooterArea, ['code']));
-  const submitSuccessCodes = _.map(settingsInjectCodeSubmitSuccesses, (settingsInjectCodeSubmitSuccess) => <InviteGeneratorSettingsInjectCodeSubmitSuccessCode>_.get(settingsInjectCodeSubmitSuccess, ['code']));
-  const submitFailCodes = _.map(settingsInjectCodeSubmitFails, (settingsInjectCodeSubmitFail) => <InviteGeneratorSettingsInjectCodeSubmitFailCode>_.get(settingsInjectCodeSubmitFail, ['code']));
+  /**
+   * Invite generator - Load template.
+   *
+   * @returns {InviteGeneratorLoadTemplateReturns}
+   *
+   * @since 1.0.0
+   */
+  const loadTemplate = (): InviteGeneratorLoadTemplateReturns => {
+    const defaultEjs = path.join(__dirname, '../views/invites.ejs');
+    const customEjs = path.join(__dirname, '../../invites.ejs');
+
+    if (fs.existsSync(customEjs)) {
+      return customEjs;
+    }
+
+    return defaultEjs;
+  };
 
   // If "invite-generator" is not configured.
   if (settings === undefined) {
@@ -144,25 +129,6 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
       [
         '"invite-generator.options.path" is not configured properly',
         `(function: inviteGenerator, path: ${JSON.stringify(settingsOptionsPath)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.options.error-postfix" is not configured properly.
-  if (
-    settingsOptionsErrorPostfix !== undefined
-    && (
-      !_.isString(settingsOptionsErrorPostfix)
-      || _.isEmpty(settingsOptionsErrorPostfix)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.options.error-postfix" is not configured properly',
-        `(function: inviteGenerator, error postfix: ${JSON.stringify(settingsOptionsErrorPostfix)})`,
       ].join(' '),
       10,
     );
@@ -195,185 +161,6 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
       [
         '"invite-generator.options.max-uses" is not configured properly',
         `(function: inviteGenerator, max uses: ${JSON.stringify(settingsOptionsMaxUses)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.design.background-color" is not configured properly.
-  if (
-    settingsDesignBackgroundColor !== undefined
-    && (
-      !_.isString(settingsDesignBackgroundColor)
-      || _.isEmpty(settingsDesignBackgroundColor)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.design.background-color" is not configured properly',
-        `(function: inviteGenerator, background color: ${JSON.stringify(settingsDesignBackgroundColor)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.design.link-color" is not configured properly.
-  if (
-    settingsDesignLinkColor !== undefined
-    && (
-      !_.isString(settingsDesignLinkColor)
-      || _.isEmpty(settingsDesignLinkColor)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.design.link-color" is not configured properly',
-        `(function: inviteGenerator, link color: ${JSON.stringify(settingsDesignLinkColor)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.design.text-color" is not configured properly.
-  if (
-    settingsDesignTextColor !== undefined
-    && (
-      !_.isString(settingsDesignTextColor)
-      || _.isEmpty(settingsDesignTextColor)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.design.text-color" is not configured properly',
-        `(function: inviteGenerator, text color: ${JSON.stringify(settingsDesignTextColor)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.images.favicon-url" is not configured properly.
-  if (
-    settingsImagesFaviconUrl !== undefined
-    && (
-      !_.isString(settingsImagesFaviconUrl)
-      || _.isEmpty(settingsImagesFaviconUrl)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.images.favicon-url" is not configured properly',
-        `(function: inviteGenerator, favicon url: ${JSON.stringify(settingsImagesFaviconUrl)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.images.logo-url" is not configured properly.
-  if (
-    settingsImagesLogoUrl !== undefined
-    && (
-      !_.isString(settingsImagesLogoUrl)
-      || _.isEmpty(settingsImagesLogoUrl)
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.images.logo-url" is not configured properly',
-        `(function: inviteGenerator, logo url: ${JSON.stringify(settingsImagesLogoUrl)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.inject-code.header-areas" is not configured properly.
-  if (
-    settingsInjectCodeHeaderAreas !== undefined
-    && (
-      !_.isArray(settingsInjectCodeHeaderAreas)
-      || _.isEmpty(settingsInjectCodeHeaderAreas)
-      || !_.every(settingsInjectCodeHeaderAreas, (settingsInjectCodeHeaderArea) => _.isPlainObject(settingsInjectCodeHeaderArea) && !_.isEmpty(settingsInjectCodeHeaderArea))
-      || !_.every(headerAreaCodes, (headerAreaCode) => _.isString(headerAreaCode) && !_.isEmpty(headerAreaCode))
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.inject-code.header-areas" is not configured properly',
-        `(function: inviteGenerator, header areas: ${JSON.stringify(settingsInjectCodeHeaderAreas)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.inject-code.footer-areas" is not configured properly.
-  if (
-    settingsInjectCodeFooterAreas !== undefined
-    && (
-      !_.isArray(settingsInjectCodeFooterAreas)
-      || _.isEmpty(settingsInjectCodeFooterAreas)
-      || !_.every(settingsInjectCodeFooterAreas, (settingsInjectCodeFooterArea) => _.isPlainObject(settingsInjectCodeFooterArea) && !_.isEmpty(settingsInjectCodeFooterArea))
-      || !_.every(footerAreaCodes, (footerAreaCode) => _.isString(footerAreaCode) && !_.isEmpty(footerAreaCode))
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.inject-code.footer-areas" is not configured properly',
-        `(function: inviteGenerator, footer areas: ${JSON.stringify(settingsInjectCodeFooterAreas)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.inject-code.submit-successes" is not configured properly.
-  if (
-    settingsInjectCodeSubmitSuccesses !== undefined
-    && (
-      !_.isArray(settingsInjectCodeSubmitSuccesses)
-      || _.isEmpty(settingsInjectCodeSubmitSuccesses)
-      || !_.every(settingsInjectCodeSubmitSuccesses, (settingsInjectCodeSubmitSuccess) => _.isPlainObject(settingsInjectCodeSubmitSuccess) && !_.isEmpty(settingsInjectCodeSubmitSuccess))
-      || !_.every(submitSuccessCodes, (submitSuccessCode) => _.isString(submitSuccessCode) && !_.isEmpty(submitSuccessCode))
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.inject-code.submit-successes" is not configured properly',
-        `(function: inviteGenerator, submit successes: ${JSON.stringify(settingsInjectCodeSubmitSuccesses)})`,
-      ].join(' '),
-      10,
-    );
-
-    return;
-  }
-
-  // If "invite-generator.inject-code.submit-fails" is not configured properly.
-  if (
-    settingsInjectCodeSubmitFails !== undefined
-    && (
-      !_.isArray(settingsInjectCodeSubmitFails)
-      || _.isEmpty(settingsInjectCodeSubmitFails)
-      || !_.every(settingsInjectCodeSubmitFails, (settingsInjectCodeSubmitFail) => _.isPlainObject(settingsInjectCodeSubmitFail) && !_.isEmpty(settingsInjectCodeSubmitFail))
-      || !_.every(submitFailCodes, (submitFailCode) => _.isString(submitFailCode) && !_.isEmpty(submitFailCode))
-    )
-  ) {
-    generateLogMessage(
-      [
-        '"invite-generator.inject-code.submit-fails" is not configured properly',
-        `(function: inviteGenerator, submit fails: ${JSON.stringify(settingsInjectCodeSubmitFails)})`,
       ].join(' '),
       10,
     );
@@ -427,19 +214,10 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
     webServer.get(settingsOptionsPath, (request, response) => {
       const requestUrl = request.url;
 
-      response.status(200).contentType('text/html').render('invites', {
+      response.status(200).contentType('text/html').render(loadTemplate(), {
         data: {
           settingsGuildName: guildName,
           settingsRequestUrl: requestUrl,
-          designBackgroundColor: settingsDesignBackgroundColor,
-          designLinkColor: settingsDesignLinkColor,
-          designTextColor: settingsDesignTextColor,
-          imagesFaviconUrl: settingsImagesFaviconUrl,
-          imagesLogoUrl: settingsImagesLogoUrl,
-          injectCodeHeaderAreas: headerAreaCodes,
-          injectCodeFooterAreas: footerAreaCodes,
-          injectCodeSubmitSuccesses: submitSuccessCodes,
-          injectCodeSubmitFails: submitFailCodes,
           recaptchaSiteKey: settingsRecaptchaSiteKey,
         },
       });
@@ -510,7 +288,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             errorMessage = 'The request is invalid.';
             break;
           case 'timeout-or-duplicate':
-            errorMessage = 'Your token has expired or was already used. Refresh the page and try again.';
+            errorMessage = 'Your token has expired or was already used.';
             break;
           default:
             errorMessage = 'Unknown error.';
@@ -518,10 +296,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
         }
 
         if (!postResponseDataSuccess) {
-          response.status(401).contentType('text/plain').send([
-            errorMessage,
-            (settingsOptionsErrorPostfix !== undefined) ? [settingsOptionsErrorPostfix] : [],
-          ].join(' '));
+          response.status(401).contentType('text/plain').send(errorMessage);
         } else if (guildRulesChannel !== null) {
           generateLogMessage(
             [
@@ -559,10 +334,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
               error,
             );
 
-            response.status(500).contentType('text/plain').send([
-              errorMessage,
-              (settingsOptionsErrorPostfix !== undefined) ? [settingsOptionsErrorPostfix] : [],
-            ].join(' '));
+            response.status(500).contentType('text/plain').send(errorMessage);
           });
         } else {
           errorMessage = 'The rules channel is not configured.';
@@ -575,10 +347,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             10,
           );
 
-          response.status(500).contentType('text/plain').send([
-            errorMessage,
-            (settingsOptionsErrorPostfix !== undefined) ? [settingsOptionsErrorPostfix] : [],
-          ].join(' '));
+          response.status(500).contentType('text/plain').send(errorMessage);
         }
       }).catch((error: Error) => {
         generateLogMessage(
@@ -622,7 +391,6 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
    * @param {MapWebhooksReplaceVariablesAndTextEventName}         eventName         - Event name.
    * @param {MapWebhooksReplaceVariablesAndTextEventKey}          eventKey          - Event key.
    * @param {MapWebhooksReplaceVariablesAndTextEventVariables}    eventVariables    - Event variables.
-   * @param {MapWebhooksReplaceVariablesAndTextEventReplacements} eventReplacements - Event replacements.
    * @param {MapWebhooksReplaceVariablesAndTextEventPayload}      eventPayload      - Event payload.
    * @param {MapWebhooksReplaceVariablesAndTextRequestBody}       requestBody       - Request body.
    *
@@ -630,7 +398,7 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
    *
    * @since 1.0.0
    */
-  const replaceVariablesAndText = (eventName: MapWebhooksReplaceVariablesAndTextEventName, eventKey: MapWebhooksReplaceVariablesAndTextEventKey, eventVariables: MapWebhooksReplaceVariablesAndTextEventVariables, eventReplacements: MapWebhooksReplaceVariablesAndTextEventReplacements, eventPayload: MapWebhooksReplaceVariablesAndTextEventPayload, requestBody: MapWebhooksReplaceVariablesAndTextRequestBody): MapWebhooksReplaceVariablesAndTextReturns => {
+  const replaceVariablesAndText = (eventName: MapWebhooksReplaceVariablesAndTextEventName, eventKey: MapWebhooksReplaceVariablesAndTextEventKey, eventVariables: MapWebhooksReplaceVariablesAndTextEventVariables, eventPayload: MapWebhooksReplaceVariablesAndTextEventPayload, requestBody: MapWebhooksReplaceVariablesAndTextRequestBody): MapWebhooksReplaceVariablesAndTextReturns => {
     let editedPayload = JSON.stringify(eventPayload)
       .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
 
@@ -743,83 +511,6 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
       });
     }
 
-    if (
-      _.isArray(eventReplacements)
-      && !_.isEmpty(eventReplacements)
-      && _.every(eventReplacements, (eventReplacement) => _.isPlainObject(eventReplacement) && !_.isEmpty(eventReplacement))
-    ) {
-      eventReplacements.forEach((eventReplacement, eventReplacementKey) => {
-        const thePattern = <MapWebhooksEventReplacementPattern>_.get(eventReplacement, ['pattern']);
-        const theFlags = <MapWebhooksEventReplacementFlags>_.get(eventReplacement, ['flags']);
-        const theReplaceWith = <MapWebhooksEventReplacementReplaceWith>_.get(eventReplacement, ['replace-with']);
-
-        // If "web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].pattern" is not configured properly.
-        if (!_.isString(thePattern)) {
-          generateLogMessage(
-            [
-              `"web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].pattern" is not configured properly`,
-              `(function: mapWebhooks, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)})`,
-            ].join(' '),
-            10,
-          );
-
-          return;
-        }
-
-        // If "web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].flags" is not configured properly.
-        if (
-          theFlags !== undefined
-          && !_.isString(theFlags)
-        ) {
-          generateLogMessage(
-            [
-              `"web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].flags" is not configured properly`,
-              `(function: mapWebhooks, name: ${JSON.stringify(eventName)}, flags: ${JSON.stringify(theFlags)})`,
-            ].join(' '),
-            10,
-          );
-
-          return;
-        }
-
-        // If "web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].replace-with" is not configured properly.
-        if (!_.isString(theReplaceWith)) {
-          generateLogMessage(
-            [
-              `"web-applications.map-webhooks[${eventKey}].replacements[${eventReplacementKey}].replace-with" is not configured properly`,
-              `(function: mapWebhooks, name: ${JSON.stringify(eventName)}, replace with: ${JSON.stringify(theReplaceWith)})`,
-            ].join(' '),
-            10,
-          );
-
-          return;
-        }
-
-        try {
-          const regExp = new RegExp(thePattern, theFlags);
-
-          generateLogMessage(
-            [
-              'Constructed regular expression object',
-              `(function: mapWebhooks, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)}, flags: ${JSON.stringify(theFlags)})`,
-            ].join(' '),
-            40,
-          );
-
-          editedPayload = editedPayload.replace(regExp, theReplaceWith);
-        } catch (error) {
-          generateLogMessage(
-            [
-              'Failed to construct regular expression object',
-              `(function: mapWebhooks, name: ${JSON.stringify(eventName)}, pattern: ${JSON.stringify(thePattern)}, flags: ${JSON.stringify(theFlags)})`,
-            ].join(' '),
-            10,
-            error,
-          );
-        }
-      });
-    }
-
     return JSON.parse(editedPayload);
   };
 
@@ -857,7 +548,6 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
     const theName = <MapWebhooksEventName>_.get(event, ['name']) ?? 'Unknown';
     const thePath = <MapWebhooksEventPath>_.get(event, ['path']);
     const theVariables = <MapWebhooksEventVariables>_.get(event, ['variables']);
-    const theReplacements = <MapWebhooksEventReplacements>_.get(event, ['replacements']);
     const thePayload = <MapWebhooksEventPayload>_.get(event, ['payload']);
     const theChannelChannelId = <MapWebhooksEventChannelChannelId>_.get(event, ['channel', 'channel-id']);
 
@@ -905,26 +595,6 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
         [
           `"web-applications.map-webhooks[${eventKey}].variables" is not configured properly`,
           `(function: mapWebhooks, name: ${JSON.stringify(theName)}, variables: ${JSON.stringify(theVariables)})`,
-        ].join(' '),
-        10,
-      );
-
-      return;
-    }
-
-    // If "web-applications.map-webhooks[${eventKey}].replacements" is not configured properly.
-    if (
-      theReplacements !== undefined
-      && (
-        !_.isArray(theReplacements)
-        || _.isEmpty(theReplacements)
-        || !_.every(theReplacements, (theReplacement) => _.isPlainObject(theReplacement) && !_.isEmpty(theReplacement))
-      )
-    ) {
-      generateLogMessage(
-        [
-          `"web-applications.map-webhooks[${eventKey}].replacements" is not configured properly`,
-          `(function: mapWebhooks, name: ${JSON.stringify(theName)}, replacements: ${JSON.stringify(theReplacements)})`,
         ].join(' '),
         10,
       );
@@ -980,7 +650,7 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
         const requestBody = request.body;
 
         const message = `Successfully processed "${theName}" webhook.`;
-        const payload = replaceVariablesAndText(theName, eventKey, theVariables, theReplacements, thePayload, requestBody);
+        const payload = replaceVariablesAndText(theName, eventKey, theVariables, thePayload, requestBody);
 
         channel.send(payload).then((sendResponse) => {
           const sendResponseUrl = sendResponse.url;
@@ -1171,7 +841,6 @@ export function webApplicationsSetup(guild: WebApplicationsSetupGuild, settings:
   }));
 
   server.set('view engine', 'ejs');
-  server.set('views', path.join(__dirname, '../views'));
 
   /**
    * Web applications setup - HTTP server.

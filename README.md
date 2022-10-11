@@ -406,39 +406,18 @@ __NOTE:__ During reboots, all web applications will be taken offline. To increas
 ```
 
 #### 4.1. Invite Generator
-A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. Customization includes color design, custom images, and code injection.
+A membership invite gate to protect your Discord server from being raided and spammed on. Authentication is made from Google's reCAPTCHA service. To customize the invite generator webpage, rename the `invites-sample.ejs` file to `invites.ejs` and begin editing.
 
-| __Key__                                                                         | __Type__   | __Description__                                                 | __Required__ | __Accepted Values__                                                                                                                                                                                             |
-|---------------------------------------------------------------------------------|------------|-----------------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `web-applications.invite-generator`                                             | `object`   |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.options`                                     | `object`   |                                                                 | yes          |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.options.path`                                | `string`   | Path for accessing invite generator                             | yes          | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite`                                                                                                     |
-| `web-applications.invite-generator.options.error-postfix`                       | `string`   | Message content to append when user receives an error message   | no           | HTML code. Make sure to escape the double-quotes (`"`)                                                                                                                                                          |
-| `web-applications.invite-generator.options.max-age`                             | `number`   | Invite maximum age                                              | no           | Time in seconds (e.g. 1 minute equals `60`)                                                                                                                                                                     |
-| `web-applications.invite-generator.options.max-uses`                            | `number`   | Invite maximum uses                                             | no           | Whole numbers                                                                                                                                                                                                   |
-| `web-applications.invite-generator.design`                                      | `object`   |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.design.background-color`                     | `string`   | Color for background                                            | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp). For example, a color of `FF0000` should be set as `#FF0000`                                                               |
-| `web-applications.invite-generator.design.link-color`                           | `string`   | Color for links                                                 | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp). For example, a color of `FF0000` should be set as `#FF0000`                                                               |
-| `web-applications.invite-generator.design.text-color`                           | `string`   | Color for text                                                  | no           | Read [CSS Legal Color Values](https://www.w3schools.com/cssref/css_colors_legal.asp). For example, a color of `FF0000` should be set as `#FF0000`                                                               |
-| `web-applications.invite-generator.images`                                      | `object`   |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.images.logo-url`                             | `string`   | Link to logo                                                    | no           | Square images only. Size dimensions of `300 x 300` or larger are recommended                                                                                                                                    |
-| `web-applications.invite-generator.images.favicon-url`                          | `string`   | Link to favicon                                                 | no           | `.png` extensions only                                                                                                                                                                                          |
-| `web-applications.invite-generator.inject-code`                                 | `object`   |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.header-areas`                    | `object[]` |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.header-areas[x].description`     | `string`   | Description of the unescaped code between the `head` tags       | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.header-areas[x].code`            | `string`   | Unescaped code between the `head` tags                          | no           | HTML code. Make sure to escape the double-quotes (`"`)                                                                                                                                                          |
-| `web-applications.invite-generator.inject-code.footer-areas`                    | `object[]` |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.footer-areas[x].description`     | `string`   | Description of the unescaped code at the end of the `body` tag  | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.footer-areas[x].code`            | `string`   | Unescaped code at the end of the `body` tag                     | no           | HTML code. Make sure to escape the double-quotes (`"`)                                                                                                                                                          |
-| `web-applications.invite-generator.inject-code.submit-successes`                | `object[]` |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.submit-successes[x].description` | `string`   | Description of the unescaped code when user passes verification | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.submit-successes[x].code`        | `string`   | Unescaped code when user passes verification                    | no           | HTML code. Make sure to escape the double-quotes (`"`). Available variables are `success` (returns the Discord invite URL)                                                                                      |
-| `web-applications.invite-generator.inject-code.submit-fails`                    | `object[]` |                                                                 | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.submit-fails[x].description`     | `string`   | Description of the unescaped code when user fails verification  | no           |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.inject-code.submit-fails[x].code`            | `string`   | Unescaped code when user fails verification                     | no           | HTML code. Make sure to escape the double-quotes (`"`). Available variables are `fail`. Use `fail.responseText` to get the error message (returns the [jqXHR Object](https://api.jquery.com/jquery.ajax#jqXHR)) |
-| `web-applications.invite-generator.recaptcha`                                   | `object`   |                                                                 | yes          |                                                                                                                                                                                                                 |
-| `web-applications.invite-generator.recaptcha.site-key`                          | `string`   | Google reCAPTCHA v2 checkbox site key                           | yes          | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                                                                                                            |
-| `web-applications.invite-generator.recaptcha.secret-key`                        | `string`   | Google reCAPTCHA v2 checkbox secret key                         | yes          | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                                                                                                                            |
+| __Key__                                                  | __Type__ | __Description__                         | __Required__ | __Accepted Values__                                                                                         |
+|----------------------------------------------------------|----------|-----------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------|
+| `web-applications.invite-generator`                      | `object` |                                         | no           |                                                                                                             |
+| `web-applications.invite-generator.options`              | `object` |                                         | yes          |                                                                                                             |
+| `web-applications.invite-generator.options.path`         | `string` | Path for accessing invite generator     | yes          | Paths begin with `/`. For example, a URL of `https://www.example.com/invite` would have a path of `/invite` |
+| `web-applications.invite-generator.options.max-age`      | `number` | Invite maximum age                      | no           | Time in seconds (e.g. 1 minute equals `60`)                                                                 |
+| `web-applications.invite-generator.options.max-uses`     | `number` | Invite maximum uses                     | no           | Whole numbers                                                                                               |
+| `web-applications.invite-generator.recaptcha`            | `object` |                                         | yes          |                                                                                                             |
+| `web-applications.invite-generator.recaptcha.site-key`   | `string` | Google reCAPTCHA v2 checkbox site key   | yes          | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                        |
+| `web-applications.invite-generator.recaptcha.secret-key` | `string` | Google reCAPTCHA v2 checkbox secret key | yes          | [Sign-up](https://www.google.com/recaptcha/admin/create) for a reCAPTCHA v2 checkbox                        |
 
 ```json
 {
@@ -446,44 +425,8 @@ A membership invite gate to protect your Discord server from being raided and sp
     "invite-generator": {
       "options": {
         "path": "/invite",
-        "error-postfix": "Please contact your server administrator.",
         "max-age": 120,
         "max-uses": 1
-      },
-      "design": {
-        "background-color": "",
-        "link-color": "",
-        "text-color": ""
-      },
-      "images": {
-        "logo-url": "",
-        "favicon-url": ""
-      },
-      "inject-code": {
-        "header-areas": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "footer-areas": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "submit-successes": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "submit-fails": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ]
       },
       "recaptcha": {
         "site-key": "",
@@ -506,11 +449,6 @@ Convert external webhooks (JSON-based) and send them as Discord messages. Use Di
 | `web-applications.map-webhooks[x].variables[x].id`              | `string`   | Variable identifier                                     | yes          | Capital letters and underscores. Underscores are not allowed in the beginning or end of the identifier                                                                                                                                                                                       |
 | `web-applications.map-webhooks[x].variables[x].type`            | `string`   | Variable type                                           | yes          | `string`, `boolean`, `ts-seconds`, `ts-millis`, `usd-dollars`, or `usd-cents`                                                                                                                                                                                                                |
 | `web-applications.map-webhooks[x].variables[x].path`            | `string`   | Variable path                                           | yes          | Access the value from the `path` of the object. If the value is not supported, it will return a stringified value                                                                                                                                                                            |
-| `web-applications.map-webhooks[x].replacements`                 | `object[]` |                                                         | no           |                                                                                                                                                                                                                                                                                              |
-| `web-applications.map-webhooks[x].replacements[x].description`  | `string`   | Description of the replacement regex                    | no           |                                                                                                                                                                                                                                                                                              |
-| `web-applications.map-webhooks[x].replacements[x].pattern`      | `string`   | Regex pattern                                           | yes          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern)                                                                                                                          |
-| `web-applications.map-webhooks[x].replacements[x].flags`        | `string`   | Regex flags                                             | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)                                                                                                                                        |
-| `web-applications.map-webhooks[x].replacements[x].replace-with` | `string`   | Replace with                                            | yes          | Read [Using a regular expression to change data format](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#using_a_regular_expression_to_change_data_format)                                                                                            |
 | `web-applications.map-webhooks[x].payload`                      | `object`   | Message content to send for each webhook request        | yes          | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%YEAR%`. To access incoming variables, define them like `@SAMPLE@`. `SAMPLE` is the value of `web-applications.map-webhooks[x].variables[x].id` |
 | `web-applications.map-webhooks[x].channel`                      | `object`   |                                                         | yes          |                                                                                                                                                                                                                                                                                              |
 | `web-applications.map-webhooks[x].channel.description`          | `string`   | Description of the channel used to send message content | no           |                                                                                                                                                                                                                                                                                              |
@@ -553,14 +491,6 @@ Convert external webhooks (JSON-based) and send them as Discord messages. Use Di
             "id": "SAMPLE_USD_CENTS",
             "type": "usd-cents",
             "path": "path.to[5].sample-cents"
-          }
-        ],
-        "replacements": [
-          {
-            "description": "Sample regex",
-            "pattern": "(.+)",
-            "flags": "g",
-            "replace-with": "$1"
           }
         ],
         "payload": {
@@ -978,15 +908,15 @@ __NOTE:__ Please prioritize channel restrictions before server-wide restrictions
 ### 10. Detect Suspicious Words
 Detect words in a message that may require attention. Useful when a member mentions a person of interest (without tagging them) or detection of vulgar language that often do not require warnings or deletion.
 
-| __Key__                                          | __Type__   | __Description__                                            | __Required__ | __Accepted Values__                                                       |
-|--------------------------------------------------|------------|------------------------------------------------------------|--------------|---------------------------------------------------------------------------|
-| `detect-suspicious-words`                        | `object`   |                                                            | no           |                                                                           |
-| `detect-suspicious-words.categories`             | `object[]` |                                                            | yes          |                                                                           |
-| `detect-suspicious-words.categories[x].category` | `string`   | Name of the category                                       | no           |                                                                           |
-| `detect-suspicious-words.categories[x].words`    | `string[]` | List of suspicious words                                   | yes          | Alphabetical variants only. Non-alphabetical conversion will be attempted |
-| `detect-suspicious-words.channel`                | `object`   |                                                            | yes          |                                                                           |
-| `detect-suspicious-words.channel.description`    | `string`   | Description of the channel used to report suspicious words | no           |                                                                           |
-| `detect-suspicious-words.channel.channel-id`     | `string`   | Channel used to report suspicious words                    | yes          | Discord channel ID                                                        |
+| __Key__                                          | __Type__   | __Description__                                            | __Required__ | __Accepted Values__                                                                                                          |
+|--------------------------------------------------|------------|------------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------|
+| `detect-suspicious-words`                        | `object`   |                                                            | no           |                                                                                                                              |
+| `detect-suspicious-words.categories`             | `object[]` |                                                            | yes          |                                                                                                                              |
+| `detect-suspicious-words.categories[x].category` | `string`   | Name of the category                                       | no           |                                                                                                                              |
+| `detect-suspicious-words.categories[x].words`    | `string[]` | List of suspicious words                                   | yes          | Alphabetical variants only. Non-alphabetical conversion will be attempted. For example, "he110" will be converted to "hello" |
+| `detect-suspicious-words.channel`                | `object`   |                                                            | yes          |                                                                                                                              |
+| `detect-suspicious-words.channel.description`    | `string`   | Description of the channel used to report suspicious words | no           |                                                                                                                              |
+| `detect-suspicious-words.channel.channel-id`     | `string`   | Channel used to report suspicious words                    | yes          | Discord channel ID                                                                                                           |
 
 ```json
 {
@@ -1340,7 +1270,7 @@ __NOTE:__ Message edits and deletions will not be passed onto their offsets.
           "replace-with": "$1"
         }
       ],
-      "print-payload": false,
+      "print-payload": true,
       "webhook": {
         "description": "Sample webhook",
         "webhook-url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"

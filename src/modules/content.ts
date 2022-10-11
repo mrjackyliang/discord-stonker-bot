@@ -1,11 +1,13 @@
 import axios from 'axios';
 import Bottleneck from 'bottleneck';
+import { decode } from 'html-entities';
 import { MessageOptions } from 'discord.js';
 import _ from 'lodash';
 import cron from 'node-cron';
 import RssParser from 'rss-parser';
 
 import {
+  escapeCharacters,
   fetchFormattedDate,
   generateCron,
   generateLogMessage,
@@ -156,7 +158,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
   const replaceVariables = (configPayload: RssFeedsReplaceVariablesConfigPayload, itemLink: RssFeedsReplaceVariablesItemLink, itemTitle: RssFeedsReplaceVariablesItemTitle): RssFeedsReplaceVariablesReturns => {
     const editedPayload = JSON.stringify(configPayload)
       .replace(/%ITEM_LINK%/g, itemLink ?? 'No link')
-      .replace(/%ITEM_TITLE%/g, itemTitle ?? 'No title');
+      .replace(/%ITEM_TITLE%/g, escapeCharacters(decode(itemTitle ?? 'No title')));
 
     return JSON.parse(editedPayload);
   };
@@ -1145,7 +1147,7 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
    */
   const replaceVariables = (configPayload: TwitterFeedsReplaceVariablesConfigPayload, tweetText: TwitterFeedsReplaceVariablesTweetText, tweetLink: TwitterFeedsReplaceVariablesTweetLink): TwitterFeedsReplaceVariablesReturns => {
     const editedPayload = JSON.stringify(configPayload)
-      .replace(/%TWEET_TEXT%/g, tweetText)
+      .replace(/%TWEET_TEXT%/g, escapeCharacters(decode(tweetText)))
       .replace(/%TWEET_LINK%/g, tweetLink);
 
     return JSON.parse(editedPayload);

@@ -169,44 +169,8 @@
     "invite-generator": {
       "options": {
         "path": "/invite",
-        "error-postfix": "Please contact your server administrator.",
         "max-age": 120,
         "max-uses": 1
-      },
-      "design": {
-        "background-color": "",
-        "link-color": "",
-        "text-color": ""
-      },
-      "images": {
-        "logo-url": "",
-        "favicon-url": ""
-      },
-      "inject-code": {
-        "header-areas": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "footer-areas": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "submit-successes": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ],
-        "submit-fails": [
-          {
-            "description": "Sample code",
-            "code": ""
-          }
-        ]
       },
       "recaptcha": {
         "site-key": "",
@@ -247,14 +211,6 @@
             "id": "SAMPLE_USD_CENTS",
             "type": "usd-cents",
             "path": "path.to[5].sample-cents"
-          }
-        ],
-        "replacements": [
-          {
-            "description": "Sample regex",
-            "pattern": "(.+)",
-            "flags": "g",
-            "replace-with": "$1"
           }
         ],
         "payload": {
@@ -700,7 +656,7 @@
           "replace-with": "$1"
         }
       ],
-      "print-payload": false,
+      "print-payload": true,
       "webhook": {
         "description": "Sample webhook",
         "webhook-url": "https://discord.com/api/webhooks/000000000000000000/ABCDEFGHIJKLMNOPQRSTUVWXYZ-abcdefghijklmnopqrstuvwxyzZ1234567890"
