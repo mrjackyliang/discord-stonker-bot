@@ -81,6 +81,8 @@ import {
 export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGeneratorWebServer, settings: InviteGeneratorSettings): InviteGeneratorReturns {
   const guildName = guild.name;
   const guildInvites = guild.invites;
+  const guildMemberCount = guild.memberCount;
+  const guildPremiumTier = guild.premiumTier;
   const guildRulesChannel = guild.rulesChannel;
 
   const settingsOptionsPath = <InviteGeneratorSettingsOptionsPath>_.get(settings, ['options', 'path']);
@@ -217,6 +219,8 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
       response.status(200).contentType('text/html').render(loadTemplate(), {
         data: {
           settingsGuildName: guildName,
+          settingsGuildMemberCount: guildMemberCount,
+          settingsGuildPremiumTier: guildPremiumTier,
           settingsRequestUrl: requestUrl,
           recaptchaSiteKey: settingsRecaptchaSiteKey,
         },
@@ -296,7 +300,9 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
         }
 
         if (!postResponseDataSuccess) {
-          response.status(401).contentType('text/plain').send(errorMessage);
+          response.status(401).contentType('application/json').json({
+            error: errorMessage,
+          });
         } else if (guildRulesChannel !== null) {
           generateLogMessage(
             [
@@ -311,6 +317,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             maxUses: settingsOptionsMaxUses,
             reason: 'Visitor completed the invite verification',
           }).then((createResponse) => {
+            const createResponseCode = createResponse.code;
             const createResponseUrl = createResponse.url;
 
             generateLogMessage(
@@ -321,7 +328,10 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
               40,
             );
 
-            response.status(200).contentType('text/plain').send(createResponseUrl);
+            response.status(200).contentType('application/json').json({
+              code: createResponseCode,
+              url: createResponseUrl,
+            });
           }).catch((error: Error) => {
             errorMessage = 'The invite link could not be created.';
 
@@ -334,7 +344,9 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
               error,
             );
 
-            response.status(500).contentType('text/plain').send(errorMessage);
+            response.status(500).contentType('application/json').json({
+              error: errorMessage,
+            });
           });
         } else {
           errorMessage = 'The rules channel is not configured.';
@@ -347,7 +359,9 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             10,
           );
 
-          response.status(500).contentType('text/plain').send(errorMessage);
+          response.status(500).contentType('application/json').json({
+            error: errorMessage,
+          });
         }
       }).catch((error: Error) => {
         generateLogMessage(

@@ -1,7 +1,10 @@
 <%
-    const dataSettingsGuildName = data.settingsGuildName;
-    const dataSettingsRequestUrl = data.settingsRequestUrl;
-    const dataRecaptchaSiteKey = data.recaptchaSiteKey;
+// Default variables you can use.
+const dataSettingsGuildName = data.settingsGuildName;
+const dataSettingsGuildMemberCount = data.settingsGuildMemberCount;
+const dataSettingsPremiumTier = data.settingsGuildPremiumTier;
+const dataSettingsRequestUrl = data.settingsRequestUrl;
+const dataRecaptchaSiteKey = data.recaptchaSiteKey;
 %>
 <!DOCTYPE html>
 <!--
@@ -16,9 +19,9 @@
 -->
 <html lang="en">
     <head>
-        <title>Join <%= dataSettingsGuildName %> Discord</title>
+        <title>Join Discord - <%= dataSettingsGuildName %></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="//code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script src="//code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
         <script src="//www.google.com/recaptcha/api.js" async defer></script>
         <script type="text/javascript">
             /**
@@ -35,49 +38,67 @@
                     $.post(`<%= dataSettingsRequestUrl %>`, {
                         token: sessionToken,
                     }, (success) => {
-                        console.log('Google reCAPTCHA verification success');
+                        console.log('Google reCAPTCHA verification success', success);
 
-                        window.location.replace(success);
+                        $("#messages").html(`<span style="background-color: var(--global-color-success);">Thanks for verifying! Please wait while we redirect you to Discord…</span>`);
+
+                        setTimeout(() => {
+                            window.location.href = success.url;
+                        }, 1000);
                     }).fail((fail) => {
-                        console.error('Google reCAPTCHA verification failed');
+                        console.error('Google reCAPTCHA verification failed', fail);
 
-                        $("#error").html(`<span>${fail.responseText} Please contact your server administrator.</span>`);
+                        $("#messages").html(`<span style="background-color: var(--global-color-error);">${fail.responseJSON.error} Please contact your server administrator.</span>`);
                     });
                 });
             }
         </script>
         <style>
+            html {
+                --global-color-white: #fff;
+                --global-color-success: #00b74a;
+                --global-color-error: #f93154;
+                --global-color-warning: #ffa900;
+                --global-color-information: #39c0ed;
+            }
+
             body {
                 font-family: Helvetica, Arial, sans-serif;
                 margin: 0;
-                padding: 0;
+                line-height: 1.5;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                margin: 20px 0;
+            }
+
+            p {
+                margin: 20px 0;
             }
 
             #content {
                 display: flex;
+                width: 100vw;
                 height: 100vh;
+                margin: 20px;
                 text-align: center;
                 flex-direction: column;
                 justify-content: center;
             }
 
-            #content .container {
-                margin: 5vh;
-            }
-
-            #content #title h1,
-            #content #title p {
-                margin: 25px 0;
-            }
-
-            #content #error span {
+            #content #messages span {
                 display: block;
-                background-color: #ffe0e0;
-                color: #ba3939;
-                margin-bottom: 15px;
+                background-color: var(--global-color-information);
+                color: var(--global-color-white);
+                margin: 0 0 20px;
                 padding: 15px;
-                border-radius: 5px;
-                border: 1px solid #a33a3a;
+                font-size: 14px;
+                border-radius: 3px;
             }
 
             #content .g-recaptcha div {
@@ -87,17 +108,16 @@
     </head>
     <body>
         <div id="content">
-            <div class="container">
-                <div id="title">
-                    <h1>Join <%= dataSettingsGuildName %> Discord</h1>
-                </div>
-                <div id="form">
-                    <noscript>
-                        <p>JavaScript is required to view the Google reCAPTCHA widget.</p>
-                    </noscript>
-                    <div id="error"></div>
-                    <div class="g-recaptcha" data-sitekey="<%= dataRecaptchaSiteKey %>" data-callback="onSubmit"></div>
-                </div>
+            <div id="title">
+                <h1>Join <%= dataSettingsGuildName %> Discord</h1>
+            </div>
+            <div id="messages">
+                <noscript>
+                    <span style="background-color: var(--global-color-warning);">Oops! JavaScript needs to be enabled in your browser before you can join.</span>
+                </noscript>
+            </div>
+            <div id="form">
+                <div class="g-recaptcha" data-sitekey="<%= dataRecaptchaSiteKey %>" data-callback="onSubmit"></div>
             </div>
         </div>
     </body>
