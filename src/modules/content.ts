@@ -16,6 +16,7 @@ import {
   isTimeZoneValid,
 } from '../lib/utility';
 import {
+  RssFeedsEventAllowedUrls,
   RssFeedsEventChannelChannelId,
   RssFeedsEventFetchOn,
   RssFeedsEventFetchOnDates,
@@ -83,13 +84,18 @@ import {
   TwitterFeedsStreamStartTime,
   TwitterFeedsTwitterClient,
 } from '../types';
-import { MemoryRssFeedsEventSentItems } from '../types/memory';
+import { MemoryRssFeedsEventSentItemLinks, MemoryRssFeedsEventSentItemTitles } from '../types/memory';
 
 /**
  * Bottleneck.
  *
  * @since 1.0.0
  */
+const followRedirectsQueue = new Bottleneck({
+  maxConcurrent: 1,
+  minTime: 3000,
+});
+
 const twitterApiQueue = new Bottleneck({
   maxConcurrent: 1,
   minTime: 1000,
@@ -120,7 +126,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
       _.isString(itemTitle)
       && !_.isEmpty(itemTitle)
     ) {
-      return itemTitle.slice(0, itemTitle.lastIndexOf(' -'));
+      return itemTitle.slice(0, itemTitle.lastIndexOf(' - '));
     }
 
     return undefined;
@@ -199,6 +205,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
     const theUserAgent = <RssFeedsEventUserAgent>_.get(event, ['user-agent']);
     const theFollowRedirects = <RssFeedsEventFollowRedirects>_.get(event, ['follow-redirects']);
     const theRemoveParameters = <RssFeedsEventRemoveParameters>_.get(event, ['remove-parameters']);
+    const theAllowedUrls = <RssFeedsEventAllowedUrls>_.get(event, ['allowed-urls']);
     const thePayload = <RssFeedsEventPayload>_.get(event, ['payload']);
     const theChannelChannelId = <RssFeedsEventChannelChannelId>_.get(event, ['channel', 'channel-id']);
     const theFetchOn = <RssFeedsEventFetchOn>_.get(event, ['fetch-on']);
@@ -212,7 +219,8 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
 
     const channel = getTextBasedChannel(guild, theChannelChannelId);
 
-    const sentItems: MemoryRssFeedsEventSentItems = [];
+    const sentItemTitles: MemoryRssFeedsEventSentItemTitles = [];
+    const sentItemLinks: MemoryRssFeedsEventSentItemLinks = [];
 
     let payload: MessageOptions = {};
 
@@ -292,6 +300,26 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
         [
           `"rss-feeds[${eventKey}].remove-parameters" is not configured properly`,
           `(function: rssFeeds, name: ${JSON.stringify(theName)}, remove parameters: ${JSON.stringify(theRemoveParameters)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    // If "rss-feeds[${eventKey}].allowed-urls" is not configured properly.
+    if (
+      theAllowedUrls !== undefined
+      && (
+        !_.isArray(theAllowedUrls)
+        || _.isEmpty(theAllowedUrls)
+        || !_.every(theAllowedUrls, (theAllowedUrl) => _.isString(theAllowedUrl) && !_.isEmpty(theAllowedUrl))
+      )
+    ) {
+      generateLogMessage(
+        [
+          `"rss-feeds[${eventKey}].allowed-urls" is not configured properly`,
+          `(function: rssFeeds, name: ${JSON.stringify(theName)}, allowed urls: ${JSON.stringify(theAllowedUrls)})`,
         ].join(' '),
         10,
       );
@@ -508,7 +536,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
 
       cron.schedule(rule, () => {
         rssParser.parseURL(theUrl).then(async (parseURLResponse) => {
-          const parseURLResponseItems = parseURLResponse.items;
+          let parseURLResponseItems = parseURLResponse.items;
 
           generateLogMessage(
             [
@@ -523,11 +551,11 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
               const parseURLResponseItemLink = parseURLResponseItem.link;
 
               if (parseURLResponseItemLink !== undefined) {
-                return axios.get(parseURLResponseItemLink, {
+                return followRedirectsQueue.schedule(() => axios.get(parseURLResponseItemLink, {
                   headers: {
                     'User-Agent': generateUserAgent(),
                   },
-                }).then((getResponse) => {
+                })).then((getResponse) => {
                   const getResponseRequestResResponseUrl = getResponse.request.res.responseUrl;
 
                   generateLogMessage(
@@ -539,7 +567,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
                   );
 
                   // Inject resolved link to response item.
-                  parseURLResponseItems[parseURLResponseItemKey].link = getResponse.request.res.responseUrl;
+                  parseURLResponseItems[parseURLResponseItemKey].link = getResponseRequestResResponseUrl;
 
                   return undefined;
                 }).catch((error) => {
@@ -562,15 +590,39 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
             await Promise.all(links);
           }
 
-          // Prevent possible duplicate responses after bot reboot.
-          if (sentItems.length === 0) {
-            parseURLResponseItems.forEach((parseURLResponseItem) => {
+          if (
+            _.isArray(theAllowedUrls)
+            && !_.isEmpty(theAllowedUrls)
+            && _.every(theAllowedUrls, (theAllowedUrl) => _.isString(theAllowedUrl) && !_.isEmpty(theAllowedUrl))
+          ) {
+            parseURLResponseItems = _.filter(parseURLResponseItems, (parseURLResponseItem) => {
               const parseURLResponseItemLink = parseURLResponseItem.link;
 
+              if (parseURLResponseItemLink !== undefined) {
+                const allowedUrls = _.map(theAllowedUrls, (theAllowedUrl) => _.isString(theAllowedUrl) && !_.isEmpty(theAllowedUrl) && parseURLResponseItemLink.startsWith(theAllowedUrl));
+
+                return _.some(allowedUrls, (allowedUrl) => allowedUrl);
+              }
+
+              return false;
+            });
+          }
+
+          // Prevent possible duplicate responses after bot reboot.
+          if (sentItemTitles.length === 0 && sentItemLinks.length === 0) {
+            parseURLResponseItems.forEach((parseURLResponseItem) => {
+              const parseURLResponseItemTitle = parseURLResponseItem.title;
+              const parseURLResponseItemLink = parseURLResponseItem.link;
+
+              const newTitle = (/news\.google\.com\/rss\/search/.test(theUrl)) ? removeSourceFromGoogleNewsRssTitle(parseURLResponseItemTitle) : parseURLResponseItemTitle;
               const newLink = (theRemoveParameters === true) ? removeParameters(parseURLResponseItemLink) : parseURLResponseItemLink;
 
+              if (newTitle !== undefined) {
+                sentItemTitles.push(newTitle);
+              }
+
               if (newLink !== undefined) {
-                sentItems.push(newLink);
+                sentItemLinks.push(newLink);
               }
             });
           }
@@ -584,8 +636,10 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
 
             // When feed item has not been sent before.
             if (
-              newLink !== undefined
-              && _.every(sentItems, (sentItem) => sentItem !== newLink)
+              newTitle !== undefined
+              && newLink !== undefined
+              && _.every(sentItemTitles, (sentItemTitle) => sentItemTitle !== newTitle)
+              && _.every(sentItemLinks, (sentItemLink) => sentItemLink !== newTitle)
             ) {
               payload = replaceVariables(thePayload, newLink, newTitle);
 
@@ -600,8 +654,11 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
                   40,
                 );
 
-                // Add feed item to sent items array.
-                sentItems.push(newLink);
+                // Add feed item title to sent items array.
+                sentItemTitles.push(newTitle);
+
+                // Add feed item link to sent items array.
+                sentItemLinks.push(newLink);
               }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',

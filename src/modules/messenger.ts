@@ -1685,6 +1685,10 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         });
       }
 
+      // Replace variables in "payload_json".
+      payloadJson = payloadJson
+        .replace(/%YEAR%/g, fetchFormattedDate('now', undefined, 'config', 'yyyy'));
+
       // Print the "payload_json" object after modification.
       if (eventPrintPayload === true) {
         generateOutputMessage(

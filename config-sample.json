@@ -398,6 +398,9 @@
       "user-agent": "stonker-bot",
       "follow-redirects": true,
       "remove-parameters": true,
+      "allowed-urls": [
+        "https://www.example.com/news/"
+      ],
       "payload": {
         "content": "Sample: %ITEM_TITLE% - %ITEM_LINK%"
       },

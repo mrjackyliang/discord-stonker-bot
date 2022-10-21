@@ -188,9 +188,13 @@ export type MemoryRemoveAffiliatesDetectedAffiliates = MemoryRemoveAffiliatesDet
  *
  * @since 1.0.0
  */
-export type MemoryRssFeedsEventSentItem = string;
+export type MemoryRssFeedsEventSentItemTitle = string;
 
-export type MemoryRssFeedsEventSentItems = MemoryRssFeedsEventSentItem[];
+export type MemoryRssFeedsEventSentItemTitles = MemoryRssFeedsEventSentItemTitle[];
+
+export type MemoryRssFeedsEventSentItemLink = string;
+
+export type MemoryRssFeedsEventSentItemLinks = MemoryRssFeedsEventSentItemLink[];
 
 /**
  * Stocktwits trending.

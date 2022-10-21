@@ -2000,6 +2000,10 @@ export type RssFeedsEventFollowRedirects = boolean | undefined;
 
 export type RssFeedsEventRemoveParameters = boolean | undefined;
 
+export type RssFeedsEventAllowedUrl = string | undefined;
+
+export type RssFeedsEventAllowedUrls = RssFeedsEventAllowedUrl[] | undefined;
+
 export type RssFeedsEventPayload = MessageOptions | undefined;
 
 export type RssFeedsEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
@@ -2048,6 +2052,7 @@ export type RssFeedsEvent = {
   'user-agent': RssFeedsEventUserAgent;
   'follow-redirects': RssFeedsEventFollowRedirects;
   'remove-parameters': RssFeedsEventRemoveParameters;
+  'allowed-urls': RssFeedsEventAllowedUrls;
   payload: RssFeedsEventPayload;
   channel: RssFeedsEventChannel;
   'fetch-on': RssFeedsEventFetchOn;
