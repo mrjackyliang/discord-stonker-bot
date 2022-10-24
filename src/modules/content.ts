@@ -163,8 +163,8 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
    */
   const replaceVariables = (configPayload: RssFeedsReplaceVariablesConfigPayload, itemLink: RssFeedsReplaceVariablesItemLink, itemTitle: RssFeedsReplaceVariablesItemTitle): RssFeedsReplaceVariablesReturns => {
     const editedPayload = JSON.stringify(configPayload)
-      .replace(/%ITEM_LINK%/g, itemLink ?? 'No link')
-      .replace(/%ITEM_TITLE%/g, escapeCharacters(decode(itemTitle ?? 'No title')));
+      .replace(/%ITEM_LINK%/g, itemLink)
+      .replace(/%ITEM_TITLE%/g, escapeCharacters(decode(itemTitle)));
 
     return JSON.parse(editedPayload);
   };
@@ -569,7 +569,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
                   // Inject resolved link to response item.
                   parseURLResponseItems[parseURLResponseItemKey].link = getResponseRequestResResponseUrl;
 
-                  return undefined;
+                  return true;
                 }).catch((error) => {
                   generateLogMessage(
                     [
@@ -580,11 +580,11 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
                     error,
                   );
 
-                  return undefined;
+                  return false;
                 });
               }
 
-              return undefined;
+              return false;
             });
 
             await Promise.all(links);
@@ -617,11 +617,8 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
               const newTitle = (/news\.google\.com\/rss\/search/.test(theUrl)) ? removeSourceFromGoogleNewsRssTitle(parseURLResponseItemTitle) : parseURLResponseItemTitle;
               const newLink = (theRemoveParameters === true) ? removeParameters(parseURLResponseItemLink) : parseURLResponseItemLink;
 
-              if (newTitle !== undefined) {
+              if (newTitle !== undefined && newLink !== undefined) {
                 sentItemTitles.push(newTitle);
-              }
-
-              if (newLink !== undefined) {
                 sentItemLinks.push(newLink);
               }
             });
@@ -639,7 +636,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
               newTitle !== undefined
               && newLink !== undefined
               && _.every(sentItemTitles, (sentItemTitle) => sentItemTitle !== newTitle)
-              && _.every(sentItemLinks, (sentItemLink) => sentItemLink !== newTitle)
+              && _.every(sentItemLinks, (sentItemLink) => sentItemLink !== newLink)
             ) {
               payload = replaceVariables(thePayload, newLink, newTitle);
 

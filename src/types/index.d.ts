@@ -2087,9 +2087,9 @@ export type RssFeedsRemoveParametersReturns = string | undefined;
  */
 export type RssFeedsReplaceVariablesConfigPayload = MessageOptions;
 
-export type RssFeedsReplaceVariablesItemLink = string | undefined;
+export type RssFeedsReplaceVariablesItemLink = string;
 
-export type RssFeedsReplaceVariablesItemTitle = string | undefined;
+export type RssFeedsReplaceVariablesItemTitle = string;
 
 export type RssFeedsReplaceVariablesReturns = MessageOptions;
 
