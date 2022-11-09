@@ -1,4 +1,9 @@
-import { MessageEditOptions, MessageOptions } from 'discord.js';
+import {
+  ChannelType,
+  GuildTextBasedChannel,
+  MessageCreateOptions,
+  MessageEditOptions,
+} from 'discord.js';
 import _ from 'lodash';
 
 import {
@@ -6,7 +11,7 @@ import {
   createEmojisTableAttachment,
   createMembersInlineAttachment,
   createMembersTableAttachment,
-} from '../lib/attachment';
+} from '../lib/attachment.js';
 import {
   createBulkBanEmbed,
   createCommandErrorEmbed,
@@ -15,13 +20,14 @@ import {
   createNoResultsEmbed,
   createRoleManagerEmbed,
   createVoiceToolsEmbed,
-} from '../lib/embed';
+} from '../lib/embed.js';
 import {
+  fetchIdentifier,
   generateLogMessage,
   getCollectionItems,
   getVoiceBasedChannel,
   memberHasPermissions,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   BulkBanMessage,
   BulkBanReturns,
@@ -67,16 +73,19 @@ import {
   RoleManagerSettingsBaseCommands,
   RoleManagerSettingsDeleteMessage,
   ShowErrorMessageChannel,
+  ShowErrorMessageDeleteOriginalMessage,
   ShowErrorMessageErrorMessage,
   ShowErrorMessageMessage,
   ShowErrorMessageReturns,
   ShowErrorMessageUserTag,
   ShowNoPermissionsMessageBaseCommand,
   ShowNoPermissionsMessageChannel,
+  ShowNoPermissionsMessageDeleteOriginalMessage,
   ShowNoPermissionsMessageMessage,
   ShowNoPermissionsMessageReturns,
   ShowNoPermissionsMessageUserTag,
   ShowNoResultsMessageChannel,
+  ShowNoResultsMessageDeleteOriginalMessage,
   ShowNoResultsMessageMessage,
   ShowNoResultsMessageReason,
   ShowNoResultsMessageReturns,
@@ -90,13 +99,13 @@ import {
   VoiceToolsSettingsAllowedRoles,
   VoiceToolsSettingsBaseCommands,
   VoiceToolsSettingsDeleteMessage,
-} from '../types';
+} from '../types/index.js';
 import {
   MemoryBulkBanVerifiedMembers,
   MemoryFetchDuplicatesSortedMembers,
   MemoryFetchEmojisMatchedEmojis,
   MemoryFetchMembersMatchedMembers,
-} from '../types/memory';
+} from '../types/memory.js';
 
 /**
  * Delete command message.
@@ -129,26 +138,29 @@ export function deleteCommandMessage(message: DeleteCommandMessageMessage): Dele
 /**
  * Show error message.
  *
- * @param {ShowErrorMessageErrorMessage} errorMessage - Error message.
- * @param {ShowErrorMessageMessage}      message      - Message.
- * @param {ShowErrorMessageUserTag}      userTag      - User tag.
- * @param {ShowErrorMessageChannel}      channel      - Channel.
+ * @param {ShowErrorMessageErrorMessage}          errorMessage          - Error message.
+ * @param {ShowErrorMessageMessage}               message               - Message.
+ * @param {ShowErrorMessageDeleteOriginalMessage} deleteOriginalMessage - Delete original message.
+ * @param {ShowErrorMessageUserTag}               userTag               - User tag.
+ * @param {ShowErrorMessageChannel}               channel               - Channel.
  *
  * @returns {ShowErrorMessageReturns}
  *
  * @since 1.0.0
  */
-export function showErrorMessage(errorMessage: ShowErrorMessageErrorMessage, message: ShowErrorMessageMessage, userTag: ShowErrorMessageUserTag, channel: ShowErrorMessageChannel): ShowErrorMessageReturns {
-  const payload: MessageOptions = {
+export function showErrorMessage(errorMessage: ShowErrorMessageErrorMessage, message: ShowErrorMessageMessage, deleteOriginalMessage: ShowErrorMessageDeleteOriginalMessage, userTag: ShowErrorMessageUserTag, channel: ShowErrorMessageChannel): ShowErrorMessageReturns {
+  const payload: MessageCreateOptions = {
     embeds: [
       createCommandErrorEmbed(
         errorMessage,
         userTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(deleteOriginalMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   channel.send(payload).then((sendResponse) => {
@@ -164,7 +176,7 @@ export function showErrorMessage(errorMessage: ShowErrorMessageErrorMessage, mes
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: showErrorMessage, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: showErrorMessage, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -174,26 +186,29 @@ export function showErrorMessage(errorMessage: ShowErrorMessageErrorMessage, mes
 /**
  * Show no permissions message.
  *
- * @param {ShowNoPermissionsMessageBaseCommand} baseCommand - Base command.
- * @param {ShowNoPermissionsMessageMessage}     message     - Message.
- * @param {ShowNoPermissionsMessageUserTag}     userTag     - User tag.
- * @param {ShowNoPermissionsMessageChannel}     channel     - Channel.
+ * @param {ShowNoPermissionsMessageBaseCommand}           baseCommand           - Base command.
+ * @param {ShowNoPermissionsMessageMessage}               message               - Message.
+ * @param {ShowNoPermissionsMessageDeleteOriginalMessage} deleteOriginalMessage - Delete original message.
+ * @param {ShowNoPermissionsMessageUserTag}               userTag               - User tag.
+ * @param {ShowNoPermissionsMessageChannel}               channel               - Channel.
  *
  * @returns {ShowNoPermissionsMessageReturns}
  *
  * @since 1.0.0
  */
-export function showNoPermissionsMessage(baseCommand: ShowNoPermissionsMessageBaseCommand, message: ShowNoPermissionsMessageMessage, userTag: ShowNoPermissionsMessageUserTag, channel: ShowNoPermissionsMessageChannel): ShowNoPermissionsMessageReturns {
-  const payload: MessageOptions = {
+export function showNoPermissionsMessage(baseCommand: ShowNoPermissionsMessageBaseCommand, message: ShowNoPermissionsMessageMessage, deleteOriginalMessage: ShowNoPermissionsMessageDeleteOriginalMessage, userTag: ShowNoPermissionsMessageUserTag, channel: ShowNoPermissionsMessageChannel): ShowNoPermissionsMessageReturns {
+  const payload: MessageCreateOptions = {
     embeds: [
       createCommandErrorEmbed(
         `You do not have permissions to use the \`${baseCommand}\` command.`,
         userTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(deleteOriginalMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   channel.send(payload).then((sendResponse) => {
@@ -209,7 +224,7 @@ export function showNoPermissionsMessage(baseCommand: ShowNoPermissionsMessageBa
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: showNoPermissionsMessage, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: showNoPermissionsMessage, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -219,26 +234,29 @@ export function showNoPermissionsMessage(baseCommand: ShowNoPermissionsMessageBa
 /**
  * Show no results message.
  *
- * @param {ShowNoResultsMessageReason}        reason        - Reason.
- * @param {ShowNoResultsMessageMessage}       message       - Message.
- * @param {ShowNoResultsMessageUserTag}       userTag       - User tag.
- * @param {ShowNoResultsMessageChannel}       channel       - Channel.
+ * @param {ShowNoResultsMessageReason}                reason                - Reason.
+ * @param {ShowNoResultsMessageMessage}               message               - Message.
+ * @param {ShowNoResultsMessageDeleteOriginalMessage} deleteOriginalMessage - Delete original message.
+ * @param {ShowNoResultsMessageUserTag}               userTag               - User tag.
+ * @param {ShowNoResultsMessageChannel}               channel               - Channel.
  *
  * @returns {ShowNoResultsMessageReturns}
  *
  * @since 1.0.0
  */
-export function showNoResultsMessage(reason: ShowNoResultsMessageReason, message: ShowNoResultsMessageMessage, userTag: ShowNoResultsMessageUserTag, channel: ShowNoResultsMessageChannel): ShowNoResultsMessageReturns {
-  const payload: MessageOptions = {
+export function showNoResultsMessage(reason: ShowNoResultsMessageReason, message: ShowNoResultsMessageMessage, deleteOriginalMessage: ShowNoResultsMessageDeleteOriginalMessage, userTag: ShowNoResultsMessageUserTag, channel: ShowNoResultsMessageChannel): ShowNoResultsMessageReturns {
+  const payload: MessageCreateOptions = {
     embeds: [
       createNoResultsEmbed(
         reason,
         userTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(deleteOriginalMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   channel.send(payload).then((sendResponse) => {
@@ -254,7 +272,7 @@ export function showNoResultsMessage(reason: ShowNoResultsMessageReason, message
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: showNoResultsMessage, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: showNoResultsMessage, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -279,7 +297,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: bulkBan, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: bulkBan, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -290,12 +308,12 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   generateLogMessage(
     [
       'Invoked function',
-      `(function: bulkBan, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: bulkBan, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuild = message.guild;
   const messageGuildMembers = message.guild.members;
@@ -312,11 +330,11 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   const commandArgumentsTags = commandArguments.slice(1);
 
   const allowedRoleIds = _.map(settingsAllowedRoles, (settingsAllowedRole) => <BulkBanSettingsAllowedRoleRoleId>_.get(settingsAllowedRole, ['role-id']));
-  const unverifiedMemberIds = _.map(commandArgumentsTags, (commandArgumentsTag) => commandArgumentsTag.replace(/<@!?(\d+)>/g, '$1'));
+  const unverifiedMemberIds = _.map(commandArgumentsTags, (commandArgumentsTag) => commandArgumentsTag.replace(/<@(\d+)>/g, '$1'));
 
   const verifiedMembers: MemoryBulkBanVerifiedMembers = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
   let editPayload: MessageEditOptions = {};
 
   // If "commands.bulk-ban" is not configured.
@@ -407,7 +425,13 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -431,6 +455,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -450,9 +475,11 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -475,7 +502,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
         generateLogMessage(
           [
             'Banned member',
-            `(function: bulkBan, member: ${JSON.stringify(verifiedMember.toString())})`,
+            `(function: bulkBan, member: ${JSON.stringify(fetchIdentifier(verifiedMember))})`,
           ].join(' '),
           40,
         );
@@ -485,7 +512,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
         generateLogMessage(
           [
             'Failed to ban member',
-            `(function: bulkBan, member: ${JSON.stringify(verifiedMember.toString())})`,
+            `(function: bulkBan, member: ${JSON.stringify(fetchIdentifier(verifiedMember))})`,
           ].join(' '),
           10,
           error,
@@ -530,7 +557,7 @@ export function bulkBan(message: BulkBanMessage, settings: BulkBanSettings): Bul
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: bulkBan, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: bulkBan, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -555,7 +582,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: fetchDuplicates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: fetchDuplicates, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -566,12 +593,12 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
   generateLogMessage(
     [
       'Invoked function',
-      `(function: fetchDuplicates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: fetchDuplicates, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuild = message.guild;
   const messageGuildMembersCache = message.guild.members.cache;
@@ -594,7 +621,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
 
   let noResultsMessage = true;
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "commands.fetch-duplicates" is not configured.
   if (settings === undefined) {
@@ -684,7 +711,13 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -761,9 +794,11 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage !== true) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
 
     messageChannel.send(payload).then((sendResponse) => {
@@ -779,7 +814,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to send message',
-        `(function: fetchDuplicates, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+        `(function: fetchDuplicates, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
       ].join(' '),
       10,
       error,
@@ -794,6 +829,7 @@ export function fetchDuplicates(message: FetchDuplicatesMessage, settings: Fetch
         'guild.',
       ].join(' '),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -818,7 +854,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: fetchEmojis, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: fetchEmojis, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -829,12 +865,12 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
   generateLogMessage(
     [
       'Invoked function',
-      `(function: fetchEmojis, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: fetchEmojis, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuild = message.guild;
   const messageGuildEmojisCache = message.guild.emojis.cache;
@@ -856,7 +892,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
 
   const matchedEmojis: MemoryFetchEmojisMatchedEmojis = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "commands.fetch-emojis" is not configured.
   if (settings === undefined) {
@@ -946,7 +982,13 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -967,6 +1009,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1008,6 +1051,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
         'guild.',
       ].join(' '),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1032,9 +1076,11 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -1050,7 +1096,7 @@ export function fetchEmojis(message: FetchEmojisMessage, settings: FetchEmojisSe
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: fetchEmojis, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: fetchEmojis, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -1075,7 +1121,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: fetchMembers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: fetchMembers, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -1086,12 +1132,12 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
   generateLogMessage(
     [
       'Invoked function',
-      `(function: fetchMembers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: fetchMembers, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuildMembers = message.guild.members;
   const messageGuildMembersCache = message.guild.members.cache;
@@ -1115,7 +1161,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
 
   const matchedMembers: MemoryFetchMembersMatchedMembers = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "commands.fetch-members" is not configured.
   if (settings === undefined) {
@@ -1205,7 +1251,13 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -1230,6 +1282,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1241,7 +1294,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
     commandArgumentsRoute === 'avatar'
     || commandArgumentsRoute === 'username'
   ) {
-    const selectedMemberId = commandArgumentsAction.replace(/[<@!>]/g, '');
+    const selectedMemberId = commandArgumentsAction.replace(/[<@>]/g, '');
     const selectedMember = messageGuildMembers.resolve(selectedMemberId);
 
     if (selectedMember === null) {
@@ -1254,6 +1307,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           '```',
         ].join('\n'),
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1272,6 +1326,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
       showErrorMessage(
         `Cannot compare members. ${selectedMember.toString()} does not have an avatar to compare from.`,
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1331,15 +1386,17 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           ].join(' '),
           messageMemberUserTag,
           selectedMember.displayAvatarURL({
-            format: 'webp',
-            dynamic: true,
+            extension: 'webp',
             size: 4096,
+            forceStatic: false,
           }),
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage !== true) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1374,9 +1431,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage !== true) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1394,6 +1453,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           '```',
         ].join('\n'),
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1422,6 +1482,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           'role is empty.',
         ].join(' '),
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1457,9 +1518,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage !== true) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1488,6 +1551,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           '```',
         ].join('\n'),
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1526,6 +1590,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           `\`${query}\`.`,
         ].join(' '),
         message,
+        settingsDeleteMessage,
         messageMemberUserTag,
         messageChannel,
       );
@@ -1561,9 +1626,11 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
           messageMemberUserTag,
         ),
       ],
-      reply: {
-        messageReference: message,
-      },
+      ...(settingsDeleteMessage !== true) ? {
+        reply: {
+          messageReference: message,
+        },
+      } : {},
     };
   }
 
@@ -1580,7 +1647,7 @@ export function fetchMembers(message: FetchMembersMessage, settings: FetchMember
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: fetchMembers, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: fetchMembers, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -1605,7 +1672,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: roleManager, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: roleManager, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -1616,12 +1683,12 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
   generateLogMessage(
     [
       'Invoked function',
-      `(function: roleManager, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: roleManager, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuildMembersCache = message.guild.members.cache;
   const messageGuildRoles = message.guild.roles;
@@ -1646,7 +1713,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
   const roleOne = messageGuildRoles.resolve(roleOneId);
   const roleTwo = messageGuildRoles.resolve(roleTwoId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
   let editPayload: MessageEditOptions = {};
 
   // If "commands.role-manager" is not configured.
@@ -1737,7 +1804,13 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -1759,6 +1832,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1792,6 +1866,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1809,6 +1884,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -1838,9 +1914,11 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -1879,7 +1957,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
           generateLogMessage(
             [
               'Added role',
-              `(function: roleManager, member: ${JSON.stringify(guildMember.toString())}, role: ${JSON.stringify(roleTwo.toString())})`,
+              `(function: roleManager, member: ${JSON.stringify(fetchIdentifier(guildMember))}, role: ${JSON.stringify(fetchIdentifier(roleTwo))})`,
             ].join(' '),
             40,
           );
@@ -1889,7 +1967,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
           generateLogMessage(
             [
               'Failed to add role',
-              `(function: roleManager, member: ${JSON.stringify(guildMember.toString())}, role: ${JSON.stringify(roleTwo.toString())})`,
+              `(function: roleManager, member: ${JSON.stringify(fetchIdentifier(guildMember))}, role: ${JSON.stringify(fetchIdentifier(roleTwo))})`,
             ].join(' '),
             10,
             error,
@@ -1916,7 +1994,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
           generateLogMessage(
             [
               'Removed role',
-              `(function: roleManager, member: ${JSON.stringify(guildMember.toString())}, role: ${JSON.stringify(roleTwo.toString())})`,
+              `(function: roleManager, member: ${JSON.stringify(fetchIdentifier(guildMember))}, role: ${JSON.stringify(fetchIdentifier(roleTwo))})`,
             ].join(' '),
             40,
           );
@@ -1926,7 +2004,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
           generateLogMessage(
             [
               'Failed to remove role',
-              `(function: roleManager, member: ${JSON.stringify(guildMember.toString())}, role: ${JSON.stringify(roleTwo.toString())})`,
+              `(function: roleManager, member: ${JSON.stringify(fetchIdentifier(guildMember))}, role: ${JSON.stringify(fetchIdentifier(roleTwo))})`,
             ].join(' '),
             10,
             error,
@@ -1981,7 +2059,7 @@ export function roleManager(message: RoleManagerMessage, settings: RoleManagerSe
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: roleManager, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: roleManager, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -2006,7 +2084,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: voiceTools, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: voiceTools, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -2017,12 +2095,12 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
   generateLogMessage(
     [
       'Invoked function',
-      `(function: voiceTools, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: voiceTools, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuild = message.guild;
   const messageGuildRoles = message.guild.roles;
@@ -2043,7 +2121,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
   const channel = getVoiceBasedChannel(messageGuild, commandArgumentsSelection.replace(/[<#>]/g, ''));
   const voiceStates = getCollectionItems(messageGuildVoiceStatesCache);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
   let editPayload: MessageEditOptions = {};
 
   // If "commands.voice-tools" is not configured.
@@ -2134,7 +2212,13 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
   );
 
   if (!memberHasPermissions(messageMember, settingsAllowedRoles)) {
-    showNoPermissionsMessage(commandArgumentsBase, message, messageMemberUserTag, messageChannel);
+    showNoPermissionsMessage(
+      commandArgumentsBase,
+      message,
+      settingsDeleteMessage,
+      messageMemberUserTag,
+      messageChannel,
+    );
 
     return;
   }
@@ -2153,6 +2237,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -2173,6 +2258,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
         '```',
       ].join('\n'),
       message,
+      settingsDeleteMessage,
       messageMemberUserTag,
       messageChannel,
     );
@@ -2193,18 +2279,20 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
         [
           `Please wait while Stonker Bot ${commandArgumentsRoute}s all members connected to the`,
           channel.toString(),
-          ...(channelType === 'GUILD_VOICE') ? ['voice'] : [],
-          ...(channelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+          ...(channelType === ChannelType.GuildVoice) ? ['voice'] : [],
+          ...(channelType === ChannelType.GuildStageVoice) ? ['stage'] : [],
           'channel ...',
         ].join(' '),
-        (commandArgumentsRoute === 'unmute' && channelType === 'GUILD_STAGE_VOICE') ? 'invite' : commandArgumentsRoute,
+        (commandArgumentsRoute === 'unmute' && channelType === ChannelType.GuildStageVoice) ? 'invite' : commandArgumentsRoute,
         'in-progress',
         messageMemberUserTag,
       ),
     ],
-    reply: {
-      messageReference: message,
-    },
+    ...(settingsDeleteMessage !== true) ? {
+      reply: {
+        messageReference: message,
+      },
+    } : {},
   };
 
   messageChannel.send(payload).then((sendResponse) => {
@@ -2237,7 +2325,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
               generateLogMessage(
                 [
                   'Disconnected member',
-                  `(function: voiceTools, member: ${JSON.stringify(voiceStateMember.toString())}, channel: ${JSON.stringify(voiceStateChannel.toString())}, channel type: ${JSON.stringify(channelType)})`,
+                  `(function: voiceTools, member: ${JSON.stringify(fetchIdentifier(voiceStateMember))}, channel: ${JSON.stringify(fetchIdentifier(voiceStateChannel))}, channel type: ${JSON.stringify(channelType)})`,
                 ].join(' '),
                 40,
               );
@@ -2247,7 +2335,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
               generateLogMessage(
                 [
                   'Failed to disconnect member',
-                  `(function: voiceTools, member: ${JSON.stringify(voiceStateMember.toString())}, channel: ${JSON.stringify(voiceStateChannel.toString())}, channel type: ${JSON.stringify(channelType)})`,
+                  `(function: voiceTools, member: ${JSON.stringify(fetchIdentifier(voiceStateMember))}, channel: ${JSON.stringify(fetchIdentifier(voiceStateChannel))}, channel type: ${JSON.stringify(channelType)})`,
                 ].join(' '),
                 10,
                 error,
@@ -2265,7 +2353,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
               generateLogMessage(
                 [
                   'Unmuted member',
-                  `(function: voiceTools, member: ${JSON.stringify(voiceStateMember.toString())}, channel: ${JSON.stringify(voiceStateChannel.toString())}, channel type: ${JSON.stringify(channelType)})`,
+                  `(function: voiceTools, member: ${JSON.stringify(fetchIdentifier(voiceStateMember))}, channel: ${JSON.stringify(fetchIdentifier(voiceStateChannel))}, channel type: ${JSON.stringify(channelType)})`,
                 ].join(' '),
                 40,
               );
@@ -2275,7 +2363,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
               generateLogMessage(
                 [
                   'Failed to unmute member',
-                  `(function: voiceTools, member: ${JSON.stringify(voiceStateMember.toString())}, channel: ${JSON.stringify(voiceStateChannel.toString())}, channel type: ${JSON.stringify(channelType)})`,
+                  `(function: voiceTools, member: ${JSON.stringify(fetchIdentifier(voiceStateMember))}, channel: ${JSON.stringify(fetchIdentifier(voiceStateChannel))}, channel type: ${JSON.stringify(channelType)})`,
                 ].join(' '),
                 10,
                 error,
@@ -2300,15 +2388,15 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
             [
               ...(success) ? ['All members have been'] : ['One or more members could not be'],
               ...(commandArgumentsRoute === 'disconnect') ? ['disconnected from'] : [],
-              ...(commandArgumentsRoute === 'unmute' && channelType === 'GUILD_VOICE') ? ['unmuted from'] : [],
-              ...(commandArgumentsRoute === 'unmute' && channelType === 'GUILD_STAGE_VOICE') ? ['invited to speak in'] : [],
+              ...(commandArgumentsRoute === 'unmute' && channelType === ChannelType.GuildVoice) ? ['unmuted from'] : [],
+              ...(commandArgumentsRoute === 'unmute' && channelType === ChannelType.GuildStageVoice) ? ['invited to speak in'] : [],
               'the',
               channel.toString(),
-              ...(channelType === 'GUILD_VOICE') ? ['voice'] : [],
-              ...(channelType === 'GUILD_STAGE_VOICE') ? ['stage'] : [],
+              ...(channelType === ChannelType.GuildVoice) ? ['voice'] : [],
+              ...(channelType === ChannelType.GuildStageVoice) ? ['stage'] : [],
               'channel.',
             ].join(' '),
-            (commandArgumentsRoute === 'unmute' && channelType === 'GUILD_STAGE_VOICE') ? 'invite' : commandArgumentsRoute,
+            (commandArgumentsRoute === 'unmute' && channelType === ChannelType.GuildStageVoice) ? 'invite' : commandArgumentsRoute,
             (success) ? 'complete' : 'fail',
             messageMemberUserTag,
           ),
@@ -2333,7 +2421,7 @@ export function voiceTools(message: VoiceToolsMessage, settings: VoiceToolsSetti
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: voiceTools, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: voiceTools, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,

@@ -1,10 +1,9 @@
 import chalk from 'chalk';
-import { Permissions } from 'discord.js';
+import { ChannelType, PermissionsBitField } from 'discord.js';
 import _ from 'lodash';
 import { DateTime, DurationUnits, Interval } from 'luxon';
+import { createRequire } from 'module';
 import { serializeError } from 'serialize-error';
-
-import config from '../../config.json';
 
 import {
   EscapeCharactersReturns,
@@ -16,6 +15,8 @@ import {
   FetchFormattedDateType,
   FetchFormattedDurationReturns,
   FetchFormattedDurationTimeBegin,
+  FetchIdentifierObject,
+  FetchIdentifierReturns,
   GenerateCronReturns,
   GenerateCronRule,
   GenerateLogMessageErrorObject,
@@ -67,8 +68,17 @@ import {
   TrackRouteReturns,
   TrackRouteServerMethod,
   TrackRouteServerPath,
-} from '../types';
-import { MemoryTrackedMessages, MemoryTrackedRoutes } from '../types/memory';
+} from '../types/index.js';
+import { MemoryTrackedMessages, MemoryTrackedRoutes } from '../types/memory.js';
+
+/**
+ * JSON import.
+ *
+ * @since 1.0.0
+ */
+const require = createRequire(import.meta.url);
+
+const config = require('../../config.json');
 
 /**
  * Config.
@@ -224,6 +234,25 @@ export function fetchFormattedDuration(timeBegin: FetchFormattedDurationTimeBegi
 }
 
 /**
+ * Fetch identifier.
+ *
+ * @param {FetchIdentifierObject} object - Object.
+ *
+ * @returns {FetchIdentifierReturns}
+ *
+ * @since 1.0.0
+ */
+export function fetchIdentifier(object: FetchIdentifierObject): FetchIdentifierReturns {
+  if (object) {
+    return {
+      id: object.id,
+    };
+  }
+
+  return null;
+}
+
+/**
  * Generate cron.
  *
  * @param {GenerateCronRule} rule - Rule.
@@ -372,8 +401,13 @@ export function generateOutputMessage(source: GenerateOutputMessageSource, outpu
   const currentDateTime = fetchFormattedDate('now', undefined, 'config', 'yyyy-MM-dd HH:mm:ss ZZZZ');
   const sourceDisplay = (_.isEmpty(source)) ? 'unknown source' : source;
 
-  console.log(`${currentDateTime} - ${chalk.magenta('INFO')} - Logging output from ${sourceDisplay} ...`);
-  console.log(output);
+  if (
+    configSettingsLogLevel !== undefined
+    && configSettingsLogLevel >= 30
+  ) {
+    console.log(`${currentDateTime} - ${chalk.magenta('INFO')} - Logging output from ${sourceDisplay} ...`);
+    console.log(output);
+  }
 }
 
 /**
@@ -497,7 +531,7 @@ export function getCategoryChannel(guild: GetCategoryChannelGuild, id: GetCatego
 
   if (
     categoryChannel !== null
-    && categoryChannel.type === 'GUILD_CATEGORY'
+    && categoryChannel.type === ChannelType.GuildCategory
   ) {
     return categoryChannel;
   }
@@ -539,7 +573,14 @@ export function getTextBasedChannel(guild: GetTextBasedChannelGuild, id: GetText
 
   if (
     textBasedChannel !== null
-    && textBasedChannel.isText()
+    && (
+      textBasedChannel.type === ChannelType.AnnouncementThread
+      || textBasedChannel.type === ChannelType.GuildAnnouncement
+      || textBasedChannel.type === ChannelType.GuildText
+      || textBasedChannel.type === ChannelType.GuildVoice
+      || textBasedChannel.type === ChannelType.PrivateThread
+      || textBasedChannel.type === ChannelType.PublicThread
+    )
   ) {
     return textBasedChannel;
   }
@@ -568,8 +609,11 @@ export function getTextBasedNonThreadChannel(guild: GetTextBasedNonThreadChannel
 
   if (
     textBasedNonThreadChannel !== null
-    && textBasedNonThreadChannel.isText()
-    && !textBasedNonThreadChannel.isThread()
+    && (
+      textBasedNonThreadChannel.type === ChannelType.GuildAnnouncement
+      || textBasedNonThreadChannel.type === ChannelType.GuildText
+      || textBasedNonThreadChannel.type === ChannelType.GuildVoice
+    )
   ) {
     return textBasedNonThreadChannel;
   }
@@ -598,9 +642,10 @@ export function getTextBasedNonThreadNonVoiceChannel(guild: GetTextBasedNonThrea
 
   if (
     textBasedNonThreadNonVoiceChannel !== null
-    && textBasedNonThreadNonVoiceChannel.isText()
-    && !textBasedNonThreadNonVoiceChannel.isThread()
-    && !textBasedNonThreadNonVoiceChannel.isVoice()
+    && (
+      textBasedNonThreadNonVoiceChannel.type === ChannelType.GuildAnnouncement
+      || textBasedNonThreadNonVoiceChannel.type === ChannelType.GuildText
+    )
   ) {
     return textBasedNonThreadNonVoiceChannel;
   }
@@ -629,7 +674,10 @@ export function getVoiceBasedChannel(guild: GetVoiceBasedChannelGuild, id: GetVo
 
   if (
     voiceBasedChannel !== null
-    && voiceBasedChannel.isVoice()
+    && (
+      voiceBasedChannel.type === ChannelType.GuildStageVoice
+      || voiceBasedChannel.type === ChannelType.GuildVoice
+    )
   ) {
     return voiceBasedChannel;
   }
@@ -666,7 +714,7 @@ export function memberHasPermissions(member: MemberHasPermissionsMember, allowed
 
   const allowedRolesIds = _.map(allowedRoles, (allowedRole) => <MemberHasPermissionsAllowedRoleRoleId>_.get(allowedRole, ['role-id']));
   const hasAllowedRoles = _.some(allowedRolesIds, (allowedRolesId) => allowedRolesId !== undefined && memberRoles.resolve(allowedRolesId) !== null);
-  const hasAdministrator = memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR);
+  const hasAdministrator = memberPermissions.has(PermissionsBitField.Flags.Administrator);
 
   return hasAllowedRoles || hasAdministrator;
 }

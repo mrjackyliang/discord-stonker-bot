@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import cron from 'node-cron';
 
-import { generateLogMessage, getTextBasedNonThreadNonVoiceChannel } from '../lib/utility';
+import { fetchIdentifier, generateLogMessage, getTextBasedNonThreadNonVoiceChannel } from '../lib/utility.js';
 import {
   BumpThreadsEventChannelChannelId,
   BumpThreadsEventName,
@@ -9,7 +9,7 @@ import {
   BumpThreadsEventThreadThreadId,
   BumpThreadsGuild,
   BumpThreadsReturns,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Bump threads.
@@ -113,7 +113,7 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
       generateLogMessage(
         [
           'Fetched thread',
-          `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(thread)})`,
+          `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(fetchIdentifier(thread))})`,
         ].join(' '),
         40,
       );
@@ -122,7 +122,7 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
         generateLogMessage(
           [
             'Failed to parse thread',
-            `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(thread)})`,
+            `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(fetchIdentifier(thread))})`,
           ].join(' '),
           10,
         );
@@ -133,7 +133,7 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
       generateLogMessage(
         [
           'Parsed thread',
-          `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(thread)})`,
+          `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(fetchIdentifier(thread))})`,
         ].join(' '),
         40,
       );
@@ -145,13 +145,13 @@ export function bumpThreads(guild: BumpThreadsGuild, events: BumpThreadsEvents):
           thread.setArchived(false).then(() => generateLogMessage(
             [
               'Un-archived thread',
-              `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(thread.toString())})`,
+              `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(fetchIdentifier(thread))})`,
             ].join(' '),
             40,
           )).catch((error: Error) => generateLogMessage(
             [
               'Failed to un-archive thread',
-              `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(thread.toString())})`,
+              `(function: bumpThreads, name: ${JSON.stringify(theName)}, thread: ${JSON.stringify(fetchIdentifier(thread))})`,
             ].join(' '),
             10,
             error,

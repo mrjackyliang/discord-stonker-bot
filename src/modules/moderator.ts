@@ -1,14 +1,15 @@
-import { ChannelMention, MessageOptions } from 'discord.js';
+import { GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import latinize from 'latinize';
 import _ from 'lodash';
 
-import { createRemoveAffiliatesEmbed, createSuspiciousWordsEmbed } from '../lib/embed';
+import { createRemoveAffiliatesEmbed, createSuspiciousWordsEmbed } from '../lib/embed.js';
 import {
+  fetchIdentifier,
   generateLogMessage,
   getCollectionItems,
   getTextBasedChannel,
   memberHasPermissions,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   DetectSuspiciousWordsMessage,
   DetectSuspiciousWordsReturns,
@@ -67,8 +68,20 @@ import {
   RemoveAffiliatesSettingsPlatformRegexFlags,
   RemoveAffiliatesSettingsPlatformRegexPattern,
   RemoveAffiliatesSettingsPlatforms,
-} from '../types';
-import { MemoryDetectSuspiciousWordsDetectedCategories, MemoryRemoveAffiliatesDetectedAffiliates } from '../types/memory';
+  ScammerAlertsGuild,
+  ScammerAlertsMember,
+  ScammerAlertsReplaceVariablesConfigPayload,
+  ScammerAlertsReplaceVariablesReturns,
+  ScammerAlertsReturns,
+  ScammerAlertsSettings,
+  ScammerAlertsSettingsChannelChannelId,
+  ScammerAlertsSettingsEntities,
+  ScammerAlertsSettingsEntityName,
+  ScammerAlertsSettingsEntityPayload,
+  ScammerAlertsSettingsEntityRegexFlags,
+  ScammerAlertsSettingsEntityRegexPattern,
+} from '../types/index.js';
+import { MemoryDetectSuspiciousWordsDetectedCategories, MemoryRemoveAffiliatesDetectedAffiliates } from '../types/memory.js';
 
 /**
  * Detect suspicious words.
@@ -88,7 +101,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: detectSuspiciousWords, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: detectSuspiciousWords, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -99,13 +112,13 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
   generateLogMessage(
     [
       'Invoked function',
-      `(function: detectSuspiciousWords, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: detectSuspiciousWords, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.reactions.message.content ?? message.content;
   const messageGuild = message.guild;
   const messageId = message.id;
@@ -135,7 +148,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
 
   const detectedCategories: MemoryDetectSuspiciousWordsDetectedCategories = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "suspicious-words" is not configured.
   if (settings === undefined) {
@@ -270,8 +283,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
     embeds: [
       createSuspiciousWordsEmbed(
         messageMember.toString(),
-        // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-        <ChannelMention>messageChannel.toString(),
+        messageChannel.toString(),
         messageId,
         messageContent,
         attachments,
@@ -294,7 +306,7 @@ export function detectSuspiciousWords(message: DetectSuspiciousWordsMessage, set
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: detectSuspiciousWords, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: detectSuspiciousWords, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -395,7 +407,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
     const theRegexFlags = <ImpersonatorAlertsSettingsEntityRegexFlags>_.get(settingsEntity, ['regex', 'flags']);
     const thePayload = <ImpersonatorAlertsSettingsEntityPayload>_.get(settingsEntity, ['payload']);
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If "impersonator-alerts.entities[${settingsEntityKey}].name" is not configured properly.
     if (
@@ -528,7 +540,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
         generateLogMessage(
           [
             'Passed regex rule match',
-            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(memberOrUser.toString())}, test: ${JSON.stringify(regExp.test(cleanedNicknameOrUsername))})`,
+            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(fetchIdentifier(memberOrUser))}, test: ${JSON.stringify(regExp.test(cleanedNicknameOrUsername))})`,
           ].join(' '),
           40,
         );
@@ -546,7 +558,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -555,7 +567,7 @@ export function impersonatorAlerts(nicknameOrUsername: ImpersonatorAlertsNicknam
         generateLogMessage(
           [
             'Failed regex rule match',
-            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(memberOrUser.toString())}, test: ${JSON.stringify(regExp.test(nicknameOrUsername))})`,
+            `(function: impersonatorAlerts, name: ${JSON.stringify(theName)}, member or user: ${JSON.stringify(fetchIdentifier(memberOrUser))}, test: ${JSON.stringify(regExp.test(cleanedNicknameOrUsername))})`,
           ].join(' '),
           40,
         );
@@ -693,7 +705,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: regexRules, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: regexRules, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -704,7 +716,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
   generateLogMessage(
     [
       'Invoked function',
-      `(function: regexRules, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: regexRules, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
@@ -761,7 +773,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
 
     const excludedRoleIds = _.map(theExcludedRoles, (theExcludedRole) => <RegexRulesEventExcludedRoleRoleId>_.get(theExcludedRole, ['role-id']));
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If previous regex rule already matched.
     if (alreadyMatched) {
@@ -958,7 +970,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
           generateLogMessage(
             [
               'Skipped task',
-              `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(messageMember.toString())}, has permissions: ${JSON.stringify(hasPermissions)})`,
+              `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(messageMember))}, has permissions: ${JSON.stringify(hasPermissions)})`,
             ].join(' '),
             40,
           );
@@ -969,7 +981,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
         generateLogMessage(
           [
             'Continued task',
-            `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(messageMember.toString())}, has permissions: ${JSON.stringify(hasPermissions)})`,
+            `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(messageMember))}, has permissions: ${JSON.stringify(hasPermissions)})`,
           ].join(' '),
           40,
         );
@@ -981,7 +993,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
             generateLogMessage(
               [
                 'Created direct message channel',
-                `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(messageMember.toString())})`,
+                `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(messageMember))})`,
               ].join(' '),
               40,
             );
@@ -999,7 +1011,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
             }).catch((error: Error) => generateLogMessage(
               [
                 'Failed to send direct message',
-                `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(messageMember.toString())}, payload: ${JSON.stringify(payload)})`,
+                `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(messageMember))}, payload: ${JSON.stringify(payload)})`,
               ].join(' '),
               10,
               error,
@@ -1007,7 +1019,7 @@ export function regexRules(message: RegexRulesMessage, events: RegexRulesEvents)
           }).catch((error: Error) => generateLogMessage(
             [
               'Failed to create direct message channel',
-              `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(messageMember.toString())})`,
+              `(function: regexRules, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(messageMember))})`,
             ].join(' '),
             10,
             error,
@@ -1068,7 +1080,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: removeAffiliates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: removeAffiliates, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -1079,13 +1091,13 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
   generateLogMessage(
     [
       'Invoked function',
-      `(function: removeAffiliates, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: removeAffiliates, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.reactions.message.content ?? message.content;
   const messageGuild = message.guild;
   const messageGuildRoles = message.guild.roles;
@@ -1106,7 +1118,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
 
   const detectedAffiliates: MemoryRemoveAffiliatesDetectedAffiliates = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "remove-affiliates" is not configured.
   if (settings === undefined) {
@@ -1297,7 +1309,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     generateLogMessage(
       [
         'Skipped task',
-        `(function: removeAffiliates, member: ${JSON.stringify(messageMember.toString())}, has permissions: ${JSON.stringify(hasPermissions)})`,
+        `(function: removeAffiliates, member: ${JSON.stringify(fetchIdentifier(messageMember))}, has permissions: ${JSON.stringify(hasPermissions)})`,
       ].join(' '),
       40,
     );
@@ -1308,7 +1320,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
   generateLogMessage(
     [
       'Continued task',
-      `(function: removeAffiliates, member: ${JSON.stringify(messageMember.toString())}, has permissions: ${JSON.stringify(hasPermissions)})`,
+      `(function: removeAffiliates, member: ${JSON.stringify(fetchIdentifier(messageMember))}, has permissions: ${JSON.stringify(hasPermissions)})`,
     ].join(' '),
     40,
   );
@@ -1318,8 +1330,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
       embeds: [
         createRemoveAffiliatesEmbed(
           messageMember.toString(),
-          // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-          <ChannelMention>messageChannel.toString(),
+          messageChannel.toString(),
           messageId,
           messageContent,
           attachments,
@@ -1342,7 +1353,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to send message',
-        `(function: removeAffiliates, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+        `(function: removeAffiliates, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
       ].join(' '),
       10,
       error,
@@ -1356,7 +1367,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
       generateLogMessage(
         [
           'Created direct message channel',
-          `(function: removeAffiliates, member: ${JSON.stringify(messageMember.toString())})`,
+          `(function: removeAffiliates, member: ${JSON.stringify(fetchIdentifier(messageMember))})`,
         ].join(' '),
         40,
       );
@@ -1374,7 +1385,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
       }).catch((error: Error) => generateLogMessage(
         [
           'Failed to send direct message',
-          `(function: removeAffiliates, member: ${JSON.stringify(messageMember.toString())}, payload: ${JSON.stringify(payload)})`,
+          `(function: removeAffiliates, member: ${JSON.stringify(fetchIdentifier(messageMember))}, payload: ${JSON.stringify(payload)})`,
         ].join(' '),
         10,
         error,
@@ -1382,7 +1393,7 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to create direct message channel',
-        `(function: removeAffiliates, member: ${JSON.stringify(messageMember.toString())})`,
+        `(function: removeAffiliates, member: ${JSON.stringify(fetchIdentifier(messageMember))})`,
       ].join(' '),
       10,
       error,
@@ -1403,4 +1414,232 @@ export function removeAffiliates(message: RemoveAffiliatesMessage, settings: Rem
     10,
     error,
   ));
+}
+
+/**
+ * Scammer alerts.
+ *
+ * @param {ScammerAlertsMember}   member   - Member.
+ * @param {ScammerAlertsGuild}    guild    - Guild.
+ * @param {ScammerAlertsSettings} settings - Settings.
+ *
+ * @returns {ScammerAlertsReturns}
+ *
+ * @since 1.0.0
+ */
+export function scammerAlerts(member: ScammerAlertsMember, guild: ScammerAlertsGuild, settings: ScammerAlertsSettings): ScammerAlertsReturns {
+  const memberUserUsername = member.user.username;
+
+  const settingsEntities = <ScammerAlertsSettingsEntities>_.get(settings, ['entities']);
+  const settingsChannelChannelId = <ScammerAlertsSettingsChannelChannelId>_.get(settings, ['channel', 'channel-id']);
+
+  const channel = getTextBasedChannel(guild, settingsChannelChannelId);
+
+  /**
+   * Scammer alerts - Replace variables.
+   *
+   * @param {ScammerAlertsReplaceVariablesConfigPayload} configPayload - Config payload.
+   *
+   * @returns {ScammerAlertsReplaceVariablesReturns}
+   *
+   * @since 1.0.0
+   */
+  const replaceVariables = (configPayload: ScammerAlertsReplaceVariablesConfigPayload): ScammerAlertsReplaceVariablesReturns => {
+    const editedPayload = JSON.stringify(configPayload)
+      .replace(/%MEMBER_USER_MENTION%/g, member.toString());
+
+    return JSON.parse(editedPayload);
+  };
+
+  const cleanedUsername = latinize(memberUserUsername)
+    .normalize('NFKC');
+
+  // If "scammer-alerts" is not configured.
+  if (settings === undefined) {
+    generateLogMessage(
+      [
+        '"scammer-alerts" is not configured',
+        `(function: scammerAlerts, settings: ${JSON.stringify(settings)})`,
+      ].join(' '),
+      40,
+    );
+
+    return;
+  }
+
+  // If "scammer-alerts.entities" is not configured properly.
+  if (
+    !_.isArray(settingsEntities)
+    || _.isEmpty(settingsEntities)
+    || !_.every(settingsEntities, (settingsEntity) => _.isPlainObject(settingsEntity) && !_.isEmpty(settingsEntity))
+  ) {
+    generateLogMessage(
+      [
+        '"scammer-alerts.entities" is not configured properly',
+        `(function: scammerAlerts, entities: ${JSON.stringify(settingsEntities)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  // If "scammer-alerts.channel.channel-id" is not configured properly.
+  if (
+    channel === undefined
+    || channel === null
+  ) {
+    generateLogMessage(
+      [
+        '"scammer-alerts.channel.channel-id" is not configured properly',
+        `(function: scammerAlerts, channel id: ${JSON.stringify(settingsChannelChannelId)})`,
+      ].join(' '),
+      10,
+    );
+
+    return;
+  }
+
+  settingsEntities.forEach((settingsEntity, settingsEntityKey) => {
+    const theName = <ScammerAlertsSettingsEntityName>_.get(settingsEntity, ['name']) ?? 'Unknown';
+    const theRegexPattern = <ScammerAlertsSettingsEntityRegexPattern>_.get(settingsEntity, ['regex', 'pattern']);
+    const theRegexFlags = <ScammerAlertsSettingsEntityRegexFlags>_.get(settingsEntity, ['regex', 'flags']);
+    const thePayload = <ScammerAlertsSettingsEntityPayload>_.get(settingsEntity, ['payload']);
+
+    let payload: MessageCreateOptions = {};
+
+    // If "scammer-alerts.entities[${settingsEntityKey}].name" is not configured properly.
+    if (
+      !_.isString(theName)
+      || _.isEmpty(theName)
+    ) {
+      generateLogMessage(
+        [
+          `"scammer-alerts.entities[${settingsEntityKey}].name" is not configured properly`,
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    // If "scammer-alerts.entities[${settingsEntityKey}].regex.pattern" is not configured properly.
+    if (!_.isString(theRegexPattern)) {
+      generateLogMessage(
+        [
+          `"scammer-alerts.entities[${settingsEntityKey}].regex.pattern" is not configured properly`,
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)}, pattern: ${JSON.stringify(theRegexPattern)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    // If "scammer-alerts.entities[${settingsEntityKey}].regex.flags" is not configured properly.
+    if (
+      theRegexFlags !== undefined
+      && !_.isString(theRegexFlags)
+    ) {
+      generateLogMessage(
+        [
+          `"scammer-alerts.entities[${settingsEntityKey}].regex.flags" is not configured properly`,
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)}, flags: ${JSON.stringify(theRegexFlags)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    // If "scammer-alerts.entities[${settingsEntityKey}].payload" is not configured properly.
+    if (
+      thePayload !== undefined
+      && (
+        !_.isPlainObject(thePayload)
+        || _.isEmpty(thePayload)
+      )
+    ) {
+      generateLogMessage(
+        [
+          `"scammer-alerts.entities[${settingsEntityKey}].payload" is not configured properly`,
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)}, payload: ${JSON.stringify(thePayload)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
+    try {
+      const regExp = new RegExp(theRegexPattern, theRegexFlags);
+
+      generateLogMessage(
+        [
+          'Constructed regular expression object',
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)}, pattern: ${JSON.stringify(theRegexPattern)}, flags: ${JSON.stringify(theRegexFlags)})`,
+        ].join(' '),
+        40,
+      );
+
+      if (regExp.test(cleanedUsername)) {
+        if (
+          thePayload !== undefined
+          && _.isPlainObject(thePayload)
+          && !_.isEmpty(thePayload)
+        ) {
+          payload = replaceVariables(thePayload);
+        } else {
+          payload = {
+            content: 'A scammer was detected.',
+          };
+        }
+
+        generateLogMessage(
+          [
+            'Passed regex rule match',
+            `(function: scammerAlerts, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(member))}, test: ${JSON.stringify(regExp.test(cleanedUsername))})`,
+          ].join(' '),
+          40,
+        );
+
+        channel.send(payload).then((sendResponse) => {
+          const sendResponseUrl = sendResponse.url;
+
+          generateLogMessage(
+            [
+              'Sent message',
+              `(function: scammerAlerts, name: ${JSON.stringify(theName)}, message url: ${JSON.stringify(sendResponseUrl)}, payload: ${JSON.stringify(payload)})`,
+            ].join(' '),
+            40,
+          );
+        }).catch((error: Error) => generateLogMessage(
+          [
+            'Failed to send message',
+            `(function: scammerAlerts, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
+          ].join(' '),
+          10,
+          error,
+        ));
+      } else {
+        generateLogMessage(
+          [
+            'Failed regex rule match',
+            `(function: scammerAlerts, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(member))}, test: ${JSON.stringify(regExp.test(cleanedUsername))})`,
+          ].join(' '),
+          40,
+        );
+      }
+    } catch (error) {
+      generateLogMessage(
+        [
+          'Failed to construct regular expression object',
+          `(function: scammerAlerts, name: ${JSON.stringify(theName)}, pattern: ${JSON.stringify(theRegexPattern)}, flags: ${JSON.stringify(theRegexFlags)})`,
+        ].join(' '),
+        10,
+        error,
+      );
+    }
+  });
 }

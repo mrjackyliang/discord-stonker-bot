@@ -1,7 +1,7 @@
-import { EmbedFieldData, MessageEmbed } from 'discord.js';
+import { EmbedBuilder, EmbedField } from 'discord.js';
 import _ from 'lodash';
 
-import { fetchFormattedDate, fetchFormattedDuration, splitStringChunks } from './utility';
+import { fetchFormattedDate, fetchFormattedDuration, splitStringChunks } from './utility.js';
 import {
   AddAttachmentFieldsMessageAttachments,
   AddAttachmentFieldsReturns,
@@ -130,7 +130,7 @@ import {
   GenerateEmbedTitle,
   GenerateTitleKey,
   GenerateTitleReturns,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Generate color.
@@ -175,7 +175,7 @@ export function generateColor(key: GenerateColorKey): GenerateColorReturns {
  * @since 1.0.0
  */
 export function generateEmbed(title: GenerateEmbedTitle, description: GenerateEmbedDescription, fields: GenerateEmbedFields, color: GenerateEmbedColor, footerText: GenerateEmbedFooterText, thumbnailUrl: GenerateEmbedThumbnailUrl): GenerateEmbedReturns {
-  const messageEmbed = new MessageEmbed()
+  const messageEmbed = new EmbedBuilder()
     .setTitle(title)
     .setDescription(description)
     .setColor(color)
@@ -257,7 +257,7 @@ export function generateTitle(key: GenerateTitleKey): GenerateTitleReturns {
  * @since 1.0.0
  */
 export function addAttachmentFields(messageAttachments: AddAttachmentFieldsMessageAttachments): AddAttachmentFieldsReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   messageAttachments.forEach((messageAttachment, messageAttachmentKey) => {
     const messageAttachmentUrl = messageAttachment.url;
@@ -265,6 +265,7 @@ export function addAttachmentFields(messageAttachments: AddAttachmentFieldsMessa
     fields.push({
       name: `**Attachment ${messageAttachmentKey + 1}**`,
       value: messageAttachmentUrl,
+      inline: false,
     });
   });
 
@@ -284,7 +285,7 @@ export function addAttachmentFields(messageAttachments: AddAttachmentFieldsMessa
 export function addMessageFields(title: AddMessageFieldsTitle, messageContent: AddMessageFieldsMessageContent): AddMessageFieldsReturns {
   const messageChunks = splitStringChunks(messageContent, 1020);
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   messageChunks.forEach((messageChunk, messageChunkKey) => {
     fields.push({
@@ -295,6 +296,7 @@ export function addMessageFields(title: AddMessageFieldsTitle, messageContent: A
         '**',
       ].join(''),
       value: `>>> ${messageChunk}`, // 1024 characters max per field (">>> " is 4 characters).
+      inline: false,
     });
   });
 
@@ -312,17 +314,19 @@ export function addMessageFields(title: AddMessageFieldsTitle, messageContent: A
  * @since 1.0.0
  */
 export function addTimeDurationFields(accountAge: AddTimeDurationFieldsAccountAge, timeOfStay?: AddTimeDurationFieldsTimeOfStay): AddTimeDurationFieldsReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push({
     name: '**Account Age**',
     value: fetchFormattedDuration(accountAge),
+    inline: false,
   });
 
   if (timeOfStay !== undefined) {
     fields.push({
       name: '**Time of Stay**',
       value: fetchFormattedDuration(timeOfStay),
+      inline: false,
     });
   }
 
@@ -341,9 +345,9 @@ export function addTimeDurationFields(accountAge: AddTimeDurationFieldsAccountAg
  * @since 1.0.0
  */
 export function addUserInformationFields(userTag: AddUserInformationFieldsUserTag, userMention: AddUserInformationFieldsUserMention, userAvatar: AddUserInformationFieldsUserAvatar): AddUserInformationFieldsReturns {
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push({
     name: '**ID**',
@@ -361,6 +365,7 @@ export function addUserInformationFields(userTag: AddUserInformationFieldsUserTa
     fields.push({
       name: '**Avatar**',
       value: `\`${userAvatar}\``,
+      inline: false,
     });
   }
 
@@ -402,9 +407,9 @@ export function createBulkBanEmbed(progressMessage: CreateBulkBanEmbedProgressMe
  * @since 1.0.0
  */
 export function createChangeNicknameEmbed(oldNickname: CreateChangeNicknameEmbedOldNickname, newNickname: CreateChangeNicknameEmbedNewNickname, userMention: CreateChangeNicknameEmbedUserMention, userAvatarUrl: CreateChangeNicknameEmbedUserAvatarUrl): CreateChangeNicknameEmbedReturns {
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   let actionTitle;
   let actionDescription;
@@ -459,9 +464,9 @@ export function createChangeNicknameEmbed(oldNickname: CreateChangeNicknameEmbed
  * @since 1.0.0
  */
 export function createChangeUsernameEmbed(oldUserTag: CreateChangeUsernameEmbedOldUserTag, newUserTag: CreateChangeUsernameEmbedNewUserTag, userMention: CreateChangeUsernameEmbedUserMention, userAvatarUrl: CreateChangeUsernameEmbedUserAvatarUrl): CreateChangeUsernameEmbedReturns {
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (oldUserTag !== null) {
     fields.push({
@@ -523,7 +528,7 @@ export function createCommandErrorEmbed(reason: CreateCommandErrorEmbedReason, u
  * @since 1.0.0
  */
 export function createDeleteMessageEmbed(userMention: CreateDeleteMessageEmbedUserMention, channelMention: CreateDeleteMessageEmbedChannelMention, messageId: CreateDeleteMessageEmbedMessageId, messageContent: CreateDeleteMessageEmbedMessageContent, messageAttachments: CreateDeleteMessageEmbedMessageAttachments, messageUrl: CreateDeleteMessageEmbedMessageUrl): CreateDeleteMessageEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (!_.isEmpty(messageContent)) {
     fields.push(...addMessageFields('Message', messageContent));
@@ -559,9 +564,9 @@ export function createDeleteMessageEmbed(userMention: CreateDeleteMessageEmbedUs
 export function createGuildJoinEmbed(userTag: CreateGuildJoinEmbedUserTag, userMention: CreateGuildJoinEmbedUserMention, userAvatar: CreateGuildJoinEmbedUserAvatar, userAvatarUrl: CreateGuildJoinEmbedUserAvatarUrl, userCreatedAt: CreateGuildJoinEmbedUserCreatedAt): CreateGuildJoinEmbedReturns {
   const currentDateTime = fetchFormattedDate('now', undefined, 'config', 'DDDD ttt');
 
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push(...addUserInformationFields(userTag, userMention, userAvatar));
 
@@ -598,9 +603,9 @@ export function createGuildLeaveEmbed(userTag: CreateGuildLeaveEmbedUserTag, use
   const assignedRoles = _.filter(memberRoles, (memberRole) => memberRole.name !== '@everyone');
   const assignedRolesMention = _.map(assignedRoles, (assignedRole) => assignedRole.toString());
   const assignedRolesDisplay = (assignedRoles.length > 0) ? assignedRolesMention.join(', ') : '';
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push(...addUserInformationFields(userTag, userMention, userAvatar));
 
@@ -610,6 +615,7 @@ export function createGuildLeaveEmbed(userTag: CreateGuildLeaveEmbedUserTag, use
     fields.push({
       name: '**Assigned Roles**',
       value: assignedRolesDisplay,
+      inline: false,
     });
   }
 
@@ -638,7 +644,7 @@ export function createGuildLeaveEmbed(userTag: CreateGuildLeaveEmbedUserTag, use
  * @since 1.0.0
  */
 export function createIncludesLinkEmbed(userMention: CreateIncludesLinkEmbedUserMention, channelMention: CreateIncludesLinkEmbedChannelMention, messageId: CreateIncludesLinkEmbedMessageId, messageContent: CreateIncludesLinkEmbedMessageContent, messageAttachments: CreateIncludesLinkEmbedMessageAttachments, messageUrl: CreateIncludesLinkEmbedMessageUrl): CreateIncludesLinkEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (!_.isEmpty(messageContent)) {
     fields.push(...addMessageFields('Message', messageContent));
@@ -746,11 +752,12 @@ export function createNoResultsEmbed(reason: CreateNoResultsEmbedReason, userTag
  * @since 1.0.0
  */
 export function createRemoveAffiliatesEmbed(userMention: CreateRemoveAffiliatesEmbedUserMention, channelMention: CreateRemoveAffiliatesEmbedChannelMention, messageId: CreateRemoveAffiliatesEmbedMessageId, messageContent: CreateRemoveAffiliatesEmbedMessageContent, messageAttachments: CreateRemoveAffiliatesEmbedMessageAttachments, messageUrl: CreateRemoveAffiliatesEmbedMessageUrl, platforms: CreateRemoveAffiliatesEmbedPlatforms): CreateRemoveAffiliatesEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push({
     name: '**Platforms**',
     value: platforms.join(', '),
+    inline: false,
   });
 
   if (!_.isEmpty(messageContent)) {
@@ -784,17 +791,18 @@ export function createRemoveAffiliatesEmbed(userMention: CreateRemoveAffiliatesE
  * @since 1.0.0
  */
 export function createRoleChangeEmbed(userMention: CreateRoleChangeEmbedUserMention, userAvatarUrl: CreateRoleChangeEmbedUserAvatarUrl, addedMemberRoles: CreateRoleChangeEmbedAddedMemberRoles, removedMemberRoles: CreateRoleChangeEmbedRemovedMemberRoles): CreateRoleChangeEmbedReturns {
-  const id = userMention.replace(/[<@!>]/g, '');
+  const id = userMention.replace(/[<@>]/g, '');
 
   const rolesAddedDisplay = _.map(addedMemberRoles, (addedMemberRole) => addedMemberRole.toString()).join(', ');
   const rolesRemovedDisplay = _.map(removedMemberRoles, (removedMemberRole) => removedMemberRole.toString()).join(', ');
 
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (addedMemberRoles.length > 0) {
     fields.push({
       name: '**Added**',
       value: rolesAddedDisplay,
+      inline: false,
     });
   }
 
@@ -802,6 +810,7 @@ export function createRoleChangeEmbed(userMention: CreateRoleChangeEmbedUserMent
     fields.push({
       name: '**Removed**',
       value: rolesRemovedDisplay,
+      inline: false,
     });
   }
 
@@ -854,11 +863,12 @@ export function createRoleManagerEmbed(progressMessage: CreateRoleManagerEmbedPr
  * @since 1.0.0
  */
 export function createSuspiciousWordsEmbed(userMention: CreateSuspiciousWordsEmbedUserMention, channelMention: CreateSuspiciousWordsEmbedChannelMention, messageId: CreateSuspiciousWordsEmbedMessageId, messageContent: CreateSuspiciousWordsEmbedMessageContent, messageAttachments: CreateSuspiciousWordsEmbedMessageAttachments, messageUrl: CreateSuspiciousWordsEmbedMessageUrl, categories: CreateSuspiciousWordsEmbedCategories): CreateSuspiciousWordsEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   fields.push({
     name: '**Categories**',
     value: categories.join(', '),
+    inline: false,
   });
 
   if (!_.isEmpty(messageContent)) {
@@ -917,7 +927,7 @@ export function createTogglePermsEmbed(progressMessage: CreateTogglePermsEmbedPr
  * @since 1.0.0
  */
 export function createUpdateMessageEmbed(userMention: CreateUpdateMessageEmbedUserMention, channelMention: CreateUpdateMessageEmbedChannelMention, messageId: CreateUpdateMessageEmbedMessageId, oldMessageContent: CreateUpdateMessageEmbedOldMessageContent, newMessageContent: CreateUpdateMessageEmbedNewMessageContent, messageAttachments: CreateUpdateMessageEmbedMessageAttachments, messageUrl: CreateUpdateMessageEmbedMessageUrl): CreateUpdateMessageEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (!_.isEmpty(oldMessageContent)) {
     fields.push(...addMessageFields('Old message', oldMessageContent));
@@ -955,7 +965,7 @@ export function createUpdateMessageEmbed(userMention: CreateUpdateMessageEmbedUs
  * @since 1.0.0
  */
 export function createUploadAttachmentEmbed(userMention: CreateUploadAttachmentEmbedUserMention, channelMention: CreateUploadAttachmentEmbedChannelMention, messageId: CreateUploadAttachmentEmbedMessageId, messageAttachments: CreateUploadAttachmentEmbedMessageAttachments, messageUrl: CreateUploadAttachmentEmbedMessageUrl): CreateUploadAttachmentEmbedReturns {
-  const fields: EmbedFieldData[] = [];
+  const fields: EmbedField[] = [];
 
   if (messageAttachments.length > 0) {
     fields.push(...addAttachmentFields(messageAttachments));

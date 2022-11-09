@@ -1,18 +1,18 @@
 import _ from 'lodash';
-
-import config from '../../config.json';
+import { createRequire } from 'module';
 
 import {
+  fetchIdentifier,
   generateLogMessage,
   getCollectionItems,
   trackMessage,
   trackMessageIsDuplicate,
-} from '../lib/utility';
-import { antiRaidAutoBan, antiRaidMembershipGate } from './anti-raid';
-import { etherscanGasOracle, finnhubEarnings, stocktwitsTrending } from './api-fetch';
-import { rssFeeds, schedulePosts, twitterFeeds } from './content';
-import { broadcastAlertsViaGuildScheduledEventCreate, broadcastAlertsViaGuildScheduledEventDelete, broadcastAlertsViaGuildScheduledEventUpdate } from './event';
-import { autoReplies, messageCopiers, messageProxies } from './messenger';
+} from '../lib/utility.js';
+import { antiRaidAutoBan, antiRaidMembershipGate } from './anti-raid.js';
+import { etherscanGasOracle, finnhubEarnings, stocktwitsTrending } from './api-fetch.js';
+import { rssFeeds, schedulePosts, twitterFeeds } from './content.js';
+import { broadcastAlertsViaGuildScheduledEventCreate, broadcastAlertsViaGuildScheduledEventDelete, broadcastAlertsViaGuildScheduledEventUpdate } from './event.js';
+import { autoReplies, messageCopiers, messageProxies } from './messenger.js';
 import {
   detectSuspiciousWords,
   impersonatorAlertsViaGuildMemberAdd,
@@ -20,9 +20,10 @@ import {
   impersonatorAlertsViaUserUpdate,
   regexRules,
   removeAffiliates,
-} from './moderator';
-import { togglePerms } from './permission';
-import { roleMessages, syncRoles } from './role';
+  scammerAlerts,
+} from './moderator.js';
+import { togglePerms } from './permission.js';
+import { roleMessages, syncRoles } from './role.js';
 import {
   bulkBan,
   fetchDuplicates,
@@ -30,7 +31,7 @@ import {
   fetchMembers,
   roleManager,
   voiceTools,
-} from './server-tool';
+} from './server-tool.js';
 import {
   changeNickname,
   changeUsername,
@@ -41,9 +42,9 @@ import {
   roleChange,
   updateMessage,
   uploadAttachment,
-} from './snitch';
-import { bumpThreads } from './thread';
-import { webApplicationsSetup } from './web-app';
+} from './snitch.js';
+import { bumpThreads } from './thread.js';
+import { webApplicationsSetup } from './web-app.js';
 import {
   AntiRaidAutoBanSettings,
   AntiRaidMembershipGateSettings,
@@ -76,6 +77,7 @@ import {
   RoleManagerSettings,
   RoleMessagesEvents,
   RssFeedsEvents,
+  ScammerAlertsSettings,
   SchedulePostsEvents,
   StocktwitsTrendingSettings,
   SyncRolesSettings,
@@ -85,7 +87,16 @@ import {
   UploadAttachmentSettings,
   VoiceToolsSettings,
   WebApplicationsSetupSettings,
-} from '../types';
+} from '../types/index.js';
+
+/**
+ * JSON import.
+ *
+ * @since 1.0.0
+ */
+const require = createRequire(import.meta.url);
+
+const config = require('../../config.json');
 
 /**
  * Config.
@@ -126,6 +137,7 @@ const configRemoveAffiliates = <RemoveAffiliatesSettings>_.get(config, ['remove-
 const configTogglePerms = <TogglePermsEvents>_.get(config, ['toggle-perms']);
 const configBumpThreads = <BumpThreadsEvents>_.get(config, ['bump-threads']);
 const configImpersonatorAlerts = <ImpersonatorAlertsSettings>_.get(config, ['impersonator-alerts']);
+const configScammerAlerts = <ScammerAlertsSettings>_.get(config, ['scammer-alerts']);
 const configTwitterFeeds = <TwitterFeedsEvents>_.get(config, ['twitter-feeds']);
 const configBroadcastAlerts = <BroadcastAlertsEvents>_.get(config, ['broadcast-alerts']);
 
@@ -154,7 +166,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: messageCreate, guild: ${JSON.stringify(message.guild)})`,
+          `(event: messageCreate, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
         ].join(' '),
         10,
       );
@@ -165,7 +177,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: messageCreate, guild: ${JSON.stringify(message.guild)})`,
+        `(event: messageCreate, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
       ].join(' '),
       40,
     );
@@ -352,7 +364,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: messageUpdate, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+          `(event: messageUpdate, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
         ].join(' '),
         10,
       );
@@ -363,7 +375,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: messageUpdate, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+        `(event: messageUpdate, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
       ].join(' '),
       40,
     );
@@ -444,7 +456,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: messageDelete, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+          `(event: messageDelete, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
         ].join(' '),
         10,
       );
@@ -455,7 +467,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: messageDelete, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+        `(event: messageDelete, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
       ].join(' '),
       40,
     );
@@ -498,7 +510,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
         generateLogMessage(
           [
             'Failed to invoke event',
-            `(event: messageDeleteBulk, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+            `(event: messageDeleteBulk, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
           ].join(' '),
           10,
         );
@@ -509,7 +521,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Invoked event',
-          `(event: messageDeleteBulk, author: ${JSON.stringify(message.author)}, guild: ${JSON.stringify(message.guild)})`,
+          `(event: messageDeleteBulk, author: ${JSON.stringify(fetchIdentifier(message.author))}, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
         ].join(' '),
         40,
       );
@@ -574,6 +586,13 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
        * @since 1.0.0
        */
       impersonatorAlertsViaGuildMemberAdd(member, guild, configImpersonatorAlerts);
+
+      /**
+       * Scammer alerts.
+       *
+       * @since 1.0.0
+       */
+      scammerAlerts(member, guild, configScammerAlerts);
     }
   });
 
@@ -727,7 +746,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: guildScheduledEventCreate, creator: ${JSON.stringify(scheduledEvent.creator)}, guild: ${JSON.stringify(scheduledEvent.guild)})`,
+          `(event: guildScheduledEventCreate, creator: ${JSON.stringify(fetchIdentifier(scheduledEvent.creator))}, guild: ${JSON.stringify(fetchIdentifier(scheduledEvent.guild))})`,
         ].join(' '),
         10,
       );
@@ -738,7 +757,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: guildScheduledEventCreate, creator: ${JSON.stringify(scheduledEvent.creator)}, guild: ${JSON.stringify(scheduledEvent.guild)})`,
+        `(event: guildScheduledEventCreate, creator: ${JSON.stringify(fetchIdentifier(scheduledEvent.creator))}, guild: ${JSON.stringify(fetchIdentifier(scheduledEvent.guild))})`,
       ].join(' '),
       40,
     );
@@ -769,6 +788,18 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
    * @since 1.0.0
    */
   discordClient.on('guildScheduledEventUpdate', (oldScheduledEvent, newScheduledEvent) => {
+    if (oldScheduledEvent === null) {
+      generateLogMessage(
+        [
+          'Failed to invoke event',
+          `(event: guildScheduledEventUpdate, old scheduled event: ${JSON.stringify(oldScheduledEvent)})`,
+        ].join(' '),
+        10,
+      );
+
+      return;
+    }
+
     if (
       oldScheduledEvent.creator === null
       || oldScheduledEvent.guild === null
@@ -778,7 +809,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: guildScheduledEventUpdate, old creator: ${JSON.stringify(oldScheduledEvent.creator)}, old guild: ${JSON.stringify(oldScheduledEvent.guild)}, new creator: ${JSON.stringify(newScheduledEvent.creator)}, new guild: ${JSON.stringify(newScheduledEvent.guild)})`,
+          `(event: guildScheduledEventUpdate, old creator: ${JSON.stringify(fetchIdentifier(oldScheduledEvent.creator))}, old guild: ${JSON.stringify(fetchIdentifier(oldScheduledEvent.guild))}, new creator: ${JSON.stringify(fetchIdentifier(newScheduledEvent.creator))}, new guild: ${JSON.stringify(fetchIdentifier(newScheduledEvent.guild))})`,
         ].join(' '),
         10,
       );
@@ -789,7 +820,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: guildScheduledEventUpdate, old creator: ${JSON.stringify(oldScheduledEvent.creator)}, old guild: ${JSON.stringify(oldScheduledEvent.guild)}, new creator: ${JSON.stringify(newScheduledEvent.creator)}, new guild: ${JSON.stringify(newScheduledEvent.guild)})`,
+        `(event: guildScheduledEventUpdate, old creator: ${JSON.stringify(fetchIdentifier(oldScheduledEvent.creator))}, old guild: ${JSON.stringify(fetchIdentifier(oldScheduledEvent.guild))}, new creator: ${JSON.stringify(fetchIdentifier(newScheduledEvent.creator))}, new guild: ${JSON.stringify(fetchIdentifier(newScheduledEvent.guild))})`,
       ].join(' '),
       40,
     );
@@ -836,7 +867,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
       generateLogMessage(
         [
           'Failed to invoke event',
-          `(event: guildScheduledEventDelete, creator: ${JSON.stringify(scheduledEvent.creator)}, guild: ${JSON.stringify(scheduledEvent.guild)})`,
+          `(event: guildScheduledEventDelete, creator: ${JSON.stringify(fetchIdentifier(scheduledEvent.creator))}, guild: ${JSON.stringify(fetchIdentifier(scheduledEvent.guild))})`,
         ].join(' '),
         10,
       );
@@ -847,7 +878,7 @@ export function initialize(discordClient: InitializeDiscordClient, twitterClient
     generateLogMessage(
       [
         'Invoked event',
-        `(event: guildScheduledEventDelete, creator: ${JSON.stringify(scheduledEvent.creator)}, guild: ${JSON.stringify(scheduledEvent.guild)})`,
+        `(event: guildScheduledEventDelete, creator: ${JSON.stringify(fetchIdentifier(scheduledEvent.creator))}, guild: ${JSON.stringify(fetchIdentifier(scheduledEvent.guild))})`,
       ].join(' '),
       40,
     );

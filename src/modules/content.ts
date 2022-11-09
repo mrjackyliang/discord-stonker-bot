@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Bottleneck from 'bottleneck';
 import { decode } from 'html-entities';
-import { MessageOptions } from 'discord.js';
+import { MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 import cron from 'node-cron';
 import RssParser from 'rss-parser';
@@ -9,12 +9,13 @@ import RssParser from 'rss-parser';
 import {
   escapeCharacters,
   fetchFormattedDate,
+  fetchIdentifier,
   generateCron,
   generateLogMessage,
   generateUserAgent,
   getTextBasedChannel,
   isTimeZoneValid,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   RssFeedsEventAllowedUrls,
   RssFeedsEventChannelChannelId,
@@ -83,8 +84,8 @@ import {
   TwitterFeedsStreamReturns,
   TwitterFeedsStreamStartTime,
   TwitterFeedsTwitterClient,
-} from '../types';
-import { MemoryRssFeedsEventSentItemLinks, MemoryRssFeedsEventSentItemTitles } from '../types/memory';
+} from '../types/index.js';
+import { MemoryRssFeedsEventSentItemLinks, MemoryRssFeedsEventSentItemTitles } from '../types/memory.js';
 
 /**
  * Bottleneck.
@@ -222,7 +223,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
     const sentItemTitles: MemoryRssFeedsEventSentItemTitles = [];
     const sentItemLinks: MemoryRssFeedsEventSentItemLinks = [];
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If "rss-feeds[${eventKey}].name" is not configured properly.
     if (
@@ -659,7 +660,7 @@ export function rssFeeds(guild: RssFeedsGuild, events: RssFeedsEvents): RssFeeds
               }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',
-                  `(function: rssFeeds, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                  `(function: rssFeeds, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
                 ].join(' '),
                 10,
                 error,
@@ -776,7 +777,7 @@ export function schedulePosts(guild: SchedulePostsGuild, events: SchedulePostsEv
 
     const regExpIsoDate = /^\d{4}-\d{2}-\d{2}$/;
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If "schedule-posts[${eventKey}].name" is not configured properly.
     if (
@@ -1145,7 +1146,7 @@ export function schedulePosts(guild: SchedulePostsGuild, events: SchedulePostsEv
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: schedulePosts, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: schedulePosts, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -1223,7 +1224,7 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
    */
   const stream = (eventName: TwitterFeedsStreamEventName, eventTwitterId: TwitterFeedsStreamEventTwitterId, eventExcludeRetweets: TwitterFeedsStreamEventExcludeRetweets, eventExcludeReplies: TwitterFeedsStreamEventExcludeReplies, eventPayload: TwitterFeedsStreamEventPayload, channel: TwitterFeedsStreamChannel, startTime: TwitterFeedsStreamStartTime): TwitterFeedsStreamReturns => {
     let endTime = startTime;
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If Twitter client not configured.
     if (twitterClient === undefined) {
@@ -1310,7 +1311,7 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: twitterFeeds, name: ${JSON.stringify(eventName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: twitterFeeds, name: ${JSON.stringify(eventName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -1328,7 +1329,15 @@ export function twitterFeeds(twitterClient: TwitterFeedsTwitterClient, guild: Tw
         error,
       );
 
-      return stream(eventName, eventTwitterId, eventExcludeRetweets, eventExcludeReplies, eventPayload, channel, endTime);
+      return stream(
+        eventName,
+        eventTwitterId,
+        eventExcludeRetweets,
+        eventExcludeReplies,
+        eventPayload,
+        channel,
+        endTime,
+      );
     });
   };
 

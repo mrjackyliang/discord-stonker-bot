@@ -748,8 +748,8 @@
               "description": "Sample role",
               "user-or-role-id": "000000000000000000",
               "user-or-role-perms": {
-                "VIEW_CHANNEL": true,
-                "SEND_MESSAGES": true
+                "ViewChannel": true,
+                "SendMessages": true
               }
             }
           ]
@@ -785,6 +785,25 @@
         },
         "payload": {
           "content": "An impersonator may have been detected. The offending user is %MEMBER_USER_MENTION%."
+        }
+      }
+    ],
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    }
+  },
+  "scammer-alerts": {
+    "entities": [
+      {
+        "name": "Sample",
+        "regex": {
+          "description": "Sample regex",
+          "pattern": "(.+)",
+          "flags": "g"
+        },
+        "payload": {
+          "content": "A scammer may have been detected. The offending user is %MEMBER_USER_MENTION%."
         }
       }
     ],

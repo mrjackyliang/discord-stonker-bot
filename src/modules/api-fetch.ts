@@ -1,17 +1,18 @@
 import axios from 'axios';
-import { MessageOptions } from 'discord.js';
+import { GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 import cron from 'node-cron';
 import numeral from 'numeral';
 
-import { createEarningsTableAttachment } from '../lib/attachment';
+import { createEarningsTableAttachment } from '../lib/attachment.js';
 import {
   fetchFormattedDate,
+  fetchIdentifier,
   generateLogMessage,
   generateUserAgent,
   getTextBasedChannel,
   memberHasPermissions,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   EtherscanGasOracleGuild,
   EtherscanGasOracleMessage,
@@ -56,7 +57,7 @@ import {
   StocktwitsTrendingSettingsCommandBaseCommands,
   StocktwitsTrendingSettingsCommandNoPermsPayload,
   StocktwitsTrendingSettingsSettingsLimit,
-} from '../types';
+} from '../types/index.js';
 import {
   ApiEtherscanGasOracle,
   ApiEtherscanGasOracleResult,
@@ -69,8 +70,8 @@ import {
   ApiStocktwitsTrending,
   ApiStocktwitsTrendingResponseStatus,
   ApiStocktwitsTrendingSymbols,
-} from '../types/api';
-import { MemoryEtherscanGasOracle, MemoryFinnhubEarnings, MemoryStocktwitsTrending } from '../types/memory';
+} from '../types/api.js';
+import { MemoryEtherscanGasOracle, MemoryFinnhubEarnings, MemoryStocktwitsTrending } from '../types/memory.js';
 
 /**
  * Memory.
@@ -121,7 +122,7 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
 
   const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <EtherscanGasOracleSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "api-fetch.etherscan-gas-oracle" is not configured.
   if (settings === undefined) {
@@ -328,7 +329,7 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
               }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',
-                  `(function: etherscanGasOracle, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                  `(function: etherscanGasOracle, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
                 ].join(' '),
                 10,
                 error,
@@ -383,7 +384,7 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
       40,
     );
 
-    const messageChannel = message.channel;
+    const messageChannel = <GuildTextBasedChannel>message.channel;
     const messageContent = message.content;
     const messageMember = message.member;
 
@@ -454,7 +455,7 @@ export function etherscanGasOracle(message: EtherscanGasOracleMessage, guild: Et
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to send message',
-        `(function: etherscanGasOracle, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+        `(function: etherscanGasOracle, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
       ].join(' '),
       10,
       error,
@@ -545,7 +546,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
 
   const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <FinnhubEarningsSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "api-fetch.finnhub-earnings" is not configured.
   if (settings === undefined) {
@@ -821,7 +822,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
                 }).catch((error: Error) => generateLogMessage(
                   [
                     'Failed to send message',
-                    `(function: finnhubEarnings, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                    `(function: finnhubEarnings, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
                   ].join(' '),
                   10,
                   error,
@@ -877,7 +878,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
       40,
     );
 
-    const messageChannel = message.channel;
+    const messageChannel = <GuildTextBasedChannel>message.channel;
     const messageContent = message.content;
     const messageMember = message.member;
 
@@ -951,7 +952,7 @@ export function finnhubEarnings(message: FinnhubEarningsMessage, guild: FinnhubE
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to send message',
-        `(function: finnhubEarnings, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+        `(function: finnhubEarnings, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
       ].join(' '),
       10,
       error,
@@ -999,7 +1000,7 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
 
   const allowedRoleIds = _.map(settingsCommandAllowedRoles, (settingsCommandAllowedRole) => <StocktwitsTrendingSettingsCommandAllowedRoleRoleId>_.get(settingsCommandAllowedRole, ['role-id']));
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "api-fetch.stocktwits-trending" is not configured.
   if (settings === undefined) {
@@ -1205,7 +1206,7 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
               }).catch((error: Error) => generateLogMessage(
                 [
                   'Failed to send message',
-                  `(function: stocktwitsTrending, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                  `(function: stocktwitsTrending, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
                 ].join(' '),
                 10,
                 error,
@@ -1260,7 +1261,7 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
       40,
     );
 
-    const messageChannel = message.channel;
+    const messageChannel = <GuildTextBasedChannel>message.channel;
     const messageContent = message.content;
     const messageMember = message.member;
 
@@ -1329,7 +1330,7 @@ export function stocktwitsTrending(message: StocktwitsTrendingMessage, guild: St
     }).catch((error: Error) => generateLogMessage(
       [
         'Failed to send message',
-        `(function: stocktwitsTrending, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+        `(function: stocktwitsTrending, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
       ].join(' '),
       10,
       error,

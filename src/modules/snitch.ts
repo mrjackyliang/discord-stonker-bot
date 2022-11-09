@@ -1,4 +1,4 @@
-import { ChannelMention, MessageOptions } from 'discord.js';
+import { GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 
 import {
@@ -11,8 +11,13 @@ import {
   createRoleChangeEmbed,
   createUpdateMessageEmbed,
   createUploadAttachmentEmbed,
-} from '../lib/embed';
-import { generateLogMessage, getCollectionItems, getTextBasedChannel } from '../lib/utility';
+} from '../lib/embed.js';
+import {
+  fetchIdentifier,
+  generateLogMessage,
+  getCollectionItems,
+  getTextBasedChannel,
+} from '../lib/utility.js';
 import {
   ChangeNicknameGuild,
   ChangeNicknameNewMember,
@@ -66,8 +71,8 @@ import {
   UploadAttachmentReturns,
   UploadAttachmentSettings,
   UploadAttachmentSettingsChannelChannelId,
-} from '../types';
-import { MemoryUploadAttachmentAttachmentLinks } from '../types/memory';
+} from '../types/index.js';
+import { MemoryUploadAttachmentAttachmentLinks } from '../types/memory.js';
 
 /**
  * Change nickname.
@@ -90,7 +95,7 @@ export function changeNickname(oldMember: ChangeNicknameOldMember, newMember: Ch
 
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.change-nickname" is not configured.
   if (settings === undefined) {
@@ -125,7 +130,7 @@ export function changeNickname(oldMember: ChangeNicknameOldMember, newMember: Ch
     generateLogMessage(
       [
         'Failed nickname change match',
-        `(function: changeNickname, member: ${JSON.stringify(newMember.toString())}, old nickname: ${JSON.stringify(oldMemberNickname)}, new nickname: ${JSON.stringify(newMemberNickname)})`,
+        `(function: changeNickname, member: ${JSON.stringify(fetchIdentifier(newMember))}, old nickname: ${JSON.stringify(oldMemberNickname)}, new nickname: ${JSON.stringify(newMemberNickname)})`,
       ].join(' '),
       40,
     );
@@ -136,7 +141,7 @@ export function changeNickname(oldMember: ChangeNicknameOldMember, newMember: Ch
   generateLogMessage(
     [
       'Passed nickname change match',
-      `(function: changeNickname, member: ${JSON.stringify(newMember.toString())}, old nickname: ${JSON.stringify(oldMemberNickname)}, new nickname: ${JSON.stringify(newMemberNickname)})`,
+      `(function: changeNickname, member: ${JSON.stringify(fetchIdentifier(newMember))}, old nickname: ${JSON.stringify(oldMemberNickname)}, new nickname: ${JSON.stringify(newMemberNickname)})`,
     ].join(' '),
     40,
   );
@@ -148,9 +153,9 @@ export function changeNickname(oldMember: ChangeNicknameOldMember, newMember: Ch
         newMemberNickname,
         newMember.toString(),
         newMember.displayAvatarURL({
-          format: 'webp',
-          dynamic: true,
+          extension: 'webp',
           size: 4096,
+          forceStatic: false,
         }),
       ),
     ],
@@ -169,7 +174,7 @@ export function changeNickname(oldMember: ChangeNicknameOldMember, newMember: Ch
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: changeNickname, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: changeNickname, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -197,7 +202,7 @@ export function changeUsername(oldUser: ChangeUsernameOldUser, newUser: ChangeUs
 
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.change-username" is not configured.
   if (settings === undefined) {
@@ -232,7 +237,7 @@ export function changeUsername(oldUser: ChangeUsernameOldUser, newUser: ChangeUs
     generateLogMessage(
       [
         'Failed username change match',
-        `(function: changeUsername, user: ${JSON.stringify(newUser.toString())}, old tag: ${JSON.stringify(oldUserTag)}, new tag: ${JSON.stringify(newUserTag)})`,
+        `(function: changeUsername, user: ${JSON.stringify(fetchIdentifier(newUser))}, old tag: ${JSON.stringify(oldUserTag)}, new tag: ${JSON.stringify(newUserTag)})`,
       ].join(' '),
       40,
     );
@@ -243,7 +248,7 @@ export function changeUsername(oldUser: ChangeUsernameOldUser, newUser: ChangeUs
   generateLogMessage(
     [
       'Passed username change match',
-      `(function: changeUsername, user: ${JSON.stringify(newUser.toString())}, old tag: ${JSON.stringify(oldUserTag)}, new tag: ${JSON.stringify(newUserTag)})`,
+      `(function: changeUsername, user: ${JSON.stringify(fetchIdentifier(newUser))}, old tag: ${JSON.stringify(oldUserTag)}, new tag: ${JSON.stringify(newUserTag)})`,
     ].join(' '),
     40,
   );
@@ -255,9 +260,9 @@ export function changeUsername(oldUser: ChangeUsernameOldUser, newUser: ChangeUs
         newUserTag,
         newUser.toString(),
         newUser.displayAvatarURL({
-          format: 'webp',
-          dynamic: true,
+          extension: 'webp',
           size: 4096,
+          forceStatic: false,
         }),
       ),
     ],
@@ -276,7 +281,7 @@ export function changeUsername(oldUser: ChangeUsernameOldUser, newUser: ChangeUs
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: changeUsername, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: changeUsername, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -302,7 +307,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: deleteMessage, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: deleteMessage, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -313,13 +318,13 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
   generateLogMessage(
     [
       'Invoked function',
-      `(function: deleteMessage, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: deleteMessage, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageGuildId = message.guild.id;
   const messageId = message.id;
@@ -333,7 +338,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
   const attachments = getCollectionItems(messageAttachments);
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.delete-message" is not configured.
   if (settings === undefined) {
@@ -368,7 +373,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
     generateLogMessage(
       [
         'Failed message delete match',
-        `(function: deleteMessage, member: ${JSON.stringify(messageMember.toString())}, message url: ${JSON.stringify(messageUrl)})`,
+        `(function: deleteMessage, member: ${JSON.stringify(fetchIdentifier(messageMember))}, message url: ${JSON.stringify(messageUrl)})`,
       ].join(' '),
       40,
     );
@@ -379,7 +384,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
   generateLogMessage(
     [
       'Passed message delete match',
-      `(function: deleteMessage, member: ${JSON.stringify(messageMember.toString())}, message url: ${JSON.stringify(messageUrl)})`,
+      `(function: deleteMessage, member: ${JSON.stringify(fetchIdentifier(messageMember))}, message url: ${JSON.stringify(messageUrl)})`,
     ].join(' '),
     40,
   );
@@ -388,8 +393,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
     embeds: [
       createDeleteMessageEmbed(
         messageMember.toString(),
-        // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-        <ChannelMention>messageChannel.toString(),
+        messageChannel.toString(),
         messageId,
         messageContent,
         attachments,
@@ -411,7 +415,7 @@ export function deleteMessage(message: DeleteMessageMessage, guild: DeleteMessag
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: deleteMessage, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: deleteMessage, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -441,7 +445,7 @@ export function guildJoin(member: GuildJoinMember, guild: GuildJoinGuild, settin
 
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.guild-join" is not configured.
   if (settings === undefined) {
@@ -476,7 +480,7 @@ export function guildJoin(member: GuildJoinMember, guild: GuildJoinGuild, settin
     generateLogMessage(
       [
         'Failed guild join match',
-        `(function: guildJoin, member: ${JSON.stringify(member.toString())})`,
+        `(function: guildJoin, member: ${JSON.stringify(fetchIdentifier(member))})`,
       ].join(' '),
       40,
     );
@@ -487,7 +491,7 @@ export function guildJoin(member: GuildJoinMember, guild: GuildJoinGuild, settin
   generateLogMessage(
     [
       'Passed guild join match',
-      `(function: guildJoin, member: ${JSON.stringify(member.toString())})`,
+      `(function: guildJoin, member: ${JSON.stringify(fetchIdentifier(member))})`,
     ].join(' '),
     40,
   );
@@ -499,9 +503,9 @@ export function guildJoin(member: GuildJoinMember, guild: GuildJoinGuild, settin
         member.toString(),
         memberUserAvatar,
         member.displayAvatarURL({
-          format: 'webp',
-          dynamic: true,
+          extension: 'webp',
           size: 4096,
+          forceStatic: false,
         }),
         memberUserCreatedAt,
       ),
@@ -521,7 +525,7 @@ export function guildJoin(member: GuildJoinMember, guild: GuildJoinGuild, settin
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: guildJoin, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: guildJoin, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -574,7 +578,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
   const roles = getCollectionItems(memberRolesCache);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.guild-leave" is not configured.
   if (settings === undefined) {
@@ -609,7 +613,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
     generateLogMessage(
       [
         'Failed guild leave match',
-        `(function: guildLeave, member: ${JSON.stringify(member.toString())})`,
+        `(function: guildLeave, member: ${JSON.stringify(fetchIdentifier(member))})`,
       ].join(' '),
       40,
     );
@@ -620,7 +624,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
   generateLogMessage(
     [
       'Passed guild leave match',
-      `(function: guildLeave, member: ${JSON.stringify(member.toString())})`,
+      `(function: guildLeave, member: ${JSON.stringify(fetchIdentifier(member))})`,
     ].join(' '),
     40,
   );
@@ -632,9 +636,9 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
         member.toString(),
         memberUserAvatar,
         member.displayAvatarURL({
-          format: 'webp',
-          dynamic: true,
+          extension: 'webp',
           size: 4096,
+          forceStatic: false,
         }),
         memberUserCreatedAt,
         memberJoinedAt,
@@ -656,7 +660,7 @@ export function guildLeave(member: GuildLeaveMember, guild: GuildLeaveGuild, set
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: guildLeave, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: guildLeave, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -679,7 +683,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: includesLink, member: ${JSON.stringify(message.member)})`,
+        `(function: includesLink, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -690,13 +694,13 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
   generateLogMessage(
     [
       'Invoked function',
-      `(function: includesLink, member: ${JSON.stringify(message.member)})`,
+      `(function: includesLink, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.reactions.message.content ?? message.content;
   const messageId = message.id;
   const messageMember = message.member;
@@ -710,7 +714,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
 
   const regExpUrl = /https?:\/\//gi;
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.includes-link" is not configured.
   if (settings === undefined) {
@@ -891,8 +895,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
     embeds: [
       createIncludesLinkEmbed(
         messageMember.toString(),
-        // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-        <ChannelMention>messageChannel.toString(),
+        messageChannel.toString(),
         messageId,
         messageContent,
         attachments,
@@ -914,7 +917,7 @@ export function includesLink(message: IncludesLinkMessage, guild: IncludesLinkGu
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: includesLink, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: includesLink, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -947,7 +950,7 @@ export function roleChange(oldMember: RoleChangeOldMember, newMember: RoleChange
   const rolesAdded = _.difference(newMemberRoles, oldMemberRoles);
   const rolesRemoved = _.difference(oldMemberRoles, newMemberRoles);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.role-change" is not configured.
   if (settings === undefined) {
@@ -982,7 +985,7 @@ export function roleChange(oldMember: RoleChangeOldMember, newMember: RoleChange
     generateLogMessage(
       [
         'Failed member role change match',
-        `(function: roleChange, member: ${JSON.stringify(newMember.toString())}, roles added: ${JSON.stringify(rolesAdded)}, roles removed: ${JSON.stringify(rolesRemoved)})`,
+        `(function: roleChange, member: ${JSON.stringify(fetchIdentifier(newMember))}, roles added: ${JSON.stringify(rolesAdded)}, roles removed: ${JSON.stringify(rolesRemoved)})`,
       ].join(' '),
       40,
     );
@@ -993,7 +996,7 @@ export function roleChange(oldMember: RoleChangeOldMember, newMember: RoleChange
   generateLogMessage(
     [
       'Passed member role change match',
-      `(function: roleChange, member: ${JSON.stringify(newMember.toString())}, roles added: ${JSON.stringify(rolesAdded)}, roles removed: ${JSON.stringify(rolesRemoved)})`,
+      `(function: roleChange, member: ${JSON.stringify(fetchIdentifier(newMember))}, roles added: ${JSON.stringify(rolesAdded)}, roles removed: ${JSON.stringify(rolesRemoved)})`,
     ].join(' '),
     40,
   );
@@ -1003,9 +1006,9 @@ export function roleChange(oldMember: RoleChangeOldMember, newMember: RoleChange
       createRoleChangeEmbed(
         newMember.toString(),
         newMember.displayAvatarURL({
-          format: 'webp',
-          dynamic: true,
+          extension: 'webp',
           size: 4096,
+          forceStatic: false,
         }),
         rolesAdded,
         rolesRemoved,
@@ -1026,7 +1029,7 @@ export function roleChange(oldMember: RoleChangeOldMember, newMember: RoleChange
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: roleChange, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: roleChange, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -1049,7 +1052,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: updateMessage, member: ${JSON.stringify(message.member)})`,
+        `(function: updateMessage, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -1060,13 +1063,13 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
   generateLogMessage(
     [
       'Invoked function',
-      `(function: updateMessage, member: ${JSON.stringify(message.member)})`,
+      `(function: updateMessage, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageContent = message.content;
   const messageId = message.id;
   const messageMember = message.member;
@@ -1078,7 +1081,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
   const attachments = getCollectionItems(messageAttachments);
   const channel = getTextBasedChannel(guild, settingsChannelChannelId);
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.update-message" is not configured.
   if (settings === undefined) {
@@ -1134,8 +1137,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
     embeds: [
       createUpdateMessageEmbed(
         messageMember.toString(),
-        // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-        <ChannelMention>messageChannel.toString(),
+        messageChannel.toString(),
         messageId,
         messageContent,
         messageReactionsMessageContent,
@@ -1158,7 +1160,7 @@ export function updateMessage(message: UpdateMessageMessage, guild: UpdateMessag
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: updateMessage, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: updateMessage, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,
@@ -1181,7 +1183,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: uploadAttachment, member: ${JSON.stringify(message.member)})`,
+        `(function: uploadAttachment, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -1192,13 +1194,13 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
   generateLogMessage(
     [
       'Invoked function',
-      `(function: uploadAttachment, member: ${JSON.stringify(message.member)})`,
+      `(function: uploadAttachment, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageId = message.id;
   const messageMember = message.member;
   const messageUrl = message.url;
@@ -1210,7 +1212,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
 
   const attachmentLinks: MemoryUploadAttachmentAttachmentLinks = [];
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "snitch.upload-attachment" is not configured.
   if (settings === undefined) {
@@ -1273,8 +1275,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
     embeds: [
       createUploadAttachmentEmbed(
         messageMember.toString(),
-        // TODO Fix return type of "toString()" on channels (https://github.com/discordjs/discord.js/pull/7836).
-        <ChannelMention>messageChannel.toString(),
+        messageChannel.toString(),
         messageId,
         attachments,
         messageUrl,
@@ -1295,7 +1296,7 @@ export function uploadAttachment(message: UploadAttachmentMessage, guild: Upload
   }).catch((error: Error) => generateLogMessage(
     [
       'Failed to send message',
-      `(function: uploadAttachment, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+      `(function: uploadAttachment, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
     ].join(' '),
     10,
     error,

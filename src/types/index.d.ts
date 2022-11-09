@@ -1,29 +1,32 @@
 import {
+  Attachment,
+  AttachmentBuilder,
   BufferResolvable,
   CategoryChannel,
   ChannelMention,
   Client,
   Collection,
   ColorResolvable,
-  EmbedFieldData,
+  Embed,
+  EmbedBuilder,
+  EmbedField,
   EmojiIdentifierResolvable,
   Guild,
   GuildEmoji,
   GuildMember,
   GuildScheduledEvent,
-  MemberMention,
+  GuildScheduledEventEntityType,
+  GuildScheduledEventStatus,
+  GuildTextBasedChannel,
   Message,
-  MessageAttachment,
-  MessageEmbed,
+  MessageCreateOptions,
   MessageMentions,
-  MessageOptions,
   NewsChannel,
   PermissionOverwriteOptions,
   Role,
   RoleMention,
   Snowflake,
   StageChannel,
-  TextBasedChannel,
   TextChannel,
   ThreadChannel,
   User,
@@ -47,23 +50,23 @@ import {
   LogLevel,
   TimeZone,
   TrackedMessages,
-} from './shared';
+} from './shared.js';
 import {
   MemoryDetectSuspiciousWordsDetectedCategories,
   MemoryFinnhubEarningsContentEarnings,
   MemoryRemoveAffiliatesDetectedAffiliates,
   MemoryTrackedMessages,
   MemoryTrackedRoutes,
-} from './memory';
+} from './memory.js';
 
 /**
  * Add attachment fields.
  *
  * @since 1.0.0
  */
-export type AddAttachmentFieldsMessageAttachments = MessageAttachment[];
+export type AddAttachmentFieldsMessageAttachments = Attachment[];
 
-export type AddAttachmentFieldsReturns = EmbedFieldData[];
+export type AddAttachmentFieldsReturns = EmbedField[];
 
 /**
  * Add message fields.
@@ -74,7 +77,7 @@ export type AddMessageFieldsTitle = string;
 
 export type AddMessageFieldsMessageContent = string;
 
-export type AddMessageFieldsReturns = EmbedFieldData[];
+export type AddMessageFieldsReturns = EmbedField[];
 
 /**
  * Add time duration fields.
@@ -85,7 +88,7 @@ export type AddTimeDurationFieldsAccountAge = Date;
 
 export type AddTimeDurationFieldsTimeOfStay = Date;
 
-export type AddTimeDurationFieldsReturns = EmbedFieldData[];
+export type AddTimeDurationFieldsReturns = EmbedField[];
 
 /**
  * Add user information fields.
@@ -98,7 +101,7 @@ export type AddUserInformationFieldsUserMention = UserMention;
 
 export type AddUserInformationFieldsUserAvatar = string | null;
 
-export type AddUserInformationFieldsReturns = EmbedFieldData[];
+export type AddUserInformationFieldsReturns = EmbedField[];
 
 /**
  * Anti-raid auto ban.
@@ -153,7 +156,7 @@ export type AntiRaidMembershipGateSettingsRole = ConfigRole | undefined;
 
 export type AntiRaidMembershipGateSettingsRoles = AntiRaidMembershipGateSettingsRole[] | undefined;
 
-export type AntiRaidMembershipGateSettingsPayload = MessageOptions | undefined;
+export type AntiRaidMembershipGateSettingsPayload = MessageCreateOptions | undefined;
 
 export type AntiRaidMembershipGateSettingsChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
@@ -172,9 +175,9 @@ export type AntiRaidMembershipGateReturns = void;
  *
  * @since 1.0.0
  */
-export type AntiRaidMembershipGateReplaceVariablesConfigPayload = MessageOptions;
+export type AntiRaidMembershipGateReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type AntiRaidMembershipGateReplaceVariablesReturns = MessageOptions;
+export type AntiRaidMembershipGateReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Auto replies.
@@ -197,7 +200,7 @@ export type AutoRepliesEventRegexFlags = ConfigRegex['flags'] | undefined;
 
 export type AutoRepliesEventRegex = ConfigRegex | undefined;
 
-export type AutoRepliesEventPayload = MessageOptions | undefined;
+export type AutoRepliesEventPayload = MessageCreateOptions | undefined;
 
 export type AutoRepliesEventPayloads = AutoRepliesEventPayload[] | undefined;
 
@@ -224,12 +227,12 @@ export type BroadcastAlertsInstance = {
   channel: StageChannel | VoiceChannel | null;
   creator: User | null;
   description: string | null;
-  entityType: 'STAGE_INSTANCE' | 'VOICE' | 'EXTERNAL';
+  entityType: 'STAGE_INSTANCE' | 'VOICE' | 'EXTERNAL' | null;
   location: string | null;
   name: string;
   scheduledEndAt: Date | null;
-  scheduledStartAt: Date;
-  status: 'SCHEDULED' | 'UPDATED' | 'ACTIVE' | 'COMPLETED' | 'CANCELED';
+  scheduledStartAt: Date | null;
+  status: 'SCHEDULED' | 'UPDATED' | 'ACTIVE' | 'COMPLETED' | 'CANCELED' | null;
   userCount: number | null;
 };
 
@@ -430,6 +433,24 @@ export type ChangeUsernameSettings = {
 export type ChangeUsernameReturns = void;
 
 /**
+ * Convert event entity type.
+ *
+ * @since 1.0.0
+ */
+export type ConvertEventEntityTypeEnumeration = GuildScheduledEventEntityType.External | GuildScheduledEventEntityType.StageInstance | GuildScheduledEventEntityType.Voice;
+
+export type ConvertEventEntityTypeReturns = 'EXTERNAL' | 'STAGE_INSTANCE' | 'VOICE' | null;
+
+/**
+ * Convert event status.
+ *
+ * @since 1.0.0
+ */
+export type ConvertEventStatusEnumeration = GuildScheduledEventStatus.Active | GuildScheduledEventStatus.Canceled | GuildScheduledEventStatus.Completed | GuildScheduledEventStatus.Scheduled;
+
+export type ConvertEventStatusReturns = 'ACTIVE' | 'CANCELED' | 'COMPLETED' | 'SCHEDULED' | null;
+
+/**
  * Create bulk ban embed.
  *
  * @since 1.0.0
@@ -440,7 +461,7 @@ export type CreateBulkBanEmbedStatus = EmbedStatus;
 
 export type CreateBulkBanEmbedUserTag = string;
 
-export type CreateBulkBanEmbedReturns = MessageEmbed;
+export type CreateBulkBanEmbedReturns = EmbedBuilder;
 
 /**
  * Create change nickname embed.
@@ -455,7 +476,7 @@ export type CreateChangeNicknameEmbedUserMention = UserMention;
 
 export type CreateChangeNicknameEmbedUserAvatarUrl = string;
 
-export type CreateChangeNicknameEmbedReturns = MessageEmbed;
+export type CreateChangeNicknameEmbedReturns = EmbedBuilder;
 
 /**
  * Create change username embed.
@@ -470,7 +491,7 @@ export type CreateChangeUsernameEmbedUserMention = UserMention;
 
 export type CreateChangeUsernameEmbedUserAvatarUrl = string;
 
-export type CreateChangeUsernameEmbedReturns = MessageEmbed;
+export type CreateChangeUsernameEmbedReturns = EmbedBuilder;
 
 /**
  * Create command error embed.
@@ -481,7 +502,7 @@ export type CreateCommandErrorEmbedReason = string;
 
 export type CreateCommandErrorEmbedUserTag = string;
 
-export type CreateCommandErrorEmbedReturns = MessageEmbed;
+export type CreateCommandErrorEmbedReturns = EmbedBuilder;
 
 /**
  * Create delete message embed.
@@ -496,11 +517,11 @@ export type CreateDeleteMessageEmbedMessageId = Snowflake;
 
 export type CreateDeleteMessageEmbedMessageContent = string;
 
-export type CreateDeleteMessageEmbedMessageAttachments = MessageAttachment[];
+export type CreateDeleteMessageEmbedMessageAttachments = Attachment[];
 
 export type CreateDeleteMessageEmbedMessageUrl = string;
 
-export type CreateDeleteMessageEmbedReturns = MessageEmbed;
+export type CreateDeleteMessageEmbedReturns = EmbedBuilder;
 
 /**
  * Create earnings table attachment.
@@ -509,7 +530,7 @@ export type CreateDeleteMessageEmbedReturns = MessageEmbed;
  */
 export type CreateEarningsTableAttachmentEarnings = MemoryFinnhubEarningsContentEarnings;
 
-export type CreateEarningsTableAttachmentReturns = MessageAttachment;
+export type CreateEarningsTableAttachmentReturns = AttachmentBuilder;
 
 /**
  * Create emojis inline attachment.
@@ -520,7 +541,7 @@ export type CreateEmojisInlineAttachmentEmojis = GuildEmoji[];
 
 export type CreateEmojisInlineAttachmentRoute = 'all' | 'animated' | 'static';
 
-export type CreateEmojisInlineAttachmentReturns = MessageAttachment;
+export type CreateEmojisInlineAttachmentReturns = AttachmentBuilder;
 
 /**
  * Create emojis table attachment.
@@ -531,7 +552,7 @@ export type CreateEmojisTableAttachmentEmojis = GuildEmoji[];
 
 export type CreateEmojisTableAttachmentRoute = 'all' | 'animated' | 'static';
 
-export type CreateEmojisTableAttachmentReturns = MessageAttachment;
+export type CreateEmojisTableAttachmentReturns = AttachmentBuilder;
 
 /**
  * Create guild join embed.
@@ -548,7 +569,7 @@ export type CreateGuildJoinEmbedUserAvatarUrl = string;
 
 export type CreateGuildJoinEmbedUserCreatedAt = Date;
 
-export type CreateGuildJoinEmbedReturns = MessageEmbed;
+export type CreateGuildJoinEmbedReturns = EmbedBuilder;
 
 /**
  * Create guild leave embed.
@@ -569,7 +590,7 @@ export type CreateGuildLeaveEmbedMemberJoinedAt = Date;
 
 export type CreateGuildLeaveEmbedMemberRoles = Role[];
 
-export type CreateGuildLeaveEmbedReturns = MessageEmbed;
+export type CreateGuildLeaveEmbedReturns = EmbedBuilder;
 
 /**
  * Create includes link embed.
@@ -584,11 +605,11 @@ export type CreateIncludesLinkEmbedMessageId = Snowflake;
 
 export type CreateIncludesLinkEmbedMessageContent = string;
 
-export type CreateIncludesLinkEmbedMessageAttachments = MessageAttachment[];
+export type CreateIncludesLinkEmbedMessageAttachments = Attachment[];
 
 export type CreateIncludesLinkEmbedMessageUrl = string;
 
-export type CreateIncludesLinkEmbedReturns = MessageEmbed;
+export type CreateIncludesLinkEmbedReturns = EmbedBuilder;
 
 /**
  * Create list emojis embed.
@@ -599,7 +620,7 @@ export type CreateListEmojisEmbedRoute = 'all' | 'animated' | 'static';
 
 export type CreateListEmojisEmbedUserTag = string;
 
-export type CreateListEmojisEmbedReturns = MessageEmbed;
+export type CreateListEmojisEmbedReturns = EmbedBuilder;
 
 /**
  * Create list members embed.
@@ -612,7 +633,7 @@ export type CreateListMembersEmbedUserTag = string;
 
 export type CreateListMembersEmbedThumbnailUrl = string;
 
-export type CreateListMembersEmbedReturns = MessageEmbed;
+export type CreateListMembersEmbedReturns = EmbedBuilder;
 
 /**
  * Create members inline attachment.
@@ -623,7 +644,7 @@ export type CreateMembersInlineAttachmentMembers = GuildMember[];
 
 export type CreateMembersInlineAttachmentName = string;
 
-export type CreateMembersInlineAttachmentReturns = MessageAttachment;
+export type CreateMembersInlineAttachmentReturns = AttachmentBuilder;
 
 /**
  * Create members table attachment.
@@ -634,7 +655,7 @@ export type CreateMembersTableAttachmentMembers = GuildMember[];
 
 export type CreateMembersTableAttachmentName = string;
 
-export type CreateMembersTableAttachmentReturns = MessageAttachment;
+export type CreateMembersTableAttachmentReturns = AttachmentBuilder;
 
 /**
  * Create no results embed.
@@ -645,7 +666,7 @@ export type CreateNoResultsEmbedReason = string;
 
 export type CreateNoResultsEmbedUserTag = string;
 
-export type CreateNoResultsEmbedReturns = MessageEmbed;
+export type CreateNoResultsEmbedReturns = EmbedBuilder;
 
 /**
  * Create remove affiliates embed.
@@ -660,13 +681,13 @@ export type CreateRemoveAffiliatesEmbedMessageId = Snowflake;
 
 export type CreateRemoveAffiliatesEmbedMessageContent = string;
 
-export type CreateRemoveAffiliatesEmbedMessageAttachments = MessageAttachment[];
+export type CreateRemoveAffiliatesEmbedMessageAttachments = Attachment[];
 
 export type CreateRemoveAffiliatesEmbedMessageUrl = string;
 
 export type CreateRemoveAffiliatesEmbedPlatforms = MemoryRemoveAffiliatesDetectedAffiliates;
 
-export type CreateRemoveAffiliatesEmbedReturns = MessageEmbed;
+export type CreateRemoveAffiliatesEmbedReturns = EmbedBuilder;
 
 /**
  * Create role change embed.
@@ -681,7 +702,7 @@ export type CreateRoleChangeEmbedAddedMemberRoles = Role[];
 
 export type CreateRoleChangeEmbedRemovedMemberRoles = Role[];
 
-export type CreateRoleChangeEmbedReturns = MessageEmbed;
+export type CreateRoleChangeEmbedReturns = EmbedBuilder;
 
 /**
  * Create role manager embed.
@@ -696,7 +717,7 @@ export type CreateRoleManagerEmbedStatus = EmbedStatus;
 
 export type CreateRoleManagerEmbedUserTag = string;
 
-export type CreateRoleManagerEmbedReturns = MessageEmbed;
+export type CreateRoleManagerEmbedReturns = EmbedBuilder;
 
 /**
  * Create suspicious words embed.
@@ -711,13 +732,13 @@ export type CreateSuspiciousWordsEmbedMessageId = Snowflake;
 
 export type CreateSuspiciousWordsEmbedMessageContent = string;
 
-export type CreateSuspiciousWordsEmbedMessageAttachments = MessageAttachment[];
+export type CreateSuspiciousWordsEmbedMessageAttachments = Attachment[];
 
 export type CreateSuspiciousWordsEmbedMessageUrl = string;
 
 export type CreateSuspiciousWordsEmbedCategories = MemoryDetectSuspiciousWordsDetectedCategories;
 
-export type CreateSuspiciousWordsEmbedReturns = MessageEmbed;
+export type CreateSuspiciousWordsEmbedReturns = EmbedBuilder;
 
 /**
  * Create toggle perms embed.
@@ -730,7 +751,7 @@ export type CreateTogglePermsEmbedSuccess = boolean;
 
 export type CreateTogglePermsEmbedUserTag = string;
 
-export type CreateTogglePermsEmbedReturns = MessageEmbed;
+export type CreateTogglePermsEmbedReturns = EmbedBuilder;
 
 /**
  * Create update message embed.
@@ -747,11 +768,11 @@ export type CreateUpdateMessageEmbedOldMessageContent = string;
 
 export type CreateUpdateMessageEmbedNewMessageContent = string;
 
-export type CreateUpdateMessageEmbedMessageAttachments = MessageAttachment[];
+export type CreateUpdateMessageEmbedMessageAttachments = Attachment[];
 
 export type CreateUpdateMessageEmbedMessageUrl = string;
 
-export type CreateUpdateMessageEmbedReturns = MessageEmbed;
+export type CreateUpdateMessageEmbedReturns = EmbedBuilder;
 
 /**
  * Create upload attachment embed.
@@ -764,11 +785,11 @@ export type CreateUploadAttachmentEmbedChannelMention = ChannelMention;
 
 export type CreateUploadAttachmentEmbedMessageId = Snowflake;
 
-export type CreateUploadAttachmentEmbedMessageAttachments = MessageAttachment[];
+export type CreateUploadAttachmentEmbedMessageAttachments = Attachment[];
 
 export type CreateUploadAttachmentEmbedMessageUrl = string;
 
-export type CreateUploadAttachmentEmbedReturns = MessageEmbed;
+export type CreateUploadAttachmentEmbedReturns = EmbedBuilder;
 
 /**
  * Create voice tools embed.
@@ -783,7 +804,7 @@ export type CreateVoiceToolsEmbedStatus = EmbedStatus;
 
 export type CreateVoiceToolsEmbedUserTag = string;
 
-export type CreateVoiceToolsEmbedReturns = MessageEmbed;
+export type CreateVoiceToolsEmbedReturns = EmbedBuilder;
 
 /**
  * Delete command message.
@@ -882,7 +903,7 @@ export type EtherscanGasOracleSettingsCommandAllowedRole = ConfigRole | undefine
 
 export type EtherscanGasOracleSettingsCommandAllowedRoles = EtherscanGasOracleSettingsCommandAllowedRole[] | undefined;
 
-export type EtherscanGasOracleSettingsCommandNoPermsPayload = MessageOptions | undefined;
+export type EtherscanGasOracleSettingsCommandNoPermsPayload = MessageCreateOptions | undefined;
 
 export type EtherscanGasOracleSettingsCommand = {
   'base-commands': EtherscanGasOracleSettingsCommandBaseCommands;
@@ -903,9 +924,9 @@ export type EtherscanGasOracleReturns = void;
  *
  * @since 1.0.0
  */
-export type EtherscanGasOracleReplaceVariablesConfigPayload = MessageOptions;
+export type EtherscanGasOracleReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type EtherscanGasOracleReplaceVariablesReturns = MessageOptions;
+export type EtherscanGasOracleReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Fetch duplicates.
@@ -988,6 +1009,17 @@ export type FetchFormattedDurationTimeBegin = Date;
 export type FetchFormattedDurationReturns = string;
 
 /**
+ * Fetch identifier.
+ *
+ * @since 1.0.0
+ */
+export type FetchIdentifierObject = Guild | GuildMember | NewsChannel | Role | StageChannel | TextChannel | ThreadChannel | User | VoiceChannel | null;
+
+export type FetchIdentifierReturns = {
+  id: string;
+} | null;
+
+/**
  * Fetch members.
  *
  * @since 1.0.0
@@ -1016,7 +1048,7 @@ export type FetchMembersReturns = void;
 
 export type FetchMembersCommandRoute = 'avatar' | 'everyone' | 'role' | 'string' | 'username' | '';
 
-export type FetchMembersCommandAction = MemberMention | RoleMention | string;
+export type FetchMembersCommandAction = UserMention | RoleMention | string;
 
 /**
  * Finnhub earnings.
@@ -1047,7 +1079,7 @@ export type FinnhubEarningsSettingsCommandAllowedRole = ConfigRole | undefined;
 
 export type FinnhubEarningsSettingsCommandAllowedRoles = FinnhubEarningsSettingsCommandAllowedRole[] | undefined;
 
-export type FinnhubEarningsSettingsCommandNoPermsPayload = MessageOptions | undefined;
+export type FinnhubEarningsSettingsCommandNoPermsPayload = MessageCreateOptions | undefined;
 
 export type FinnhubEarningsSettingsCommand = {
   'base-commands': FinnhubEarningsSettingsCommandBaseCommands;
@@ -1097,9 +1129,9 @@ export type FinnhubEarningsFormatRevenueReturns = string;
  *
  * @since 1.0.0
  */
-export type FinnhubEarningsReplaceVariablesConfigPayload = MessageOptions;
+export type FinnhubEarningsReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type FinnhubEarningsReplaceVariablesReturns = MessageOptions;
+export type FinnhubEarningsReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Generate attachment.
@@ -1112,7 +1144,7 @@ export type GenerateAttachmentFileName = string;
 
 export type GenerateAttachmentDescription = string | undefined;
 
-export type GenerateAttachmentReturns = MessageAttachment;
+export type GenerateAttachmentReturns = AttachmentBuilder;
 
 /**
  * Generate color.
@@ -1148,7 +1180,7 @@ export type GenerateEmbedTitle = string;
 
 export type GenerateEmbedDescription = string;
 
-export type GenerateEmbedFields = EmbedFieldData[] | undefined;
+export type GenerateEmbedFields = EmbedField[] | undefined;
 
 export type GenerateEmbedColor = ColorResolvable;
 
@@ -1156,7 +1188,7 @@ export type GenerateEmbedFooterText = string;
 
 export type GenerateEmbedThumbnailUrl = string | undefined;
 
-export type GenerateEmbedReturns = MessageEmbed;
+export type GenerateEmbedReturns = EmbedBuilder;
 
 /**
  * Generate log message.
@@ -1334,7 +1366,7 @@ export type ImpersonatorAlertsSettingsEntityRegexFlags = ConfigRegex['flags'] | 
 
 export type ImpersonatorAlertsSettingsEntityRegex = ConfigRegex | undefined;
 
-export type ImpersonatorAlertsSettingsEntityPayload = MessageOptions | undefined;
+export type ImpersonatorAlertsSettingsEntityPayload = MessageCreateOptions | undefined;
 
 export type ImpersonatorAlertsSettingsEntity = {
   name: ImpersonatorAlertsSettingsEntityName;
@@ -1361,9 +1393,9 @@ export type ImpersonatorAlertsReturns = void;
  *
  * @since 1.0.0
  */
-export type ImpersonatorAlertsReplaceVariablesConfigPayload = MessageOptions;
+export type ImpersonatorAlertsReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type ImpersonatorAlertsReplaceVariablesReturns = MessageOptions;
+export type ImpersonatorAlertsReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Impersonator alerts via "guildMemberAdd".
@@ -1536,7 +1568,7 @@ export type MapWebhooksEventVariable = {
 
 export type MapWebhooksEventVariables = MapWebhooksEventVariable[] | undefined;
 
-export type MapWebhooksEventPayload = MessageOptions | undefined;
+export type MapWebhooksEventPayload = MessageCreateOptions | undefined;
 
 export type MapWebhooksEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
@@ -1569,7 +1601,7 @@ export type MapWebhooksReplaceVariablesAndTextEventPayload = MapWebhooksEventPay
 
 export type MapWebhooksReplaceVariablesAndTextRequestBody = any;
 
-export type MapWebhooksReplaceVariablesAndTextReturns = MessageOptions;
+export type MapWebhooksReplaceVariablesAndTextReturns = MessageCreateOptions;
 
 /**
  * Member has permissions.
@@ -1722,7 +1754,7 @@ export type MessageCopiersSendToDestinationsEventDestinations = MessageCopiersEv
 
 export type MessageCopiersSendToDestinationsModifiedMessageContent = string;
 
-export type MessageCopiersSendToDestinationsOriginalMessageAttachments = MessageAttachment[];
+export type MessageCopiersSendToDestinationsOriginalMessageAttachments = Attachment[];
 
 export type MessageCopiersSendToDestinationsReturns = void;
 
@@ -1788,13 +1820,13 @@ export type MessageProxiesBuildAndSendPayloadAvatarUrl = string;
 
 export type MessageProxiesBuildAndSendPayloadContent = string;
 
-export type MessageProxiesBuildAndSendPayloadEmbeds = MessageEmbed[];
+export type MessageProxiesBuildAndSendPayloadEmbeds = Embed[];
 
 export type MessageProxiesBuildAndSendPayloadTts = boolean;
 
 export type MessageProxiesBuildAndSendPayloadMentions = MessageMentions;
 
-export type MessageProxiesBuildAndSendPayloadAttachments = MessageAttachment[];
+export type MessageProxiesBuildAndSendPayloadAttachments = Attachment[];
 
 export type MessageProxiesBuildAndSendReturns = void;
 
@@ -1825,7 +1857,7 @@ export type RegexRulesEventExcludedRole = ConfigRole | undefined;
 
 export type RegexRulesEventExcludedRoles = RegexRulesEventExcludedRole[] | undefined;
 
-export type RegexRulesEventDirectMessagePayload = MessageOptions | undefined;
+export type RegexRulesEventDirectMessagePayload = MessageCreateOptions | undefined;
 
 export type RegexRulesEvent = {
   name: RegexRulesEventName;
@@ -1872,7 +1904,7 @@ export type RemoveAffiliatesSettingsChannelChannelId = ConfigChannel['channel-id
 
 export type RemoveAffiliatesSettingsChannel = ConfigChannel | undefined;
 
-export type RemoveAffiliatesSettingsDirectMessagePayload = MessageOptions | undefined;
+export type RemoveAffiliatesSettingsDirectMessagePayload = MessageCreateOptions | undefined;
 
 export type RemoveAffiliatesSettings = {
   platforms: RemoveAffiliatesSettingsPlatforms;
@@ -1956,7 +1988,7 @@ export type RoleMessagesEventRole = ConfigRole | undefined;
 
 export type RoleMessagesEventDirection = 'add' | 'remove' | undefined;
 
-export type RoleMessagesEventPayload = MessageOptions | undefined;
+export type RoleMessagesEventPayload = MessageCreateOptions | undefined;
 
 export type RoleMessagesEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
@@ -1979,9 +2011,9 @@ export type RoleMessagesReturns = void;
  *
  * @since 1.0.0
  */
-export type RoleMessagesReplaceVariablesConfigPayload = MessageOptions;
+export type RoleMessagesReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type RoleMessagesReplaceVariablesReturns = MessageOptions;
+export type RoleMessagesReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Rss feeds.
@@ -2004,7 +2036,7 @@ export type RssFeedsEventAllowedUrl = string | undefined;
 
 export type RssFeedsEventAllowedUrls = RssFeedsEventAllowedUrl[] | undefined;
 
-export type RssFeedsEventPayload = MessageOptions | undefined;
+export type RssFeedsEventPayload = MessageCreateOptions | undefined;
 
 export type RssFeedsEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
@@ -2085,13 +2117,60 @@ export type RssFeedsRemoveParametersReturns = string | undefined;
  *
  * @since 1.0.0
  */
-export type RssFeedsReplaceVariablesConfigPayload = MessageOptions;
+export type RssFeedsReplaceVariablesConfigPayload = MessageCreateOptions;
 
 export type RssFeedsReplaceVariablesItemLink = string;
 
 export type RssFeedsReplaceVariablesItemTitle = string;
 
-export type RssFeedsReplaceVariablesReturns = MessageOptions;
+export type RssFeedsReplaceVariablesReturns = MessageCreateOptions;
+
+/**
+ * Scammer alerts.
+ *
+ * @since 1.0.0
+ */
+export type ScammerAlertsMember = GuildMember;
+
+export type ScammerAlertsGuild = Guild;
+
+export type ScammerAlertsSettingsEntityName = string | undefined;
+
+export type ScammerAlertsSettingsEntityRegexPattern = ConfigRegex['pattern'] | undefined;
+
+export type ScammerAlertsSettingsEntityRegexFlags = ConfigRegex['flags'] | undefined;
+
+export type ScammerAlertsSettingsEntityRegex = ConfigRegex | undefined;
+
+export type ScammerAlertsSettingsEntityPayload = MessageCreateOptions | undefined;
+
+export type ScammerAlertsSettingsEntity = {
+  name: ScammerAlertsSettingsEntityName;
+  regex: ScammerAlertsSettingsEntityRegex;
+  payload: ScammerAlertsSettingsEntityPayload;
+} | undefined;
+
+export type ScammerAlertsSettingsEntities = ScammerAlertsSettingsEntity[] | undefined;
+
+export type ScammerAlertsSettingsChannelChannelId = ConfigChannel['channel-id'] | undefined;
+
+export type ScammerAlertsSettingsChannel = ConfigChannel | undefined;
+
+export type ScammerAlertsSettings = {
+  entities: ScammerAlertsSettingsEntities;
+  channel: ScammerAlertsSettingsChannel;
+} | undefined;
+
+export type ScammerAlertsReturns = void;
+
+/**
+ * Scammer alerts - Replace variables.
+ *
+ * @since 1.0.0
+ */
+export type ScammerAlertsReplaceVariablesConfigPayload = MessageCreateOptions;
+
+export type ScammerAlertsReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Schedule posts.
@@ -2102,7 +2181,7 @@ export type SchedulePostsGuild = Guild;
 
 export type SchedulePostsEventName = string | undefined;
 
-export type SchedulePostsEventPayload = MessageOptions | undefined;
+export type SchedulePostsEventPayload = MessageCreateOptions | undefined;
 
 export type SchedulePostsEventReaction = EmojiIdentifierResolvable | undefined;
 
@@ -2170,9 +2249,9 @@ export type SchedulePostsReturns = void;
  *
  * @since 1.0.0
  */
-export type SchedulePostsReplaceVariablesConfigPayload = MessageOptions;
+export type SchedulePostsReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type SchedulePostsReplaceVariablesReturns = MessageOptions;
+export type SchedulePostsReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Settings.
@@ -2211,9 +2290,11 @@ export type ShowErrorMessageErrorMessage = string;
 
 export type ShowErrorMessageMessage = Message;
 
+export type ShowErrorMessageDeleteOriginalMessage = boolean | undefined;
+
 export type ShowErrorMessageUserTag = string;
 
-export type ShowErrorMessageChannel = TextBasedChannel;
+export type ShowErrorMessageChannel = GuildTextBasedChannel;
 
 export type ShowErrorMessageReturns = void;
 
@@ -2226,9 +2307,11 @@ export type ShowNoPermissionsMessageBaseCommand = string;
 
 export type ShowNoPermissionsMessageMessage = Message;
 
+export type ShowNoPermissionsMessageDeleteOriginalMessage = boolean | undefined;
+
 export type ShowNoPermissionsMessageUserTag = string;
 
-export type ShowNoPermissionsMessageChannel = TextBasedChannel;
+export type ShowNoPermissionsMessageChannel = GuildTextBasedChannel;
 
 export type ShowNoPermissionsMessageReturns = void;
 
@@ -2241,9 +2324,11 @@ export type ShowNoResultsMessageReason = string;
 
 export type ShowNoResultsMessageMessage = Message;
 
+export type ShowNoResultsMessageDeleteOriginalMessage = boolean | undefined;
+
 export type ShowNoResultsMessageUserTag = string;
 
-export type ShowNoResultsMessageChannel = TextBasedChannel;
+export type ShowNoResultsMessageChannel = GuildTextBasedChannel;
 
 export type ShowNoResultsMessageReturns = void;
 
@@ -2287,7 +2372,7 @@ export type StocktwitsTrendingSettingsCommandAllowedRole = ConfigRole | undefine
 
 export type StocktwitsTrendingSettingsCommandAllowedRoles = StocktwitsTrendingSettingsCommandAllowedRole[] | undefined;
 
-export type StocktwitsTrendingSettingsCommandNoPermsPayload = MessageOptions | undefined;
+export type StocktwitsTrendingSettingsCommandNoPermsPayload = MessageCreateOptions | undefined;
 
 export type StocktwitsTrendingSettingsCommand = {
   'base-commands': StocktwitsTrendingSettingsCommandBaseCommands;
@@ -2308,9 +2393,9 @@ export type StocktwitsTrendingReturns = void;
  *
  * @since 1.0.0
  */
-export type StocktwitsTrendingReplaceVariablesConfigPayload = MessageOptions;
+export type StocktwitsTrendingReplaceVariablesConfigPayload = MessageCreateOptions;
 
-export type StocktwitsTrendingReplaceVariablesReturns = MessageOptions;
+export type StocktwitsTrendingReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Sync roles.
@@ -2540,7 +2625,7 @@ export type TwitterFeedsEventExcludeRetweets = boolean | undefined;
 
 export type TwitterFeedsEventExcludeReplies = boolean | undefined;
 
-export type TwitterFeedsEventPayload = MessageOptions | undefined;
+export type TwitterFeedsEventPayload = MessageCreateOptions | undefined;
 
 export type TwitterFeedsEventChannelChannelId = ConfigChannel['channel-id'] | undefined;
 
@@ -2564,13 +2649,13 @@ export type TwitterFeedsReturns = void;
  *
  * @since 1.0.0
  */
-export type TwitterFeedsReplaceVariablesConfigPayload = MessageOptions;
+export type TwitterFeedsReplaceVariablesConfigPayload = MessageCreateOptions;
 
 export type TwitterFeedsReplaceVariablesTweetText = string;
 
 export type TwitterFeedsReplaceVariablesTweetLink = string;
 
-export type TwitterFeedsReplaceVariablesReturns = MessageOptions;
+export type TwitterFeedsReplaceVariablesReturns = MessageCreateOptions;
 
 /**
  * Twitter feeds - Stream.
@@ -2585,7 +2670,7 @@ export type TwitterFeedsStreamEventExcludeRetweets = boolean | undefined;
 
 export type TwitterFeedsStreamEventExcludeReplies = boolean | undefined;
 
-export type TwitterFeedsStreamEventPayload = MessageOptions | undefined;
+export type TwitterFeedsStreamEventPayload = MessageCreateOptions | undefined;
 
 export type TwitterFeedsStreamChannel = NewsChannel | TextChannel | ThreadChannel | VoiceChannel;
 

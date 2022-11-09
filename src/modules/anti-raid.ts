@@ -1,7 +1,13 @@
-import { MessageOptions } from 'discord.js';
+import { MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 
-import { escapeCharacters, fetchFormattedDate, generateLogMessage, getTextBasedChannel } from '../lib/utility';
+import {
+  escapeCharacters,
+  fetchFormattedDate,
+  fetchIdentifier,
+  generateLogMessage,
+  getTextBasedChannel,
+} from '../lib/utility.js';
 import {
   AntiRaidAutoBanMember,
   AntiRaidAutoBanReturns,
@@ -21,7 +27,7 @@ import {
   AntiRaidMembershipGateSettingsPayload,
   AntiRaidMembershipGateSettingsRoleRoleId,
   AntiRaidMembershipGateSettingsRoles,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Anti-raid auto ban.
@@ -133,13 +139,13 @@ export function antiRaidAutoBan(member: AntiRaidAutoBanMember, settings: AntiRai
     ).then(() => generateLogMessage(
       [
         'Banned member',
-        `(function: antiRaidAutoBan, member: ${JSON.stringify(member.toString())}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
+        `(function: antiRaidAutoBan, member: ${JSON.stringify(fetchIdentifier(member))}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
       ].join(' '),
       40,
     )).catch((error: Error) => generateLogMessage(
       [
         'Failed to ban member',
-        `(function: antiRaidAutoBan, member: ${JSON.stringify(member.toString())}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
+        `(function: antiRaidAutoBan, member: ${JSON.stringify(fetchIdentifier(member))}, avatar: ${JSON.stringify(memberUserAvatar)}, username: ${JSON.stringify(memberUserUsername)}, has banned avatar: ${JSON.stringify(hasBannedAvatar)}, has banned username: ${JSON.stringify(hasBannedUsername)})`,
       ].join(' '),
       10,
       error,
@@ -194,7 +200,7 @@ export function antiRaidMembershipGate(oldMember: AntiRaidMembershipGateOldMembe
 
   const roleIds = _.map(settingsRoles, (settingsRole) => <AntiRaidMembershipGateSettingsRoleRoleId>_.get(settingsRole, ['role-id']));
 
-  let payload: MessageOptions = {};
+  let payload: MessageCreateOptions = {};
 
   // If "anti-raid.membership-gate" is not configured.
   if (settings === undefined) {
@@ -275,13 +281,13 @@ export function antiRaidMembershipGate(oldMember: AntiRaidMembershipGateOldMembe
     ).then(() => generateLogMessage(
       [
         'Added roles',
-        `(function: antiRaidMembershipGate, member: ${JSON.stringify(newMember.toString())}, roles: ${JSON.stringify(settingsRoles)})`,
+        `(function: antiRaidMembershipGate, member: ${JSON.stringify(fetchIdentifier(newMember))}, roles: ${JSON.stringify(settingsRoles)})`,
       ].join(' '),
       40,
     )).catch((error: Error) => generateLogMessage(
       [
         'Failed to add roles',
-        `(function: antiRaidMembershipGate, member: ${JSON.stringify(newMember.toString())}, roles: ${JSON.stringify(settingsRoles)})`,
+        `(function: antiRaidMembershipGate, member: ${JSON.stringify(fetchIdentifier(newMember))}, roles: ${JSON.stringify(settingsRoles)})`,
       ].join(' '),
       10,
       error,
@@ -313,7 +319,7 @@ export function antiRaidMembershipGate(oldMember: AntiRaidMembershipGateOldMembe
       }).catch((error: Error) => generateLogMessage(
         [
           'Failed to send message',
-          `(function: antiRaidMembershipGate, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+          `(function: antiRaidMembershipGate, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
         ].join(' '),
         10,
         error,

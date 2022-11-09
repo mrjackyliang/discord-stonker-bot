@@ -1,10 +1,11 @@
-import { MessageOptions } from 'discord.js';
+import { GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 import cron from 'node-cron';
 
-import { createCommandErrorEmbed, createTogglePermsEmbed } from '../lib/embed';
+import { createCommandErrorEmbed, createTogglePermsEmbed } from '../lib/embed.js';
 import {
   fetchFormattedDate,
+  fetchIdentifier,
   generateCron,
   generateLogMessage,
   getCategoryChannel,
@@ -12,7 +13,7 @@ import {
   getVoiceBasedChannel,
   isTimeZoneValid,
   memberHasPermissions,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   TogglePermsEventCommandAllowedRoleRoleId,
   TogglePermsEventCommandAllowedRoles,
@@ -41,8 +42,8 @@ import {
   TogglePermsTogglerEventToggles,
   TogglePermsTogglerReturns,
   TogglePermsTogglerUserTag,
-} from '../types';
-import { MemoryTogglePermsSchedules } from '../types/memory';
+} from '../types/index.js';
+import { MemoryTogglePermsSchedules } from '../types/memory.js';
 
 /**
  * Memory.
@@ -254,7 +255,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
     const allowedRoleIds = _.map(theCommandAllowedRoles, (theCommandAllowedRole) => <TogglePermsEventCommandAllowedRoleRoleId>_.get(theCommandAllowedRole, ['role-id']));
     const regExpIsoDate = /^\d{4}-\d{2}-\d{2}$/;
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If "toggle-perms[${eventKey}].name" is not configured properly.
     if (
@@ -625,7 +626,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
         40,
       );
 
-      const messageChannel = message.channel;
+      const messageChannel = <GuildTextBasedChannel>message.channel;
       const messageContent = message.content;
       const messageMember = message.member;
       const messageMemberUserTag = message.member.user.tag;
@@ -676,7 +677,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: togglePerms, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: togglePerms, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -733,7 +734,7 @@ export function togglePerms(message: TogglePermsMessage, guild: TogglePermsGuild
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: togglePerms, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: togglePerms, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,

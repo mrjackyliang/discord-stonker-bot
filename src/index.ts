@@ -1,18 +1,17 @@
 import chalk from 'chalk';
 import {
+  ActivityType,
+  ChannelType,
   Client,
-  Intents,
+  GatewayIntentBits,
   Options,
-  Sweepers,
 } from 'discord.js';
 import _ from 'lodash';
+import { createRequire } from 'module';
 import { TwitterApi } from 'twitter-api-v2';
 
-import config from '../config.json';
-import { version } from '../package.json';
-
-import { generateServerMessage, getCollectionItems, isTimeZoneValid } from './lib/utility';
-import { initialize } from './modules/initialize';
+import { generateServerMessage, getCollectionItems, isTimeZoneValid } from './lib/utility.js';
+import { initialize } from './modules/initialize.js';
 import {
   SettingsDiscordGuildGuildId,
   SettingsDiscordToken,
@@ -23,7 +22,17 @@ import {
   SettingsTwitterAccessTokenSecret,
   SettingsTwitterApiKey,
   SettingsTwitterApiKeySecret,
-} from './types';
+} from './types/index.js';
+
+/**
+ * JSON import.
+ *
+ * @since 1.0.0
+ */
+const require = createRequire(import.meta.url);
+
+const config = require('../config.json');
+const { version } = require('../package.json');
 
 /**
  * Config.
@@ -123,33 +132,36 @@ if (
  * @since 1.0.0
  */
 const discordClient = new Client({
-  makeCache: Options.cacheWithLimits({
-    MessageManager: {
-      sweepFilter: Sweepers.filterByLifetime({
-        lifetime: 2592000, // 30 days in seconds.
-        getComparisonTimestamp: (message) => {
-          const messageCreatedTimestamp = message.createdTimestamp;
-          const messageEditedTimestamp = message.editedTimestamp;
-
-          return messageEditedTimestamp ?? messageCreatedTimestamp;
-        },
-      }),
-      sweepInterval: 60, // 1 minute in seconds.
-    },
-  }),
   intents: [
-    Intents.FLAGS.DIRECT_MESSAGES,
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_BANS,
-    Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
-    Intents.FLAGS.GUILD_INVITES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    Intents.FLAGS.GUILD_PRESENCES,
-    Intents.FLAGS.GUILD_SCHEDULED_EVENTS,
-    Intents.FLAGS.GUILD_VOICE_STATES,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildBans,
+    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildScheduledEvents,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.MessageContent,
   ],
+  makeCache: Options.cacheEverything(),
+  sweepers: {
+    ...Options.DefaultSweeperSettings,
+    invites: {
+      interval: 60, // 1 minute in seconds.
+      lifetime: 2592000, // 30 days in seconds.
+    },
+    messages: {
+      interval: 60, // 1 minute in seconds.
+      lifetime: 2592000, // 30 days in seconds.
+    },
+    threads: {
+      interval: 60, // 1 minute in seconds.
+      lifetime: 2592000, // 30 days in seconds.
+    },
+  },
 });
 
 /**
@@ -270,7 +282,7 @@ discordClient.on('ready', () => {
 
   discordClientUser.setActivity({
     name: `Discord Stonker Bot v${version} || Fork or contribute at https://liang.nyc/dsb`,
-    type: 'PLAYING',
+    type: ActivityType.Playing,
   });
 
   generateServerMessage(
@@ -287,7 +299,13 @@ discordClient.on('ready', () => {
       'has',
       guildMembers.length,
       ...(guildMembers.length === 1) ? ['member and'] : ['members and'],
-      _.filter(guildChannels, (guildChannel) => (guildChannel.isText() && !guildChannel.isThread()) || guildChannel.isVoice()).length,
+      _.filter(guildChannels, (guildChannel) => (
+        guildChannel.type === ChannelType.GuildAnnouncement
+        || guildChannel.type === ChannelType.GuildForum
+        || guildChannel.type === ChannelType.GuildStageVoice
+        || guildChannel.type === ChannelType.GuildText
+        || guildChannel.type === ChannelType.GuildVoice
+      )).length,
       ...(guildChannels.length === 1) ? ['channel'] : ['channels'],
     ].join(' '),
   );

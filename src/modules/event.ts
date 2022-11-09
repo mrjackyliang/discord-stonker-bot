@@ -1,7 +1,8 @@
+import { GuildScheduledEventEntityType, GuildScheduledEventStatus } from 'discord.js';
 import _ from 'lodash';
 import numeral from 'numeral';
 
-import { fetchFormattedDate, generateLogMessage } from '../lib/utility';
+import { fetchFormattedDate, fetchIdentifier, generateLogMessage } from '../lib/utility.js';
 import {
   BroadcastAlertsEventCreatorUserId,
   BroadcastAlertsEventEntityTypes,
@@ -33,7 +34,57 @@ import {
   BroadcastAlertsViaGuildScheduledEventUpdateOldScheduledEvent,
   BroadcastAlertsViaGuildScheduledEventUpdateReturns,
   BroadcastAlertsViaGuildScheduledEventUpdateTwitterClient,
-} from '../types';
+  ConvertEventEntityTypeEnumeration,
+  ConvertEventEntityTypeReturns,
+  ConvertEventStatusEnumeration,
+  ConvertEventStatusReturns,
+} from '../types/index.js';
+
+/**
+ * Convert event entity type.
+ *
+ * @param {ConvertEventEntityTypeEnumeration} enumeration - Enumeration.
+ *
+ * @returns {ConvertEventEntityTypeReturns}
+ *
+ * @since 1.0.0
+ */
+export function convertEventEntityType(enumeration: ConvertEventEntityTypeEnumeration): ConvertEventEntityTypeReturns {
+  switch (enumeration) {
+    case GuildScheduledEventEntityType.External:
+      return 'EXTERNAL';
+    case GuildScheduledEventEntityType.StageInstance:
+      return 'STAGE_INSTANCE';
+    case GuildScheduledEventEntityType.Voice:
+      return 'VOICE';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Convert event status.
+ *
+ * @param {ConvertEventStatusEnumeration} enumeration - Enumeration.
+ *
+ * @returns {ConvertEventStatusReturns}
+ *
+ * @since 1.0.0
+ */
+export function convertEventStatus(enumeration: ConvertEventStatusEnumeration): ConvertEventStatusReturns {
+  switch (enumeration) {
+    case GuildScheduledEventStatus.Scheduled:
+      return 'SCHEDULED';
+    case GuildScheduledEventStatus.Active:
+      return 'ACTIVE';
+    case GuildScheduledEventStatus.Canceled:
+      return 'CANCELED';
+    case GuildScheduledEventStatus.Completed:
+      return 'COMPLETED';
+    default:
+      return null;
+  }
+}
 
 /**
  * Broadcast alerts.
@@ -48,11 +99,15 @@ import {
  * @since 1.0.0
  */
 export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient: BroadcastAlertsTwitterClient, guild: BroadcastAlertsGuild, events: BroadcastAlertsEvents): BroadcastAlertsReturns {
-  if (instance.creator === null) {
+  if (
+    instance.creator === null
+    || instance.entityType === null
+    || instance.scheduledStartAt === null
+  ) {
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: broadcastAlerts, creator: ${JSON.stringify(instance.creator)})`,
+        `(function: broadcastAlerts, creator: ${JSON.stringify(fetchIdentifier(instance.creator))}, entity type: ${JSON.stringify(instance.entityType)}, scheduled start at: ${JSON.stringify(instance.scheduledStartAt)})`,
       ].join(' '),
       10,
     );
@@ -63,7 +118,7 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
   generateLogMessage(
     [
       'Invoked function',
-      `(function: broadcastAlerts, creator: ${JSON.stringify(instance.creator)})`,
+      `(function: broadcastAlerts, creator: ${JSON.stringify(fetchIdentifier(instance.creator))}, entity type: ${JSON.stringify(instance.entityType)}, scheduled start at: ${JSON.stringify(instance.scheduledStartAt)})`,
     ].join(' '),
     40,
   );
@@ -283,7 +338,7 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
       generateLogMessage(
         [
           'Skipped task',
-          `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, status: ${JSON.stringify(theStatus)}, entity types: ${JSON.stringify(theEntityTypes)}, user id: ${JSON.stringify(theCreatorUserId)}, current status: ${JSON.stringify(instanceStatus)}, current entity type: ${JSON.stringify(instanceEntityType)}, current user id: ${JSON.stringify(instance)})`,
+          `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, status: ${JSON.stringify(theStatus)}, entity types: ${JSON.stringify(theEntityTypes)}, user id: ${JSON.stringify(theCreatorUserId)}, current status: ${JSON.stringify(instanceStatus)}, current entity type: ${JSON.stringify(instanceEntityType)}, current user id: ${JSON.stringify(instanceCreatorId)})`,
         ].join(' '),
         40,
       );
@@ -294,7 +349,7 @@ export function broadcastAlerts(instance: BroadcastAlertsInstance, twitterClient
     generateLogMessage(
       [
         'Continued task',
-        `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, status: ${JSON.stringify(theStatus)}, entity types: ${JSON.stringify(theEntityTypes)}, user id: ${JSON.stringify(theCreatorUserId)}, current status: ${JSON.stringify(instanceStatus)}, current entity type: ${JSON.stringify(instanceEntityType)}, current user id: ${JSON.stringify(instance)})`,
+        `(function: broadcastAlerts, name: ${JSON.stringify(theName)}, status: ${JSON.stringify(theStatus)}, entity types: ${JSON.stringify(theEntityTypes)}, user id: ${JSON.stringify(theCreatorUserId)}, current status: ${JSON.stringify(instanceStatus)}, current entity type: ${JSON.stringify(instanceEntityType)}, current user id: ${JSON.stringify(instanceCreatorId)})`,
       ].join(' '),
       40,
     );
@@ -374,7 +429,7 @@ export function broadcastAlertsViaGuildScheduledEventCreate(scheduledEvent: Broa
       channel: scheduledEventChannel,
       creator: scheduledEventCreator,
       description: scheduledEventDescription,
-      entityType: scheduledEventEntityType,
+      entityType: convertEventEntityType(scheduledEventEntityType),
       location: (scheduledEventEntityMetadata !== null) ? scheduledEventEntityMetadata.location : null,
       name: scheduledEventName,
       scheduledEndAt: scheduledEventScheduledEndAt,
@@ -456,12 +511,12 @@ export function broadcastAlertsViaGuildScheduledEventUpdate(oldScheduledEvent: B
       channel: newScheduledEventChannel,
       creator: newScheduledEventCreator,
       description: newScheduledEventDescription,
-      entityType: newScheduledEventEntityType,
+      entityType: convertEventEntityType(newScheduledEventEntityType),
       location: (newScheduledEventEntityMetadata !== null) ? newScheduledEventEntityMetadata.location : null,
       name: newScheduledEventName,
       scheduledEndAt: newScheduledEventScheduledEndAt,
       scheduledStartAt: newScheduledEventScheduledStartAt,
-      status: (oldScheduledEventStatus === newScheduledEventStatus) ? 'UPDATED' : newScheduledEventStatus,
+      status: (oldScheduledEventStatus === newScheduledEventStatus) ? 'UPDATED' : convertEventStatus(newScheduledEventStatus),
       userCount: null,
     };
 
@@ -545,7 +600,7 @@ export function broadcastAlertsViaGuildScheduledEventDelete(scheduledEvent: Broa
     channel: scheduledEventChannel,
     creator: scheduledEventCreator,
     description: scheduledEventDescription,
-    entityType: scheduledEventEntityType,
+    entityType: convertEventEntityType(scheduledEventEntityType),
     location: (scheduledEventEntityMetadata !== null) ? scheduledEventEntityMetadata.location : null,
     name: scheduledEventName,
     scheduledEndAt: scheduledEventScheduledEndAt,

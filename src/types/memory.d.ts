@@ -1,7 +1,7 @@
 import { GuildEmoji, GuildMember } from 'discord.js';
 import cron from 'node-cron';
 
-import { TrackedMessages, TrackedRoutes } from './shared';
+import { TrackedMessages, TrackedRoutes } from './shared.js';
 
 /**
  * Bulk ban.

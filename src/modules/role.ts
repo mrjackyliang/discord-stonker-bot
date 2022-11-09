@@ -1,7 +1,12 @@
-import { MessageOptions } from 'discord.js';
+import { MessageCreateOptions } from 'discord.js';
 import _ from 'lodash';
 
-import { fetchFormattedDate, generateLogMessage, getTextBasedChannel } from '../lib/utility';
+import {
+  fetchFormattedDate,
+  fetchIdentifier,
+  generateLogMessage,
+  getTextBasedChannel,
+} from '../lib/utility.js';
 import {
   RoleMessagesEventChannelChannelId,
   RoleMessagesEventDirection,
@@ -29,8 +34,8 @@ import {
   SyncRolesSettingsEventToRemoveRoleRoleId,
   SyncRolesSettingsEventToRemoveRoles,
   SyncRolesSettingsTimeout,
-} from '../types';
-import { MemorySyncRoles } from '../types/memory';
+} from '../types/index.js';
+import { MemorySyncRoles } from '../types/memory.js';
 
 /**
  * Memory.
@@ -114,7 +119,7 @@ export function roleMessages(oldMember: RoleMessagesOldMember, newMember: RoleMe
 
     const channel = getTextBasedChannel(guild, theChannelChannelId);
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If "role-messages[${eventKey}].name" is not configured properly.
     if (
@@ -202,12 +207,12 @@ export function roleMessages(oldMember: RoleMessagesOldMember, newMember: RoleMe
 
     if (
       (
-        theDirection === 'add' // If direction is add.
+        theDirection === 'add' // If direction is "add".
         && oldMemberRoles.resolve(theRoleRoleId) === null // Old member does not have role.
         && newMemberRoles.resolve(theRoleRoleId) !== null // New member has role.
       )
       || (
-        theDirection === 'remove' // If direction is remove.
+        theDirection === 'remove' // If direction is "remove".
         && oldMemberRoles.resolve(theRoleRoleId) !== null // Old member has role.
         && newMemberRoles.resolve(theRoleRoleId) === null // New member does not have role.
       )
@@ -215,7 +220,7 @@ export function roleMessages(oldMember: RoleMessagesOldMember, newMember: RoleMe
       generateLogMessage(
         [
           'Passed role change match',
-          `(function: roleMessages, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(newMember.toString())}, direction: ${JSON.stringify(theDirection)})`,
+          `(function: roleMessages, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(newMember))}, direction: ${JSON.stringify(theDirection)})`,
         ].join(' '),
         40,
       );
@@ -235,7 +240,7 @@ export function roleMessages(oldMember: RoleMessagesOldMember, newMember: RoleMe
       }).catch((error: Error) => generateLogMessage(
         [
           'Failed to send message',
-          `(function: roleMessages, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+          `(function: roleMessages, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
         ].join(' '),
         10,
         error,
@@ -244,7 +249,7 @@ export function roleMessages(oldMember: RoleMessagesOldMember, newMember: RoleMe
       generateLogMessage(
         [
           'Failed role change match',
-          `(function: roleMessages, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(newMember.toString())}, direction: ${JSON.stringify(theDirection)})`,
+          `(function: roleMessages, name: ${JSON.stringify(theName)}, member: ${JSON.stringify(fetchIdentifier(newMember))}, direction: ${JSON.stringify(theDirection)})`,
         ].join(' '),
         40,
       );
@@ -449,11 +454,11 @@ export function syncRoles(member: SyncRolesMember, guild: SyncRolesGuild, settin
       if (
         (
           theHasSomeRoles
-          && _.some(someRoleIds, (someRoleId) => someRoleId !== undefined && memberRoles.resolve(someRoleId) !== null) // If user has some of the roles.
+          && _.some(someRoleIds, (someRoleId) => someRoleId !== undefined && memberRoles.resolve(someRoleId) !== null) // If user has some roles.
         )
         || (
           !theHasSomeRoles
-          && !_.some(someRoleIds, (someRoleId) => someRoleId !== undefined && memberRoles.resolve(someRoleId) !== null) // If user does not have some of the roles.
+          && !_.some(someRoleIds, (someRoleId) => someRoleId !== undefined && memberRoles.resolve(someRoleId) !== null) // If user does not have some roles.
         )
       ) {
         if (
@@ -462,7 +467,7 @@ export function syncRoles(member: SyncRolesMember, guild: SyncRolesGuild, settin
           && !_.isEmpty(theToAddRoles)
           && _.every(theToAddRoles, (theToAddRole) => _.isPlainObject(theToAddRole) && !_.isEmpty(theToAddRole))
           && _.every(toAddRoleIds, (toAddRoleId) => _.isString(toAddRoleId) && !_.isEmpty(toAddRoleId))
-          && !_.some(toAddRoleIds, (toAddRoleId) => toAddRoleId !== undefined && memberRoles.resolve(toAddRoleId) !== null) // If user does not have some of the roles being added.
+          && !_.some(toAddRoleIds, (toAddRoleId) => toAddRoleId !== undefined && memberRoles.resolve(toAddRoleId) !== null) // If user does not have some roles being added.
         ) {
           memberRoles.add(
             _.filter(toAddRoleIds, _.isString),
@@ -470,13 +475,13 @@ export function syncRoles(member: SyncRolesMember, guild: SyncRolesGuild, settin
           ).then(() => generateLogMessage(
             [
               'Added roles',
-              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(member.toString())}, roles: ${JSON.stringify(theToAddRoles)})`,
+              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(fetchIdentifier(member))}, roles: ${JSON.stringify(theToAddRoles)})`,
             ].join(' '),
             40,
           )).catch((error: Error) => generateLogMessage(
             [
               'Failed to add roles',
-              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(member.toString())}, roles: ${JSON.stringify(theToAddRoles)})`,
+              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(fetchIdentifier(member))}, roles: ${JSON.stringify(theToAddRoles)})`,
             ].join(' '),
             10,
             error,
@@ -489,7 +494,7 @@ export function syncRoles(member: SyncRolesMember, guild: SyncRolesGuild, settin
           && !_.isEmpty(theToRemoveRoles)
           && _.every(theToRemoveRoles, (theToRemoveRole) => _.isPlainObject(theToRemoveRole) && !_.isEmpty(theToRemoveRole))
           && _.every(toRemoveRoleIds, (toRemoveRoleId) => _.isString(toRemoveRoleId) && !_.isEmpty(toRemoveRoleId))
-          && _.some(toRemoveRoleIds, (toRemoveRoleId) => toRemoveRoleId !== undefined && memberRoles.resolve(toRemoveRoleId) !== null) // If user has some of the roles being removed.
+          && _.some(toRemoveRoleIds, (toRemoveRoleId) => toRemoveRoleId !== undefined && memberRoles.resolve(toRemoveRoleId) !== null) // If user has some roles being removed.
         ) {
           memberRoles.remove(
             _.filter(toRemoveRoleIds, _.isString),
@@ -497,13 +502,13 @@ export function syncRoles(member: SyncRolesMember, guild: SyncRolesGuild, settin
           ).then(() => generateLogMessage(
             [
               'Removed roles',
-              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(member.toString())}, roles: ${JSON.stringify(theToRemoveRoles)})`,
+              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(fetchIdentifier(member))}, roles: ${JSON.stringify(theToRemoveRoles)})`,
             ].join(' '),
             40,
           )).catch((error: Error) => generateLogMessage(
             [
               'Failed to remove roles',
-              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(member.toString())}, roles: ${JSON.stringify(theToRemoveRoles)})`,
+              `(function: syncRoles, name: ${JSON.stringify(theName)}, has some roles: ${JSON.stringify(theHasSomeRoles)}, member: ${JSON.stringify(fetchIdentifier(member))}, roles: ${JSON.stringify(theToRemoveRoles)})`,
             ].join(' '),
             10,
             error,

@@ -1,17 +1,19 @@
 import axios from 'axios';
-import { MessageOptions } from 'discord.js';
+import Bottleneck from 'bottleneck';
+import { GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import FormData from 'form-data';
 import _ from 'lodash';
 
 import {
   fetchFormattedDate,
+  fetchIdentifier,
   generateLogMessage,
   generateOutputMessage,
   generateUserAgent,
   getCollectionItems,
   getTextBasedChannel,
   splitStringChunks,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   AutoRepliesEventChannelChannelId,
   AutoRepliesEventChannels,
@@ -87,14 +89,24 @@ import {
   MessageProxiesEventWebhookWebhookUrl,
   MessageProxiesMessage,
   MessageProxiesReturns,
-} from '../types';
-import { ApiDiscordWebhook } from '../types/api';
+} from '../types/index.js';
+import { ApiDiscordWebhook } from '../types/api.js';
 import {
   MemoryMessageCopiersSendToDestinationsAttachments,
   MemoryMessageCopiersSendToDestinationsRequests,
   MemoryMessageProxiesBuildAndSendAttachments,
   MemoryMessageProxiesBuildAndSendRequests,
-} from '../types/memory';
+} from '../types/memory.js';
+
+/**
+ * Bottleneck.
+ *
+ * @since 1.0.0
+ */
+const discordWebhooksQueue = new Bottleneck({
+  maxConcurrent: 10,
+  minTime: 1000,
+});
 
 /**
  * Auto replies.
@@ -111,7 +123,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: autoReplies, guild: ${JSON.stringify(message.guild)})`,
+        `(function: autoReplies, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
       ].join(' '),
       10,
     );
@@ -122,12 +134,12 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
   generateLogMessage(
     [
       'Invoked function',
-      `(function: autoReplies, guild: ${JSON.stringify(message.guild)})`,
+      `(function: autoReplies, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
     ].join(' '),
     40,
   );
 
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageChannelId = message.channel.id;
   const messageContent = message.content;
   const messageGuildChannels = message.guild.channels;
@@ -174,7 +186,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
 
     const channelIds = _.map(theChannels, (theChannel) => <AutoRepliesEventChannelChannelId>_.get(theChannel, ['channel-id']));
 
-    let payload: MessageOptions = {};
+    let payload: MessageCreateOptions = {};
 
     // If previous regex rule already matched.
     if (alreadyMatched) {
@@ -346,7 +358,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
           40,
         );
 
-        payload = _.sample(thePayloads as MessageOptions[]) ?? thePayloads[0] as MessageOptions;
+        payload = _.sample(thePayloads as MessageCreateOptions[]) ?? thePayloads[0] as MessageCreateOptions;
 
         if (theReply === true) {
           _.assign(payload, {
@@ -369,7 +381,7 @@ export function autoReplies(message: AutoRepliesMessage, events: AutoRepliesEven
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: autoReplies, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(messageChannel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: autoReplies, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(messageChannel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,
@@ -415,7 +427,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: messageCopiers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: messageCopiers, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
       ].join(' '),
       10,
     );
@@ -426,13 +438,13 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
   generateLogMessage(
     [
       'Invoked function',
-      `(function: messageCopiers, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: messageCopiers, guild: ${JSON.stringify(fetchIdentifier(message.guild))}, member: ${JSON.stringify(fetchIdentifier(message.member))})`,
     ].join(' '),
     40,
   );
 
   const messageAttachments = message.attachments;
-  const messageChannel = message.channel;
+  const messageChannel = <GuildTextBasedChannel>message.channel;
   const messageChannelId = message.channel.id;
   const messageContent = message.content;
   const messageGuild = message.guild;
@@ -653,7 +665,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
 
           const channel = getTextBasedChannel(messageGuild, theChannelChannelId);
 
-          const payload: MessageOptions = {};
+          const payload: MessageCreateOptions = {};
 
           // If "message-copiers[${eventKey}].destinations[${eventDestinationKey}].channel.channel-id" is not configured properly.
           if (
@@ -710,7 +722,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
             generateLogMessage(
               [
                 'Failed to send message',
-                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
               ].join(' '),
               10,
               error,
@@ -820,17 +832,20 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
             });
           }
 
+          // Capture form data before sending it.
+          const formCapture = form;
+
           try {
-            await axios.post<ApiDiscordWebhook>(theUrl, form, {
+            await discordWebhooksQueue.schedule(() => axios.post<ApiDiscordWebhook>(theUrl, form, {
               headers: form.getHeaders({
                 'User-Agent': generateUserAgent(),
               }),
-            });
+            }));
 
             generateLogMessage(
               [
                 'Sent message via webhook',
-                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(theUrl)}, form: ${JSON.stringify(form)})`,
+                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(theUrl)}, form: ${JSON.stringify(formCapture)})`,
               ].join(' '),
               40,
             );
@@ -838,7 +853,7 @@ export function messageCopiers(message: MessageCopiersMessage, twitterClient: Me
             generateLogMessage(
               [
                 'Failed to send message via webhook',
-                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(theUrl)}, form: ${JSON.stringify(form)})`,
+                `(function: messageCopiers, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(theUrl)}, form: ${JSON.stringify(formCapture)})`,
               ].join(' '),
               10,
               error,
@@ -1360,7 +1375,7 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
     generateLogMessage(
       [
         'Failed to invoke function',
-        `(function: messageProxies, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+        `(function: messageProxies, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
       ].join(' '),
       10,
     );
@@ -1371,7 +1386,7 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
   generateLogMessage(
     [
       'Invoked function',
-      `(function: messageProxies, guild: ${JSON.stringify(message.guild)}, member: ${JSON.stringify(message.member)})`,
+      `(function: messageProxies, guild: ${JSON.stringify(fetchIdentifier(message.guild))})`,
     ].join(' '),
     40,
   );
@@ -1714,20 +1729,23 @@ export function messageProxies(message: MessageProxiesMessage, events: MessagePr
         });
       }
 
-      axios.post<ApiDiscordWebhook>(eventWebhookUrl, form, {
+      // Capture form data before sending it.
+      const formCapture = form;
+
+      discordWebhooksQueue.schedule(() => axios.post<ApiDiscordWebhook>(eventWebhookUrl, form, {
         headers: form.getHeaders({
           'User-Agent': generateUserAgent(),
         }),
-      }).then(() => generateLogMessage(
+      })).then(() => generateLogMessage(
         [
           'Sent message via webhook',
-          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(form)})`,
+          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(formCapture)})`,
         ].join(' '),
         40,
       )).catch((error) => generateLogMessage(
         [
           'Failed to send message via webhook',
-          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(form)})`,
+          `(function: messageProxies, name: ${JSON.stringify(eventName)}, webhook url: ${JSON.stringify(eventWebhookUrl)}, form: ${JSON.stringify(formCapture)})`,
         ].join(' '),
         10,
         error,

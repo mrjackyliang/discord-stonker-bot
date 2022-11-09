@@ -6,7 +6,7 @@ Discord Stonker Bot
 [![GitHub License](https://img.shields.io/github/license/mrjackyliang/discord-stonker-bot?style=flat-square&color=yellow)](https://github.com/mrjackyliang/discord-stonker-bot/blob/master/LICENSE)
 [![Become a GitHub Sponsor](https://img.shields.io/badge/sponsor-github-black?style=flat-square&color=orange)](https://github.com/sponsors/mrjackyliang)
 
-A utility bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your server such as content organization, impersonator detection, bumping threads, and more.
+An advanced business-ready bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your server such as content organization, impersonator detection, bumping threads, and more.
 
 **This project is largely sponsored by and actively used in [Low Key Stonks](https://liang.nyc/lowkeystonks). If you are seeking for a Discord server stewardship, feel free to [contact me](https://www.mrjackyliang.com/contact).**
 
@@ -84,8 +84,9 @@ __NOTE:__ It is recommended that you configure the bot with a freshly made `conf
 17. [Toggle Permissions](#17-toggle-permissions)
 18. [Bump Threads](#18-bump-threads)
 19. [Impersonator Alerts](#19-impersonator-alerts)
-20. [Twitter Feeds](#20-twitter-feeds)
-21. [Broadcast Alerts](#21-broadcast-alerts)
+20. [Scammer Alerts](#20-scammer-alerts)
+21. [Twitter Feeds](#21-twitter-feeds)
+22. [Broadcast Alerts](#22-broadcast-alerts)
 
 ### 1. Base Settings
 For Stonker Bot to start, the required settings should be filled.
@@ -1121,7 +1122,7 @@ Automatically copy the original message that matches the regular expression (in 
 
 __NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (GIF) is allowed per tweet. Images first, then GIFs. If both limits are not respected, no attachments will be uploaded to Twitter.
 
-__NOTE:__ Message edits and deletions will not be passed onto their offsets.
+__NOTE:__ Message edits, deletions, and replies will not be passed onto their offsets.
 
 | __Key__                                                  | __Type__   | __Description__                                                        | __Required__                               | __Accepted Values__                                                                                                                                                                                    |
 |----------------------------------------------------------|------------|------------------------------------------------------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1342,33 +1343,33 @@ Configure channel and category permissions automatically through a scheduler or 
 
 _This feature can be extended with [Schedule Posts](#7-schedule-posts)._
 
-| __Key__                                                        | __Type__   | __Description__                                          | __Required__ | __Accepted Values__                                                                                                                                                    |
-|----------------------------------------------------------------|------------|----------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `toggle-perms`                                                 | `object[]` |                                                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].name`                                         | `string`   | Name of the event                                        | no           |                                                                                                                                                                        |
-| `toggle-perms[x].command`                                      | `object`   |                                                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].command.base-commands`                        | `string[]` | Keywords to initiate command                             | yes          | If there are prefixes, it is recommended to keep them exact                                                                                                            |
-| `toggle-perms[x].command.allowed-roles`                        | `object[]` |                                                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].command.allowed-roles[x].description`         | `string`   | Description of the allowed role                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].command.allowed-roles[x].role-id`             | `string`   | Allowed role                                             | yes          | Discord role ID                                                                                                                                                        |
-| `toggle-perms[x].toggle-on`                                    | `object`   |                                                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].toggle-on.time-zone`                          | `string`   | Toggle on time zone                                      | no           | Time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                    |
-| `toggle-perms[x].toggle-on.days-of-week`                       | `number[]` | Toggle on day of week                                    | no           | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), and `6` (Saturday)                                                           |
-| `toggle-perms[x].toggle-on.months`                             | `number[]` | Toggle on month                                          | no           | From `1` to `12`                                                                                                                                                       |
-| `toggle-perms[x].toggle-on.dates`                              | `number[]` | Toggle on date                                           | no           | From `1` to `31`                                                                                                                                                       |
-| `toggle-perms[x].toggle-on.hours`                              | `number[]` | Toggle on hour of day                                    | no           | From `0` to `23`                                                                                                                                                       |
-| `toggle-perms[x].toggle-on.minutes`                            | `number[]` | Toggle on minute of hour                                 | no           | From `0` to `59`                                                                                                                                                       |
-| `toggle-perms[x].toggle-on.seconds`                            | `number[]` | Toggle on second of minute                               | no           | From `0` to `59`                                                                                                                                                       |
-| `toggle-perms[x].skip-dates`                                   | `string[]` | Skip on specified dates                                  | no           | Date format is `YYYY-MM-DD`                                                                                                                                            |
-| `toggle-perms[x].toggles`                                      | `object[]` |                                                          | yes          |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].description`                       | `string`   | Description of the toggle                                | no           |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].channel`                           | `object`   |                                                          | yes          |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].channel.description`               | `string`   | Description of the channel used to toggle permissions on | no           |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].channel.channel-id`                | `string`   | Channel used to toggle permissions on                    | yes          | Discord channel ID                                                                                                                                                     |
-| `toggle-perms[x].toggles[x].permissions`                       | `object[]` |                                                          | yes          |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].permissions[x].description`        | `string`   | Description of the user or role                          | no           |                                                                                                                                                                        |
-| `toggle-perms[x].toggles[x].permissions[x].user-or-role-id`    | `string`   | User or role                                             | yes          | Discord user or role ID                                                                                                                                                |
-| `toggle-perms[x].toggles[x].permissions[x].user-or-role-perms` | `object`   | User or role permissions                                 | yes          | Review the [permission flags](https://discord.js.org/#/docs/main/stable/class/Permissions?scrollTo=s-FLAGS). Set flags to `true` (green), `null` (gray), `false` (red) |
+| __Key__                                                        | __Type__   | __Description__                                          | __Required__ | __Accepted Values__                                                                                                                                                                                                                                                           |
+|----------------------------------------------------------------|------------|----------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `toggle-perms`                                                 | `object[]` |                                                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].name`                                         | `string`   | Name of the event                                        | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].command`                                      | `object`   |                                                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].command.base-commands`                        | `string[]` | Keywords to initiate command                             | yes          | If there are prefixes, it is recommended to keep them exact                                                                                                                                                                                                                   |
+| `toggle-perms[x].command.allowed-roles`                        | `object[]` |                                                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].command.allowed-roles[x].description`         | `string`   | Description of the allowed role                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].command.allowed-roles[x].role-id`             | `string`   | Allowed role                                             | yes          | Discord role ID                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggle-on`                                    | `object`   |                                                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggle-on.time-zone`                          | `string`   | Toggle on time zone                                      | no           | Time zones found in the [tz database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                                                                                                                                           |
+| `toggle-perms[x].toggle-on.days-of-week`                       | `number[]` | Toggle on day of week                                    | no           | `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), and `6` (Saturday)                                                                                                                                                                  |
+| `toggle-perms[x].toggle-on.months`                             | `number[]` | Toggle on month                                          | no           | From `1` to `12`                                                                                                                                                                                                                                                              |
+| `toggle-perms[x].toggle-on.dates`                              | `number[]` | Toggle on date                                           | no           | From `1` to `31`                                                                                                                                                                                                                                                              |
+| `toggle-perms[x].toggle-on.hours`                              | `number[]` | Toggle on hour of day                                    | no           | From `0` to `23`                                                                                                                                                                                                                                                              |
+| `toggle-perms[x].toggle-on.minutes`                            | `number[]` | Toggle on minute of hour                                 | no           | From `0` to `59`                                                                                                                                                                                                                                                              |
+| `toggle-perms[x].toggle-on.seconds`                            | `number[]` | Toggle on second of minute                               | no           | From `0` to `59`                                                                                                                                                                                                                                                              |
+| `toggle-perms[x].skip-dates`                                   | `string[]` | Skip on specified dates                                  | no           | Date format is `YYYY-MM-DD`                                                                                                                                                                                                                                                   |
+| `toggle-perms[x].toggles`                                      | `object[]` |                                                          | yes          |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].description`                       | `string`   | Description of the toggle                                | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].channel`                           | `object`   |                                                          | yes          |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].channel.description`               | `string`   | Description of the channel used to toggle permissions on | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].channel.channel-id`                | `string`   | Channel used to toggle permissions on                    | yes          | Discord channel ID                                                                                                                                                                                                                                                            |
+| `toggle-perms[x].toggles[x].permissions`                       | `object[]` |                                                          | yes          |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].permissions[x].description`        | `string`   | Description of the user or role                          | no           |                                                                                                                                                                                                                                                                               |
+| `toggle-perms[x].toggles[x].permissions[x].user-or-role-id`    | `string`   | User or role                                             | yes          | Discord user or role ID                                                                                                                                                                                                                                                       |
+| `toggle-perms[x].toggles[x].permissions[x].user-or-role-perms` | `object`   | User or role permissions                                 | yes          | Review the [permission flags](https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags). Permission flags should be set to pascal case (e.g. `SEND_MESSAGES` to `SendMessages`). Set flags to `true` (green), `null` (gray), `false` (red) |
 
 ```json
 {
@@ -1429,8 +1430,8 @@ _This feature can be extended with [Schedule Posts](#7-schedule-posts)._
               "description": "Sample role",
               "user-or-role-id": "000000000000000000",
               "user-or-role-perms": {
-                "VIEW_CHANNEL": true,
-                "SEND_MESSAGES": true
+                "ViewChannel": true,
+                "SendMessages": true
               }
             }
           ]
@@ -1523,7 +1524,48 @@ Get notifications when your Discord identity or entity (e.g. your company's name
 }
 ```
 
-### 20. Twitter Feeds
+### 20. Scammer Alerts
+Get notifications when unwanted users (known primarily as scammers or spammers) enter your Discord server.
+
+| __Key__                                        | __Type__   | __Description__                                                       | __Required__ | __Accepted Values__                                                                                                                                                 |
+|------------------------------------------------|------------|-----------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `scammer-alerts`                               | `object`   |                                                                       | no           |                                                                                                                                                                     |
+| `scammer-alerts.entities`                      | `object[]` |                                                                       | yes          |                                                                                                                                                                     |
+| `scammer-alerts.entities[x].name`              | `string`   | Name of the entity                                                    | no           |                                                                                                                                                                     |
+| `scammer-alerts.entities[x].regex`             | `object`   |                                                                       | yes          |                                                                                                                                                                     |
+| `scammer-alerts.entities[x].regex.description` | `string`   | Description of the nickname or username regex                         | no           |                                                                                                                                                                     |
+| `scammer-alerts.entities[x].regex.pattern`     | `string`   | Regex pattern                                                         | yes          | Read [Writing a regular expression pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#writing_a_regular_expression_pattern) |
+| `scammer-alerts.entities[x].regex.flags`       | `string`   | Regex flags                                                           | no           | Read [Advanced searching with flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)               |
+| `scammer-alerts.entities[x].payload`           | `object`   | Message content to send when there are matched nicknames or usernames | no           | `BaseMessageOptions` in [discord.js Documentation](https://discord.js.org/#/docs/main/stable/typedef/BaseMessageOptions). Variables include `%MEMBER_USER_MENTION%` |
+| `scammer-alerts.channel`                       | `object`   |                                                                       | yes          |                                                                                                                                                                     |
+| `scammer-alerts.channel.description`           | `string`   | Description of the channel used to send scammer alerts                | no           |                                                                                                                                                                     |
+| `scammer-alerts.channel.channel-id`            | `string`   | Channel used to send scammer alerts                                   | yes          | Discord channel ID                                                                                                                                                  |
+
+```json
+{
+  "scammer-alerts": {
+    "entities": [
+      {
+        "name": "Sample",
+        "regex": {
+          "description": "Sample regex",
+          "pattern": "(.+)",
+          "flags": "g"
+        },
+        "payload": {
+          "content": "A scammer may have been detected. The offending user is %MEMBER_USER_MENTION%."
+        }
+      }
+    ],
+    "channel": {
+      "description": "Sample channel",
+      "channel-id": "000000000000000000"
+    }
+  }
+}
+```
+
+### 21. Twitter Feeds
 Receive tweets from other users on Twitter and send them directly to your channel or threads. Optionally exclude retweets and replies as well.
 
 __NOTE:__ To ensure feed availability even when the user protects their tweets, it is recommended that you follow the Twitter handle.
@@ -1560,7 +1602,7 @@ __NOTE:__ To ensure feed availability even when the user protects their tweets, 
 }
 ```
 
-### 21. Broadcast Alerts
+### 22. Broadcast Alerts
 Automatically send Discord events to Twitter. Event broadcast alerts are determined by the status, the entity types, and the creator.
 
 | __Key__                                   | __Type__   | __Description__                                   | __Required__ | __Accepted Values__                                                                                                                                                     |

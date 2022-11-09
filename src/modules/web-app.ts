@@ -10,12 +10,13 @@ import path from 'path';
 import {
   escapeCharacters,
   fetchFormattedDate,
+  fetchIdentifier,
   generateLogMessage,
   generateUserAgent,
   getTextBasedChannel,
   trackRoute,
   trackRouteIsTracked,
-} from '../lib/utility';
+} from '../lib/utility.js';
 import {
   InviteGeneratorGuild,
   InviteGeneratorLoadTemplateReturns,
@@ -59,13 +60,13 @@ import {
   WebApplicationsSetupSettingsHttpsServerPort,
   WebApplicationsSetupSettingsInviteGenerator,
   WebApplicationsSetupSettingsMapWebhooks,
-} from '../types';
+} from '../types/index.js';
 import {
   ApiGoogleRecaptchaVerify,
   ApiGoogleRecaptchaVerifyErrorCode,
   ApiGoogleRecaptchaVerifyErrorCodes,
   ApiGoogleRecaptchaVerifySuccess,
-} from '../types/api';
+} from '../types/api.js';
 
 /**
  * Invite generator.
@@ -307,7 +308,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
           generateLogMessage(
             [
               'Fetched rules channel',
-              `(function: inviteGenerator, rules channel: ${JSON.stringify(guildRulesChannel.toString())})`,
+              `(function: inviteGenerator, rules channel: ${JSON.stringify(fetchIdentifier(guildRulesChannel))})`,
             ].join(' '),
             40,
           );
@@ -323,7 +324,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             generateLogMessage(
               [
                 'Created invite',
-                `(function: inviteGenerator, rules channel: ${JSON.stringify(guildRulesChannel.toString())}, max age: ${JSON.stringify(settingsOptionsMaxAge)}, max uses: ${JSON.stringify(settingsOptionsMaxUses)}, url: ${JSON.stringify(createResponseUrl)})`,
+                `(function: inviteGenerator, rules channel: ${JSON.stringify(fetchIdentifier(guildRulesChannel))}, max age: ${JSON.stringify(settingsOptionsMaxAge)}, max uses: ${JSON.stringify(settingsOptionsMaxUses)}, url: ${JSON.stringify(createResponseUrl)})`,
               ].join(' '),
               40,
             );
@@ -338,7 +339,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
             generateLogMessage(
               [
                 'Failed to create invite',
-                `(function: inviteGenerator, rules channel: ${JSON.stringify(guildRulesChannel.toString())}, max age: ${JSON.stringify(settingsOptionsMaxAge)}, max uses: ${JSON.stringify(settingsOptionsMaxUses)})`,
+                `(function: inviteGenerator, rules channel: ${JSON.stringify(fetchIdentifier(guildRulesChannel))}, max age: ${JSON.stringify(settingsOptionsMaxAge)}, max uses: ${JSON.stringify(settingsOptionsMaxUses)})`,
               ].join(' '),
               10,
               error,
@@ -354,7 +355,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
           generateLogMessage(
             [
               'Failed to fetch rules channel',
-              `(function: inviteGenerator, rules channel: ${JSON.stringify(guildRulesChannel)})`,
+              `(function: inviteGenerator, rules channel: ${JSON.stringify(fetchIdentifier(guildRulesChannel))})`,
             ].join(' '),
             10,
           );
@@ -679,7 +680,7 @@ export function mapWebhooks(guild: MapWebhooksGuild, webServer: MapWebhooksWebSe
         }).catch((error: Error) => generateLogMessage(
           [
             'Failed to send message',
-            `(function: mapWebhooks, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(channel.toString())}, payload: ${JSON.stringify(payload)})`,
+            `(function: mapWebhooks, name: ${JSON.stringify(theName)}, channel: ${JSON.stringify(fetchIdentifier(channel))}, payload: ${JSON.stringify(payload)})`,
           ].join(' '),
           10,
           error,

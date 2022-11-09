@@ -1,8 +1,8 @@
-import { MessageAttachment } from 'discord.js';
+import { AttachmentBuilder } from 'discord.js';
 import _ from 'lodash';
-import table from 'markdown-table';
+import { markdownTable } from 'markdown-table';
 
-import { fetchFormattedDate } from './utility';
+import { fetchFormattedDate } from './utility.js';
 import {
   CreateEarningsTableAttachmentEarnings,
   CreateEarningsTableAttachmentReturns,
@@ -22,7 +22,7 @@ import {
   GenerateAttachmentDescription,
   GenerateAttachmentFileName,
   GenerateAttachmentReturns,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Generate attachment.
@@ -36,7 +36,7 @@ import {
  * @since 1.0.0
  */
 export function generateAttachment(buffer: GenerateAttachmentBuffer, fileName: GenerateAttachmentFileName, description: GenerateAttachmentDescription): GenerateAttachmentReturns {
-  const messageAttachment = new MessageAttachment(buffer)
+  const messageAttachment = new AttachmentBuilder(buffer)
     .setName(fileName);
 
   if (description !== undefined) {
@@ -100,7 +100,7 @@ export function createEarningsTableAttachment(earnings: CreateEarningsTableAttac
 
   return generateAttachment(
     Buffer.from(
-      table([
+      markdownTable([
         ...tableHead,
         ...tableBody,
       ]),
@@ -172,7 +172,7 @@ export function createEmojisTableAttachment(emojis: CreateEmojisTableAttachmentE
 
   return generateAttachment(
     Buffer.from(
-      table([
+      markdownTable([
         ...tableHead,
         ...tableBody,
       ]),
@@ -248,7 +248,7 @@ export function createMembersTableAttachment(members: CreateMembersTableAttachme
 
   return generateAttachment(
     Buffer.from(
-      table([
+      markdownTable([
         ...tableHead,
         ...tableBody,
       ]),
