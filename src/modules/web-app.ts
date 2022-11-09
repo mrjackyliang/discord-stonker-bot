@@ -6,6 +6,7 @@ import https from 'https';
 import _ from 'lodash';
 import numeral from 'numeral';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import {
   escapeCharacters,
@@ -100,6 +101,7 @@ export function inviteGenerator(guild: InviteGeneratorGuild, webServer: InviteGe
    * @since 1.0.0
    */
   const loadTemplate = (): InviteGeneratorLoadTemplateReturns => {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const defaultEjs = path.join(__dirname, '../views/invites.ejs');
     const customEjs = path.join(__dirname, '../../invites.ejs');
 
