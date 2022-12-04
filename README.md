@@ -8,8 +8,6 @@ Discord Stonker Bot
 
 An advanced business-ready bot built for finance-related Discord servers. This bot adds a suite of features designed to enhance the experience of your server such as content organization, impersonator detection, bumping threads, and more.
 
-**This project is largely sponsored by and actively used in [Low Key Stonks](https://liang.nyc/lowkeystonks). If you are seeking for a Discord server stewardship, feel free to [contact me](https://www.mrjackyliang.com/contact).**
-
 To use this Discord bot, you would need to:
 1. Install the [dependencies](#install-dependencies)
 2. Configure the [Discord application](#configure-discord-application)
