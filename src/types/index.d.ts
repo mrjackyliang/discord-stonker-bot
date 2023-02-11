@@ -11,6 +11,7 @@ import {
   EmbedBuilder,
   EmbedField,
   EmojiIdentifierResolvable,
+  ForumChannel,
   Guild,
   GuildEmoji,
   GuildMember,
@@ -1260,6 +1261,17 @@ export type GetCategoryChannelGuild = Guild;
 export type GetCategoryChannelId = Snowflake | undefined;
 
 export type GetCategoryChannelReturns = CategoryChannel | null | undefined;
+
+/**
+ * Get forum channel.
+ *
+ * @since 1.0.0
+ */
+export type GetForumChannelGuild = Guild;
+
+export type GetForumChannelId = Snowflake | undefined;
+
+export type GetForumChannelReturns = ForumChannel | null | undefined;
 
 /**
  * Get text-based channel.

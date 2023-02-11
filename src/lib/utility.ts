@@ -35,6 +35,9 @@ import {
   GetCategoryChannelReturns,
   GetCollectionItemsCollection,
   GetCollectionItemsReturns,
+  GetForumChannelGuild,
+  GetForumChannelId,
+  GetForumChannelReturns,
   GetTextBasedChannelGuild,
   GetTextBasedChannelId,
   GetTextBasedChannelReturns,
@@ -550,6 +553,35 @@ export function getCategoryChannel(guild: GetCategoryChannelGuild, id: GetCatego
  */
 export function getCollectionItems<Key, Value>(collection: GetCollectionItemsCollection<Key, Value>): GetCollectionItemsReturns<Value> {
   return [...collection.values()];
+}
+
+/**
+ * Get forum channel.
+ *
+ * @param {GetForumChannelGuild} guild - Guild.
+ * @param {GetForumChannelId}    id    - Id.
+ *
+ * @returns {GetForumChannelReturns}
+ *
+ * @since 1.0.0
+ */
+export function getForumChannel(guild: GetForumChannelGuild, id: GetForumChannelId): GetForumChannelReturns {
+  const guildChannels = guild.channels;
+
+  if (id === undefined) {
+    return undefined;
+  }
+
+  const forumChannel = guildChannels.resolve(id);
+
+  if (
+    forumChannel !== null
+    && forumChannel.type === ChannelType.GuildForum
+  ) {
+    return forumChannel;
+  }
+
+  return null;
 }
 
 /**
