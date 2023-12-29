@@ -16,10 +16,16 @@
     "type": "git",
     "url": "git://github.com/mrjackyliang/discord-stonker-bot.git"
   },
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/sponsors/mrjackyliang"
-  },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/mrjackyliang"
+    },
+    {
+      "type": "custom",
+      "url": "https://liang.nyc/paypal"
+    }
+  ],
   "keywords": [
     "discord",
     "discord-bots",
@@ -48,7 +54,7 @@
     "url": "https://github.com/mrjackyliang/discord-stonker-bot/issues"
   },
   "files": [],
-  "homepage": "https://github.com/mrjackyliang/discord-stonker-bot#readme",
+  "homepage": "https://github.com/mrjackyliang/discord-stonker-bot",
   "engines": {
     "node": "^18.12.1"
   },
