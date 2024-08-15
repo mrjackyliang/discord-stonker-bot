@@ -3,7 +3,8 @@
   "displayName": "Discord Stonker Bot",
   "version": "3.4.3",
   "description": "An advanced business-ready bot built for finance-related Discord servers",
-  "exports": "./build/src/index.js",
+  "main": "./build/index.js",
+  "exports": "./build/index.js",
   "type": "module",
   "private": true,
   "scripts": {
@@ -12,6 +13,7 @@
     "build:tsc": "tsc --build",
     "build:copyfiles": "copyfiles \"src/views/invites.ejs\" \"invites.ejs\" \"config.json\" build"
   },
+  "types": "",
   "repository": {
     "type": "git",
     "url": "git://github.com/mrjackyliang/discord-stonker-bot.git"
@@ -48,7 +50,11 @@
     "toggle-permissions",
     "twitter-feed"
   ],
-  "author": "Jacky Liang",
+  "author": {
+    "name": "Jacky Liang",
+    "email": "hello@mrjackyliang.com",
+    "url": "https://www.mrjackyliang.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mrjackyliang/discord-stonker-bot/issues"
@@ -56,7 +62,7 @@
   "files": [],
   "homepage": "https://github.com/mrjackyliang/discord-stonker-bot",
   "engines": {
-    "node": "^18.12.1"
+    "node": ">=18"
   },
   "dependencies": {
     "axios": "1.3.2",
