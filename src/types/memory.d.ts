@@ -47,9 +47,7 @@ export type MemoryEtherscanGasOracle = MemoryEtherscanGasOracleContent | null;
  */
 export type MemoryFetchDuplicatesSortedMember = GuildMember;
 
-export type MemoryFetchDuplicatesSortedMembers = {
-  [avatar: string]: MemoryFetchDuplicatesSortedMember[];
-};
+export type MemoryFetchDuplicatesSortedMembers = Record<string, MemoryFetchDuplicatesSortedMember[]>;
 
 /**
  * Fetch emojis.
@@ -216,18 +214,14 @@ export type MemoryStocktwitsTrending = MemoryStocktwitsTrendingContent | null;
  *
  * @since 1.0.0
  */
-export type MemorySyncRoles = {
-  [memberId: string]: ReturnType<typeof setTimeout>;
-};
+export type MemorySyncRoles = Record<string, ReturnType<typeof setTimeout>>;
 
 /**
  * Toggle perms.
  *
  * @since 1.0.0
  */
-export type MemoryTogglePermsSchedules = {
-  [eventKey: number]: cron.ScheduledTask;
-};
+export type MemoryTogglePermsSchedules = Record<number, cron.ScheduledTask>;
 
 /**
  * Track message.
