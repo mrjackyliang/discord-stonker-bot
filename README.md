@@ -62,7 +62,7 @@ Here are the instructions on how you can create an application and enable Twitte
 ## Bot Configuration
 In the project folder, you will find a `config-sample.json` file. Each section enables a feature and must be configured correctly. If you wish to disable a feature, you may omit the section from the configuration.
 
-__NOTE:__ It is recommended that you configure the bot with a freshly made `config.json` file instead of copying directly from `config-sample.json`.
+__Note:__ It is recommended that you configure the bot with a freshly made `config.json` file instead of copying directly from `config-sample.json`.
 
 1. [Base Settings](#1-base-settings)
 2. [Snitch Notifications](#2-snitch-notifications)
@@ -131,7 +131,7 @@ For Stonker Bot to start, the required settings should be filled.
 ### 2. Snitch Notifications
 Get notifications from user actions surrounding your server. You can pick between receiving notifications related to user changes, when a message status changes, or when a message includes a link or attachment.
 
-__NOTE:__ Only messages cached (during the current session or last edited within 30 days) will be tracked. To preserve cached events, you may create multiple configurable bot instances.
+__Note:__ Only messages cached (during the current session or last edited within 30 days) will be tracked. To preserve cached events, you may create multiple configurable bot instances.
 
 | __Key__                                                    | __Type__   | __Description__                                                     | __Required__ | __Accepted Values__                                                                                                                                                 |
 |------------------------------------------------------------|------------|---------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -378,7 +378,7 @@ Connect external applications and traffic into your Discord server. To enable we
 1. [Invite Generator](#41-invite-generator)
 2. [Map Webhooks](#42-map-webhooks)
 
-__NOTE:__ During reboots, all web applications will be taken offline. To increase uptime, you may create multiple configurable bot instances.
+__Note:__ During reboots, all web applications will be taken offline. To increase uptime, you may create multiple configurable bot instances.
 
 | __Key__                              | __Type__ | __Description__                        | __Required__ | __Accepted Values__                                            |
 |--------------------------------------|----------|----------------------------------------|--------------|----------------------------------------------------------------|
@@ -642,7 +642,7 @@ Retrieve updated information through a live feed and via a customizable keyword 
 ### 6. Anti-Raid
 A set of tools to ban members (based on their avatar or username), and helps automate the membership gate for those that just joined the server.
 
-__NOTE:__ Anti-raid will not auto ban or assign roles during restarts. To increase uptime, you may create multiple configurable bot instances.
+__Note:__ Anti-raid will not auto ban or assign roles during restarts. To increase uptime, you may create multiple configurable bot instances.
 
 | __Key__                                          | __Type__   | __Description__                                              | __Required__ | __Accepted Values__                                                                                                                                                                          |
 |--------------------------------------------------|------------|--------------------------------------------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -783,7 +783,7 @@ You can schedule messages to be sent out to a specific text-based channel. No mo
 ### 8. RSS Feeds
 Sends out messages when an update from external RSS feeds are detected. Control how often you want the bot to fetch updates. You may also choose to have links resolved to their final destination and have parameters removed as well.
 
-__NOTE:__ For Google News RSS Feeds, the source will be stripped from the title automatically.
+__Note:__ For Google News RSS Feeds, the source will be stripped from the title automatically.
 
 | __Key__                              | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                          |
 |--------------------------------------|------------|---------------------------------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -863,7 +863,7 @@ Restrict a specific format and disallow specific text in a channel or the entire
 
 _This feature can be extended with the [delete message](#2-snitch-notifications) notification._
 
-__NOTE:__ Please prioritize channel restrictions before server-wide restrictions because only the first match will be considered.
+__Note:__ Please prioritize channel restrictions before server-wide restrictions because only the first match will be considered.
 
 | __Key__                                        | __Type__   | __Description__                                                | __Required__ | __Accepted Values__                                                                                                                                                 |
 |------------------------------------------------|------------|----------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -947,7 +947,7 @@ Detect words in a message that may require attention. Useful when a member menti
 ### 11. Sync Roles
 Add or remove selected roles from members automatically if a user has or does not have "some" roles. Useful for many scenarios, for example, when members lose a premium role (e.g. _removing_ premium add-on roles) or when members get muted (e.g. _removing_ roles purposely designed to enable sending of messages, speaking in voice channels, or creating new reactions).
 
-__NOTE:__ Please prioritize role removals before role additions due to how Discord processes role changes.
+__Note:__ Please prioritize role removals before role additions due to how Discord processes role changes.
 
 | __Key__                                               | __Type__   | __Description__                                  | __Required__ | __Accepted Values__                         |
 |-------------------------------------------------------|------------|--------------------------------------------------|--------------|---------------------------------------------|
@@ -1070,7 +1070,7 @@ Sends out messages when a role is added to or removed from a user. Perfect for s
 ### 13. Auto Replies
 Reply to a message without requiring human interaction. Great for automated customer service or to plant hidden Easter eggs!
 
-__NOTE:__ Please prioritize channel-restricted replies before server-wide replies because only the first match will be considered.
+__Note:__ Please prioritize channel-restricted replies before server-wide replies because only the first match will be considered.
 
 | __Key__                                   | __Type__   | __Description__                                                                             | __Required__ | __Accepted Values__                                                                                                                                                 |
 |-------------------------------------------|------------|---------------------------------------------------------------------------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1119,9 +1119,9 @@ __NOTE:__ Please prioritize channel-restricted replies before server-wide replie
 ### 14. Message Copiers
 Automatically copy the original message that matches the regular expression (in addition to the allowed/disallowed users or channels to copy from) into another channel, another Discord server channel, or a Twitter account. A powerful utility to route content in Discord.
 
-__NOTE:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (GIF) is allowed per tweet. Images first, then GIFs. If both limits are not respected, no attachments will be uploaded to Twitter.
+__Note:__ Only 1 to 4 images (JPE, JPG, JPEG, PNG, WEBP) _or_ 1 animated image (GIF) is allowed per tweet. Images first, then GIFs. If both limits are not respected, no attachments will be uploaded to Twitter.
 
-__NOTE:__ Message edits, deletions, and replies will not be passed onto their offsets.
+__Note 2:__ Message edits, deletions, and replies will not be passed onto their offsets.
 
 | __Key__                                                  | __Type__   | __Description__                                                        | __Required__                               | __Accepted Values__                                                                                                                                                                                    |
 |----------------------------------------------------------|------------|------------------------------------------------------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1238,9 +1238,9 @@ __NOTE:__ Message edits, deletions, and replies will not be passed onto their of
 ### 15. Message Proxies
 Allows you to containerize third-party Discord bots away from the primary Discord server. Forward bot messages via webhooks. Designed for corporate environments and greatly enhances security measures.
 
-__NOTE:__ Replacements will expose the entire payload using regular expression. Please use with caution.
+__Note:__ Replacements will expose the entire payload using regular expression. Please use with caution.
 
-__NOTE:__ Message edits and deletions will not be passed onto their offsets.
+__Note 2:__ Message edits and deletions will not be passed onto their offsets.
 
 | __Key__                                           | __Type__   | __Description__                                              | __Required__ | __Accepted Values__                                                                                                                                                                                                           |
 |---------------------------------------------------|------------|--------------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1444,7 +1444,7 @@ _This feature can be extended with [Schedule Posts](#7-schedule-posts)._
 ### 18. Bump Threads
 Stretch the world of threads and make them like sub-channels! Create threads that _never_ archive, even if you don't have _boosted_ servers.
 
-__NOTE:__ If threads are un-archived immediately after bot startup and one or more features send messages through threads, please restart the bot again to ensure proper operation.
+__Note:__ If threads are un-archived immediately after bot startup and one or more features send messages through threads, please restart the bot again to ensure proper operation.
 
 | __Key__                               | __Type__   | __Description__                                   | __Required__ | __Accepted Values__ |
 |---------------------------------------|------------|---------------------------------------------------|--------------|---------------------|
@@ -1567,7 +1567,7 @@ Get notifications when unwanted users (known primarily as scammers or spammers) 
 ### 21. Twitter Feeds
 Receive tweets from other users on Twitter and send them directly to your channel or threads. Optionally exclude retweets and replies as well.
 
-__NOTE:__ To ensure feed availability even when the user protects their tweets, it is recommended that you follow the Twitter handle.
+__Note:__ To ensure feed availability even when the user protects their tweets, it is recommended that you follow the Twitter handle.
 
 | __Key__                                | __Type__   | __Description__                                         | __Required__ | __Accepted Values__                                                                                                                                                           |
 |----------------------------------------|------------|---------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
