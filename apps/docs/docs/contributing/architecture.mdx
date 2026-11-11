@@ -1,0 +1,140 @@
+---
+id: architecture
+title: Architecture
+description: Understand how the Stonker Bot for Discord services, web API, React console, feature modules, storage, job queue, and credential vault fit together.
+keywords:
+  - stonker bot for discord
+  - architecture
+  - s6-overlay
+  - event kernel
+  - job queue
+  - contributors
+tags:
+  - contributing
+  - architecture
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Understand how the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>'s services, web API, console, lifecycle loop, feature modules, storage, and job queue fit together before you change the code.
+
+## Services and Supervision
+
+The image runs s6-overlay as its init system, with the service graph defined in `packages/docker/manifest.json` and `packages/docker/rootfs/etc/s6-overlay/s6-rc.d/`.
+
+| Service               | Kind     | Critical | Role                                                                                                                                                                                                                                                                             |
+|-----------------------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `nova-container-init` | One-shot | No       | Checks `PUID`, `PGID`, and `TZ`, and prepares the writable paths, before every other service                                                                                                                                                                                     |
+| `prepare-postgres`    | One-shot | No       | Validates settings, checks the size of an existing <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>, and initializes PostgreSQL                                                |
+| `postgres`            | Long-run | Yes      | PostgreSQL 17, listening on `127.0.0.1` inside the container                                                                                                                                                                                                                     |
+| `migrate`             | One-shot | No       | Waits for PostgreSQL, creates the database, and runs `build/migrate.js`, which applies the migrations and makes or checks the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> |
+| `bot`                 | Long-run | No       | The Discord <Terminology title="Discord's live connection that delivers server events" to="/docs/reference/terminology#gateway">Gateway</Terminology> client, `apps/bot/src/index.ts`                                                                                            |
+| `web`                 | Long-run | Yes      | The control panel, its JSON API, and the public routes, `apps/bot/src/web.ts` and `apps/bot/src/server.ts`                                                                                                                                                                       |
+| `worker`              | Long-run | Yes      | Schedules and <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable jobs</Terminology>, `apps/bot/src/worker.ts`                                                                                                 |
+
+A critical service that exits with an error runs `finish-critical`, which halts the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>. The bot's finish script lets s6 restart only the bot.
+
+A one-shot that fails stops the container too, because the image sets `S6_BEHAVIOUR_IF_STAGE2_FAILS=2`.
+
+## Web Service and Console
+
+`apps/bot/src/web.ts` starts the web process: it reads the settings, opens the database pool, prints the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> while no account exists, and serves the Express app from `apps/bot/src/server.ts`.
+
+- **Middleware** — `server.ts` turns off `x-powered-by`, trusts forwarded headers only from private and loopback addresses through `isTrustedProxyAddress` in `lib/http.ts`, sets no-store and no-sniff headers, and parses JSON bodies of up to 64 KB, or 2 MB for feature saves and Backup imports. It also reads `/webhooks` bodies as raw bytes of up to 128 KB, and limits `/api/v1` to 300 requests a minute per address.
+- **Route order** — Health, webhooks, the invite page and its designer API, setup and sign-in, security, tokens, notifications, users, servers, features, the bot, logs, Backup, and last the console with its single-page fallback, then a JSON 404 and the error handler.
+- **Route modules** — Each file in `apps/bot/src/routes/` is a `Runner` class with a `register(app)` method, and every API failure answers with the shared `{ "error": { "code", "message", "issues" } }` envelope from `sendError`, while most public routes answer in plain text.
+- **Access** — `lib/access.ts` resolves a browser session from the `dsb_session` and `dsb_csrf` cookies or a `dsb_` bearer token, then checks the token's scope, the role's permission, and the user's server access.
+- **Sign-in limits** — `lib/attempts.ts` counts failed passwords, codes, passkeys, and password confirmations per address in memory, 10 in 15 minutes, with a separate count for setup codes.
+- **Backup security** — `routes/backup.ts` requires a browser session and `users:manage` for every endpoint, so bearer tokens and Operators are refused. Password plus TOTP or a passkey issues a five-minute grant whose digest is bound to one session, one export or import purpose, and one successful use.
+- **Console** — The React console lives in `apps/bot/src/web/`, with `apps/bot/index.html` and `apps/bot/invite.html` as its two entry pages, which Vite builds into `build/console`. The web route serves the console with a strict content security policy, and the invite route serves the invite page with one that also allows Google reCAPTCHA.
+
+## Accounts and Tokens
+
+- **Users** — `panel_users` holds each account's username, Argon2id password hash, role, and whether it's enabled, and `panel_user_guild_access` holds the chosen servers.
+- **Sessions** — `panel_sessions` stores SHA-256 hashes of the session and CSRF tokens, and each session lasts 24 hours.
+- **Second factors** — `panel_totp_credentials`, `panel_totp_enrollments`, `panel_recovery_codes`, and `panel_sign_in_challenges` back the authenticator app, while `panel_passkeys` and `panel_webauthn_ceremonies` back passkeys.
+- **Setup** — `panel_setup_claims` holds the hash and expiry of the one <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>, and `lib/panel-setup.ts` makes it and redeems it.
+- **Tokens** — `panel_api_tokens` holds each token's name, scopes, expiry, last use, and SHA-256 hash, and `lib/panel-tokens.ts` manages them.
+
+## Lifecycle Reconciliation
+
+- **Control row** — One `bot_runtime_control` row holds the <Terminology title="Whether you asked the bot to run or stop" to="/docs/reference/terminology#desired-state">desired state</Terminology>, the generation, the encrypted <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, and the <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology> ID.
+- **Polling** — The bot reads the row every `BOT_CONTROL_POLL_INTERVAL_MS` and reconciles: stopped disconnects, a missing token reports `configuration_required`, and a new generation reconnects.
+- **Failures** — A failed generation stays failed until the generation changes again, and the bot records each state in `runtime_heartbeats`.
+- **Generation** — The docs call the generation the <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology>, and lifecycle actions, token saves, feature saves and toggles, and Backup imports all increase it.
+
+## Feature Module Contract
+
+`connectGateway` in `apps/bot/src/index.ts` is the <Terminology title="Code that starts the client and registers features" to="/docs/reference/terminology#event-kernel">event kernel</Terminology>. For each server from `listNormalizedGuildSettings`, it calls the `prepare*Features` function of each <Terminology title="Discord's live connection that delivers server events" to="/docs/reference/terminology#gateway">Gateway</Terminology> module in the table below, which returns the module's active feature keys, configuration errors, intents, and a `register` function.
+
+- **One client** — The kernel creates one discord.js `Client` with the union of every module's intents, `shardCount: 1`, and no partials.
+- **Registration** — It calls each module's `register(client, guildId)`, then logs in with a 15-second limit and synchronizes the server registry.
+- **Validation** — `apps/bot/src/lib/feature-configuration-validation.ts` runs the same `prepare*Features` compilers with the real secret values when the API saves, enables, or imports a feature. An older `config.json` source validates the actual secret before it encrypts and stores it.
+- **<Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">Slash commands</Terminology>** — `apps/bot/src/lib/application-commands.ts` collects command contributions by server on one client and independently overwrites each server's command set when the client is ready.
+
+| Module                        | Features                                                       |
+|-------------------------------|----------------------------------------------------------------|
+| `anti-raid-features.ts`       | Anti-raid                                                      |
+| `audit-features.ts`           | Audit notifications                                            |
+| `gateway-features.ts`         | Event broadcasts, thread bumping, role messages                |
+| `impersonator-features.ts`    | Impersonator alerts                                            |
+| `message-features.ts`         | Auto replies, suspicious words, regex rules, affiliate cleanup |
+| `message-routing-features.ts` | Message copiers, message proxies                               |
+| `role-sync-features.ts`       | Role synchronization                                           |
+| `scammer-features.ts`         | Scammer alerts                                                 |
+| `server-tool-features.ts`     | Server tools                                                   |
+| `worker-features.ts`          | Scheduled posts, permission toggles, RSS feeds                 |
+| `web-application-features.ts` | Web applications                                               |
+
+The last two modules run outside the kernel: the worker's scheduler runs `worker-features.ts` to queue jobs, and the web service runs `web-application-features.ts` for the invite page and webhooks.
+
+One <Terminology title="Discord's live connection that delivers server events" to="/docs/reference/terminology#gateway">Gateway</Terminology> client serves every configured server. A command synchronization failure is logged with its Server ID and does not prevent the remaining servers from receiving their commands.
+
+## Configuration Storage
+
+- **Feature settings** — `guild_features` and `guild_feature_values` store each setting as a typed path row, not as one JSON document.
+- **Server profile** — `guild_profiles` holds each server's imported <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> and a settings version number.
+- **Discovery** — `discord_servers`, `discord_channels`, and `discord_roles` hold what <Terminology title="Automatic listing of the bot's servers, channels, and roles" to="/docs/reference/terminology#server-discovery">server discovery</Terminology> found, and rows are marked unavailable instead of deleted.
+- **Secrets** — `guild_secrets` holds encrypted feature secrets, keyed by the reference each feature setting stores.
+- **Invite pages** — `guild_invite_pages` holds each server's invite page design, and `guild_invite_images` holds its uploaded logos and banners.
+- **Notifications** — `notification_targets` holds each destination's name, service, events, and plain settings, with its secret fields sealed together in `secrets_ciphertext` and their names in `secret_fields`.
+- **Exports** — `lib/backup.ts` opens only the selected Connection, Features, Notifications, and Access tokens sections. Secrets exist only in the response document, access tokens remain stored hashes, and users, sign-in security, sessions, logs, and Discord runtime data never enter the format.
+- **Export-file imports** — One transaction replaces included Connection and per-server Features sections, merges Notifications by case-insensitive name, adds nonduplicate access-token hashes for the importing user, and leaves omitted sections unchanged.
+- **Older config.json imports** — One transaction replaces the selected server's feature rows and secrets, optionally updates the global Bot Token, and appends the `legacy_imports` report. Invalid legacy feature configurations are preserved disabled rather than weakening runtime validation.
+
+## Durable Jobs and Scheduler
+
+- **Queue** — The `jobs` table has a unique `dedupe_key`, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> claims one job at a time with `FOR UPDATE SKIP LOCKED`, reclaiming locks older than 5 minutes.
+- **Retries** — A failed job returns to pending after 30 seconds and becomes `failed` after `JOB_ATTEMPT_LIMIT` claims, and jobs are never deleted. The last failure of any job but a notification queues a **Job gave up** notification through `notifyJobFailed` in `lib/notifier.ts`.
+- **Job types** — `discord.message.send`, `discord.permissions.apply`, `rss.feed.fetch`, `notification.send`, and `system.noop`.
+- **Notifications** — `queueNotification` adds one `notification.send` job for each destination that chose the event, with a dedupe key built from the event, the occurrence, and the destination.
+- **Scheduler** — One cursor named `worker-features` in `scheduler_cursors` scans every second since the last scan, capped at 24 hours, and queues jobs only while the <Terminology title="Whether you asked the bot to run or stop" to="/docs/reference/terminology#desired-state">desired state</Terminology> is running with a token.
+- **RSS state** — `rss_feed_cursors` stores each feed's validators and recent item hashes.
+
+## Credential Vault
+
+`apps/bot/src/lib/credential-vault.ts` encrypts values with AES-256-GCM, using the key from `CREDENTIAL_KEY_FILE` and associated data of the form `discord-stonker-bot:<purpose>:v1`.
+
+| Purpose                           | Used for                                                                                                                                                                            |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `discord-token`                   | The <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>                                               |
+| `guild-secret:<server ID>:<key>`  | Each feature secret                                                                                                                                                                 |
+| `panel-totp:<user ID>`            | Each <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> secret                      |
+| `panel-totp-enrollment:<user ID>` | An <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> setup that isn't finished yet |
+| `notification:<destination ID>`   | The secret fields of one notification destination, sealed together                                                                                                                  |
+| `credential-key-check`            | The check value that proves the key file belongs to this database                                                                                                                   |
+
+`apps/bot/src/lib/credential-key.ts` runs in the migration job after the SQL files, so the key is ready before the bot, web, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> read it. `prepareCredentialKey` makes the key when the file is missing, and otherwise checks that it belongs to this database.
+
+- **Key check** — `credential_key_check` holds one known value sealed with the key. A key that can't open it stops the migration job with the mismatch error, and a database without one is tested with one stored secret, then gets one.
+- **Lost key** — A missing file gets a new key, and one transaction clears the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, every `guild_secrets` row, each <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> with its <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, every unfinished authenticator setup, and the sealed secrets of every notification destination, whose field names move to `missing_secrets`. Each removed item becomes a `removed_secrets` row, the key file is written last, and `migrate.ts` logs `credential_key_replaced` with the list and queues a **Saved secrets were removed** notification.
+- **Notice** — `apps/bot/src/lib/removed-secrets.ts` returns the rows a user may act on as `removedSecrets` in `GET /api/v1/auth/me` for a <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology>, and `DELETE /api/v1/auth/removed-secrets` clears them with the CSRF header and answers `204`. Tokens get no `removedSecrets` field, and the delete answers them with `403` `session_required`.
+- **Items** — Each item has a `kind` of `bot-token`, `feature-secrets`, `authenticator`, or `notification` and a `removedAt` time. Feature items also carry `serverId`, `serverName`, `featureKey`, and `featureName`, and notification items carry `notificationId` and `name`, so the console can open the right page.
+- **Visibility** — Each user sees their own `authenticator` row, and roles that can change settings also see `bot-token`, every `notification` row, and the `feature-secrets` rows of the servers they can open. Saving the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, saving a feature, importing a server's settings through **Backup**, and turning on an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> each delete the matching rows, and so does saving a notification destination with every removed secret, or removing it.
+
+## Database Migrations
+
+`apps/bot/src/migrate.ts` applies every `.sql` file in `apps/bot/migrations` in name order and records a SHA-256 checksum for each in `schema_migrations`. Today that's one file, `001-initial.sql`, which builds the whole 4.0.0 schema, and later changes go in new numbered files. A migration file that changes after it was applied stops the migration job.
+
+After the last file, it prepares the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> as described in [Credential Vault](/docs/contributing/architecture/#credential-vault). Any error is logged as `migration_failed`, and the bot, web, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> don't start.

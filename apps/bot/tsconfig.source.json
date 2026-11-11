@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "@cbnventures/nova/presets/tsconfig/dx-essentials.json",
+    "@cbnventures/nova/presets/tsconfig/dx-strict.json",
+    "@cbnventures/nova/presets/tsconfig/role-source.json",
+    "@cbnventures/nova/presets/tsconfig/runtime-node.json",
+    "@cbnventures/nova/presets/tsconfig/fw-expressjs.json"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "rootDir": "./src",
+    "types": [
+      "node"
+    ],
+    "noEmitOnError": false,
+    "outDir": "./build"
+  },
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "exclude": [
+    "./src/**/*.test.ts",
+    "./src/tests/**/*.ts",
+    "./src/types/tests/**/*.ts",
+    "./src/types/web/**/*.ts",
+    "./src/web/**/*.ts"
+  ]
+}

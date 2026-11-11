@@ -1,0 +1,260 @@
+/**
+ * ============================
+ * Invite Page
+ * ============================
+ */
+
+/* The page carries its own colors, so the designer preview looks the same as the public page. */
+.invite-page {
+  --invite-canvas: #f4f5f8;
+  --invite-surface: #ffffff;
+  --invite-border: #dfe2e6;
+  --invite-text: #181b1f;
+  --invite-muted: #5f646a;
+  --invite-danger: #be3122;
+  --invite-shadow: 0 12px 32px rgb(24 27 31 / 10%), 0 2px 6px rgb(24 27 31 / 6%);
+
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--invite-gutter, 2.5rem) 1rem;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Inter,
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--invite-text);
+  color-scheme: light;
+
+  background: var(--invite-canvas);
+
+  & *,
+  & *::before,
+  & *::after {
+    box-sizing: border-box;
+  }
+}
+
+.invite-page[data-theme="dark"] {
+  --invite-canvas: #0f1215;
+  --invite-surface: #181b1e;
+  --invite-border: #35383d;
+  --invite-text: #edeff1;
+  --invite-muted: #a0a5ac;
+  --invite-danger: #ff7360;
+  --invite-shadow: 0 16px 40px rgb(0 0 0 / 48%), 0 2px 6px rgb(0 0 0 / 32%);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  .invite-page[data-theme="system"] {
+    --invite-canvas: #0f1215;
+    --invite-surface: #181b1e;
+    --invite-border: #35383d;
+    --invite-text: #edeff1;
+    --invite-muted: #a0a5ac;
+    --invite-danger: #ff7360;
+    --invite-shadow: 0 16px 40px rgb(0 0 0 / 48%), 0 2px 6px rgb(0 0 0 / 32%);
+
+    color-scheme: dark;
+  }
+}
+
+.invite-page-preview {
+  --invite-gutter: 1.5rem;
+
+  min-height: 0;
+}
+
+.invite-card {
+  display: grid;
+  width: min(100%, 26rem);
+  overflow: hidden;
+
+  background: var(--invite-surface);
+  border: 1px solid var(--invite-border);
+  border-radius: 1rem;
+  box-shadow: var(--invite-shadow);
+}
+
+.invite-banner {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+
+  object-fit: cover;
+}
+
+.invite-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  justify-items: center;
+  padding: 2rem 1.75rem 1.75rem;
+
+  text-align: center;
+
+  & h1 {
+    margin: 0;
+
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+
+  & p {
+    margin: 0;
+  }
+}
+
+.invite-body-banner {
+  padding-top: 1.25rem;
+}
+
+.invite-logo {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+
+  object-fit: cover;
+
+  background: var(--invite-canvas);
+  border: 3px solid var(--invite-surface);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+}
+
+.invite-body-banner .invite-logo {
+  margin-top: -3.5rem;
+}
+
+.invite-server {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--invite-muted);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.invite-description {
+  color: var(--invite-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.invite-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+
+  & li {
+    padding: 0.125rem 0.625rem;
+
+    font-size: 0.8125rem;
+    font-weight: 550;
+    color: var(--invite-muted);
+
+    border: 1px solid var(--invite-border);
+    border-radius: 999px;
+  }
+}
+
+/* Full width, so the page can tell whether Google's 304px box fits or needs its compact form. */
+.invite-recaptcha {
+  display: grid;
+  justify-self: stretch;
+  justify-items: center;
+  min-height: 78px;
+  margin-top: 0.25rem;
+}
+
+.invite-button {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0.5rem;
+  padding: 0 1.25rem;
+
+  font: inherit;
+  font-weight: 650;
+  color: var(--invite-on-accent);
+
+  cursor: pointer;
+
+  background: var(--invite-accent);
+  border: 0;
+  border-radius: 0.625rem;
+
+  transition: filter 120ms ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--invite-accent);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.invite-page-preview .invite-button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.invite-paused {
+  font-size: 0.875rem;
+  color: var(--invite-muted);
+}
+
+.invite-error {
+  font-size: 0.875rem;
+  color: var(--invite-danger);
+}
+
+.invite-footer {
+  padding: 1rem 1.75rem 1.25rem;
+
+  font-size: 0.8125rem;
+  color: var(--invite-muted);
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+
+  border-top: 1px solid var(--invite-border);
+
+  & a {
+    color: var(--invite-accent);
+    text-underline-offset: 2px;
+  }
+}
+
+/* Narrow phones get slimmer margins, so the full reCAPTCHA box still fits. */
+@media (max-width: 25rem) {
+  .invite-page {
+    padding-inline: 0.75rem;
+  }
+
+  .invite-body,
+  .invite-footer {
+    padding-inline: 1.25rem;
+  }
+}

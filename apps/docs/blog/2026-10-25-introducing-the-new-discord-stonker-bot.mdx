@@ -1,0 +1,66 @@
+---
+title: "Introducing the New Stonker Bot for Discord"
+description: Rebuilt from the ground up, Stonker Bot for Discord is a self-hosted, all-purpose Discord bot for safety, moderation, automation, and community features.
+slug: introducing-the-new-discord-stonker-bot
+authors:
+  - mrjackyliang
+keywords:
+  - stonker bot for discord
+  - self-hosted discord bot
+  - discord moderation
+  - community safety
+  - docker
+  - legacy migration
+tags:
+  - release
+  - discord
+  - self-hosted
+---
+
+Running an active Discord server means watching for raids, scams, and fake staff accounts while keeping announcements and feeds on schedule. Single-purpose bots each handle one piece, so you end up coordinating several bots with separate permissions and settings.
+
+The new Stonker Bot for Discord is my answer: one self-hosted bot for all of it, managed from a control panel in your browser.
+
+{/* truncate */}
+
+## Why I Rebuilt It
+
+The original bot ran as one process configured by a single `config.json` file. That file grew to 22 sections, with the Bot Token and API keys stored in plain text.
+
+It also always asked Discord for message and member data, even when no feature used it. I wanted each feature to stand on its own, so I rebuilt it from the ground up.
+
+## What It Does
+
+The new bot groups its 19 features into six categories. Each one has its own switch, and features you leave off don't run or ask Discord for extra access.
+
+- **Safety** — Known raid accounts are banned as they join, and moderators get impersonator, scam, and suspicious-word alerts that only observe.
+- **Moderation** — Regex rules keep channels on topic, audit notices report joins and edits, and trusted staff get slash commands such as capped bulk bans.
+- **Automation** — Scheduled posts go out in your time zone, chosen threads stay open, and copiers and proxies relay messages to other channels.
+- **Community** — Auto replies answer common questions, event broadcasts announce Discord events, and role messages greet members who gain a role.
+- **Integrations** — RSS feeds post new items from the sites you follow.
+- **Web** — A reCAPTCHA-protected invite page hands out short-lived invites, and signed webhooks turn other services' requests into messages.
+
+## One Container, One Control Panel
+
+Docker runs the bot, the control panel, a background worker, and a PostgreSQL database in one container on your own hardware. You create the owner account with a setup code from the container log, then paste the Bot Token, start the bot, and turn on features from your browser.
+
+- **Encrypted secrets** — The Bot Token, API keys, and webhook URLs you enter are encrypted and never shown again.
+- **Several servers** — One installation can serve multiple servers, each with its own features, settings, and secrets.
+
+If you ran the original bot, choose **An older config.json** in the **Backup** wizard to move its secrets into encrypted storage and keep anything that fails the current checks switched off.
+
+## Try It
+
+```bash
+git clone https://github.com/mrjackyliang/discord-stonker-bot.git
+cd discord-stonker-bot
+cp apps/bot/.env.sample apps/bot/.env
+# Set POSTGRES_PASSWORD in apps/bot/.env first.
+docker compose up --build --detach
+```
+
+:::info
+Build the image from the source code instead of pulling a published image.
+:::
+
+Head to [Installation](/docs/getting-started/installation/) for each step, then [First-Run Setup](/docs/getting-started/first-run/) to connect the bot. Coming from the original bot, [Export and Import](/docs/control-panel/export-and-import/#import-an-older-configjson) covers the **Backup** wizard, [Legacy Migration](/docs/migration/legacy-migration/) covers the compatibility details, and the [Feature Matrix](/docs/migration/feature-matrix/) lists what changed.

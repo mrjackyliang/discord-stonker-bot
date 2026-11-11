@@ -1,0 +1,92 @@
+---
+id: scammer-alerts
+title: Scammer Alerts
+description: Scammer alerts post a moderator alert with a link to the message whenever new or edited text matches a scam pattern, without deleting anything.
+keywords:
+  - stonker bot for discord
+  - scammer alerts
+  - scam detection
+  - message scanning
+  - safety
+  - moderation alerts
+tags:
+  - features
+  - safety
+  - scams
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Alert moderators when a message matches a pattern you associate with scams, and leave the message in place for them to review.
+
+## Why Use This Feature?
+
+1. Watches every channel the bot can see, so scam offers posted outside your busiest channels still reach moderators.
+2. Links straight to the message, so moderators can judge it in context.
+3. Stays <Terminology title="Alerts moderators without banning, kicking, or deleting" to="/docs/reference/terminology#observation-only">observation-only</Terminology>, so a false match never deletes a member's message.
+
+## How It Works
+
+- **What it reads** — New messages and edits that change a message's text, from members other than bots.
+- **How it matches** — Each rule's pattern runs against the message text as written, with no cleanup first.
+- **What it posts** — The first matching rule posts one plain-text alert with your message, then lines for the rule name, the channel, and a link to the message.
+- **Repeat alerts** — Every edit that still matches posts another alert.
+
+Scammer alerts run separately from regex rules and affiliate cleanup, so a message can raise an alert even when another feature deletes it.
+
+These alerts post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+
+## Settings
+
+| Field                                         | Description                                                                                                                                                   |
+|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Alert destination → Channel (`channel`)       | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, required. |
+| Detection rules (`entities`)                  | 1 to 100 rules.                                                                                                                                               |
+| Name (`entities[].name`)                      | The rule's name, shown in each alert, up to 100 characters.                                                                                                   |
+| Regular expression (`entities[].regex`)       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                   |
+| Message → Text (`entities[].payload.content`) | Optional alert text of up to 2,000 characters.                                                                                                                |
+
+Without a message, the alert starts with "A potential scam message was detected from %MEMBER_USER_MENTION%."
+
+## Example
+
+```json title="Scammer alerts settings"
+{
+  "channel": { "channel-id": "123456789012345678" },
+  "entities": [
+    {
+      "name": "Account recovery offer",
+      "regex": { "pattern": "recover (your )?account", "flags": "i" }
+    }
+  ]
+}
+```
+
+## Message Variables
+
+| Variable                | Becomes                           |
+|-------------------------|-----------------------------------|
+| `%MEMBER_USER_MENTION%` | A mention of the message's author |
+
+Only `%MEMBER_USER_MENTION%` is replaced, and any other variable the form offers posts as written.
+
+## Limits
+
+- **Rules** — Up to 100.
+- **Alert length** — The whole alert is cut at 2,000 characters, so long alert text can push out the rule, channel, and link lines.
+
+## Troubleshooting
+
+- **Several alerts for one message** — Each edit that still matches posts a new alert.
+- **No alert for an edited message** — The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
+- **"Configured scammer-alert channel is unavailable."** — This log entry means the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead, and a channel the bot can't see logs "Missing Access".
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> matched the usernames of joining members, and posted an alert for every matching rule. The rewrite matches message text instead, and posts one alert for the first matching rule.
+:::

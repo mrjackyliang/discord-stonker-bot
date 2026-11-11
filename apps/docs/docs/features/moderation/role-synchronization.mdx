@@ -1,0 +1,91 @@
+---
+id: role-synchronization
+title: Role Synchronization
+description: Role synchronization adds or removes roles automatically when a member gains or loses other roles, after a short delay that lets changes settle.
+keywords:
+  - stonker bot for discord
+  - role synchronization
+  - role sync
+  - automatic roles
+  - moderation
+  - role rules
+tags:
+  - features
+  - moderation
+  - roles
+sidebar_position: 5
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Add or remove roles automatically when a member gains or loses other roles, after a short delay you choose.
+
+## Why Use This Feature?
+
+1. Keeps related roles in step, such as giving a "Members" role to everyone who holds any paid role.
+2. Waits for a burst of role changes to settle, so the bot acts once instead of after every single change.
+3. Rejects rules that would chase each other in a loop, so a mistake can't make roles change forever.
+
+## How It Works
+
+- **When it runs** — When a member's roles change, the bot waits for the **Evaluation delay** you set, and each new role change for that member restarts the wait.
+- **Which rules apply** — A rule applies when "the member holds at least one of **Roles to check**" equals the rule's **Member has one of these roles** switch.
+- **What it changes** — The bot combines every rule that applies, adds the target roles the member doesn't have, and removes the target roles the member does have.
+- **Audit log** — Changes carry the reason "Role synchronization:" followed by the names of the rules that applied.
+
+The bot skips other bots and posts nothing. The server owner, and members whose highest role is at or above the bot's, can't be changed, and the attempt shows up as an error in the bot log.
+
+:::warning
+If any target role can't be managed, the bot changes none of that member's roles. Keep the bot's role above every role it adds or removes, and above the members it manages.
+:::
+
+## Requirements
+
+- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Role permissions** — The bot needs Manage Roles, and its role has to sit above every target role in the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology>.
+
+## Settings
+
+| Field                                                     | Description                                                                                                  |
+|-----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| Evaluation delay (`timeout`)                              | Required. Seconds to wait after the last role change, from 0 to 30, in its own **Evaluation delay** section. |
+| Role workflows (`events`)                                 | 1 to 100 rules.                                                                                              |
+| Name (`events[].name`)                                    | The rule's name, used in the audit-log reason, up to 100 characters.                                         |
+| Roles to check (`events[].some-roles`)                    | 1 to 25 trigger roles.                                                                                       |
+| Member has one of these roles (`events[].has-some-roles`) | On to apply when the member holds a trigger role, off to apply when they hold none.                          |
+| Roles to add (`events[].to-add-roles`)                    | 1 to 25 roles to add.                                                                                        |
+| Roles to remove (`events[].to-remove-roles`)              | 1 to 25 roles to remove.                                                                                     |
+
+Each rule has exactly one of **Roles to add** and **Roles to remove**.
+
+## Example
+
+```json title="Role synchronization settings"
+{
+  "timeout": 5,
+  "events": [
+    {
+      "name": "Paid members get Members",
+      "has-some-roles": true,
+      "some-roles": [{ "role-id": "223456789012345678" }, { "role-id": "223456789012345679" }],
+      "to-add-roles": [{ "role-id": "223456789012345680" }]
+    }
+  ]
+}
+```
+
+## Limits
+
+- **Rules** — Up to 100, with up to 25 roles in each list.
+- **Delay** — Up to 30 seconds.
+
+## Troubleshooting
+
+- **"Role synchronization dependencies contain a cycle."** — A role leads back to itself through the rules' trigger and target roles, including a rule that adds or removes one of its own trigger roles, so the whole feature is rejected.
+- **A role keeps flipping** — Two rules that apply at the same time can add and remove the same role, and the cycle check doesn't catch that case.
+- **"The bot role cannot manage configured role …"** — Move the bot's role above that role, or remove the role from the rules.
+- **The first change after a reconnect is ignored** — The bot sees role changes only for members it has seen since its last reconnect.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> ran on every member update, including nickname changes, added roles only when a member held none of them, and made one change per rule. The rewrite runs only on role changes, adds each missing role, combines all rules into one add and one remove, and checks for cycles when you save.
+:::

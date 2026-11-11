@@ -1,0 +1,120 @@
+---
+id: scheduled-posts
+title: Scheduled Posts
+description: Scheduled posts publish messages on a calendar you define in the time zone you choose, with optional reactions and dates to skip, like holidays.
+keywords:
+  - stonker bot for discord
+  - scheduled posts
+  - scheduled messages
+  - calendar schedule
+  - automation
+  - time zones
+tags:
+  - features
+  - automation
+  - scheduling
+sidebar_position: 4
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Post messages on a calendar you define, in the <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> you choose, with optional reactions and dates to skip.
+
+## Why Use This Feature?
+
+1. Publishes recurring posts, such as a weekly check-in, without anyone online to send them.
+2. Reads the schedule in your chosen <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology>, so posts follow local time through daylight saving changes.
+3. Skips the dates you list, so holiday posts don't go out by mistake.
+4. Keeps queued posts in the database, so a restart doesn't lose them.
+
+## How It Works
+
+- **Queuing** — At each time the <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> matches, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> queues one <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology> for the rule, with the message text fixed at that moment.
+- **Posting** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> posts the message, then adds the reactions in order.
+- **Mentions** — Mentions in the message never notify anyone.
+- **Downtime** — After the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> has been down, it catches up on the <Terminology title="Missed schedule times caught up after worker downtime" to="/docs/reference/terminology#replay-window">replay window</Terminology> of the last 24 hours, so several missed posts can arrive at once.
+- **Stopped bot** — While the bot is stopped, scheduled times pass without queuing anything, and they aren't replayed later.
+
+Each scheduled time is queued at most once, because every job has a <Terminology title="Identity that stops the same job queuing twice" to="/docs/reference/terminology#deduplication-key">deduplication key</Terminology> built from the server, the rule, and the time.
+
+## Schedules
+
+The **Posting schedule** is a <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology>. Every list you set has to match, and a list you leave out matches every value.
+
+| Field                                                                                                                                         | Values                                   | When left out |
+|-----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|---------------|
+| Months (`months`)                                                                                                                             | 1 to 12                                  | Every month   |
+| Days of the month (`dates`)                                                                                                                   | 1 to 31                                  | Every date    |
+| Days of the week (`days-of-week`)                                                                                                             | 0 to 6, with Sunday as 0                 | Every day     |
+| Hours (`hours`)                                                                                                                               | 0 to 23                                  | Every hour    |
+| Minutes (`minutes`)                                                                                                                           | 0 to 59                                  | Every minute  |
+| Seconds (`seconds`)                                                                                                                           | 0 to 59                                  | Second 0      |
+| <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">Time zone</Terminology> (`time-zone`) | An IANA name, such as `America/New_York` | `UTC`         |
+
+- **Dates and weekdays together** — Both have to match, so `dates: [1]` with `days-of-week: [1]` runs only when the 1st falls on a Monday.
+- **Short months** — A date of 31 never matches in a month with fewer days.
+- **Daylight saving** — A local time that happens twice runs twice, and a local time that is skipped doesn't run.
+- **Container <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology>** — The container's `TZ` setting doesn't affect schedules.
+
+**Dates to skip** takes up to 366 <Terminology title="Local dates when a schedule does not run" to="/docs/reference/terminology#skip-dates">skip dates</Terminology> as `YYYY-MM-DD`, read in the rule's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology>.
+
+## Requirements
+
+- **No extra intent** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> posts through Discord's REST API, so this feature adds no <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>.
+- **Channel permissions** — The bot needs View Channel and Send Messages, plus Add Reactions and Read Message History for reactions.
+- **Running bot** — Nothing is queued while the bot is stopped.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                                                  | Description                                                                                                                                                                          |
+|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                          | The rule's name, up to 100 characters.                                                                                                                                               |
+| Channel (`channel`)                                    | The channel to post in.                                                                                                                                                              |
+| Message → Text (`payload.content`)                     | Up to 2,000 characters.                                                                                                                                                              |
+| Message → Footer → Footer text (`payload.footer.text`) | Up to 1,000 characters, posted as a second line of text.                                                                                                                             |
+| Reactions (`reactions`)                                | Optional list of up to 20 emoji to add after posting.                                                                                                                                |
+| Posting schedule (`send-on`)                           | The <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology>, required. |
+| Dates to skip (`skip-dates`)                           | Optional <Terminology title="Local dates when a schedule does not run" to="/docs/reference/terminology#skip-dates">skip dates</Terminology>.                                         |
+
+A post needs content, a footer, or both. For a custom emoji reaction, it is recommended to use Discord's `name:id` form, because the bot passes the text to Discord as written.
+
+## Example
+
+```json title="Scheduled posts settings"
+[
+  {
+    "name": "Weekly check-in",
+    "channel": { "channel-id": "123456789012345678" },
+    "payload": { "content": "Happy Monday! Share what you're working on this week.", "footer": { "text": "Weekly check-in · %YEAR%" } },
+    "reactions": ["👋"],
+    "send-on": { "days-of-week": [1], "hours": [9], "minutes": [30], "time-zone": "America/New_York" },
+    "skip-dates": ["2026-12-28", "2027-01-04"]
+  }
+]
+```
+
+## Message Variables
+
+| Variable | Becomes                                                                                                                                                                       |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `%YEAR%` | The year at the scheduled time, in the rule's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> |
+
+## Limits
+
+- **Rules** — Up to 100.
+- **Post length** — The content and footer together are cut at 2,000 characters, so a long content can push out the footer.
+- **Reactions** — Up to 20.
+
+## Troubleshooting
+
+- **A post appeared several times** — A reaction failed, and each retry, 30 seconds apart, posts the whole message again, up to `JOB_ATTEMPT_LIMIT` times, 5 by default.
+- **A post didn't appear** — The bot was stopped at that time, or every delivery try failed. The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> log then shows `job_failed` with the reason, such as "Discord delivery is paused while the bot is stopped." or "Missing Permissions".
+- **Knowing when a post gives up** — The last failed try can send a **Job gave up** alert, as described in [Notifications](/docs/control-panel/notifications/#events).
+- **Old posts arrived together** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> caught up on missed times after it had been down.
+- **Posts run at the wrong hour** — Each rule uses UTC unless you set its **<Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">Time zone</Terminology>**.
+
+:::info[Changes from the legacy bot]
+In the <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>, a schedule without `seconds` ran every second, and a rule without a <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> used the host's local time. The rewrite treats a missing `seconds` as second 0, uses UTC by default, and posts plain text with the footer on a second line.
+:::

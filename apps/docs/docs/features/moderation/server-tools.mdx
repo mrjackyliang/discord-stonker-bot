@@ -1,0 +1,94 @@
+---
+id: server-tools
+title: Server Tools
+description: Server tools give trusted staff slash commands for member counts, emoji and duplicate-name summaries, role and voice changes, and capped bulk bans.
+keywords:
+  - stonker bot for discord
+  - server tools
+  - slash commands
+  - bulk ban
+  - role manager
+  - moderation
+tags:
+  - features
+  - moderation
+  - slash commands
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Give trusted staff <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> for member counts, emoji and duplicate-name summaries, single role and voice changes, and capped bulk bans.
+
+## Why Use This Feature?
+
+1. Requires both a <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology> and the matching Discord permission, so a role alone isn't enough to ban, move, or change members.
+2. Asks for confirmation on every command that changes something, so a stray command does nothing.
+3. Caps bulk bans at 25 users and checks the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology> first, so one command can't ban staff or sweep the whole server.
+4. Replies only to the person who ran the command, so staff tools stay out of public channels.
+
+## How It Works
+
+Each tool you configure adds one <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash command</Terminology> to your server when the bot connects.
+
+| Section (setting)                     | Command               | What it does                                                    |
+|---------------------------------------|-----------------------|-----------------------------------------------------------------|
+| Member count (`fetch-members`)        | `/stonker-members`    | Shows the member count and how many members the bot has seen    |
+| Emoji summary (`fetch-emojis`)        | `/stonker-emojis`     | Lists up to 50 custom emoji names                               |
+| Duplicate finder (`fetch-duplicates`) | `/stonker-duplicates` | Lists up to 20 display names shared by members the bot has seen |
+| Role manager (`role-manager`)         | `/stonker-role`       | Adds or removes one role for one member                         |
+| Voice tools (`voice-tools`)           | `/stonker-voice`      | Moves one member to another voice channel or disconnects them   |
+| Bulk ban (`bulk-ban`)                 | `/stonker-bulk-ban`   | Bans 1 to 25 user IDs                                           |
+
+- **Who can run a command** — A member needs one of the tool's <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted roles</Terminology> and the command's Discord permission: Manage Server for the three summaries, Manage Roles for `/stonker-role`, Move Members for `/stonker-voice`, and Ban Members for `/stonker-bulk-ban`. The server owner isn't exempt from the <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology>.
+- **Confirmation** — `/stonker-role`, `/stonker-voice`, and `/stonker-bulk-ban` have a required `confirm` option, and they change nothing unless it is true.
+- **Hierarchy** — `/stonker-role` refuses roles at or above the bot's highest role, and `/stonker-bulk-ban` refuses members at or above it. Both also refuse targets at or above the invoker's highest role, unless the invoker owns the server.
+- **Replies** — Plain text visible only to the invoker, up to 2,000 characters.
+
+[Slash Commands](/docs/reference/slash-commands/) lists every option and reply.
+
+## Requirements
+
+- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Every tool except the emoji summary needs this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology>.
+- **Guild Voice States intent** — The voice tool adds this intent, which needs no switch in the Developer Portal.
+- **Bot permissions** — Ban Members for the bulk ban, Manage Roles for the role tool, and Move Members for the voice tool.
+- **Install scope** — The bot needs the `applications.commands` scope, which the install link on the **Connection** page includes.
+
+## Settings
+
+Each tool appears as its own section, and you configure only the tools you want. At least one tool is required.
+
+| Field                                         | Description                                                                                                                                                                                                                    |
+|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Who can use it (`allowed-roles`)              | 1 to 25 <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted roles</Terminology>, required for every tool.                                                           |
+| Legacy setting `base-commands`                | Legacy <Terminology title="Legacy text command such as !ban or !members" to="/docs/reference/terminology#prefix-command">prefix command</Terminology> names. Imports keep them, the form hides them, and the bot ignores them. |
+| Delete the command message (`delete-message`) | Legacy setting, accepted but ignored.                                                                                                                                                                                          |
+
+## Example
+
+```json title="Server tools settings"
+{
+  "fetch-members": { "allowed-roles": [{ "role-id": "223456789012345678" }] },
+  "role-manager": { "allowed-roles": [{ "role-id": "223456789012345678" }] },
+  "bulk-ban": { "allowed-roles": [{ "role-id": "223456789012345679" }] }
+}
+```
+
+## Limits
+
+- **Bulk ban** — 1 to 25 unique user IDs per command, and up to 7 days of message history to delete.
+- **Summaries** — 50 emoji names and 20 duplicate names per reply.
+
+## Troubleshooting
+
+- **"You do not have both the configured <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology> and required Discord permission."** — The member lacks one of the two, which applies to the server owner too.
+- **"The command could not be completed. Review the bot logs."** — Check the bot log, which often shows a missing bot permission, such as Move Members for the voice tool.
+- **"Every target must be a valid Discord user ID."** — The bulk ban accepts only numeric IDs separated by commas or spaces, not mentions.
+- **Commands don't appear** — Saving makes a running bot reconnect and register its commands, so check that the bot is running, then look in the bot log for that server's `application_command_registration_failed` event. Discord also hides each command from members who lack its permission, until you change that under **Server Settings** → **Integrations**.
+- **Example role `000000000000000000`** — Replace the placeholder <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology> from the <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology>, or nobody can run the command.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> used <Terminology title="Legacy text command such as !ban or !members" to="/docs/reference/terminology#prefix-command">prefix commands</Terminology> that anyone with an allowed role or the Administrator permission could run, with no limits or confirmation. The rewrite uses <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> that need a <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology> and a Discord permission, acts on one member at a time for roles and voice, and groups duplicates by display name instead of avatar.
+
+If any legacy tool has no `allowed-roles`, the whole Server tools feature imports turned off until you choose at least one <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology> for that tool.
+:::

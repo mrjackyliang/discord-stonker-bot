@@ -1,0 +1,52 @@
+#!/command/with-contenv sh
+set -eu
+
+PUID_VALUE="${PUID:-1000}"
+PGID_VALUE="${PGID:-1000}"
+TZ_VALUE="${TZ:-UTC}"
+
+case "${PUID_VALUE}" in
+  ''|*[!0-9]*) echo 'PUID must be a positive integer.' >&2; exit 1 ;;
+esac
+
+case "${PGID_VALUE}" in
+  ''|*[!0-9]*) echo 'PGID must be a positive integer.' >&2; exit 1 ;;
+esac
+
+if [ "${PUID_VALUE}" -le 0 ] || [ "${PUID_VALUE}" -gt 2147483647 ]; then
+  echo 'PUID must be between 1 and 2147483647.' >&2
+  exit 1
+fi
+
+if [ "${PGID_VALUE}" -le 0 ] || [ "${PGID_VALUE}" -gt 2147483647 ]; then
+  echo 'PGID must be between 1 and 2147483647.' >&2
+  exit 1
+fi
+
+case "${TZ_VALUE}" in
+  ''|/*|*..*) echo 'TZ must name an installed IANA timezone.' >&2; exit 1 ;;
+esac
+
+if [ ! -f "/usr/share/zoneinfo/${TZ_VALUE}" ]; then
+  echo "Unknown timezone: ${TZ_VALUE}" >&2
+  exit 1
+fi
+
+while IFS= read -r writable_path; do
+  [ -n "${writable_path}" ] || continue
+
+  case "${writable_path}" in
+    /*) ;;
+    *) echo "Writable path must be absolute: ${writable_path}" >&2; exit 1 ;;
+  esac
+
+  case "${writable_path}" in
+    /|/bin|/bin/*|/dev|/dev/*|/etc|/etc/*|/lib|/lib/*|/lib64|/lib64/*|/proc|/proc/*|/run|/run/*|/sbin|/sbin/*|/sys|/sys/*|/usr|/usr/*|*/../*|*/./*)
+      echo "Unsafe writable path: ${writable_path}" >&2
+      exit 1
+      ;;
+  esac
+
+  mkdir -p -- "${writable_path}"
+  chown "${PUID_VALUE}:${PGID_VALUE}" -- "${writable_path}"
+done < /etc/nova-docker/writable-paths

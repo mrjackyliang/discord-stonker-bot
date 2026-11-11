@@ -1,0 +1,152 @@
+---
+id: panel-basics
+title: Panel Basics
+description: Sign in to the Stonker Bot for Discord control panel, find each page on a wide screen or phone, switch between Discord servers, and read the Overview page.
+keywords:
+  - stonker bot for discord
+  - control panel
+  - sign in
+  - navigation
+  - overview page
+  - sessions
+tags:
+  - control panel
+  - navigation
+sidebar_position: 1
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import panelBasicsOneLight from './_assets_/panel-basics-1-light.png';
+import panelBasicsOneDark from './_assets_/panel-basics-1-dark.png';
+import panelBasicsTwoLight from './_assets_/panel-basics-2-light.png';
+import panelBasicsTwoDark from './_assets_/panel-basics-2-dark.png';
+import panelBasicsThreeLight from './_assets_/panel-basics-3-light.png';
+import panelBasicsThreeDark from './_assets_/panel-basics-3-dark.png';
+
+Sign in to the control panel and find your way around, from the server menu and page navigation to the Overview page.
+
+## Why Use the Control Panel?
+
+1. Puts the bot's controls, features, logs, and accounts on one browser page, so you don't edit files or restart containers to change settings.
+2. Builds a form for each feature with channel and role pickers, so you choose names instead of typing IDs.
+3. Applies saved settings by reconnecting the bot on its own, so changes take effect without a container restart.
+4. Encrypts every token and secret you paste, so they're never shown again after you save them.
+
+## Sign In
+
+Open the control panel at its address, such as `http://<docker-host>:22604/`, and the **Sign in** screen appears whenever you're signed out. Before the first account exists, the panel shows **Set up your account** instead, as described in [First-Run Setup](/docs/getting-started/first-run/#create-the-owner-account).
+
+### With a Password
+
+1. Enter your **Username** and **Password**. The username isn't case-sensitive.
+2. Select **Sign in**.
+
+A wrong username, a wrong password, and a suspended account all show "The username or password is incorrect."
+
+### With an Authenticator or Recovery Code
+
+If you turned on an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, **Enter your code** appears after the password step.
+
+1. Enter the 6-digit code from the app, or one of your <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>.
+2. Select **Verify**, or select **Start over** to go back to the password step.
+
+- **Time limit** — You have 5 minutes after the password step, and 5 wrong codes end the attempt with "Too many wrong codes. Enter your password again."
+- **One use each** — Each authenticator code and each <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology> works once. A <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology> works with or without its dash, in any letter case.
+
+### With a Passkey
+
+1. Select **Sign in with a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>**.
+2. Confirm with your device or password manager when the browser asks.
+
+A <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> replaces the username, the password, and the authenticator code. The button appears only where the browser can use <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, as described in [Remote Access](/docs/operations/remote-access/#passkeys-and-the-address).
+
+### Failed Attempts
+
+- **Shared limit** — Wrong passwords, wrong codes, rejected <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, and wrong password confirmations from one address share a limit of 10 failures in 15 minutes.
+- **Over the limit** — Sign-in from that address shows "Too many sign-in attempts. Try again in 15 minutes." until the oldest failure is 15 minutes old.
+- **Clearing the count** — A successful sign-in clears the count for that address.
+- **Alert** — Reaching the limit sends a **Sign-in locked** alert to the [notification](/docs/control-panel/notifications/) <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> that chose it.
+
+## Sessions
+
+- **Length** — A <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology> lasts 24 hours from sign-in, and then the panel returns to the sign-in screen.
+- **Restarts** — Sessions are stored in the database, so restarting or updating the container doesn't sign you out.
+- **Sign out** — **Sign out** in the account menu ends your session right away, and changing your password signs out your other devices.
+
+## Navigation
+
+The sidebar holds the server pages and Settings pages, while account security stays in the account menu.
+
+- **Server menu** — At the top, shows the selected server and switches between the servers your account can open. It also holds **Add a server**, and a server the bot has left shows **Bot removed**.
+- **Overview, Features, Logs** — The main server pages. **Overview** and **Features** use the selected server, while **Logs** shows every entry whichever server you pick. Selecting **Web applications** on **Features** opens the selected server's **Invite page** designer.
+- **Settings** — **Connection**, **Backup**, **Users**, **Access tokens**, and **Notifications**. **Backup** and **Users** appear only for the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology>, and **Notifications** also appears for <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operators</Terminology>.
+- **Bot status** — The card at the bottom shows the <Terminology title="The bot's last reported connection state" to="/docs/reference/terminology#bot-status">bot status</Terminology>, and selecting it opens **Connection**.
+- **Account menu** — Shows your username and <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology>, with **Appearance**, **Sign-in and security**, and **Sign out**.
+
+<Frame caption="The sidebar with the account menu open" style={{ maxWidth: 258, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: panelBasicsOneLight, dark: panelBasicsOneDark }} alt="Sidebar with the server menu, Overview, Features, and Logs, the Settings pages from Connection to Notifications, and the account menu open with Appearance, Sign-in and security, and Sign out" width={256} height={860} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+In a window narrower than 1,020 pixels, such as a phone, the bottom bar shows **Overview**, **Features**, **Logs**, and **Settings**. **Settings** opens a sheet with every Settings page your role can use, and stays highlighted while one of them is open.
+
+The panel remembers the selected server in this browser.
+
+<Frame caption="The control panel on a phone" style={{ maxWidth: 782, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: panelBasicsTwoLight, dark: panelBasicsTwoDark }} alt="Overview page on a phone with the server menu at the top and a bottom bar with Overview, Features, Logs, and Settings" width={780} height={1688} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+### Page Addresses
+
+| Page                     | Address                             |
+|--------------------------|-------------------------------------|
+| **Overview**             | `/overview` (`/` also opens it)     |
+| **Features**             | `/features`                         |
+| A feature's own page     | `/features/:feature-id`             |
+| **Invite page**          | `/features/web-applications/invite` |
+| **Logs**                 | `/logs`                             |
+| **Connection**           | `/connection`                       |
+| **Backup**               | `/backup`                           |
+| **Users**                | `/users`                            |
+| **Access tokens**        | `/access-tokens`                    |
+| **Notifications**        | `/notifications`                    |
+| **Sign-in and security** | `/account`                          |
+
+Browser **Back** and **Forward**, refresh, and bookmarks reopen the page at its address. If the panel asks you to **Sign in**, it opens the requested page after sign-in; an unknown address opens **Overview** at `/overview`.
+
+The old `/import` address opens **Backup** at `/backup`.
+
+## The Overview Page
+
+The Overview page summarizes the bot, the services, the selected server, and your account.
+
+- **Bot** — The <Terminology title="The bot's last reported connection state" to="/docs/reference/terminology#bot-status">bot status</Terminology>, whether the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved, the bot's Discord account, the Application ID, and how many servers it joined.
+- **Problems** — Below the bot details, the panel shows how to fix a failed start, and lists any <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology> from the last connection.
+- **Services** — The status of the **Bot process**, the **Control panel**, and **Scheduled jobs**, such as **Ready**. A service that hasn't sent a <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> for 90 seconds shows **Not responding** and when its last one arrived.
+- **Server** — The selected server's <Terminology title="Number Discord uses to identify a server" to="/docs/reference/terminology#server-id">Server ID</Terminology> with a copy button, the number of features turned on, whether the bot is still in the server, and how many servers you can open.
+- **Your account** — Your username, <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology>, and <Terminology title="Which Discord servers a panel account may open" to="/docs/reference/terminology#server-access">server access</Terminology>.
+
+<Frame caption="The Overview page">
+  <ThemedImage sources={{ light: panelBasicsThreeLight, dark: panelBasicsThreeDark }} alt="Overview page with the Bot section showing Online, a saved Bot Token, and 2 servers joined, the Services heartbeats, the Stonker Lounge server details, and Your account" width={1280} height={984} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+A **Connect the bot** card with **Add the bot token** appears until a token is saved. **Refresh** at the top reloads the page.
+
+## Settings Pages
+
+| Page          | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Connection    | The bot's status and controls, the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, and the invite link that adds the bot to a server                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Backup        | Export selected connection, feature, notification, and access-token settings, or import an <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology> or an older `config.json`, for the Owner and Administrators only                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Users         | Control panel accounts, for the Owner and Administrators only                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Access tokens | Your <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology> for scripts, and the API's address and paths                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Notifications | Where alerts about the bot go, such as ntfy, Telegram, or email, and which <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> each <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> hears about, for the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology>, and <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operators</Terminology> |
+
+**Sign-in and security** in the account menu holds your password, username, <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, and <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>.
+
+[Export and Import](/docs/control-panel/export-and-import/) covers **Backup**, [Users and Security](/docs/control-panel/users-and-security/) explains what each <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology> can change, [Access Tokens and API](/docs/control-panel/access-tokens/) covers tokens, and [Notifications](/docs/control-panel/notifications/) covers alerts.
+
+## Appearance
+
+Choose **System**, **Light**, or **Dark** under **Appearance** in the account menu. **System** follows your device's setting, and the choice is saved in this browser only.

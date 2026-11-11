@@ -1,0 +1,82 @@
+---
+id: health-and-monitoring
+title: Health and Monitoring
+description: Check Stonker Bot for Discord health through liveness and readiness endpoints, Docker health checks, service supervision, and panel heartbeats.
+keywords:
+  - stonker bot for discord
+  - health check
+  - monitoring
+  - readiness
+  - liveness
+  - heartbeats
+tags:
+  - operations
+  - monitoring
+sidebar_position: 4
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import healthAndMonitoringOneLight from './_assets_/health-and-monitoring-1-light.png';
+import healthAndMonitoringOneDark from './_assets_/health-and-monitoring-1-dark.png';
+
+Check whether the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> is healthy with its liveness and readiness endpoints, Docker's health check, and the control panel's <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeats</Terminology>.
+
+## Liveness and Readiness
+
+| Endpoint      | Answer                                                                              |
+|---------------|-------------------------------------------------------------------------------------|
+| `GET /health` | HTTP 200 with "ok" whenever the web service answers                                 |
+| `GET /ready`  | HTTP 200 when PostgreSQL answers, HTTP 503 when it doesn't, with "ready" either way |
+
+The <Terminology title="Endpoint that reports whether the panel and database work" to="/docs/reference/terminology#readiness-check">readiness check</Terminology> depends on the database, not on the Discord bot, so a stopped or failed bot leaves the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> healthy.
+
+## Docker Health Check
+
+Docker runs the image's health check every 30 seconds, with a 5-second timeout, a 30-second start period, and 3 retries. It checks the s6-overlay status of PostgreSQL, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, then calls `/ready` with a 4-second limit.
+
+```bash
+docker compose ps
+```
+
+The **STATUS** column shows the result of the latest check.
+
+## Service Supervision
+
+s6-overlay starts the services in order: it prepares PostgreSQL, starts it, runs the database migrations, and then starts the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>.
+
+- **PostgreSQL, web service, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>** — If one of them exits with an error, s6 stops the whole <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>, and Docker restarts the container because of the `restart: unless-stopped` policy in `compose.yml`.
+- **Bot** — If the bot exits, s6 restarts only the bot, so the control panel stays available.
+
+## Heartbeats in the Panel
+
+The **Services** section of the Overview page shows each service's status from its latest <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology>, such as **Ready**. Hovering over one shows when that heartbeat arrived.
+
+- **Control panel** — The web service writes a <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> every 15 seconds.
+- **Scheduled jobs** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> writes a <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> every 30 seconds.
+- **Bot process** — The bot writes one whenever its status changes, and at least every 30 seconds.
+
+<Frame caption="Heartbeats on the Overview page">
+  <ThemedImage sources={{ light: healthAndMonitoringOneLight, dark: healthAndMonitoringOneDark }} alt="Services section of the Overview page showing Ready for the Bot process, the Control panel, and Scheduled jobs" width={958} height={164} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+A service that hasn't reported yet shows "No heartbeat yet". A service whose last <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> is more than 90 seconds old shows **Not responding** and when that heartbeat arrived. When the bot is set to run and its process goes quiet that long, the bot status changes to **Not responding** too.
+
+## Get Alerts
+
+The [Notifications](/docs/control-panel/notifications/) page sends an alert to ntfy, Telegram, email, or another service, so you hear about problems without checking the panel.
+
+- **Bot** — **Bot can't sign in**, **Bot disconnected** after a minute offline, and **Bot reconnected**.
+- **Jobs** — **Job gave up** when a post, a permission change, or an RSS check fails on every try.
+- **Security** — **Sign-in locked** when an address reaches the sign-in limit, and **Saved secrets were removed** after a lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>.
+
+## Monitor From a Script
+
+`GET /api/v1/bot` answers with the bot's `status` and each service's latest <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology>, for an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology> with the `bot:control` <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology>. That <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology> also allows starting and stopping the bot, so it is recommended to keep the token's other <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology> off, as described in [Access Tokens and API](/docs/control-panel/access-tokens/).
+
+Only an <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operator</Terminology>, an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology>, or the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> can give a token the `bot:control` scope, because a <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology> can only grant `features:read` and `logs:read`.
+
+## Logs
+
+The **Logs** page shows the events of the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, as described in [Logs](/docs/control-panel/logs/). `docker compose logs --follow app` shows those too, plus the startup checks, the database migration, the setup code, the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> lines, PostgreSQL, and s6-overlay.

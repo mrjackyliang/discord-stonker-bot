@@ -1,0 +1,10 @@
+{
+  "label": "Migration",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Bring the original bot's config.json through the Backup wizard, and review what changed for each legacy capability."
+  }
+}

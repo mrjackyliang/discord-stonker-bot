@@ -1,0 +1,89 @@
+---
+id: suspicious-words
+title: Suspicious Words
+description: Suspicious words alerts moderators when a message contains a watched phrase, even when the phrase is disguised with accents, symbols, or digits.
+keywords:
+  - stonker bot for discord
+  - suspicious words
+  - phrase detection
+  - keyword alerts
+  - safety
+  - moderation alerts
+tags:
+  - features
+  - safety
+  - keywords
+sidebar_position: 4
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Alert moderators when a message contains a phrase from your watch list, even when the author disguises it with accents, symbols, or digits.
+
+## Why Use This Feature?
+
+1. Matches disguised spellings such as "s33d phr4se" or "SEED-phrase", so simple tricks don't hide a phrase from moderators.
+2. Groups phrases into categories, so each alert says why the message was flagged.
+3. Stays <Terminology title="Alerts moderators without banning, kicking, or deleting" to="/docs/reference/terminology#observation-only">observation-only</Terminology>, so moderators decide what happens to the message.
+
+## How It Works
+
+- **What it reads** — New messages and edits that change a message's text, from members other than bots.
+- **How it cleans text** — The bot applies the same <Terminology title="Text cleanup applied before names or phrases are compared" to="/docs/reference/terminology#normalization">normalization</Terminology> to your phrases and to each message before comparing them.
+- **How it matches** — A phrase matches only as whole words, so "scam" matches "sc4m alert" but not "scammer".
+- **What it posts** — One embed per message, titled "Suspicious phrase detected", listing every category that matched.
+
+The <Terminology title="Text cleanup applied before names or phrases are compared" to="/docs/reference/terminology#normalization">normalization</Terminology> steps, in order:
+
+1. Accents and other marks are removed, and styled or fullwidth letters become plain ones.
+2. Symbols and punctuation become spaces, so "seed-phrase" reads as "seed phrase".
+3. Digits become letters: 0 to o, 1 to l, 2 to z, 3 to e, 4 to a, 5 to s, 6 to g, 7 to t, 8 to b, and 9 to q.
+4. Repeated spaces collapse into one, and the text is lowercased.
+
+The embed shows the author, the channel ID, the matching categories, an excerpt of up to 700 characters, and a link to the message. Suspicious words runs before regex rules and affiliate cleanup, so the link can point to a message another feature deleted a moment later.
+
+These alerts post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel, Send Messages, and Embed Links in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+
+## Settings
+
+| Field                                    | Description                                                                                                                                                   |
+|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Phrase categories (`categories`)         | 1 to 100 categories.                                                                                                                                          |
+| Category (`categories[].category`)       | The category's name, shown in each alert, up to 100 characters.                                                                                               |
+| Words and phrases (`categories[].words`) | 1 to 250 phrases, each up to 200 characters.                                                                                                                  |
+| Alert destination → Channel (`channel`)  | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, required. |
+
+The feature rejects a category whose phrases contain no letters or digits after cleanup. The **Words and phrases** field takes one phrase per line, so a phrase can contain a comma.
+
+## Example
+
+```json title="Suspicious words settings"
+{
+  "categories": [
+    { "category": "Credential theft", "words": ["send me your password", "verify your account"] },
+    { "category": "Invite spam", "words": ["join my server"] }
+  ],
+  "channel": { "channel-id": "123456789012345678" }
+}
+```
+
+## Limits
+
+- **Phrases** — 100 categories with up to 250 phrases each.
+- **Excerpt** — Up to 700 characters of the message.
+- **Alert body** — The complete alert is shortened to Discord's 4,096-character embed-description limit when a long category list would exceed it.
+
+## Troubleshooting
+
+- **A contraction doesn't match** — Punctuation becomes a space, so "don't" in your list matches "don t" and "don't" but not "dont".
+- **"Moderation <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is unavailable: …"** — This log entry means the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead.
+- **No alert for an edited message** — The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> deleted punctuation instead of turning it into spaces, and it didn't clean your phrases, so a phrase with capital letters never matched. The rewrite cleans both sides the same way and uses a new embed layout.
+:::

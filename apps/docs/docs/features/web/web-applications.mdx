@@ -1,0 +1,209 @@
+---
+id: web-applications
+title: Web Applications
+description: Web applications serve a reCAPTCHA-protected invite page that you design in the control panel, and turn signed webhook requests into channel messages.
+keywords:
+  - stonker bot for discord
+  - web applications
+  - invite page
+  - invite page designer
+  - recaptcha
+  - signed webhooks
+tags:
+  - features
+  - web
+  - webhooks
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Serve an <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> protected by <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> that hands out short-lived Discord invites, design it in the control panel, and turn signed webhook requests into channel messages.
+
+## Why Use This Feature?
+
+1. Gives visitors a join link that expires and has a use limit, so a shared invite can't spread forever.
+2. Puts a <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> check in front of the invite, so automated sign-ups can't collect invites.
+3. Lets you design the page in your browser with a live preview, so you don't edit a template file.
+4. Accepts alerts from other services only when they carry a valid signature, so nobody else can post through your webhook.
+5. Queues each webhook message in the database, so a busy moment or a restart doesn't drop it.
+
+## How It Works
+
+Both parts run in the web service on the control panel's port, at paths you choose.
+
+### Invite Page
+
+- **Page** — A visit to your invite path shows the page you designed, with the <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> box and your button.
+- **Join** — The visitor checks the box and selects the button, and the web service checks the answer with Google, waiting up to 8 seconds.
+- **Invite** — On success, it creates a unique invite to the server's <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology> with your lifetime and uses, and the browser opens the `https://discord.gg/` link.
+- **Link previews** — Discord and other apps show the page's title, its description with the member count and boost level when they're shown, the banner or the logo, and the accent color.
+
+The page shows "Invites are paused right now. Try again later." with a disabled button while the bot is stopped or has no <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, the server has no <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology>, Discord can't be reached, or the feature's settings can't be used. The same message appears under the button when Google can't be reached or Discord refuses to create the invite.
+
+- **Failed check** — The visitor sees "The reCAPTCHA check didn't pass. Try again." and can check the box again.
+- **Too many invites** — More than 5 join attempts from one address, or one IPv6 `/56` network, in 10 minutes, including failed checks, shows "Too many invites from this network. Try again in 10 minutes."
+- **Server details** — The member count, the boost level, and the <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology> come from Discord, and the web service keeps them for a minute between lookups.
+
+### Mapped Webhooks
+
+- **Request** — Another service sends a `POST` to one of your <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">mapped webhook</Terminology> paths, signed with that route's <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology>.
+- **Checks** — The web service verifies the <Terminology title="Hash of the timestamp and body using the secret" to="/docs/reference/terminology#hmac-signature">HMAC signature</Terminology> and the <Terminology title="Five-minute limit on a signed request's timestamp" to="/docs/reference/terminology#freshness-window">freshness window</Terminology>, then reads the body as a JSON object.
+- **Delivery** — It fills the route's message from the JSON, queues one <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology>, and answers with HTTP 202, while the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> posts the message to the route's channel.
+- **Retries** — A delivery that fails is tried again 30 seconds later, up to `JOB_ATTEMPT_LIMIT` tries, 5 by default, and the last failure can send a **Job gave up** [notification](/docs/control-panel/notifications/#events).
+
+[Signed Webhooks](/docs/reference/signed-webhooks/) explains how to sign requests and lists every response.
+
+### Public Paths
+
+The `/invite`, `/join`, and `/webhooks/` paths are public, and saving or switching the feature updates them right away. A path that no enabled Web applications feature uses answers with HTTP 404 and "Not found."
+
+## Invite Page Designer
+
+Open **Features** and select **Web applications** to design the invite page for the selected server. The preview next to the form shows the page as visitors will see it while you edit.
+
+### Text
+
+| Field        | Description                                                                                                                                                     |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Title        | Up to 100 characters, and "Join" followed by the server's name until you change it.                                                                             |
+| Description  | Up to 300 characters, shown under the title and in link previews.                                                                                               |
+| Button label | Up to 40 characters, and "Join the server" until you change it.                                                                                                 |
+| Footer       | Up to 500 characters at the bottom of the page. A plain `https://` address becomes a link, and `[Server rules](https://example.com/rules)` links your own text. |
+
+Only `https://` addresses become links in the footer, and anything else stays plain text.
+
+### Look
+
+- **Theme** — **System** follows each visitor's device setting, or choose **Light** or **Dark**.
+- **Accent color** — Choose one of 10 colors, use the color picker, or type a hex color such as `#6250d9`. The button text switches between white and near-black, whichever reads better.
+- **Contrast check** — The designer shows the button text's contrast, such as "Button text contrast is 4.6:1, easy to read.", and warns below 4.5:1. It also warns when footer links may be hard to read on the light or dark theme.
+- **Logo** — **Server icon**, the default, **Your image**, or **No logo**. A server without an icon shows no logo.
+- **Banner** — A wide image, about 3 to 1, shown above the title and in link previews, with **Upload a banner**, **Replace**, and **Remove**.
+
+:::info
+Logos and banners can be PNG, JPEG, WebP, or GIF files of up to 2 MB, and square logos look best. The designer refuses other files, such as SVG images, with "Use a PNG, JPEG, WebP, or GIF image.", and larger files with "Use an image of 2 MB or less."
+
+The web service also checks each file's contents, so a renamed file is refused with "Upload a PNG, JPEG, WebP, or GIF image."
+:::
+
+### Server Details
+
+- **Show the member count** — On by default, and shown when Discord shares it, like 1,204 members.
+- **Show the boost level** — Off by default, and shown when the server has at least boost level 1.
+
+### Save and Publish
+
+- **Save** — The bar at the bottom counts your unsaved changes, with **Discard** and **Save**. Saving shows "Saved. Visitors see the new page right away." once the page is live, with a path and Web Applications turned on, and just "Saved." before that.
+- **Conflicts** — If someone else saved first, the designer shows "The invite page changed since you opened it. Reload to see the latest version."
+- **Public link** — Once the feature is on with an invite path, the top of the designer shows the **Public link** with copy and open buttons. Until then, it shows **Not published yet** with **Open Web applications**.
+- **Who can change it** — The Owner, Administrators, and Operators. Viewers see "Your role can see the invite page but not change it."
+
+:::tip
+The public link uses the address your browser has the control panel open at, so open the panel at the address visitors use before you copy it. It is recommended to open the link yourself and complete the check once before you share it.
+:::
+
+## Requirements
+
+- **No extra intent** — The web service talks to Discord through its REST API, so this feature adds no <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>.
+- **<Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">Rules channel</Terminology>** — The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> needs the server's <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology>, and the bot needs View Channel and Create Instant Invite there.
+- **<Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> keys** — A <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> v2 checkbox site key and secret key from Google, with your page's domain on the key's list of domains.
+- **Webhook channels** — The bot needs View Channel and Send Messages in each webhook route's channel.
+- **A public address** — Visitors and other services reach these paths through your reverse proxy, as described in [Remote Access](/docs/operations/remote-access/).
+
+## Settings
+
+The feature's own page, under **Features**, holds the paths, the invite limits, the keys, and the webhook routes. The **Invite page** designer holds how the page looks.
+
+### Invite Page Settings
+
+| Field                                                          | Description                                                                                                                                                                                                                                                                                                                       |
+|----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Path (`invite-generator.options.path`)                         | `/invite` or `/join`, optionally followed by more path segments.                                                                                                                                                                                                                                                                  |
+| Invite lifetime (seconds) (`invite-generator.options.max-age`) | Seconds each invite lasts, from 60 to 3,600, and 300 by default.                                                                                                                                                                                                                                                                  |
+| Uses per invite (`invite-generator.options.max-uses`)          | Uses per invite, from 1 to 5, and 1 by default.                                                                                                                                                                                                                                                                                   |
+| Site key (`invite-generator.recaptcha.site-key`)               | Your <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> site key, up to 256 characters.                                                                                                                                                   |
+| Secret key (`invite-generator.recaptcha.secret-key`)           | Your <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> secret key, stored as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>. |
+
+### Incoming Webhook Settings
+
+The **Incoming webhooks** section holds up to 25 routes, each with these fields.
+
+| Field                                                                                                                                                                    | Description                                                                                                                                                                                                                                                                                                                                                      |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                                                                                                                                            | The route's name, up to 100 characters.                                                                                                                                                                                                                                                                                                                          |
+| Path (`path`)                                                                                                                                                            | A path that starts with `/webhooks/`, such as `/webhooks/price-alert`.                                                                                                                                                                                                                                                                                           |
+| Channel (`channel`)                                                                                                                                                      | The channel to post in.                                                                                                                                                                                                                                                                                                                                          |
+| Message → Text (`payload.content`)                                                                                                                                       | The message template, up to 1,800 characters.                                                                                                                                                                                                                                                                                                                    |
+| Message → Footer → Footer text (`payload.footer.text`)                                                                                                                   | Optional second line, up to 150 characters.                                                                                                                                                                                                                                                                                                                      |
+| <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">Signing secret</Terminology> (`signing-secret`) | The route's <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology>, stored as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>, at least 32 characters. |
+| Variables (`variables`)                                                                                                                                                  | Up to 50 <Terminology title="Placeholder filled from a field in the request's JSON" to="/docs/reference/terminology#webhook-variable">webhook variables</Terminology>, each with an ID, a Path, and a Type.                                                                                                                                                      |
+
+The settings need at least one <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> or webhook route. The legacy `http-server` and `https-server` settings from the <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> are kept but hidden, and they do nothing, because both parts always run on the control panel's port.
+
+### Checks When You Save
+
+Saving checks the settings with the real secret values, and each problem shows next to its field.
+
+- **Short signing secret** — "Use a signing secret of at least 32 characters." on the route's **Signing secret**.
+- **Duplicate path in this server** — "Another page already uses /webhooks/price-alert." on the route's **Path**, when two routes in the selected server share a path.
+- **Path used by another server** — Saving, enabling, or importing refuses the change with "Another server already uses …" because every public path belongs to the whole bot installation.
+- **Wrong path** — "Use a path like /invite or /join/members." or "Use a path like /webhooks/orders."
+- **Missing secret** — "Enter this secret." on a key or secret without a value.
+
+:::warning
+If a problem still turns up when a request arrives, such as a secret that was removed after the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> was lost, the whole feature stops for that server. The invite page then shows "Invites are paused right now. Try again later.", webhook paths answer with 404, and the **Web** log shows `web_application_configuration_invalid`.
+:::
+
+## Example
+
+```json title="Web applications settings"
+{
+  "invite-generator": {
+    "options": { "path": "/invite", "max-age": 300, "max-uses": 1 },
+    "recaptcha": {
+      "site-key": "your-recaptcha-site-key",
+      "secret-key": { "$secret": "web-applications:2f6c1d8a9b3e4f70" }
+    }
+  },
+  "map-webhooks": [
+    {
+      "name": "Price alert",
+      "path": "/webhooks/price-alert",
+      "channel": { "channel-id": "123456789012345678" },
+      "payload": { "content": "@SYMBOL@ crossed @PRICE@." },
+      "signing-secret": { "$secret": "web-applications:8a41e09c5d7b2f36" },
+      "variables": [
+        { "id": "SYMBOL", "path": "alert.symbol", "type": "string" },
+        { "id": "PRICE", "path": "alert.price", "type": "usd-dollars" }
+      ]
+    }
+  ]
+}
+```
+
+## Message Variables
+
+The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> has no placeholders, because the designer fills in the server's name, icon, member count, and boost level for you.
+
+Webhook messages use `%YEAR%` for the current year in UTC, plus your <Terminology title="Placeholder filled from a field in the request's JSON" to="/docs/reference/terminology#webhook-variable">webhook variables</Terminology>, as described in [Signed Webhooks](/docs/reference/signed-webhooks/#map-json-fields-to-variables).
+
+## Limits
+
+- **Invites** — 60 to 3,600 seconds and 1 to 5 uses each, and 5 join attempts per 10 minutes from one address.
+- **Invite page** — A title of 100 characters, a description of 300, a button label of 40, a footer of 500, and images of 2 MB.
+- **Webhook routes** — Up to 25, each with up to 50 variables.
+- **Webhook messages** — Up to 2,000 characters after the variables are filled in.
+
+## Troubleshooting
+
+- **A configured path answers with 404** — The feature is off, or the path differs from the request, including a trailing slash.
+- **The page says "Invites are paused right now. Try again later."** — The bot is stopped, no <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved, the server has no <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology>, Discord can't be reached, or the feature's settings can't be used. If it appears only after a visitor selects the button, look in the **Web** log for `public_invite_failed`, such as a missing Create Instant Invite permission, or `public_invite_recaptcha_unreachable`.
+- **Visitors see "The reCAPTCHA check didn't pass. Try again."** — Check that the site key and secret key belong to the same <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> site, and that the page's hostname is on the key's list of domains. Behind a reverse proxy, the proxy has to pass the visitor's hostname through, as described in [Remote Access](/docs/operations/remote-access/#forwarded-headers).
+- **The public link shows `127.0.0.1`** — The link uses the address you opened the control panel at, so open the panel at your public address.
+- **The designer shows "Not published yet"** — Turn on the Web applications feature and give the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> a path, then reload the designer.
+- **An old `invites.ejs` didn't carry over** — The import doesn't read template files, so recreate the page in the designer, as described in [Legacy Migration](/docs/migration/legacy-migration/#the-invite-page).
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> ran its own HTTP and HTTPS servers, accepted webhook requests without any authentication, and rendered the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> from an EJS template. The rewrite serves both parts on the control panel's port, requires a signature on every webhook request, and builds the page from the designer's settings.
+:::

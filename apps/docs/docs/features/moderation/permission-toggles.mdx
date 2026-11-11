@@ -1,0 +1,98 @@
+---
+id: permission-toggles
+title: Permission Toggles
+description: Permission toggles change channel permissions for chosen roles or members on a schedule, such as opening a lounge channel every weekday morning.
+keywords:
+  - stonker bot for discord
+  - permission toggles
+  - channel permissions
+  - scheduled permissions
+  - moderation
+  - permission overwrites
+tags:
+  - features
+  - moderation
+  - scheduling
+sidebar_position: 6
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Change channel permissions for chosen roles or members on a schedule, such as opening a lounge channel every weekday morning.
+
+## Why Use This Feature?
+
+1. Opens and closes channels at set times, so nobody has to change permissions by hand every day.
+2. Sets the full permission state each time, so a channel always ends up exactly as the rule describes.
+3. Skips holidays with a list of dates, so the schedule doesn't open a channel on a day off.
+
+## How It Works
+
+- **When it runs** — At every time the rule's <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> matches, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> queues one <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology> for the rule.
+- **What it changes** — The job sets each listed <Terminology title="Channel-level allow or deny for a role or member" to="/docs/reference/terminology#permission-overwrite">permission overwrite</Terminology>, with `true` allowing a permission and `false` denying it.
+- **No merging** — Each overwrite replaces the target's whole overwrite in that channel, so permissions you don't list become neutral.
+- **Audit log** — Changes carry the reason "Stonker scheduled permission set:" followed by the rule's name.
+- **Retries** — A failed change is tried again 30 seconds later, up to `JOB_ATTEMPT_LIMIT` tries, 5 by default, and the last failure can send a **Job gave up** [notification](/docs/control-panel/notifications/#events).
+- **Downtime** — After the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> has been down, it catches up on missed times from the last 24 hours, so a change can apply late.
+
+A rule sets one state and never reverts it, so opening and closing a channel takes two rules. There is no <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash command</Terminology> for this feature, so changes happen only on the schedule.
+
+## Requirements
+
+- **No extra intent** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> changes permissions through Discord's REST API, so this feature adds no <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>.
+- **Channel permissions** — The bot needs View Channel and Manage Permissions in each channel, through Manage Roles or a channel overwrite.
+- **The bot's own permissions** — The bot can allow or deny only permissions it holds itself.
+- **Running bot** — Nothing is queued while the bot is stopped, as described in [Bot Lifecycle](/docs/control-panel/bot-lifecycle/#what-runs-while-the-bot-is-stopped).
+
+## Settings
+
+| Field                                                              | Description                                                                                                                                                                                                                                                                                |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                                      | The rule's name, used in the audit-log reason, up to 100 characters.                                                                                                                                                                                                                       |
+| Schedule (`toggle-on`)                                             | The <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> that decides when the rule runs, required.                                                                       |
+| Dates to skip (`skip-dates`)                                       | Optional <Terminology title="Local dates when a schedule does not run" to="/docs/reference/terminology#skip-dates">skip dates</Terminology> in the rule's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology>. |
+| Channel changes (`toggles`)                                        | 1 to 25 channels, each with a **Channel** and its **Permission overrides**.                                                                                                                                                                                                                |
+| Applies to (`toggles[].permissions[].target-type`)                 | **Member** (`member`) or **Role** (`role`).                                                                                                                                                                                                                                                |
+| Member or role ID (`toggles[].permissions[].user-or-role-id`)      | The <Terminology title="17- to 20-digit number that identifies a Discord object" to="/docs/reference/terminology#discord-id">Discord ID</Terminology> of the member or role.                                                                                                               |
+| Discord permissions (`toggles[].permissions[].user-or-role-perms`) | 1 to 50 permissions, each picked from **Add a permission…** and set to **Allow** or **Deny**, stored as `true` or `false`.                                                                                                                                                                 |
+
+Permission names are Discord's flag names as discord.js spells them, such as `ViewChannel` and `SendMessages`, and they are case-sensitive. [Scheduled Posts](/docs/features/automation/scheduled-posts/#schedules) explains the <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> fields.
+
+## Example
+
+```json title="Permission toggles settings"
+[
+  {
+    "name": "Open the weekday lounge",
+    "toggle-on": { "days-of-week": [1, 2, 3, 4, 5], "hours": [9], "minutes": [0], "time-zone": "America/New_York" },
+    "skip-dates": ["2026-11-26", "2026-12-25"],
+    "toggles": [
+      {
+        "channel": { "channel-id": "123456789012345678" },
+        "permissions": [
+          {
+            "target-type": "role",
+            "user-or-role-id": "223456789012345678",
+            "user-or-role-perms": { "ViewChannel": true, "SendMessages": true }
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+## Limits
+
+- **Rules** — Up to 100, each with up to 25 channels and 25 targets per channel.
+- **Permissions** — Up to 50 names per target.
+
+## Troubleshooting
+
+- **Other permissions reset** — Each run replaces the whole overwrite, so list every permission you want to keep for that target.
+- **"Every permission name must be supported by the current Discord API."** — Check the spelling and capitalization of each permission name.
+- **Nothing changed at the scheduled time** — The bot was stopped, so that time was skipped, or every try failed. The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> log then shows `job_failed` with the reason, such as "Discord permission changes are paused while the bot is stopped." or "Missing Permissions".
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> merged changes into the existing overwrite, accepted `null` to make a permission neutral, worked out whether an ID was a role or a member, and could also run from a chat command. The rewrite replaces the whole overwrite, needs `target-type` and `toggle-on` in every rule, and runs only on its schedule.
+:::

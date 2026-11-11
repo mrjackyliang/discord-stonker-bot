@@ -1,0 +1,127 @@
+---
+id: managing-features
+title: Managing Features
+description: Set up, edit, check, and turn on Stonker Bot for Discord features for a server with the form editor, including example settings and encrypted secret fields.
+keywords:
+  - stonker bot for discord
+  - managing features
+  - feature settings
+  - example settings
+  - encrypted secrets
+  - validation
+tags:
+  - control panel
+  - features
+sidebar_position: 4
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import managingFeaturesOneLight from './_assets_/managing-features-1-light.png';
+import managingFeaturesOneDark from './_assets_/managing-features-1-dark.png';
+import managingFeaturesTwoLight from './_assets_/managing-features-2-light.png';
+import managingFeaturesTwoDark from './_assets_/managing-features-2-dark.png';
+import managingFeaturesThreeLight from './_assets_/managing-features-3-light.png';
+import managingFeaturesThreeDark from './_assets_/managing-features-3-dark.png';
+
+Set up, edit, and turn on features for the selected server from the **Features** page and each feature's own page.
+
+## Why Use Per-Feature Settings?
+
+1. Lets you turn each feature on or off by itself, so a problem in one feature doesn't stop the others.
+2. Checks settings with their real secret values when you save, so most mistakes show up next to the field instead of in Discord.
+3. Keeps each feature's secrets in encrypted fields next to the settings that use them.
+
+## The Features Page
+
+The **Features** page shows all 19 features for the selected server as cards, with how many are turned on.
+
+- **Filters** — **All**, **On**, and one chip per category, each with a count.
+- **Cards** — Each feature has an icon, its name, a short description, and its category. A feature that still needs its settings shows **Not set up**, and the icon turns purple while the feature is on.
+- **Settings** — **Settings** at the bottom of a card, or **Set up** on a feature that isn't set up, opens the feature's page. Selecting anywhere below the switch does the same.
+- **Switch** — Turns the feature on or off. Until the feature is set up, the disabled switch stays in the **Off** position and looks faded.
+
+<Frame caption="The Features page filtered to Automation">
+  <ThemedImage sources={{ light: managingFeaturesOneLight, dark: managingFeaturesOneDark }} alt="Features page for Book Club with the Automation chip selected, showing cards for Message copiers and Message proxies marked Not set up with faded switches, Scheduled posts switched off, and Thread bumping switched on with a purple icon" width={1280} height={683} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+**Refresh** reloads the list, and the bot picks up changes within a few seconds.
+
+## Set Up a Feature
+
+A feature that isn't set up shows **Not set up yet** with two choices, and nothing is saved until you select **Save**. The feature stays off after its first save, until you turn it on with the switch.
+
+- **Start from the example** — Loads <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology> into the form.
+- **Start from scratch** — Opens an empty form with only the parts the feature needs.
+
+You can also replace every feature for a server by choosing **An older config.json** in the [Backup wizard](/docs/control-panel/export-and-import/#import-an-older-configjson).
+
+:::warning
+<Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">Example settings</Terminology> come from a test setup. Their channels and roles show as **Unknown channel** or **Unknown role** until you choose your own, some IDs are placeholders such as `000000000000000000`, and their secret fields start empty.
+:::
+
+## Edit Settings
+
+The form groups the settings into sections, with a hint under fields that need one.
+
+- **Pickers** — Channel and role fields list the names the bot found in the selected server. A deleted one shows **(deleted)**, and an ID that isn't in the server shows as **Unknown channel** or **Unknown role** with the ID.
+- **Typed IDs** — Thread IDs and member IDs are text fields that take a <Terminology title="17- to 20-digit number that identifies a Discord object" to="/docs/reference/terminology#discord-id">Discord ID</Terminology> of 17 to 20 digits.
+- **Lists** — Simple lists take one value per line, and commas are kept as part of a value.
+- **Cards** — Repeatable items, such as rules, appear as cards with **Move up**, **Move down**, **Copy**, and **Remove** buttons, plus an **Add** button below the last card.
+- **Optional parts** — A group, list, or secret you haven't used shows an **Add** button, and an added one has a **Remove** button.
+- **Message fields** — Show a button for each <Terminology title="Placeholder the bot fills in when a message sends" to="/docs/reference/terminology#message-variable">message variable</Terminology>, which inserts it at the cursor. The buttons list only the variables that feature supports.
+- **Other values** — Anything the form can't draw as a field appears as a JSON text box, with "This isn't valid JSON." when the text can't be read.
+
+<Frame caption="A feature form with an unsaved change">
+  <ThemedImage sources={{ light: managingFeaturesTwoLight, dark: managingFeaturesTwoDark }} alt="Scheduled posts form with the Post 1 card and its move, copy, and remove buttons, a channel picker set to #announcements, message and footer text each with a %YEAR% variable button, the Reactions list with Remove, and the bar at the bottom showing 1 unsaved change with Discard and Save" width={1280} height={849} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Save Your Changes
+
+The bar at the bottom leaves room after the form and shows how many changes you haven't saved, with **Discard** and **Save**. Toasts sit above the bar, and the browser asks before you close or reload the tab.
+
+:::warning
+Opening another page from the sidebar, the phone tab bar or **Settings** sheet, or the server menu asks "Discard your unsaved changes?" Browser **Back** and **Forward** open the page in history without that question, so save or discard feature changes first.
+:::
+
+- **Saved** — The page shows "Saved. The bot picks up the change within a few seconds." when the feature is on.
+- **Someone else saved first** — The page shows "This feature changed since you opened it. Reload to see the latest version." with **Reload**, and nothing is saved.
+
+Every save makes a running bot reconnect, as described in [Bot Lifecycle](/docs/control-panel/bot-lifecycle/#automatic-reconnects).
+
+## Turn a Feature On or Off
+
+Use the switch at the top of the feature's page, or the switch on the **Features** page.
+
+- **Not set up** — The switch is disabled in the **Off** position, and the API answers "Set up this feature before turning it on."
+- **Checks** — Turning a feature on checks its saved settings first, and a failed check shows "Fix this feature's settings before turning it on." The feature's own page also marks each problem next to its field, while the **Features** page shows only the message.
+- **Reconnect** — Each change to a switch makes a running bot reconnect, while asking for the state a feature already has changes nothing.
+
+## Encrypted Secret Fields
+
+Wherever a feature needs a credential, such as an API key or a webhook URL, the form stores it as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>.
+
+- **Saved value** — The field shows **Saved** with "Stored encrypted. It's never shown again." and a **Replace** button.
+- **Replace the value** — Select **Replace**, enter the new value of up to 3,000 characters, then save. Leaving the field empty, or selecting **Keep the saved value**, keeps the old one.
+- **Copies** — **Copy** on a card doesn't copy its secrets, so the copied card asks for its own value.
+- **Scope** — Each value belongs to the selected server only, and a secret no feature uses any more is deleted when you save.
+- **After a lost key** — A lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> removes every saved secret, so these fields are empty again, and the **Saved secrets were removed** notice links to each feature that had one. Entering the values and saving takes the feature off that notice, as described in [Storage and Backups](/docs/operations/storage-and-backups/#the-saved-secrets-notice).
+
+<Frame caption="A saved secret field" style={{ maxWidth: 902, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: managingFeaturesThreeLight, dark: managingFeaturesThreeDark }} alt="Message copiers destination sending to a Discord webhook, with the webhook URL showing Saved, the note that it is stored encrypted and never shown again, and Replace" width={900} height={362} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Checks When You Save
+
+Saving checks the settings with the feature's own rules and the real secret values. A problem shows next to its field, and the page shows "Check the highlighted fields."
+
+- **Missing secret** — A secret field without a value shows "Enter this secret."
+- **Wrong format** — A field shows what it expects, such as "Enter a Discord ID (17 to 20 digits)." or "Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/."
+- **Whole-feature problems** — A problem that no single field shows is listed in the message at the top.
+
+Some problems can still appear when the bot connects, such as a secret that was removed after the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> was lost. That feature stays off while the others keep running, and the Overview page lists it under <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology>, except for scheduled posts, RSS feeds, permission toggles, and web applications, which the bot process doesn't run.
+
+## Who Can Change Features
+
+The Owner, Administrators, and Operators can set up, save, and switch features. Viewers can open every feature, and the page shows "Your role can see this feature but not change it."

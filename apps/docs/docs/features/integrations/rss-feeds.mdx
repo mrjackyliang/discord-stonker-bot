@@ -1,0 +1,117 @@
+---
+id: rss-feeds
+title: RSS Feeds
+description: RSS feeds post new items from RSS and Atom feeds to a Discord channel on a schedule, starting with the items that appear after the first check.
+keywords:
+  - stonker bot for discord
+  - rss feeds
+  - atom feeds
+  - news posts
+  - integrations
+  - feed reader
+tags:
+  - features
+  - integrations
+  - rss
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Post new items from RSS and Atom feeds to a channel on a schedule, starting with the items that appear after the first check.
+
+## Why Use This Feature?
+
+1. Brings news and announcements into your server as they're published, without a separate feed bot.
+2. Remembers what it already posted, even across restarts, so items don't repeat.
+3. Skips the backlog on the first check, so adding a feed doesn't flood the channel.
+4. Fetches only public HTTPS addresses, so a feed URL can't reach your private network.
+
+## How It Works
+
+- **Schedule** — At each time the **Fetch schedule** matches, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> fetches the feed.
+- **First fetch** — The first successful fetch records the current items without posting any.
+- **Later fetches** — The bot posts up to 20 new items per fetch, and any other new items are marked as seen and never posted.
+- **Order** — The bot takes the first 20 new items in the feed's order and posts them in reverse, so a feed that lists the newest item first posts oldest first.
+- **Memory** — The bot remembers the last 500 item IDs and sends conditional requests, so an unchanged feed costs little.
+
+### Links
+
+- **Format** — Only absolute `https://` links are posted, and fragments after `#` are removed.
+- **Remove tracking parameters** — On by default, and it removes the whole query string, not only tracking parameters.
+- **Allowed URLs** — When set, only links on the same site and under one of the listed paths are posted.
+- **Follow redirects** — Off by default, so a feed URL that redirects fails, and when on, the bot follows up to 5 redirects for the feed and for item links.
+
+### Network Rules
+
+- **HTTPS only** — Feed URLs need `https://` with no username or password.
+- **Public addresses only** — The bot refuses feeds that resolve to private, local, or reserved addresses, such as your LAN, `localhost`, or Docker networks.
+- **Size and time** — Each request times out after 10 seconds and can return up to 1 MiB, and the bot reads the first 100 entries.
+- **Document checks** — The bot rejects HTML pages, invalid XML, and any feed that contains a `<!DOCTYPE` declaration.
+
+Item titles keep HTML entities as written, so a title can show `&amp;` instead of `&`.
+
+## Requirements
+
+- **No extra intent** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> posts through Discord's REST API, so this feature adds no <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>.
+- **Channel permissions** — The bot needs View Channel and Send Messages in each feed's channel.
+- **Running bot** — Nothing is fetched on schedule while the bot is stopped.
+
+## Settings
+
+Each feed has these fields.
+
+| Field                                            | Description                                                                                                                                                                          |
+|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                    | The feed's name, up to 100 characters.                                                                                                                                               |
+| URL (`url`)                                      | The feed's `https://` address.                                                                                                                                                       |
+| Channel (`channel`)                              | The channel to post in.                                                                                                                                                              |
+| Message → Text (`payload.content`)               | The post template, up to 2,000 characters, required.                                                                                                                                 |
+| Fetch schedule (`fetch-on`)                      | The <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology>, required. |
+| Allowed item URLs (`allowed-urls`)               | Optional list of 1 to 100 `https://` addresses that item links have to fall under.                                                                                                   |
+| Follow redirects (`follow-redirects`)            | Off by default.                                                                                                                                                                      |
+| Remove tracking parameters (`remove-parameters`) | On by default.                                                                                                                                                                       |
+| Request user agent (`user-agent`)                | Optional, `discord-stonker-bot/0.0.1` by default.                                                                                                                                    |
+
+[Scheduled Posts](/docs/features/automation/scheduled-posts/#schedules) explains the <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> fields. RSS feeds don't support <Terminology title="Local dates when a schedule does not run" to="/docs/reference/terminology#skip-dates">skip dates</Terminology>.
+
+## Example
+
+```json title="RSS feeds settings"
+[
+  {
+    "name": "Company news",
+    "url": "https://www.example.com/news/feed.xml",
+    "channel": { "channel-id": "123456789012345678" },
+    "payload": { "content": "%ITEM_TITLE%\n%ITEM_LINK%" },
+    "fetch-on": { "minutes": [0, 15, 30, 45] },
+    "allowed-urls": ["https://www.example.com/news"]
+  }
+]
+```
+
+## Message Variables
+
+| Variable       | Becomes                                                                     |
+|----------------|-----------------------------------------------------------------------------|
+| `%ITEM_TITLE%` | The item's title, up to 500 characters, or "New feed item" when it has none |
+| `%ITEM_LINK%`  | The item's link                                                             |
+
+## Limits
+
+- **Feeds** — Up to 100.
+- **Per fetch** — Up to 20 posts.
+- **Post length** — Up to 2,000 characters.
+
+## Troubleshooting
+
+- **Nothing posted after adding a feed** — The first fetch is a silent baseline, so posts start with the next new item.
+- **"RSS feed redirected while redirect following is disabled."** — Turn on **Follow redirects**, or use the address the feed redirects to.
+- **"RSS destination DNS resolved to a blocked network address."** — The feed's host points to a private or local address, which the bot doesn't fetch.
+- **Some items were never posted** — More than 20 new items arrived in one fetch, their links failed the allowed URL or `https://` checks, or, with **Follow redirects** on, their link check failed with `rss_item_redirect_failed`. An item whose post fails every try isn't tried again, because the fetch already marked it as seen.
+- **A feed check keeps failing** — A failed check is tried again 30 seconds later, up to `JOB_ATTEMPT_LIMIT` tries, 5 by default, then waits for the next scheduled time. The last failed try can send a **Job gave up** alert, as described in [Notifications](/docs/control-panel/notifications/#events).
+- **A changed URL posted nothing** — A new URL starts a new silent baseline.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> accepted any URL, decoded HTML entities, shortened Google News titles, posted every new item, and started over after each restart. The rewrite fetches public HTTPS feeds only, remembers items in the database, posts up to 20 items per fetch, and leaves titles as written.
+:::

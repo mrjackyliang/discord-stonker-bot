@@ -1,0 +1,91 @@
+---
+id: bot-lifecycle
+title: Bot Lifecycle
+description: Save the Bot Token, start, stop, and restart the Discord bot from the control panel, read each bot status, and see what keeps running while it is stopped.
+keywords:
+  - stonker bot for discord
+  - bot lifecycle
+  - start bot
+  - restart
+  - bot status
+  - connection page
+tags:
+  - control panel
+  - lifecycle
+sidebar_position: 2
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import botLifecycleOneLight from './_assets_/bot-lifecycle-1-light.png';
+import botLifecycleOneDark from './_assets_/bot-lifecycle-1-dark.png';
+
+Start, stop, and restart the Discord bot from the control panel without restarting the container, the panel, or the database.
+
+## The Connection Page
+
+**Connection** holds everything about the bot itself. It is under **Settings** in the desktop sidebar and is the first page opened by the phone's **Settings** tab.
+
+- **Bot** — The <Terminology title="The bot's last reported connection state" to="/docs/reference/terminology#bot-status">bot status</Terminology>, the Discord account it signed in as, and the Application ID, with the lifecycle buttons.
+- **Bot token** — The field for the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, or **Saved** once a token is stored.
+- **Add the bot to a server** — The **Invite link**, with copy and open buttons, after the bot has signed in once.
+
+<Frame caption="The Connection page">
+  <ThemedImage sources={{ light: botLifecycleOneLight, dark: botLifecycleOneDark }} alt="Connection page with the bot Online, Restart and Stop buttons, the Bot token showing Saved with Replace token, and the invite link with copy and open buttons" width={1280} height={676} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Save or Replace the Bot Token
+
+1. Paste the token into **Bot token**, or select **Replace token** to enter a new one.
+2. Select **Save token**.
+
+The panel encrypts the token, and no page or API ever shows it again. Saving a new token makes a running bot reconnect with it on its own, and Operators, Administrators, and the Owner can save one.
+
+## Start, Stop, and Restart
+
+The lifecycle buttons sit in the **Bot** section of both the Connection and Overview pages. The Owner, Administrators, and Operators can use them, and Viewers don't see them.
+
+- **Start** — Asks the bot to connect to Discord, and appears while the bot is set to stay stopped. It stays disabled until a <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved, and a start without one returns "Add the Discord bot token before starting the bot."
+- **Stop** — Disconnects the bot from Discord while the control panel, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, and the database keep running.
+- **Restart** — Reconnects with the current <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> and settings, and appears with **Stop** while the bot is set to run.
+
+Each button sets the <Terminology title="Whether you asked the bot to run or stop" to="/docs/reference/terminology#desired-state">desired state</Terminology> and increases the <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology>. The bot checks for changes every `BOT_CONTROL_POLL_INTERVAL_MS`, about once a second by default, and the panel refreshes the status a few seconds later.
+
+## Bot Statuses
+
+| Status              | Meaning                                                                                                                                                                                                      | What to do                                                      |
+|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Online              | The bot is connected to Discord                                                                                                                                                                              | Nothing                                                         |
+| Starting            | The bot is connecting, for up to 15 seconds, or the bot process hasn't picked up the request yet                                                                                                             | Wait for **Online** or **Stopped by an error**                  |
+| Stopped             | The bot is set to stay stopped, or has never been started                                                                                                                                                    | Select **Start** when you're ready                              |
+| Stopped by an error | The last connection attempt didn't succeed                                                                                                                                                                   | Check the token on the Connection page, then select **Restart** |
+| Not connected       | No <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved                                                                | Save a token on the Connection page                             |
+| Not responding      | The bot is set to run, but its process hasn't sent a <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> for 90 seconds | Read `docker compose logs app` for the reason                   |
+
+Below a failed status, the panel shows "Check the bot token on the Connection page, then restart the bot." A failed bot waits until the <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology> changes before it tries again, so it doesn't retry on its own.
+
+:::info
+The log doesn't record why a connection failed, but a **Bot can't sign in** alert from [Notifications](/docs/control-panel/notifications/) includes Discord's reason. A wrong token, a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> that is off in the Developer Portal, and a connection that takes longer than 15 seconds all lead to **Stopped by an error**.
+:::
+
+## Automatic Reconnects
+
+A running bot reconnects whenever the <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology> changes, so saved settings take effect on their own.
+
+- **Lifecycle buttons** — Start, Stop, and Restart.
+- **<Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> saves** — Saving a token on the Connection page.
+- **Feature changes** — Saving a feature's settings, or turning a feature on or off.
+- **Backup imports** — Importing an <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology> or an older `config.json` from [Backup](/docs/control-panel/export-and-import/).
+
+Each reconnect closes the Discord connection and opens a new one. The bot forgets the members and messages it had seen, so a few features miss the first change for anything it hasn't seen again, as noted on their pages.
+
+## What Runs While the Bot Is Stopped
+
+- **Control panel and database** — Keep running, so you can fix settings.
+- **Scheduled work** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> stops queuing scheduled posts, permission toggles, and RSS fetches, and the times that pass are skipped rather than replayed later.
+- **Queued deliveries** — Posts and permission changes already in the queue wait without spending attempts. They resume after you start the bot again.
+- **RSS fetches already queued** — Still run and mark new items as seen, but their posts fail, so those items aren't posted later.
+- **Public routes** — The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> shows "Invites are paused right now. Try again later.", and <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">mapped webhooks</Terminology> answer with HTTP 503.
+- **[Notifications](/docs/control-panel/notifications/)** — Keep going out, because they don't use the bot's Discord connection.
+- **Health check** — Stays healthy, because the <Terminology title="Endpoint that reports whether the panel and database work" to="/docs/reference/terminology#readiness-check">readiness check</Terminology> depends on the database, not the bot.

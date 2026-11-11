@@ -1,0 +1,47 @@
+import type {
+  Shared_BotConfiguration,
+  Shared_DatabaseConfiguration,
+  Shared_RuntimeConfiguration,
+  Shared_WebConfiguration,
+  Shared_WebConfiguration_Host,
+  Shared_WorkerConfiguration,
+} from '../shared.d.ts';
+
+export type Lib_Runtime_ReadRuntimeConfiguration_BotConfiguration = Shared_BotConfiguration;
+export type Lib_Runtime_ReadRuntimeConfiguration_DatabaseConfiguration = Shared_DatabaseConfiguration;
+export type Lib_Runtime_ReadRuntimeConfiguration_DatabaseUrl = URL;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_BotControlPollIntervalMilliseconds = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_CredentialKeyFile = string;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_DatabaseMaxConnections = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_JobAttemptLimit = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresDatabase = string;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresPassword = string;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresPort = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresUser = string;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_WebHost = string;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_WebPort = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment_WorkerPollIntervalMilliseconds = number;
+export type Lib_Runtime_ReadRuntimeConfiguration_Environment = {
+  BOT_CONTROL_POLL_INTERVAL_MS: Lib_Runtime_ReadRuntimeConfiguration_Environment_BotControlPollIntervalMilliseconds;
+  CREDENTIAL_KEY_FILE: Lib_Runtime_ReadRuntimeConfiguration_Environment_CredentialKeyFile;
+  DATABASE_MAX_CONNECTIONS: Lib_Runtime_ReadRuntimeConfiguration_Environment_DatabaseMaxConnections;
+  JOB_ATTEMPT_LIMIT: Lib_Runtime_ReadRuntimeConfiguration_Environment_JobAttemptLimit;
+  POSTGRES_DB: Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresDatabase;
+  POSTGRES_PASSWORD: Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresPassword;
+  POSTGRES_PORT: Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresPort;
+  POSTGRES_USER: Lib_Runtime_ReadRuntimeConfiguration_Environment_PostgresUser;
+  WEB_HOST: Lib_Runtime_ReadRuntimeConfiguration_Environment_WebHost;
+  WEB_PORT: Lib_Runtime_ReadRuntimeConfiguration_Environment_WebPort;
+  WORKER_POLL_INTERVAL_MS: Lib_Runtime_ReadRuntimeConfiguration_Environment_WorkerPollIntervalMilliseconds;
+};
+export type Lib_Runtime_ReadRuntimeConfiguration_Returns = Shared_RuntimeConfiguration;
+export type Lib_Runtime_ReadRuntimeConfiguration_WebConfiguration = Shared_WebConfiguration;
+export type Lib_Runtime_ReadRuntimeConfiguration_WebHost = Shared_WebConfiguration_Host;
+export type Lib_Runtime_ReadRuntimeConfiguration_WorkerConfiguration = Shared_WorkerConfiguration;
+
+export type Lib_Runtime_Sleep_DurationMilliseconds = number;
+export type Lib_Runtime_Sleep_Returns = Promise<void>;
+
+export type Lib_Runtime_WaitForShutdown_Returns = Promise<void>;
+export type Lib_Runtime_WaitForShutdown_KeepAliveTimer = NodeJS.Timeout;
+export type Lib_Runtime_WaitForShutdown_Settle = () => void;

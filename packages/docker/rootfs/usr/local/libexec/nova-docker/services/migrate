@@ -1,0 +1,6 @@
+#!/command/with-contenv sh
+set -eu
+
+cd /app/apps/bot
+
+exec /usr/local/libexec/discord-stonker-bot/migrate

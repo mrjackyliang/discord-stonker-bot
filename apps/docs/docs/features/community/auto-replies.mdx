@@ -1,0 +1,86 @@
+---
+id: auto-replies
+title: Auto Replies
+description: Auto replies answer new messages that match a pattern with one of your prepared responses, posted in the same channel or as a reply to the member.
+keywords:
+  - stonker bot for discord
+  - auto replies
+  - automatic responses
+  - canned answers
+  - community
+  - faq bot
+tags:
+  - features
+  - community
+  - replies
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Answer new messages that match a pattern with one of your prepared responses, in the same channel or as a reply.
+
+## Why Use This Feature?
+
+1. Answers common questions, such as where the rules are, the moment someone asks.
+2. Picks a random response from your list, so repeated answers don't feel robotic.
+3. Replies without pinging the member, so the answer doesn't add a notification.
+
+## How It Works
+
+- **What it reads** — New messages from members other than bots, and edits are ignored.
+- **Which rule fires** — The first rule whose channel list and pattern both match.
+- **What it posts** — One response picked at random from the rule's list, in the same channel.
+- **Reply mode** — With **Reply to the message** on, the response is a Discord reply to the member's message that doesn't ping them.
+
+Auto replies skip a message that a regex rule or affiliate cleanup has deleted.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Send Messages, and reply mode also needs Read Message History.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                          | Description                                                                      |
+|--------------------------------|----------------------------------------------------------------------------------|
+| Name (`name`)                  | The rule's name, up to 100 characters.                                           |
+| Regular expression (`regex`)   | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.      |
+| Messages (`payloads`)          | 1 to 25 responses, each with **Text** of up to 2,000 characters.                 |
+| Channels (`channels`)          | Optional list of up to 100 channels, and without it the rule applies everywhere. |
+| Reply to the message (`reply`) | On to send the response as a reply to the member's message.                      |
+
+Responses post as written, so a message variable such as `%MEMBER_MENTION%` isn't filled in, even though the form offers it.
+
+## Example
+
+```json title="Auto replies settings"
+[
+  {
+    "name": "Rules reminder",
+    "regex": { "pattern": "where (are|is) the rules", "flags": "i" },
+    "payloads": [
+      { "content": "The rules are pinned in the welcome channel." },
+      { "content": "Check the pinned messages in the welcome channel for the rules." }
+    ],
+    "reply": true
+  }
+]
+```
+
+## Limits
+
+- **Rules** — Up to 100, each with up to 25 responses.
+- **Response length** — Up to 2,000 characters.
+
+## Troubleshooting
+
+- **No response to an edited message** — Auto replies read new messages only.
+- **`auto_replies_failed` in the bot log** — The bot couldn't post the response, and the entry's `error`, such as "Missing Permissions", gives the reason.
+- **A reply failed** — The member's message was deleted before the reply was sent.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s responses could include embeds, and its replies pinged the member. The rewrite sends plain text, never pings, and skips messages that another feature deleted.
+:::

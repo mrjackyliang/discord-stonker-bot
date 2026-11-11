@@ -1,0 +1,331 @@
+---
+id: terminology
+title: Terminology
+description: Define the Discord, control panel, account, notification, scheduling, webhook, and migration terms used across the Stonker Bot for Discord docs in plain language.
+keywords:
+  - stonker bot for discord
+  - terminology
+  - glossary
+  - definitions
+  - concepts
+tags:
+  - reference
+  - terminology
+sidebar_position: 5
+---
+
+Define the terms and concepts used throughout this documentation.
+
+## Appliance
+
+The single Docker container that runs the whole bot. Inside it, s6-overlay supervises PostgreSQL 17, the web service that serves the control panel, the worker, and the Discord bot, plus two setup jobs that prepare the database.
+
+## Worker
+
+The background service that checks schedules about once a second and delivers queued posts, RSS items, permission changes, webhook messages, and notifications. It sends Discord work through Discord's REST API, so it does not use the Gateway connection.
+
+## Data Volume
+
+The `stonker-data` Docker volume mounted at `/data`, which holds the PostgreSQL files and the credential key. `docker compose down` keeps it, and `docker compose down --volumes` deletes it.
+
+## Credential Key
+
+The 32-byte key the appliance creates on first start at `/data/secrets/credential.key`. It encrypts the Bot Token, feature secrets, authenticator secrets, and the secret fields of notification destinations with AES-256-GCM, and a `pg_dump` backup does not include it.
+
+If the file goes missing, the next start makes a new key and removes the secrets the old one encrypted, along with each authenticator app's recovery codes, and the control panel lists them to enter again. A key file from another database stops startup instead.
+
+## Readiness Check
+
+The `GET /ready` endpoint, which returns HTTP 200 when PostgreSQL answers and HTTP 503 when it does not. Docker's health check calls it every 30 seconds, and the bot's state never affects the result.
+
+## Heartbeat
+
+The latest status a service recorded in the database, which the Overview page lists under **Services**. The web service writes one every 15 seconds, the worker every 30 seconds, and the bot whenever its status changes and at least every 30 seconds.
+
+## Discord Application
+
+Your bot's registration in the Discord Developer Portal, which owns the Bot Token, the privileged intent switches, and the install link. The control panel learns the application's ID the first time the bot connects.
+
+## Bot Token
+
+The secret credential the bot uses to sign in to Discord, copied from the Bot page of your Discord application. It is different from the Application ID, the Public Key, and the Client Secret.
+
+You enter it on the **Connection** page, which stores one encrypted token for the whole appliance and never shows it again.
+
+## Server ID
+
+The number Discord uses to identify a server, which Discord's API calls a guild ID. The control panel discovers servers automatically, and the Overview page shows the selected server's ID with a copy button.
+
+## Discord ID
+
+A 17- to 20-digit number that identifies a Discord user, channel, role, or thread. Some settings, such as thread IDs and member IDs, take a typed ID instead of a picker, and turning on Developer Mode in Discord lets you copy them.
+
+## Gateway
+
+Discord's live connection that delivers server events to the bot. **Start** opens it and **Stop** closes it, while the control panel, the worker, and the database keep running.
+
+## Gateway Intent
+
+A category of Discord events the bot subscribes to when it connects. The bot always requests the Guilds intent and adds the others only for features that are enabled and valid, combined across every server.
+
+## Privileged Intent
+
+An intent that you switch on for your application in the Discord Developer Portal before the bot can request it. This bot uses two of them, the Message Content and Server Members intents, and never requests the Presence intent.
+
+## Message Content Intent
+
+The privileged intent that lets the bot read the text of messages. Auto replies, suspicious words, regex rules, affiliate cleanup, scammer alerts, message copiers, message proxies, and the audit link and edit routes need it.
+
+## Server Members Intent
+
+The privileged intent that delivers member join, leave, and update events. Anti-raid, impersonator alerts, role messages, role synchronization, the audit member routes, and every server tool except the emoji summary need it.
+
+## Role Hierarchy
+
+Discord's rule that a member or bot can manage only roles positioned below its own highest role. Role synchronization, the membership gate, `/stonker-role`, and `/stonker-bulk-ban` check it before they act.
+
+## Slash Command
+
+A command such as `/stonker-members` that members run from Discord's message box. The bot registers up to six of them for a server, from the Server Tools feature, and each reply is visible only to the person who ran the command.
+
+## Discord Webhook
+
+A channel URL that posts messages without using the bot's own account. Message copiers and message proxies can post through one, and the control panel stores its URL as an encrypted secret.
+
+## Rules Channel
+
+The channel a server sets as its rules or guidelines channel in Discord's server settings. The invite page creates its invites for this channel and pauses invites when the server has none.
+
+## Setup Code
+
+The one-time code, such as `K7Q2M-XR9TD-P4W8N`, that the web service prints to the container log while no account exists. It creates the owner account, lasts 30 minutes, and changes every time the container restarts.
+
+## Panel Role
+
+The access level of a control panel account: Owner, Administrator, Operator, or Viewer. Each account has one role, and its access tokens can never do more than that role allows.
+
+## Owner
+
+The one account created at setup with the setup code. It can do everything on every server, and nobody can change, suspend, or delete it on the **Users** page.
+
+## Administrator
+
+A role that can do everything, including adding, changing, and removing users. An administrator limited to chosen servers can only manage users whose servers are all inside their own.
+
+## Operator
+
+A role that changes features, the Bot Token, the invite page, and notifications, and starts, stops, and restarts the bot. It can't manage users or open **Backup**.
+
+## Viewer
+
+A role that can see the bot's status, the features, the invite page, and the logs, but can't change them or open the **Notifications** page. Its access tokens can only read features and logs.
+
+## Server Access
+
+The set of Discord servers a control panel account may open, either every server or a chosen list. Requests for any other server are refused, and an account with every server also gets servers the bot joins later.
+
+## Browser Session
+
+The sign-in a browser keeps after you sign in, stored in the database and in a cookie. It lasts 24 hours and survives container restarts.
+
+## Access Token
+
+A personal token that starts with `dsb_`, which a script sends in the `Authorization` header to call the control panel's API. It acts as the user who created it, limited to its scopes, and it's shown only once.
+
+## Scope
+
+One kind of API request an access token may make: `bot:control`, `features:read`, `features:write`, or `logs:read`. A role can only give a token the scopes it could use itself.
+
+## Trusted Proxy
+
+A loopback or private address, such as a reverse proxy on the same host, whose `X-Forwarded-*` headers the web service believes. Headers from any other address are ignored.
+
+## Server Discovery
+
+The automatic listing of every server the bot can see, with its text channels and its roles, except `@everyone` and the roles Discord manages for bots, boosts, and integrations. It runs when the bot connects, when it joins or leaves a server, and whenever a channel or role changes.
+
+A server's new name or icon shows after the bot reconnects, and servers the bot no longer sees are marked unavailable instead of removed.
+
+## Desired State
+
+Whether you last asked the bot to run or stop, which decides whether the panel shows **Start** or **Stop**. It starts as stopped, and it also decides whether the worker and the public invite and webhook routes do any work.
+
+## Bot Status
+
+The bot's last reported connection state, shown as Online, Starting, Stopped, Stopped by an error, Not connected, or Not responding. The status card at the bottom of the desktop sidebar and the pill in the phone header show it on every page.
+
+## Revision
+
+A counter that tells a running bot to reconnect and load the latest settings. Start, Stop, Restart, Bot Token saves, feature saves and switches, and Backup imports all increase it, and log details show it as `generation`.
+
+## Example Settings
+
+The example values that **Start from the example** loads into a feature that isn't set up yet. They come from a test setup, so their channels and roles show as unknown until you choose your own, and their secret fields start empty.
+
+## Configuration Issues
+
+The errors that kept the bot's own features off the last time it connected, in the form `<server ID>: <feature key>: <setting path>: <message>`. The Overview page lists them under **Bot**, and the rest of the bot still connects.
+
+Scheduled posts, RSS feeds, and permission toggles run in the worker, and web applications run in the web service, so their errors don't appear there. A web applications error shows in the **Web** log as `web_application_configuration_invalid`.
+
+## Encrypted Secret
+
+A credential, such as an API key, a webhook URL, or a signing secret, that the control panel encrypts and never shows again. The feature's settings hold only a reference to it, and the form shows **Saved** with a **Replace** button.
+
+## Authenticator App
+
+An app, such as Google Authenticator, that generates the six-digit codes for two-factor sign-in. Turning it on in **Sign-in and security** also gives you 10 recovery codes.
+
+## Recovery Code
+
+A one-time code, such as `K7Q2M-XR9TD`, that you can type instead of an authenticator code when you sign in. You get 10 of them when you turn on the authenticator app, and they are shown only once.
+
+## Passkey
+
+A sign-in method that uses your device, such as Face ID, Touch ID, Windows Hello, or a security key, instead of your password and code. It works only at the address it was added on, which needs HTTPS and a domain name, or `localhost`.
+
+## Confirm It's You
+
+The fresh account check before an export or import. It uses the password and current authenticator code, when enabled, or a passkey, then gives the browser session a five-minute confirmation that works once and only for the requested operation.
+
+## Export File
+
+A portable JSON backup made from the sections selected under **Settings** → **Backup** → **Export…**. It contains selected configuration and secrets in plain text, but never users, passwords, sign-in security, sessions, logs, Discord runtime data, or raw access-token values.
+
+## Legacy Import
+
+The **An older config.json** source in **Backup**'s import wizard, which converts the legacy bot's file for the selected server. It checks every recognized section with its real secrets, keeps invalid features off, then replaces the server's features and secrets in one step, plus the Bot Token when the file contains one.
+
+## Trusted Role
+
+A Discord role you allow to run a bot command, set in a server tool's "Who can use it" field. The member also needs the command's Discord permission.
+
+## Alert Channel
+
+The channel where a feature posts alerts or ban reports for moderators. Anti-raid, impersonator alerts, scammer alerts, suspicious words, and affiliate cleanup each have one, and each audit route has its own.
+
+## Observation-Only
+
+A feature that alerts moderators but never bans, kicks, times out, or deletes anything. Impersonator alerts, scammer alerts, and suspicious words work this way.
+
+## Membership Gate
+
+The anti-raid setting that gives members roles and posts a welcome message after they complete Discord's membership screening. The control panel calls it "New member access".
+
+## Regular Expression
+
+A JavaScript text pattern, up to 512 characters with up to 16 flag characters, used to match names or messages. Matching is case-sensitive unless you add the `i` flag.
+
+## Excluded Roles
+
+The roles whose members a regex rule or affiliate cleanup skips. Server administrators and owners are not skipped unless they hold one of these roles.
+
+## Normalization
+
+The text cleanup a feature applies before it compares names or phrases. Suspicious words strips accents and symbols and maps digits to letters, impersonator alerts strips accents and lowercases names, and anti-raid trims and lowercases names.
+
+All three also turn styled and fullwidth letters, such as `Ｍｏｄ`, into plain ones.
+
+## Audit Route
+
+One type of audited event, such as member joins or message edits, sent to its own channel. Audit notifications has nine routes, and the routes you configure decide which intents the bot requests.
+
+## Message Variable
+
+A placeholder such as `%MEMBER_MENTION%` or `%YEAR%` that the bot fills in when it sends a message. Each feature supports its own set, and a placeholder a feature does not support stays in the message as written.
+
+## Replacement
+
+A find-and-replace rule, written as a regular expression, that message copiers and message proxies apply before they relay text. A rule can have up to 50, and without the `g` flag only the first match changes.
+
+## Permission Overwrite
+
+A channel-level setting that allows or denies permissions for one role or member. Permission toggles replace the whole overwrite for each target they list.
+
+## Calendar Selector
+
+The lists of months, dates, weekdays, hours, minutes, and seconds that decide when a schedule runs, plus its time zone. An omitted list matches every value except seconds, which defaults to 0, and every list has to match.
+
+## Time Zone
+
+An IANA time zone name, such as `America/New_York`, that a schedule uses to read its calendar selector. Each schedule defaults to UTC, and neither the container's `TZ` setting nor the legacy `settings.time-zone` changes it.
+
+## Skip Dates
+
+Up to 366 dates, written as `YYYY-MM-DD` in the schedule's time zone, when a scheduled post or permission toggle does not run. RSS feeds do not support them.
+
+## Durable Job
+
+A queued task, such as a post, a permission change, or a notification, that the worker keeps in the database until it finishes. A failed job retries after 30 seconds and stops after `JOB_ATTEMPT_LIMIT` attempts, and the last failure can send a **Job gave up** notification.
+
+## Replay Window
+
+The 24 hours of missed schedule times that the worker catches up on after it has been down. Times that pass while the bot is stopped are skipped, not replayed.
+
+## Deduplication Key
+
+A unique name for each job, built from the server, the rule, and the scheduled time, that stops the same job from being queued twice. Signed webhook requests and RSS items use one too.
+
+## Notification Destination
+
+One place the bot sends alerts about itself, such as an ntfy topic, a Telegram chat, or an email inbox, set up on the **Notifications** page. Each one uses one of 11 services, has its own name, and chooses its own notification events.
+
+## Notification Event
+
+Something the bot can send an alert about, such as **Bot disconnected** or **Job gave up**. There are six of them, and a new destination starts with every one checked.
+
+## Secret Field
+
+A notification destination setting, such as a bot token, a password, or a webhook URL, that is sealed with the credential key and never shown again. Leaving it blank when you edit the destination keeps the saved value, and an optional one has an explicit **Remove saved value** choice.
+
+## Notification Payload
+
+The JSON body that webhook and Reverse Proxy for ntfy destinations receive, with `version`, `app`, `event`, `title`, `message`, `priority`, `tags`, `occurredAt`, and `details`. Its `app` is always `discord-stonker-bot`.
+
+## Invite Page
+
+A public page at your configured `/invite` or `/join` path that creates a short-lived Discord invite after a visitor completes reCAPTCHA. You design it by opening **Features** and selecting **Web applications**, and each invite lasts 60 to 3,600 seconds and allows 1 to 5 uses.
+
+## reCAPTCHA
+
+Google's check that blocks automated requests on the invite page. The page uses the reCAPTCHA v2 checkbox and needs a site key and a secret key from Google.
+
+## Mapped Webhook
+
+An endpoint under `/webhooks/` that turns a signed JSON request into a Discord channel message. Each server can have up to 25 of them.
+
+## Signing Secret
+
+The shared secret, at least 32 characters long, that signs requests to a mapped webhook. The control panel stores it as an encrypted secret and won't save a shorter one.
+
+## HMAC Signature
+
+The hex HMAC-SHA-256 hash of `<timestamp>.<raw body>`, made with the signing secret and sent in the `X-Stonker-Signature` header. The Unix timestamp goes in the `X-Stonker-Timestamp` header.
+
+## Freshness Window
+
+The five-minute limit on how far a signed request's timestamp may differ from the server's clock. Requests outside it get HTTP 401.
+
+## Webhook Variable
+
+A placeholder such as `@SYMBOL@` that a mapped webhook fills from a field in the request's JSON. Each variable names a dot path and a type, and a missing value shows as "Unavailable".
+
+## Legacy Bot
+
+The original Stonker Bot for Discord, release v3.4.3, which ran as one process configured by a `config.json` file. This rewrite replaces it, and its code remains in the repository's Git history.
+
+## Feature Matrix
+
+The inventory that records what happened to each legacy capability in the rewrite. It lists every legacy section with its new feature and the main changes.
+
+## Legacy Section
+
+One top-level key of the legacy `config.json`. There are 22 of them: `settings`, 20 that match features, and `twitter-feeds`, which the Backup wizard drops.
+
+## Prefix Command
+
+A text command, such as `!ban` or `!members`, that the legacy bot read from chat messages. The rewrite does not read prefix commands and offers slash commands instead.
+
+## Event Kernel
+
+The code that compiles each server's features, combines their intents, registers their event handlers, and signs the bot in to Discord. In this codebase that is `connectGateway` in `apps/bot/src/index.ts`.

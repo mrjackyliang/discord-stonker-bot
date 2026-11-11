@@ -1,0 +1,92 @@
+---
+id: permissions-and-intents
+title: Permissions and Intents
+description: Look up the Gateway intents and Discord permissions each Stonker Bot for Discord feature needs, plus the role hierarchy rules the bot checks.
+keywords:
+  - stonker bot for discord
+  - permissions
+  - gateway intents
+  - privileged intents
+  - role hierarchy
+  - bot role
+tags:
+  - reference
+  - permissions
+  - discord
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Look up the <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intents</Terminology> and Discord permissions each feature needs, and the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology> rules the bot follows.
+
+## Gateway Intents by Feature
+
+The bot always requests the Guilds intent and adds the intents below only while a feature that needs them is enabled and valid. The two <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology> also need their switches turned on in the Discord Developer Portal.
+
+| Feature              | Intents                                                                                                                |
+|----------------------|------------------------------------------------------------------------------------------------------------------------|
+| Anti-raid            | Server Members (privileged)                                                                                            |
+| Impersonator alerts  | Server Members (privileged)                                                                                            |
+| Scammer alerts       | Guild Messages, Message Content (privileged)                                                                           |
+| Suspicious words     | Guild Messages, Message Content (privileged)                                                                           |
+| Regex rules          | Guild Messages, Message Content (privileged)                                                                           |
+| Affiliate cleanup    | Guild Messages, Message Content (privileged)                                                                           |
+| Server tools         | Server Members (privileged) unless the emoji summary is the only tool, plus Guild Voice States for the voice tool      |
+| Audit notifications  | Depends on the routes, as listed in [Audit Notifications](/docs/features/moderation/audit-notifications/#requirements) |
+| Role synchronization | Server Members (privileged)                                                                                            |
+| Permission toggles   | None                                                                                                                   |
+| Thread bumping       | None                                                                                                                   |
+| Message copiers      | Guild Messages, Message Content (privileged)                                                                           |
+| Message proxies      | Guild Messages, Message Content (privileged)                                                                           |
+| Scheduled posts      | None                                                                                                                   |
+| Auto replies         | Guild Messages, Message Content (privileged)                                                                           |
+| Event broadcasts     | Guild Scheduled Events                                                                                                 |
+| Role messages        | Server Members (privileged)                                                                                            |
+| RSS feeds            | None                                                                                                                   |
+| Web applications     | None                                                                                                                   |
+
+No feature requests the Presence intent. The bot combines the intents of every enabled feature into one connection.
+
+## Bot Permissions by Feature
+
+The install link on the **Connection** page requests no permissions, so give the bot a role with the permissions below. Most features don't check these permissions before they act, so a missing one shows up as an error in the logs.
+
+| Feature              | Permissions the bot needs                                                                                                                                                                                                                            |
+|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Anti-raid            | Ban Members for raid bans, View Channel and Send Messages in the alert and gate channels, and Manage Roles for the gate                                                                                                                              |
+| Impersonator alerts  | View Channel and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>                                                                 |
+| Scammer alerts       | View Channel where it reads, and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>                                                 |
+| Suspicious words     | View Channel where it reads, and Send Messages and Embed Links in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>                                 |
+| Regex rules          | View Channel and Manage Messages where rules apply                                                                                                                                                                                                   |
+| Affiliate cleanup    | View Channel and Manage Messages in every channel, and Send Messages and Embed Links in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>           |
+| Server tools         | Ban Members, Manage Roles, or Move Members for the bulk ban, role, and voice tools                                                                                                                                                                   |
+| Audit notifications  | View Channel where it reads, and Send Messages in each route's channel                                                                                                                                                                               |
+| Role synchronization | Manage Roles                                                                                                                                                                                                                                         |
+| Permission toggles   | View Channel and Manage Permissions in each channel                                                                                                                                                                                                  |
+| Thread bumping       | View Channel and Send Messages in Threads, and Manage Threads for locked or private threads                                                                                                                                                          |
+| Message copiers      | View Channel where it reads, and Send Messages in each destination channel                                                                                                                                                                           |
+| Message proxies      | View Channel in each source channel                                                                                                                                                                                                                  |
+| Scheduled posts      | View Channel and Send Messages, plus Add Reactions and Read Message History for reactions                                                                                                                                                            |
+| Auto replies         | View Channel and Send Messages, plus Read Message History for reply mode                                                                                                                                                                             |
+| Event broadcasts     | View Channel and Send Messages                                                                                                                                                                                                                       |
+| Role messages        | View Channel and Send Messages                                                                                                                                                                                                                       |
+| RSS feeds            | View Channel and Send Messages                                                                                                                                                                                                                       |
+| Web applications     | View Channel and Create Instant Invite in the <Terminology title="The server's designated rules or guidelines channel" to="/docs/reference/terminology#rules-channel">rules channel</Terminology>, and Send Messages in each webhook route's channel |
+
+## Role Hierarchy Rules
+
+Discord lets the bot manage only roles below its own highest role, and only members whose highest role is below the bot's.
+
+- **Anti-raid bans** — Discord refuses to ban a joining member whose highest role is at or above the bot's, and the ban report shows Discord's error.
+- **<Terminology title="Roles and welcome text given after rules screening" to="/docs/reference/terminology#membership-gate">Membership gate</Terminology>** — Adds no roles at all when any gate role is at or above the bot's highest role.
+- **Role synchronization** — Changes none of a member's roles when a target role or the member is out of reach, and never changes the server owner.
+- **`/stonker-role`** — Refuses a role at or above the bot's highest role. Unless the invoker owns the server, it also refuses a role or a member at or above the invoker's highest role.
+- **`/stonker-bulk-ban`** — Refuses the whole list when any target who is a member sits at or above the bot's highest role. Unless the invoker owns the server, it also refuses the list when a target sits at or above the invoker's highest role.
+
+## Legacy Comparison
+
+| Area         | <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">Legacy bot</Terminology>                                                  | Rewrite                                                      |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| Install link | The `bot` scope with a fixed permission set                                                                                                                                                   | The `bot` and `applications.commands` scopes, no permissions |
+| Intents      | 12 intents, including all three <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology>, always | Guilds plus only what enabled features need                  |

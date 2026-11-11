@@ -1,0 +1,10 @@
+{
+  "label": "Moderation",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Remove unwanted messages, run staff slash commands, audit member and message activity, sync roles, and schedule channel permission changes."
+  }
+}

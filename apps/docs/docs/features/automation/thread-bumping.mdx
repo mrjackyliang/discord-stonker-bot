@@ -1,0 +1,77 @@
+---
+id: thread-bumping
+title: Thread Bumping
+description: Thread bumping keeps chosen Discord threads open by unarchiving them when the bot connects and again whenever Discord archives one of them.
+keywords:
+  - stonker bot for discord
+  - thread bumping
+  - archived threads
+  - keep threads open
+  - automation
+tags:
+  - features
+  - automation
+  - threads
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Keep chosen threads open by unarchiving them whenever Discord archives them.
+
+## Why Use This Feature?
+
+1. Keeps long-running threads, such as a daily discussion, visible in the channel list.
+2. Reacts to the archive event itself, so a thread reopens right away instead of on a timer.
+3. Checks each thread's parent channel first, so a typo can't reopen a thread somewhere else.
+
+## How It Works
+
+- **When the bot connects** — The bot fetches each configured thread, checks that its parent is the configured channel, and unarchives it if needed.
+- **When Discord archives a thread** — The bot unarchives a configured thread it has seen as soon as the archive happens.
+- **Audit log** — Each unarchive carries the reason "Configured thread visibility".
+
+Thread bumping posts nothing, and it leaves the thread's archive timer and lock state as they are. When two rules list the same thread, an archive event uses only the first one, while the check on connect runs every rule, so a duplicate with a different channel logs a parent mismatch.
+
+## Requirements
+
+- **No extra intent** — Thread bumping uses only the Guilds intent that the bot always requests.
+- **Thread permissions** — The bot needs View Channel on the parent channel and permission to send messages in the thread, and a locked or private thread needs Manage Threads.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                       | Description                                                                                                                                                                    |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)               | The rule's name, up to 100 characters.                                                                                                                                         |
+| Channel (`channel`)         | The thread's parent channel, which the bot checks first.                                                                                                                       |
+| Thread (`thread.thread-id`) | The thread's <Terminology title="17- to 20-digit number that identifies a Discord object" to="/docs/reference/terminology#discord-id">Discord ID</Terminology>, typed by hand. |
+
+## Example
+
+```json title="Thread bumping settings"
+[
+  {
+    "name": "Daily discussion",
+    "channel": { "channel-id": "123456789012345678" },
+    "thread": { "thread-id": "423456789012345678" }
+  }
+]
+```
+
+## Limits
+
+- **Threads** — Up to 100 rules.
+
+## Troubleshooting
+
+- **"Configured thread parent does not match for rule: …"** — The thread's parent isn't the channel in the rule, so pick the thread's actual parent.
+- **"Configured thread is unavailable for rule: …"** — The ID belongs to a channel that isn't a thread, so enter the thread's own ID. A wrong or deleted ID logs "Unknown Channel" instead, and a thread the bot can't see logs "Missing Access".
+- **The thread stays archived** — The bot lacks permission in the thread, and a locked thread needs Manage Threads.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> checked its threads every second. The rewrite unarchives on connect and on each archive event, and checks the parent channel.
+
+The **Channel** picker lists only text-based channels, so a forum or media channel can't be chosen as the parent.
+:::

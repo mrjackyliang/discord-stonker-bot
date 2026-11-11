@@ -1,0 +1,67 @@
+---
+id: environment-variables
+title: Environment Variables
+description: Set the Stonker Bot for Discord environment variables in the right file, with each default value, allowed range, and appliance effect.
+keywords:
+  - stonker bot for discord
+  - environment variables
+  - dotenv
+  - docker compose
+  - configuration
+  - web port
+tags:
+  - operations
+  - configuration
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Set the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>'s environment variables in the right file, with each variable's default value and allowed range.
+
+## Where Variables Are Read
+
+Docker Compose passes variables to the container from two places, and each variable works from only one of them.
+
+- **`apps/bot/.env`** — Compose loads this file into the container, and it is where `POSTGRES_PASSWORD` belongs.
+- **The root `.env` or your shell** — The `environment` block in `compose.yml` fills the other settings from here, and Compose gives that block priority over `apps/bot/.env`.
+
+The startup scripts and the database migration check every setting before the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> start. An invalid value stops the container, and `docker compose logs app` names the rejected value, either as a plain message or in a `migration_failed` line.
+
+## Required
+
+| Variable            | Description                                                                                                                                                |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `POSTGRES_PASSWORD` | The database password, at least 16 characters, set in `apps/bot/.env`. Each start sets the database role to the current value, so you can change it later. |
+
+## Optional
+
+Set these in the root `.env`, next to `compose.yml`.
+
+| Variable                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `WEB_PORT`                     | The control panel's port inside the container and on the host, where Compose publishes it on every IPv4 and IPv6 address, 22604 by default.                                                                                                                                                                                                                                                                                                                                       |
+| `WEB_HOST`                     | The address the web service listens on inside the container. It's empty by default, which listens on every IPv6 and IPv4 address, or on IPv4 alone when the container has no IPv6. Docker's health check uses this address and changes wildcard listeners to the matching loopback address.                                                                                                                                                                                       |
+| `PUID`, `PGID`                 | The user and group IDs that run the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, from 1 to 2147483647, and 1000 by default.                                                                                                                                                                                                                             |
+| `TZ`                           | The container's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology>, an installed IANA name, `UTC` by default. It doesn't change any schedule.                                                                                                                                                                                                                                                        |
+| `POSTGRES_DB`, `POSTGRES_USER` | The database and role names, `stonker` by default, starting with a lowercase letter and using only lowercase letters, digits, and underscores.                                                                                                                                                                                                                                                                                                                                    |
+| `POSTGRES_PORT`                | PostgreSQL's port inside the container, 5432 by default.                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `BOT_CONTROL_POLL_INTERVAL_MS` | How often the bot checks for lifecycle and settings changes, from 250 to 60000 milliseconds, and 1000 by default.                                                                                                                                                                                                                                                                                                                                                                 |
+| `WORKER_POLL_INTERVAL_MS`      | How long the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> waits when no job is queued, from 100 to 60000 milliseconds, and 1000 by default. Scheduled posts, permission toggles, and RSS checks can start up to this long late.                                                                                                                                                        |
+| `JOB_ATTEMPT_LIMIT`            | How many times the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> runs a <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology> before marking it failed, 30 seconds apart, from 1 to 20, and 5 by default. The last failure can send a [Job gave up](/docs/control-panel/notifications/#events) alert. |
+| `DATABASE_MAX_CONNECTIONS`     | The database connections each service may open, from 1 to 30, and 10 by default. The bot, web, and worker each own a pool, so the maximum leaves room under PostgreSQL's connection limit.                                                                                                                                                                                                                                                                                        |
+| `IMAGE_NAME`                   | The image name Compose builds and runs, `discord-stonker-bot:local` by default.                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+## Set by the Image
+
+The image and `compose.yml` set the paths the services use, such as `CREDENTIAL_KEY_FILE` for the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>, `MIGRATIONS_DIRECTORY`, `STARTER_CONFIGURATION` for the <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology>, `POSTGRES_DATA_DIRECTORY`, and `POSTGRES_RUNTIME_DIRECTORY`.
+
+`compose.yml` sets each one to a fixed value, so a value in either `.env` file has no effect. `MIGRATIONS_DIRECTORY` and `STARTER_CONFIGURATION` point at files in the image, `CREDENTIAL_KEY_FILE` and `POSTGRES_DATA_DIRECTORY` point into the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>, and `POSTGRES_RUNTIME_DIRECTORY` points into the in-memory `/run`.
+
+:::danger
+A `CREDENTIAL_KEY_FILE` path without the key file counts as a lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>, so the next start removes the saved secrets the old key encrypted, as described in [Storage and Backups](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+:::
+
+## Unused Variables
+
+`NODE_ENV`, `LOG_LEVEL`, and `LOG_TIME` are listed in the samples for the repository's Nova tooling, but the bot's services don't read them.

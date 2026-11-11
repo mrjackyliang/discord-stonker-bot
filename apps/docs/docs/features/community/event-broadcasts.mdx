@@ -1,0 +1,104 @@
+---
+id: event-broadcasts
+title: Event Broadcasts
+description: Event broadcasts post a channel message when a Discord scheduled event is created, starts, ends, is canceled, or is updated in your server.
+keywords:
+  - stonker bot for discord
+  - event broadcasts
+  - scheduled events
+  - event announcements
+  - community
+tags:
+  - features
+  - community
+  - events
+sidebar_position: 2
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Post a message in a channel when a Discord scheduled event in your server is created, starts, ends, is canceled, or changes.
+
+## Why Use This Feature?
+
+1. Announces new and starting events in the channels members read, so fewer people miss them.
+2. Sends a different message for each stage of an event, such as one for scheduled and one for active.
+3. Limits announcements to chosen event types or one event creator, so only the events you care about are posted.
+
+## How It Works
+
+The bot gives every event change a status, then posts each rule that matches it.
+
+| Event change                       | Status                                                                              |
+|------------------------------------|-------------------------------------------------------------------------------------|
+| A new event                        | `SCHEDULED`, or `ACTIVE`, `COMPLETED`, or `CANCELED` when it already has that state |
+| A status change                    | The new status: `ACTIVE`, `COMPLETED`, or `CANCELED`                                |
+| An edit that keeps the same status | `UPDATED`                                                                           |
+| A deleted event                    | `CANCELED`                                                                          |
+
+- **Matching** — A rule posts when its status matches, the event's type is in its list, and its creator, if set, created the event.
+- **Every match posts** — All matching rules post, so two rules for the same status both send a message.
+- **Event types** — `VOICE` and `STAGE_INSTANCE` for voice and stage events, and `EXTERNAL` for everything else, shown in the form as **Voice**, **Stage**, and **External**.
+
+Discord sends the bot every scheduled event when it connects, so it reports deletions and same-status edits for events that already existed too.
+
+## Requirements
+
+- **Guild Scheduled Events intent** — The bot adds this intent for the feature, and it needs no switch in the Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Send Messages in each rule's channel.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                        | Description                                                                                                                          |
+|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                | The rule's name, up to 100 characters.                                                                                               |
+| Channel (`channel`)          | The channel to post in, required.                                                                                                    |
+| Status (`status`)            | **Scheduled** (`SCHEDULED`), **Started** (`ACTIVE`), **Ended** (`COMPLETED`), **Canceled** (`CANCELED`), or **Updated** (`UPDATED`). |
+| Event types (`entity-types`) | 1 to 3 of `EXTERNAL`, `STAGE_INSTANCE`, and `VOICE`.                                                                                 |
+| Creator (`creator.user-id`)  | Optional member ID, so the rule matches only events that member created.                                                             |
+| Message template (`message`) | The text to post, up to 2,000 characters.                                                                                            |
+
+## Example
+
+```json title="Event broadcasts settings"
+[
+  {
+    "name": "Event scheduled",
+    "channel": { "channel-id": "123456789012345678" },
+    "status": "SCHEDULED",
+    "entity-types": ["VOICE", "STAGE_INSTANCE", "EXTERNAL"],
+    "message": "New event: %EVENT_NAME% on %SCHEDULED_TIME%."
+  }
+]
+```
+
+## Message Variables
+
+| Variable              | Becomes                                                                                                                                                                    |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `%CHANNEL_TAG%`       | A mention of the event's channel, or nothing for an external event                                                                                                         |
+| `%CREATOR_TAG%`       | A mention of the event's creator, or "Unknown creator"                                                                                                                     |
+| `%EVENT_DESCRIPTION%` | The event's description, or "No description"                                                                                                                               |
+| `%EVENT_NAME%`        | The event's name, or "Unnamed event"                                                                                                                                       |
+| `%LOCATION%`          | The external event's location, or nothing                                                                                                                                  |
+| `%SCHEDULED_TIME%`    | The start time, shown in each reader's own <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> |
+| `%USER_COUNT%`        | The interested-member count Discord sent, which is often 0                                                                                                                 |
+
+## Limits
+
+- **Rules** — Up to 100.
+- **Message length** — Up to 2,000 characters.
+
+## Troubleshooting
+
+- **Example rules never post** — The <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology> set the creator to `000000000000000000`, so remove that creator or replace it with a real member ID.
+- **A deleted event wasn't announced** — No rule has the **Canceled** status with that event's type and creator.
+- **"Configured channel is not sendable for rule: …"** — The rule's channel can't hold messages, such as a category or forum channel, so choose a text channel. A missing permission shows Discord's error, such as "Missing Permissions", in a `broadcast_event_create_failed`, `broadcast_event_update_failed`, or `broadcast_event_delete_failed` log entry.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> posted event changes to Twitter only, required a creator, and treated every new event as scheduled. The rewrite posts to a Discord channel, so imported rules without a `channel` stay off until you choose a destination.
+
+`%CHANNEL_TAG%` now becomes a channel mention instead of a channel name, and `%SCHEDULED_TIME%` shows only the start time.
+:::

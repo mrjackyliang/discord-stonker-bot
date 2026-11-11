@@ -1,0 +1,107 @@
+---
+id: audit-notifications
+title: Audit Notifications
+description: Audit notifications post plain-text notices when members join, leave, or change names and roles, and when messages are deleted, edited, or share links.
+keywords:
+  - stonker bot for discord
+  - audit notifications
+  - audit log
+  - member activity
+  - message activity
+  - moderation
+tags:
+  - features
+  - moderation
+  - auditing
+sidebar_position: 4
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Post a plain-text notice to a moderator channel when members join, leave, or change names or roles, and when messages are deleted, edited, or contain links or files.
+
+## Why Use This Feature?
+
+1. Sends each type of event to its own channel, so moderators can follow joins separately from message edits.
+2. Leaves message text out of every notice, so the audit channel doesn't keep a copy of deleted or edited messages.
+3. Lists only the websites a link points to, so tracking tokens and private paths in URLs aren't repeated.
+4. Requests each intent only for the routes you configure, so the bot reads no more than those routes need.
+
+## How It Works
+
+Each <Terminology title="One audited event type sent to its own channel" to="/docs/reference/terminology#audit-route">audit route</Terminology> you configure sends its notices to its own channel.
+
+| Section (setting)                     | Sent when                       | The notice includes                                              |
+|---------------------------------------|---------------------------------|------------------------------------------------------------------|
+| Members joining (`guild-join`)        | A member joins                  | The member, their ID, and when the account was created           |
+| Members leaving (`guild-leave`)       | A member leaves                 | The member and their ID                                          |
+| Nickname changes (`change-nickname`)  | A member's nickname changes     | The previous and current nickname                                |
+| Username changes (`change-username`)  | A member's username changes     | The previous and current username                                |
+| Role changes (`role-change`)          | A member's roles change         | The roles added and removed                                      |
+| Deleted messages (`delete-message`)   | A message is deleted            | The message ID, the author ID, and the channel, without the text |
+| Edited messages (`update-message`)    | A member edits a message's text | The member, the channel, and a link, without the text            |
+| Messages with links (`includes-link`) | A new message contains a link   | The member, the channel, up to 10 website hosts, and a link      |
+| Attachments (`upload-attachment`)     | A new message has files         | The member, the channel, up to 10 file names, and a link         |
+
+- **Seen since the last reconnect** — The bot reports deletes and edits only for messages it saw after its last reconnect, up to 200 per channel, and leaves, nickname changes, username changes, and role changes only for members it saw after its last reconnect.
+- **Bulk deletes** — Messages removed together in a bulk delete aren't reported.
+- **Bot messages** — Deletes include messages from bots, while edits, links, and files skip them.
+- **Excluded links** — Links that match an excluded link are dropped from the link notice, and a message whose links are all excluded posts no notice.
+
+:::tip
+Audit notifications post in your Discord channels. Alerts about the bot itself, such as a failed sign-in or a job that gave up, come from [Notifications](/docs/control-panel/notifications/) instead.
+:::
+
+## Requirements
+
+| Routes                                                                           | <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>                      |
+|----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `guild-join`, `guild-leave`, `change-nickname`, `change-username`, `role-change` | Server Members, a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology>  |
+| `delete-message`, `update-message`, `includes-link`, `upload-attachment`         | Guild Messages                                                                                                                                                          |
+| `includes-link`, `update-message`                                                | Message Content, a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> |
+
+The bot also needs View Channel and Send Messages in each route's channel.
+
+:::warning
+The `upload-attachment` route doesn't request the <Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>. Discord leaves file details out of messages for bots without that intent, so this route may stay silent unless another enabled feature requests it.
+:::
+
+## Settings
+
+Each route appears as its own section, and at least one route is required.
+
+| Field                                            | Description                                                                            |
+|--------------------------------------------------|----------------------------------------------------------------------------------------|
+| Channel (`<route>.channel`)                      | The channel that receives this route's notices.                                        |
+| Links to ignore (`includes-link.excluded-links`) | Optional list of up to 100 links to ignore, each with a Name and a Regular expression. |
+
+## Example
+
+```json title="Audit notifications settings"
+{
+  "guild-join": { "channel": { "channel-id": "123456789012345678" } },
+  "role-change": { "channel": { "channel-id": "123456789012345678" } },
+  "includes-link": {
+    "channel": { "channel-id": "123456789012345679" },
+    "excluded-links": [
+      { "name": "Discord", "regex": { "pattern": "^https://(www\\.)?discord\\.com/", "flags": "i" } }
+    ]
+  }
+}
+```
+
+## Limits
+
+- **Links** — The bot reads the first 25 URLs in a message and lists up to 10 hosts.
+- **Files** — Up to 10 file names, each cut to 100 characters.
+- **Notice length** — Each notice is cut at 2,000 characters.
+
+## Troubleshooting
+
+- **A deleted message wasn't reported** — The message arrived before the bot's last reconnect, fell outside the 200 most recent messages in its channel, or went in a bulk delete.
+- **The file route stays silent** — Turn on a feature that requests the <Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>, as described in the warning above.
+- **"Configured audit channel is unavailable."** — This log entry means a route's channel is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> sent embeds that copied message text, re-uploaded attachments, and reported bulk deletes one message at a time. The rewrite sends plain text without message content, lists hosts instead of full URLs and file names instead of files, and doesn't report bulk deletes.
+:::

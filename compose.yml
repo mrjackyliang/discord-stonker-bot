@@ -1,0 +1,59 @@
+name: discord-stonker-bot
+
+services:
+  app:
+    image: ${IMAGE_NAME:-discord-stonker-bot:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./apps/bot/.env
+    environment:
+      BOT_CONTROL_POLL_INTERVAL_MS: ${BOT_CONTROL_POLL_INTERVAL_MS:-1000}
+      CREDENTIAL_KEY_FILE: /data/secrets/credential.key
+      DATABASE_MAX_CONNECTIONS: ${DATABASE_MAX_CONNECTIONS:-10}
+      JOB_ATTEMPT_LIMIT: ${JOB_ATTEMPT_LIMIT:-5}
+      MIGRATIONS_DIRECTORY: /app/apps/bot/migrations
+      NODE_ENV: production
+      PGID: ${PGID:-1000}
+      POSTGRES_DB: ${POSTGRES_DB:-stonker}
+      POSTGRES_DATA_DIRECTORY: /data/postgres
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_RUNTIME_DIRECTORY: /run/postgresql
+      POSTGRES_USER: ${POSTGRES_USER:-stonker}
+      PUID: ${PUID:-1000}
+      S6_READ_ONLY_ROOT: "1"
+      STARTER_CONFIGURATION: /app/apps/bot/examples/legacy-config.e2e.json
+      TZ: ${TZ:-UTC}
+      WEB_HOST: ${WEB_HOST:-}
+      WEB_PORT: ${WEB_PORT:-22604}
+      WORKER_POLL_INTERVAL_MS: ${WORKER_POLL_INTERVAL_MS:-1000}
+    ports:
+      - "${WEB_PORT:-22604}:${WEB_PORT:-22604}"
+    volumes:
+      - stonker-data:/data
+    read_only: true
+    tmpfs:
+      - /run:rw,exec,nosuid,size=64m,mode=0755
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - KILL
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 256mb
+    stop_grace_period: 45s
+    restart: unless-stopped
+
+networks:
+  default:
+    enable_ipv6: true
+
+volumes:
+  stonker-data:

@@ -1,0 +1,105 @@
+import type { MockInstance } from 'vitest';
+import type {
+  ZodError,
+  ZodSafeParseResult,
+} from 'zod';
+
+import type {
+  Shared_ErrorIssue,
+  Shared_ErrorIssues,
+  Shared_FeatureKey,
+  Shared_JsonObject,
+} from '../shared.d.ts';
+
+export type Lib_FeatureConfigurationValidation_SecretResolver = (key: string) => string | undefined;
+export type Lib_FeatureConfigurationValidation_Prepared = {
+  activeFeatureKeys: readonly Shared_FeatureKey[];
+  configurationErrors: readonly string[];
+};
+export type Lib_FeatureConfigurationValidation_Preparer = (
+  settings: Shared_JsonObject,
+  secrets: Lib_FeatureConfigurationValidation_SecretResolver,
+) => Lib_FeatureConfigurationValidation_Prepared;
+export type Lib_FeatureConfigurationValidation_Preparers = Record<
+  Shared_FeatureKey,
+  Lib_FeatureConfigurationValidation_Preparer
+>;
+export type Lib_FeatureConfigurationValidation_FormatPattern = {
+  message: string;
+  pattern: string;
+};
+export type Lib_FeatureConfigurationValidation_FormatPatterns = Lib_FeatureConfigurationValidation_FormatPattern[];
+export type Lib_FeatureConfigurationValidation_SchemaIssue = ZodError['issues'][number];
+
+export type Lib_FeatureConfigurationValidation_IsFeatureConfigurationValid_FeatureKey = Shared_FeatureKey;
+export type Lib_FeatureConfigurationValidation_IsFeatureConfigurationValid_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_IsFeatureConfigurationValid_Secrets = Lib_FeatureConfigurationValidation_SecretResolver;
+export type Lib_FeatureConfigurationValidation_IsFeatureConfigurationValid_Prepared = Lib_FeatureConfigurationValidation_Prepared;
+export type Lib_FeatureConfigurationValidation_IsFeatureConfigurationValid_Returns = boolean;
+
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_FeatureKey = Shared_FeatureKey;
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_Secrets = Lib_FeatureConfigurationValidation_SecretResolver | undefined;
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_Returns = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_Parsed = ZodSafeParseResult<unknown>;
+export type Lib_FeatureConfigurationValidation_ValidateFeatureConfiguration_Prepared = Lib_FeatureConfigurationValidation_Prepared;
+
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_FeatureKey = Shared_FeatureKey;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_ConfigurationErrors = readonly string[];
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Returns = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Issues = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_FeaturePrefix = string;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Details = string;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Entries = string[];
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_SeparatorIndex = number;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_RawPath = string;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Message = string;
+export type Lib_FeatureConfigurationValidation_CreateCompilerIssues_Path = string[];
+
+export type Lib_FeatureConfigurationValidation_CreateIssue_Path = string[];
+export type Lib_FeatureConfigurationValidation_CreateIssue_Message = string;
+export type Lib_FeatureConfigurationValidation_CreateIssue_Returns = Shared_ErrorIssue;
+export type Lib_FeatureConfigurationValidation_CreateIssue_SegmentsPath = string[];
+
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Error = ZodError;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Returns = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Issues = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Seen = Set<string>;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Issue = Lib_FeatureConfigurationValidation_SchemaIssue;
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Path = string[];
+export type Lib_FeatureConfigurationValidation_CreateSchemaIssues_Field = string;
+
+export type Lib_FeatureConfigurationValidation_CreateSettings_FeatureKey = Shared_FeatureKey;
+export type Lib_FeatureConfigurationValidation_CreateSettings_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_CreateSettings_Returns = Shared_JsonObject;
+
+export type Lib_FeatureConfigurationValidation_DescribeFormat_Format = string;
+export type Lib_FeatureConfigurationValidation_DescribeFormat_Pattern = string | undefined;
+export type Lib_FeatureConfigurationValidation_DescribeFormat_Returns = string;
+
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Issue = Lib_FeatureConfigurationValidation_SchemaIssue;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Returns = string;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Value = unknown;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Expected = string;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Origin = string;
+export type Lib_FeatureConfigurationValidation_DescribeSchemaIssue_Limit = number;
+
+export type Lib_FeatureConfigurationValidation_PrepareFeatureConfiguration_FeatureKey = Shared_FeatureKey;
+export type Lib_FeatureConfigurationValidation_PrepareFeatureConfiguration_Configuration = unknown;
+export type Lib_FeatureConfigurationValidation_PrepareFeatureConfiguration_Secrets = Lib_FeatureConfigurationValidation_SecretResolver;
+export type Lib_FeatureConfigurationValidation_PrepareFeatureConfiguration_Settings = Shared_JsonObject;
+export type Lib_FeatureConfigurationValidation_PrepareFeatureConfiguration_Returns = Lib_FeatureConfigurationValidation_Prepared;
+
+export type Lib_FeatureConfigurationValidation_ReadPath_Value = unknown;
+export type Lib_FeatureConfigurationValidation_ReadPath_Path = string[];
+export type Lib_FeatureConfigurationValidation_ReadPath_Returns = unknown;
+export type Lib_FeatureConfigurationValidation_ReadPath_Current = unknown;
+
+export type Lib_FeatureConfigurationValidation_Test_CreateProxyConfiguration_ChannelId = string;
+export type Lib_FeatureConfigurationValidation_Test_CreateProxyConfiguration_Returns = Shared_JsonObject[];
+export type Lib_FeatureConfigurationValidation_Test_Issues = Shared_ErrorIssues;
+export type Lib_FeatureConfigurationValidation_Test_OutputSpy = MockInstance<typeof process.stdout.write>;
+export type Lib_FeatureConfigurationValidation_Test_ResolveProxySecret_Key = string;
+export type Lib_FeatureConfigurationValidation_Test_ResolveProxySecret_Returns = string | undefined;

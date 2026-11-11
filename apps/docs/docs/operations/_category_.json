@@ -1,0 +1,10 @@
+{
+  "label": "Operations",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Configure environment variables, back up the data volume, plan remote access, monitor health, and troubleshoot common problems."
+  }
+}

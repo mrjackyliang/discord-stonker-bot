@@ -1,0 +1,90 @@
+---
+id: regex-rules
+title: Regex Rules
+description: Regex rules delete messages that match, or fail to match, a pattern you write, and can send the author a direct message that explains the rule.
+keywords:
+  - stonker bot for discord
+  - regex rules
+  - message filter
+  - auto delete
+  - moderation
+  - direct message
+tags:
+  - features
+  - moderation
+  - message filtering
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Delete messages that match, or fail to match, a pattern you write, and optionally tell the author why in a direct message.
+
+## Why Use This Feature?
+
+1. Enforces channel formats, such as "links only" or "numbers only", by deleting messages that don't match.
+2. Removes unwanted text, such as invite links, by deleting messages that do match.
+3. Explains the removal privately, so the author knows what to fix without a public warning.
+
+## How It Works
+
+- **What it reads** — New messages and edits that change a message's text, from members other than bots. The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
+- **How rules apply** — Rules run in order, and each one skips messages outside its channel and authors with one of its <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">excluded roles</Terminology>.
+- **Patterns** — Each pattern is a JavaScript <Terminology title="Text pattern used to match names or messages" to="/docs/reference/terminology#regular-expression">regular expression</Terminology>, and matching is case-sensitive unless you add the `i` flag.
+- **Match setting** — With **Act when the message matches** on, a rule acts when its pattern matches, and with it off, the rule acts when the pattern doesn't match.
+- **What it does** — The first rule that applies sends its direct message, if any, then makes one attempt to delete the message, and no later rule runs.
+
+The pattern runs against the message text as written, including Discord markup such as `<@123456789012345678>`. The bot posts no moderator alert and sets no audit-log reason.
+
+When a regex rule deletes a message, affiliate cleanup and auto replies skip that message.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Manage Messages wherever a rule applies.
+- **Direct messages** — A member who blocks direct messages from server members doesn't receive the explanation, and the delete still happens.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                                                                                                                                                  | Description                                                                   |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Name (`name`)                                                                                                                                          | The rule's name, up to 100 characters.                                        |
+| Act when the message matches (`match`)                                                                                                                 | On to act when the pattern matches, off to act when it doesn't.               |
+| Regular expression (`regex`)                                                                                                                           | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.   |
+| Channel (`channel`)                                                                                                                                    | Optional single channel the rule is limited to.                               |
+| <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Roles to ignore</Terminology> (`excluded-roles`) | Optional list of 1 to 100 roles whose members the rule skips.                 |
+| Direct message → Text (`direct-message-payload.content`)                                                                                               | Optional text of up to 2,000 characters sent to the author before the delete. |
+
+The direct message is sent as written, so a message variable the form offers, such as `%MEMBER_MENTION%`, isn't filled in.
+
+## Example
+
+```json title="Regex rules settings"
+[
+  {
+    "name": "No invite links",
+    "match": true,
+    "regex": { "pattern": "discord\\.gg/", "flags": "i" },
+    "excluded-roles": [{ "role-id": "223456789012345678" }],
+    "direct-message-payload": { "content": "Invite links aren't allowed in this server." }
+  }
+]
+```
+
+## Limits
+
+- **Rules** — Up to 100.
+- **Direct message** — Up to 2,000 characters of plain text.
+
+## Troubleshooting
+
+- **A moderator's message was deleted** — Administrators and the server owner aren't skipped automatically, so add their roles to **<Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Roles to ignore</Terminology>**.
+- **A rule doesn't apply inside a thread** — The channel filter compares the thread's own ID, so a rule limited to a parent channel doesn't cover its threads.
+- **`regex_rule_delete_failed` in the bot log** — The bot usually lacks Manage Messages in that channel, and the entry's `error` gives Discord's reason.
+- **`regex_rule_direct_message_failed` in the bot log** — The author doesn't accept direct messages from the bot, and the delete still ran.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> skipped anyone with the Administrator permission, and a skipped member also stopped later rules from running. The rewrite skips only <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">excluded roles</Terminology>, keeps evaluating later rules, and sends the direct message before the delete instead of at the same time.
+:::

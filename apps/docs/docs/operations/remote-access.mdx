@@ -1,0 +1,100 @@
+---
+id: remote-access
+title: Remote Access
+description: Reach the Stonker Bot for Discord control panel from other devices through HTTPS, with forwarded headers trusted only from private addresses.
+keywords:
+  - stonker bot for discord
+  - remote access
+  - reverse proxy
+  - https
+  - forwarded headers
+  - public routes
+tags:
+  - operations
+  - security
+  - networking
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Reach the control panel from other devices while keeping it private, and serve the public invite and webhook paths through HTTPS.
+
+## Default Binding
+
+Compose publishes the control panel's port on every IPv4 and IPv6 address of the Docker host, so any device that can reach the host can open the panel. To limit it to programs on that host, change the mapping in `compose.yml` to `127.0.0.1:${WEB_PORT:-22604}:${WEB_PORT:-22604}`.
+
+## Why Keep the Panel Private
+
+- **Plain HTTP inside** — The web service speaks plain HTTP, so passwords, session cookies, and <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology> would cross the network unencrypted.
+- **Sign-in limits are per address** — The panel allows 10 failed sign-ins in 15 minutes from one address, or from one `/56` network for an IPv6 visitor, which slows down guessing but doesn't stop someone with many addresses. A **Sign-in locked** [notification](/docs/control-panel/notifications/#events) can tell you when an address reaches the limit.
+- **Fewer moving parts** — A private panel can only be reached by people you let onto the network.
+
+For remote use, it is recommended to reach the panel through a private VPN, or through a reverse proxy that adds HTTPS and limits who can connect.
+
+## Put HTTPS in Front
+
+Run a reverse proxy on the Docker host and point it at `127.0.0.1:22604`, or at your `WEB_PORT`. Caddy is one option, and it gets certificates and adds the forwarding headers the web service reads.
+
+```caddyfile title="Caddyfile"
+bot.example.com {
+  reverse_proxy 127.0.0.1:22604
+}
+```
+
+Any other proxy works the same way if it sets `X-Forwarded-For` and `X-Forwarded-Proto`, and either sets `X-Forwarded-Host` or passes the browser's `Host` header through. There's no address to configure, because the web service reads each request's own address.
+
+## Forwarded Headers
+
+The web service reads `X-Forwarded-*` headers only from a <Terminology title="Private address whose forwarded headers are believed" to="/docs/reference/terminology#trusted-proxy">trusted proxy</Terminology>, which is a connection from one of these ranges:
+
+| Range            | Covers                                      |
+|------------------|---------------------------------------------|
+| `127.0.0.0/8`    | Loopback, such as a proxy on the same host  |
+| `10.0.0.0/8`     | Private networks                            |
+| `172.16.0.0/12`  | Private networks, including Docker's own    |
+| `192.168.0.0/16` | Private networks, such as most home routers |
+| `::1`            | IPv6 loopback                               |
+| `fc00::/7`       | IPv6 private networks                       |
+
+- **Client address** — Sign-in limits and API rate limits use the address from `X-Forwarded-For`. The list is read from the end, stopping at the first public address, so a chain of proxies on your own network still reports the real visitor.
+- **HTTPS** — `X-Forwarded-Proto: https` marks the session cookies `Secure` and lets <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology> work.
+- **Hostname** — `X-Forwarded-Host`, or the `Host` header when it's missing, gives the hostname that <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, the invite page's public link, and link previews use.
+- **Public addresses** — Headers from any other address are ignored, so a visitor who reaches the port directly can't fake their address.
+
+:::warning
+Every private address counts as a <Terminology title="Private address whose forwarded headers are believed" to="/docs/reference/terminology#trusted-proxy">trusted proxy</Terminology>, so a device on your network that can reach the port directly can set these headers itself. It is recommended to switch to the `127.0.0.1` binding and let only the proxy connect.
+:::
+
+## Passkeys and the Address
+
+<Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">Passkeys</Terminology> need no settings. The panel ties each one to the hostname in the browser when you add it.
+
+- **Where they work** — A domain name served over HTTPS, such as `bot.example.com`, or `localhost`. On an IP address such as `127.0.0.1`, or on plain HTTP with a domain name, the **Sign-in and security** page explains that <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology> aren't available there.
+- **One hostname** — A <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> added at one hostname doesn't work at another, so moving the panel to a new hostname means adding your <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology> again.
+- **Other sign-ins** — Passwords and authenticator codes work at any address.
+
+:::tip
+A <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> added at `http://localhost:22604/`, for example through an SSH tunnel, works only at `localhost`. It is recommended to add the passkeys you use every day at the HTTPS address you plan to keep.
+:::
+
+## Public Routes
+
+Some paths answer without signing in, so a reverse proxy can expose them while keeping the control panel private.
+
+| Path                       | Purpose                                                                                                                                                                                   | Protection                                                                                                                                                                                                                         |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/health`                  | Liveness check, always "ok"                                                                                                                                                               | None                                                                                                                                                                                                                               |
+| `/ready`                   | <Terminology title="Endpoint that reports whether the panel and database work" to="/docs/reference/terminology#readiness-check">Readiness check</Terminology> against the database        | None                                                                                                                                                                                                                               |
+| `/invite`, `/join`         | The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> and its sub-paths                        | <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology>, and 5 join attempts per 10 minutes from one address                                    |
+| `/webhooks/`               | <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">Mapped webhooks</Terminology>                                 | <Terminology title="Hash of the timestamp and body using the secret" to="/docs/reference/terminology#hmac-signature">HMAC signature</Terminology>                                                                                  |
+| `/media/`                  | The invite page's logo and banner images                                                                                                                                                  | None                                                                                                                                                                                                                               |
+| `/assets/`, `/favicon.svg` | The built files of the control panel and the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> | None                                                                                                                                                                                                                               |
+| `/api/v1/`                 | The control panel's API                                                                                                                                                                   | Sign-in or an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology>, except setup and sign-in, and 300 requests a minute from one address |
+| Every other path           | The control panel's page                                                                                                                                                                  | Sign-in, because the page loads its data from the API                                                                                                                                                                              |
+
+An invite or webhook path answers only while an enabled Web applications feature uses it, and a path that no enabled feature uses returns HTTP 404. To publish only the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology>, expose your invite path, `/media/`, `/assets/`, and `/favicon.svg`.
+
+## Protect the First-Run Page
+
+Until the owner account exists, the setup screen asks for the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> from the container log, so only someone who can read that log can create the account. It is still recommended to finish [First-Run Setup](/docs/getting-started/first-run/#create-the-owner-account) on the Docker host before you open the panel to any other device.

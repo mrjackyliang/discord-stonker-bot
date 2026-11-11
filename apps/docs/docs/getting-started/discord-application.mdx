@@ -1,0 +1,61 @@
+---
+id: discord-application
+title: Discord Application
+description: Create the Discord application the bot signs in as, copy its Bot Token, turn on the privileged intents your features need, and plan its permissions.
+keywords:
+  - stonker bot for discord
+  - discord application
+  - developer portal
+  - bot token
+  - privileged intents
+  - bot permissions
+tags:
+  - getting started
+  - discord
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Create the <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology> that the bot signs in as, and switch on the <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology> your features need.
+
+## Create the Application
+
+1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create a new application.
+2. Open the application's **Bot** page.
+
+You don't need to copy the Application ID. The control panel learns it the first time the bot connects.
+
+## Copy the Bot Token
+
+On the application's **Bot** page, select **Reset Token** and copy the token Discord shows. It is different from the Application ID, the Public Key, and the Client Secret, which the bot doesn't use.
+
+You paste the token on the control panel's **Connection** page during [First-Run Setup](/docs/getting-started/first-run/#save-the-bot-token). The panel encrypts it and never shows it again.
+
+:::warning
+Keep the token private. Anyone who has it can sign in as your bot.
+:::
+
+## Turn On Privileged Intents
+
+Switch on the <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology> for the features you plan to use, in the **Privileged <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway Intents</Terminology>** section of the **Bot** page.
+
+| Intent          | Needed by                                                                                                                                                                       |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Message Content | Auto replies, suspicious words, regex rules, affiliate cleanup, scammer alerts, message copiers, message proxies, and the audit link and edit routes                            |
+| Server Members  | Anti-raid, impersonator alerts, role messages, role synchronization, the audit join, leave, nickname, username, and role routes, and every server tool except the emoji summary |
+| Presence        | Not used by any feature                                                                                                                                                         |
+
+The bot requests a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> only while an enabled, valid feature needs it. If a feature needs an intent that is off in the Developer Portal, Discord refuses the connection, and the control panel shows **Stopped by an error**.
+
+## Install the Bot in Your Server
+
+The invite link on the **Connection** page, and **Add a server** in the server menu, open Discord's install page for your application. The link appears after the bot signs in for the first time, so [First-Run Setup](/docs/getting-started/first-run/#add-your-server) covers it in order.
+
+The install link asks for the `bot` and `applications.commands` scopes and no permissions.
+
+## Grant Permissions
+
+Because the install link requests no permissions, give the bot a role with the permissions your features need, and place that role above the roles it manages. Most features don't check permissions before they act, so a missing permission usually shows up as an error on the control panel's **Logs** page.
+
+[Permissions and Intents](/docs/reference/permissions-and-intents/) lists what each feature needs.

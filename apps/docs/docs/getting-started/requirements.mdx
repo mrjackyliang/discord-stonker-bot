@@ -1,0 +1,49 @@
+---
+id: requirements
+title: Requirements
+description: Check the Docker host, Discord application, privileged intents, optional API keys, and network access you need before installing Stonker Bot for Discord.
+keywords:
+  - stonker bot for discord
+  - requirements
+  - prerequisites
+  - docker compose
+  - discord application
+  - api keys
+tags:
+  - getting started
+  - requirements
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Check what you need before you install, from a Docker host and local storage to a <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology> and optional API keys.
+
+## Requirements
+
+- **Docker with Compose** — The repository's `compose.yml` builds and runs the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> with the `docker compose` command.
+- **An amd64 or arm64 machine** — The image builds only for these two processor architectures.
+- **Local storage for the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>** — PostgreSQL keeps its files in a Docker volume, and it is recommended to keep that volume on a local disk rather than NFS or SMB.
+- **The source code** — There's no published image yet, so you build the image from the repository.
+- **A <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology>** — You create it in the Discord Developer Portal and copy its <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, as described in [Discord Application](/docs/getting-started/discord-application/).
+- **<Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">Privileged intents</Terminology> for your features** — Features that read message text or member events need intents you switch on in the Developer Portal.
+- **Optional reCAPTCHA keys** — The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> needs a <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> v2 site key and secret key.
+- **Optional alert accounts** — [Notifications](/docs/control-panel/notifications/) need an account or address on the service they post to, such as an ntfy topic, a Telegram bot, or an SMTP server.
+- **An HTTPS address for remote use** — Secure session cookies and <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology> need HTTPS and a domain name, or `localhost`, as described in [Remote Access](/docs/operations/remote-access/).
+
+## Network and Ports
+
+- **Control panel** — The web service listens on `WEB_PORT` (22604 by default), and Compose publishes it on every IPv4 and IPv6 address of the host.
+- **Database** — PostgreSQL listens on `127.0.0.1` inside the container and is never published.
+- **IPv6** — The Compose file turns on IPv6 for the container's network, so sign-in limits and API rate limits count each IPv6 visitor by its own `/56` network instead of by Docker's gateway address. Docker Engine 27 or later picks the IPv6 subnet on its own, and on a host without IPv6, you can delete the `networks` block in `compose.yml`. IPv6 addresses are often reachable from the internet, so it is recommended to check that your router or host firewall blocks inbound connections to `WEB_PORT`.
+- **Connections to Discord** — The bot, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, and the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> connect to Discord over the internet.
+- **Optional connections** — The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> connects to Google's <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> service, and RSS feeds connect to each feed's host over HTTPS.
+- **Notifications** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> connects to each notification <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s service, and the web service does too when you select **Send test**.
+
+## Container Footprint
+
+- **Read-only root filesystem** — Only `/data`, `/run`, and `/tmp` are writable, and `/run` and `/tmp` are 64 MB in-memory filesystems.
+- **Shared memory** — Compose gives the container 256 MB of shared memory.
+- **Reduced privileges** — Compose drops every Linux capability except CHOWN, DAC_OVERRIDE, FOWNER, KILL, SETGID, and SETUID, and it sets `no-new-privileges`.
+- **Shutdown time** — Compose allows 45 seconds for a clean stop.
+- **Restart policy** — Docker restarts the container after a failure unless you stopped it yourself, because `compose.yml` sets `restart: unless-stopped`.

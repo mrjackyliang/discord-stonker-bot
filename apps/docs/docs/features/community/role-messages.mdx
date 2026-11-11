@@ -1,0 +1,90 @@
+---
+id: role-messages
+title: Role Messages
+description: Role messages post a notice in a channel when a member gains or loses a role you choose, such as welcoming new supporters or verified members.
+keywords:
+  - stonker bot for discord
+  - role messages
+  - role notifications
+  - welcome messages
+  - community
+tags:
+  - features
+  - community
+  - roles
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Post a message in a channel when a member gains or loses a role you choose.
+
+## Why Use This Feature?
+
+1. Welcomes members the moment they receive a role, such as a supporter or verified role.
+2. Announces when a role is removed, so moderators can follow up.
+3. Works with roles added by any source, including other bots and role synchronization.
+
+## How It Works
+
+- **When it runs** — When a member other than a bot gains or loses a role.
+- **Direction** — A **Role added** rule posts when the member gains the role, and a **Role removed** rule posts when they lose it.
+- **Every match posts** — All matching rules post their messages.
+- **What it posts** — The content, then the footer on the next line, as plain text whose mentions don't notify anyone.
+
+The bot sees role changes only for members it has seen since its last reconnect, so the first change for other members is missed.
+
+## Requirements
+
+- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Send Messages in each rule's channel.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                                                  | Description                                            |
+|--------------------------------------------------------|--------------------------------------------------------|
+| Name (`name`)                                          | The rule's name, up to 100 characters.                 |
+| Role (`role`)                                          | The role to watch.                                     |
+| Direction (`direction`)                                | **Role added** (`add`) or **Role removed** (`remove`). |
+| Channel (`channel`)                                    | The channel to post in.                                |
+| Message → Text (`payload.content`)                     | Up to 2,000 characters.                                |
+| Message → Footer → Footer text (`payload.footer.text`) | Up to 1,000 characters, posted as a second line.       |
+
+A message needs content, a footer, or both. The **Role** picker leaves out roles that Discord manages, such as the Server Booster role or a role that belongs to a bot or integration, so you can't choose one.
+
+## Example
+
+```json title="Role messages settings"
+[
+  {
+    "name": "Welcome supporters",
+    "role": { "role-id": "223456789012345678" },
+    "direction": "add",
+    "channel": { "channel-id": "123456789012345678" },
+    "payload": { "content": "Thanks for supporting the server, %MEMBER_MENTION%!" }
+  }
+]
+```
+
+## Message Variables
+
+| Variable           | Becomes                 |
+|--------------------|-------------------------|
+| `%MEMBER_MENTION%` | A mention of the member |
+| `%YEAR%`           | The current year in UTC |
+
+## Limits
+
+- **Rules** — Up to 100.
+- **Message length** — The content and footer together are cut at 2,000 characters.
+
+## Troubleshooting
+
+- **No message for a role change** — The bot hadn't seen that member since its last reconnect, or the member is a bot.
+- **`role_message_dispatch_failed` in the bot log** — The bot couldn't post in the rule's channel, and the entry's `error`, such as "Missing Permissions", gives the reason.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> sent full message objects that could include embeds. The rewrite posts plain text with the footer on a second line, uses UTC for `%YEAR%`, and never pings the member.
+:::

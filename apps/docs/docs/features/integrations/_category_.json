@@ -1,0 +1,10 @@
+{
+  "label": "Integrations",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Publish new items from RSS and Atom feeds to your Discord channels."
+  }
+}

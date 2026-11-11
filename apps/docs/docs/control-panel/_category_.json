@@ -1,0 +1,10 @@
+{
+  "label": "Control Panel",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Use the control panel to run the bot, configure features, export or import settings, manage users and security, read logs, and set up tokens and notifications."
+  }
+}

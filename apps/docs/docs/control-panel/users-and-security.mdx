@@ -1,0 +1,155 @@
+---
+id: users-and-security
+title: Users and Security
+description: Add control panel users with a panel role and server access, then protect each sign-in with an authenticator app, recovery codes, or passkeys.
+keywords:
+  - stonker bot for discord
+  - panel users
+  - panel roles
+  - two-factor sign-in
+  - passkeys
+  - recovery codes
+tags:
+  - control panel
+  - security
+  - users
+sidebar_position: 5
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import usersAndSecurityOneLight from './_assets_/users-and-security-1-light.png';
+import usersAndSecurityOneDark from './_assets_/users-and-security-1-dark.png';
+import usersAndSecurityTwoLight from './_assets_/users-and-security-2-light.png';
+import usersAndSecurityTwoDark from './_assets_/users-and-security-2-dark.png';
+import usersAndSecurityThreeLight from './_assets_/users-and-security-3-light.png';
+import usersAndSecurityThreeDark from './_assets_/users-and-security-3-dark.png';
+
+Add control panel accounts with the right <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology> and <Terminology title="Which Discord servers a panel account may open" to="/docs/reference/terminology#server-access">server access</Terminology>, and protect your own sign-in with an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+
+## Why Use Panel Roles?
+
+1. Gives moderators only the access they need, so a <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology> can check settings without changing them.
+2. Limits an account to chosen Discord servers, so a helper sees only the servers they look after.
+3. Adds a second sign-in step, so a stolen password alone doesn't open the control panel.
+
+## Panel Roles
+
+| Role                                                                                                                                             | What it can do                                                                                                                                                                                                                                                                                                                                                                                          |
+|--------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>               | Everything, on every server. There is exactly one, made at setup, and nobody can change it on the **Users** page                                                                                                                                                                                                                                                                                        |
+| <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> | Everything, including adding, changing, and removing users                                                                                                                                                                                                                                                                                                                                              |
+| <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operator</Terminology>                | Change features, the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology>, and [notifications](/docs/control-panel/notifications/), and start, stop, and restart the bot |
+| <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology>                     | See the bot's status, the features, the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology>, and the logs without changing anything. The **Notifications** page is hidden from them                                                                                                                            |
+
+Every role can change its own password and username, set up its own <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> and <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, and create its own <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology>.
+
+Only the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology> can open [Backup](/docs/control-panel/export-and-import/) to export or import configuration. Operators and Viewers don't see the page.
+
+## Server Access
+
+Each account sees either **All servers** or **Only these servers**. The panel refuses requests for any other server with "That Discord server isn't available."
+
+- **All servers** — Includes servers the bot joins later, and only someone who sees every server can give it.
+- **Only these servers** — Limits the account to the servers you tick. Someone with chosen servers can only give the servers they can open themselves.
+- **Managing others** — An <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> with chosen servers can only change users whose servers are all inside their own.
+
+## Add a User
+
+The <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology> add accounts on the **Users** page. On a wide screen it is under **Settings** in the sidebar; on a phone, open it from the **Settings** sheet.
+
+1. Select **Add user**.
+2. Enter a **Username** of 3 to 64 letters, digits, periods, underscores, or hyphens, starting with a letter or digit.
+3. Enter a **Password** of at least 12 characters, and share it with them privately. The bar under the field rates it from **Weak** to **Strong**, and any password of 12 to 1,024 characters is accepted.
+4. Choose a **Role**: Administrator, Operator, or Viewer.
+5. Choose **All servers**, or **Only these servers** and tick the servers.
+6. Select **Add user**.
+
+<Frame caption="Adding a user" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: usersAndSecurityOneLight, dark: usersAndSecurityOneDark }} alt="Add user dialog with the username taylor, a password rated Strong, the Operator role, and Only these servers with Stonker Lounge ticked" width={584} height={897} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+Usernames are unique without regard to letter case, so a taken name shows "That username is already in use." The new user can change their password and add an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> on their **Sign-in and security** page.
+
+## Change or Remove a User
+
+Each row on the **Users** page shows the username, when they last signed in, their <Terminology title="Which Discord servers a panel account may open" to="/docs/reference/terminology#server-access">server access</Terminology>, whether two-factor sign-in is on, and their role, with **Edit** and **Delete** buttons. **2FA** with a check means they have an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, and pointing at it names which.
+
+The **Servers**, **2FA**, and **Role** menus above the list narrow it to the users who match, and the count beside them shows how many are left.
+
+**Edit** changes the role and the <Terminology title="Which Discord servers a panel account may open" to="/docs/reference/terminology#server-access">server access</Terminology>. Its **Account** section has the options below, and **Save** applies everything at once. **Turn off two-factor** appears only for users with an authenticator app or a passkey.
+
+- **Set a new password** — Shows a field for a new password of at least 12 characters and signs them out everywhere. Their <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology> keep working.
+- **Turn off two-factor** — Removes their <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, and <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, so they sign in with their password alone until they set them up again.
+- **Suspended** — Signs them out right away and blocks sign-in until you untick it, and their <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology> stop working too.
+
+**Delete** asks you to confirm, then removes the account, its sessions, its <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology>, and its sign-in methods.
+
+The <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, your own account, and users with servers you can't open have no **Edit** or **Delete** buttons. Change your own account in **Sign-in and security**.
+
+<Frame caption="Editing a user" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: usersAndSecurityTwoLight, dark: usersAndSecurityTwoDark }} alt="Edit avery dialog with the Administrator role, All servers, and the Account section with Set a new password ticked above a New password field, then Turn off two-factor and Suspended" width={584} height={810} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Your Password and Username
+
+Open **Sign-in and security** from the account menu on a wide screen or a phone.
+
+- **Password** — Enter the **Current password**, then a **New password** of at least 12 characters twice, and select **Change password**. The bar under **New password** rates it from **Weak** to **Strong**. Your other devices are signed out, while this one stays signed in.
+- **Username** — Enter the **New username** and **Your password**, then select **Change username**. The new name applies at once, including to sessions that are already signed in.
+
+## Authenticator App and Recovery Codes
+
+1. Under **Authenticator app**, select **Set up**. A dialog walks through three steps.
+2. Enter your password and select **Continue**.
+3. Scan the QR code with your <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, or type the **Setup key** into the app. **Copy** puts the key on the clipboard.
+4. Enter the 6-digit code in **Code** and select **Turn on**.
+5. Save the 10 recovery codes with **Copy all** or **Download .txt**, check **I saved these codes**, and select **Done**.
+
+<Frame caption="Scanning the QR code" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: usersAndSecurityThreeLight, dark: usersAndSecurityThreeDark }} alt="Set up authenticator dialog at step 2 of 3, with a QR code, the setup key in blocks of four, a 6-digit code in Code, and the Cancel and Turn on buttons" width={584} height={416} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+- **Time limit** — You have 10 minutes to finish these steps before you need to start again.
+- **From then on** — Password sign-in asks for a code, and **Authenticator app** shows how many <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> are left.
+- **New recovery codes** — Asks for your password, then shows the new set in the same dialog and replaces the old one, so the old codes stop working.
+- **Done** — Stays unavailable until **I saved these codes** is checked, and the dialog can't be closed another way, because the codes aren't shown again.
+- **Turn off** — Asks for your password in a dialog, then removes the app and every <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology>.
+
+The panel stores only a hash of each <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology>, so it can't show them again.
+
+## Passkeys
+
+1. Under **Passkeys**, enter a **Passkey name** of up to 80 characters, such as the device it's on.
+2. Enter **Your password** and select **Add passkey**.
+3. Confirm with your device, such as Face ID, Touch ID, Windows Hello, or a security key.
+
+- **Signing in** — Select **Sign in with a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>** on the sign-in screen, which skips both the password and the authenticator code.
+- **One address** — A <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> works only at the address it was added on, and the list shows that hostname next to each one.
+- **Where they work** — Adding one needs HTTPS and a domain name, or `localhost`. On an IP address or plain HTTP, the page explains that it can't add one there, as described in [Remote Access](/docs/operations/remote-access/#passkeys-and-the-address).
+- **Remove** — Select **Remove** next to a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, enter your password in the dialog, and select **Remove passkey**. It stops working right away.
+
+## Password Checks
+
+Changing how you sign in asks for your current password first: setting up or turning off the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, making new <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, adding or removing a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, and changing your username. A wrong one shows "That password is incorrect."
+
+Wrong password checks count toward the same limit as failed sign-ins, 10 per address in 15 minutes, and then the page shows "Too many attempts. Try again in 15 minutes."
+
+## Sessions and Sign Out
+
+- **Length** — A <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology> lasts 24 hours from sign-in, and restarting the container doesn't end it.
+- **Cookies** — The session cookie is `HttpOnly` and `SameSite=Strict`, and it's marked `Secure` when you reach the panel over HTTPS.
+- **Sign out** — **Sign out** in the account menu ends your session.
+- **Ended for you** — Changing your password ends your other sessions, and a password reset or a suspension by an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> ends all of them.
+
+## If You're Locked Out
+
+- **Lost authenticator app** — Sign in with a <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, or ask an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> to tick **Turn off two-factor** under **Edit** for you.
+- **Forgotten password** — Ask an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> or the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> to tick **Set a new password** under **Edit** for you.
+
+:::warning
+Nobody can reset the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s password or two-factor sign-in in the control panel. It is recommended to keep the Owner's <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> somewhere other than the phone with the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, and to add a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+
+If the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> loses all three anyway, delete the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> with `docker compose exec app rm /data/secrets/credential.key` and run `docker compose restart app`. Every <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> is then turned off, not just the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s, and the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, every feature secret, and the <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology> of every [notification](/docs/control-panel/notifications/#after-a-lost-credential-key) <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> are removed too, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+:::

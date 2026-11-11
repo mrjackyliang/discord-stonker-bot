@@ -1,0 +1,661 @@
+{
+  "project": {
+    "name": {
+      "title": "Stonker Bot for Discord",
+      "slug": "discord-stonker-bot"
+    },
+    "description": {
+      "short": "A self-hosted, all-purpose Discord bot for community safety, moderation, automation, and content",
+      "long": "Stonker Bot for Discord is a self-hosted, all-purpose operations bot for Discord communities. It brings moderation, community safety, content automation, and optional integrations into a modular service that operators can understand, with least-privilege access, observable behavior, and a focused capability set."
+    },
+    "keywords": [
+      "discord",
+      "discord-bot",
+      "community",
+      "moderation",
+      "automation",
+      "typescript",
+      "nodejs",
+      "docker"
+    ],
+    "legalName": "Jacky Liang",
+    "pronouns": "personal",
+    "platforms": [
+      "nodejs",
+      "discord",
+      "docker",
+      "web"
+    ],
+    "startingYear": 2021,
+    "license": "MIT"
+  },
+  "entities": [
+    {
+      "name": "Jacky Liang",
+      "email": "hello@mrjackyliang.com",
+      "url": "https://www.mrjackyliang.com/",
+      "roles": [
+        "author"
+      ]
+    }
+  ],
+  "emails": {
+    "bugs": "bugs@mrjackyliang.com"
+  },
+  "github": {
+    "owner": "mrjackyliang",
+    "repo": "discord-stonker-bot",
+    "topics": [
+      "discord",
+      "discord-bot",
+      "community",
+      "moderation",
+      "automation",
+      "typescript",
+      "nodejs",
+      "docker"
+    ],
+    "features": {
+      "issues": true,
+      "wiki": false,
+      "projects": false,
+      "discussions": false,
+      "sponsorships": true
+    },
+    "policies": {
+      "visibility": "public",
+      "defaultBranch": "main",
+      "mergeMethods": {
+        "merge": true,
+        "squash": true,
+        "rebase": true
+      },
+      "mergeCommit": {
+        "title": "merge-message",
+        "message": "pull-request-title"
+      },
+      "squashMerge": {
+        "title": "commit-or-pull-request-title",
+        "message": "commit-messages"
+      },
+      "autoDeleteHeadBranch": true,
+      "autoMerge": false,
+      "allowUpdateBranch": false,
+      "webCommitSignoffRequired": false
+    },
+    "security": {
+      "vulnerabilityAlerts": true,
+      "dependabotSecurityUpdates": false,
+      "secretScanning": true,
+      "pushProtection": true
+    },
+    "rulesets": {
+      "defaultBranch": {
+        "enforcement": "active",
+        "blockDeletions": true,
+        "blockForcePushes": true,
+        "requireLinearHistory": false,
+        "requireSignedCommits": true,
+        "requirePullRequest": false,
+        "requiredStatusChecks": [],
+        "requireBranchesToBeUpToDate": false
+      }
+    },
+    "actions": {
+      "enabled": true,
+      "allowedActions": "all",
+      "shaPinningRequired": false,
+      "defaultWorkflowPermissions": "read",
+      "canApprovePullRequestReviews": false,
+      "artifactRetentionDays": 7
+    },
+    "labels": [
+      {
+        "name": "bug",
+        "color": "d73a4a",
+        "description": "Something isn't working"
+      },
+      {
+        "name": "documentation",
+        "color": "0075ca",
+        "description": "Improvements or additions to documentation"
+      },
+      {
+        "name": "duplicate",
+        "color": "cfd3d7",
+        "description": "This issue or pull request already exists"
+      },
+      {
+        "name": "enhancement",
+        "color": "a2eeef",
+        "description": "New feature or request"
+      },
+      {
+        "name": "good first issue",
+        "color": "7057ff",
+        "description": "Good for newcomers"
+      },
+      {
+        "name": "help wanted",
+        "color": "008672",
+        "description": "Extra attention is needed"
+      },
+      {
+        "name": "invalid",
+        "color": "e4e669",
+        "description": "This doesn't seem right"
+      },
+      {
+        "name": "question",
+        "color": "d876e3",
+        "description": "Further information is requested"
+      },
+      {
+        "name": "wontfix",
+        "color": "ffffff",
+        "description": "This will not be worked on"
+      }
+    ],
+    "issueTemplate": {
+      "bugReportFields": [
+        "nodejs",
+        "docker"
+      ]
+    }
+  },
+  "dockerHub": {
+    "namespace": "mrjackyliang",
+    "repository": "discord-stonker-bot",
+    "visibility": "public",
+    "categories": [
+      "content-management-system"
+    ]
+  },
+  "workflows": [
+    {
+      "template": "check-sponsor-gated-issues",
+      "name": "sponsor-check",
+      "triggers": [
+        "issue-comment",
+        "issues"
+      ],
+      "runsOn": "ubuntu-24.04",
+      "timeoutMinutes": 5
+    },
+    {
+      "template": "lock-inactive-issues",
+      "name": "lock-inactive",
+      "triggers": [
+        "schedule-weekly"
+      ],
+      "runsOn": "ubuntu-24.04",
+      "timeoutMinutes": 5
+    },
+    {
+      "template": "publish",
+      "name": "project",
+      "triggers": [
+        "release"
+      ],
+      "runsOn": "ubuntu-24.04",
+      "timeoutMinutes": 45,
+      "build": [
+        "./apps/docs"
+      ],
+      "deploy": [
+        {
+          "to": "docker-hub",
+          "path": "./"
+        },
+        {
+          "to": "ghcr",
+          "path": "./",
+          "with": {
+            "IMAGE_REPOSITORY": "discord-stonker-bot"
+          }
+        },
+        {
+          "to": "github-pages",
+          "path": "./apps/docs",
+          "artifact": "documentation"
+        }
+      ]
+    }
+  ],
+  "urls": {
+    "homepage": "https://mrjackyliang.github.io/discord-stonker-bot/",
+    "repository": "git+https://github.com/mrjackyliang/discord-stonker-bot.git",
+    "bugs": "https://github.com/mrjackyliang/discord-stonker-bot/issues",
+    "license": "https://github.com/mrjackyliang/discord-stonker-bot/blob/HEAD/LICENSE",
+    "logo": "https://mrjackyliang.github.io/discord-stonker-bot/images/logo.svg",
+    "documentation": "https://mrjackyliang.github.io/discord-stonker-bot/",
+    "fundSources": [
+      "https://github.com/sponsors/mrjackyliang",
+      "https://liang.nyc/paypal"
+    ]
+  },
+  "readme": {
+    "badges": [
+      "github-release",
+      "github-top-language",
+      "github-license",
+      "funding"
+    ]
+  },
+  "workspaces": {
+    "./": {
+      "name": "discord-stonker-bot-project",
+      "role": "project",
+      "policy": "freezable"
+    },
+    "./apps/bot": {
+      "name": "discord-stonker-bot-app-bot",
+      "role": "app",
+      "policy": "trackable"
+    },
+    "./apps/docs": {
+      "name": "discord-stonker-bot-docs",
+      "role": "docs",
+      "policy": "freezable"
+    },
+    "./packages/docker": {
+      "name": "discord-stonker-bot-tool-docker",
+      "role": "tool",
+      "policy": "freezable"
+    }
+  },
+  "artifacts": {
+    "documentation": {
+      "build": [
+        "./apps/docs"
+      ],
+      "sources": [
+        {
+          "from": "./apps/docs/build",
+          "to": "./"
+        }
+      ]
+    }
+  },
+  "ignoreFiles": {
+    "./.dockerignore": {
+      "bundles": [
+        "nova"
+      ],
+      "patterns": [
+        ".changelog",
+        "apps/docs",
+        "assets",
+        "conventions",
+        "graphify-out"
+      ]
+    },
+    "./.gitignore": {
+      "bundles": [
+        "nova"
+      ],
+      "patterns": [
+        "/assets/",
+        "config.json",
+        "invites.ejs",
+        "graphify-out/"
+      ]
+    }
+  },
+  "agents": [
+    "claude-code",
+    "codex"
+  ],
+  "recipes": {
+    "docker-hub": {
+      "sync-identity": {
+        "enabled": true
+      },
+      "sync-policies": {
+        "enabled": true
+      }
+    },
+    "github": {
+      "sync-actions": {
+        "enabled": true
+      },
+      "sync-features": {
+        "enabled": true
+      },
+      "sync-identity": {
+        "enabled": true
+      },
+      "sync-labels": {
+        "enabled": true
+      },
+      "sync-policies": {
+        "enabled": true
+      },
+      "sync-rulesets": {
+        "enabled": true
+      },
+      "sync-security": {
+        "enabled": true
+      }
+    },
+    "license": {
+      "update-copyright": {
+        "enabled": true
+      }
+    },
+    "miscellaneous": {
+      "fix-markdown-tables": {
+        "enabled": true
+      },
+      "remove-operating-system-files": {
+        "enabled": true,
+        "settings": {
+          "linux": {},
+          "macos": {
+            "appleDouble": true,
+            "desktopServicesStore": true
+          },
+          "windows": {
+            "enhancedThumbnailDatabase": true,
+            "enhancedVistaThumbnailDatabase": true,
+            "thumbnailDatabase": true
+          }
+        }
+      }
+    },
+    "nova-config": {
+      "normalize-order": {
+        "enabled": true
+      }
+    },
+    "read-me": {
+      "update-badges": {
+        "enabled": true
+      },
+      "update-credits": {
+        "enabled": true
+      },
+      "update-documentation": {
+        "enabled": true
+      },
+      "update-header": {
+        "enabled": true
+      },
+      "update-introduction": {
+        "enabled": true
+      }
+    },
+    "package-json": {
+      "./": {
+        "cleanup": {
+          "enabled": true,
+          "settings": {
+            "removeUnknownKeys": true,
+            "reorderKeys": true
+          }
+        },
+        "normalize-artifacts": {
+          "enabled": true
+        },
+        "normalize-bundler": {
+          "enabled": true
+        },
+        "normalize-dependencies": {
+          "enabled": true,
+          "settings": {
+            "pinDependencyVersions": true,
+            "pinDevDependencyVersions": true
+          }
+        },
+        "normalize-modules": {
+          "enabled": true
+        },
+        "normalize-tooling": {
+          "enabled": true
+        },
+        "sync-environment": {
+          "enabled": true,
+          "settings": {
+            "trackNodeLtsVersions": true
+          }
+        },
+        "sync-identity": {
+          "enabled": true
+        },
+        "sync-ownership": {
+          "enabled": true
+        }
+      },
+      "./apps/bot": {
+        "cleanup": {
+          "enabled": true,
+          "settings": {
+            "removeUnknownKeys": true,
+            "reorderKeys": true
+          }
+        },
+        "normalize-artifacts": {
+          "enabled": true
+        },
+        "normalize-bundler": {
+          "enabled": true
+        },
+        "normalize-dependencies": {
+          "enabled": true,
+          "settings": {
+            "pinDependencyVersions": true,
+            "pinDevDependencyVersions": true
+          }
+        },
+        "normalize-modules": {
+          "enabled": true
+        },
+        "normalize-tooling": {
+          "enabled": true
+        },
+        "sync-environment": {
+          "enabled": true,
+          "settings": {
+            "trackNodeLtsVersions": true
+          }
+        },
+        "sync-identity": {
+          "enabled": true
+        },
+        "sync-ownership": {
+          "enabled": true
+        }
+      },
+      "./apps/docs": {
+        "cleanup": {
+          "enabled": true,
+          "settings": {
+            "removeUnknownKeys": true,
+            "reorderKeys": true
+          }
+        },
+        "normalize-artifacts": {
+          "enabled": true
+        },
+        "normalize-bundler": {
+          "enabled": true
+        },
+        "normalize-dependencies": {
+          "enabled": true,
+          "settings": {
+            "pinDependencyVersions": true,
+            "pinDevDependencyVersions": true
+          }
+        },
+        "normalize-modules": {
+          "enabled": true
+        },
+        "normalize-tooling": {
+          "enabled": true
+        },
+        "sync-environment": {
+          "enabled": true,
+          "settings": {
+            "trackNodeLtsVersions": true
+          }
+        },
+        "sync-identity": {
+          "enabled": true
+        },
+        "sync-ownership": {
+          "enabled": true
+        }
+      },
+      "./packages/docker": {
+        "cleanup": {
+          "enabled": true,
+          "settings": {
+            "removeUnknownKeys": true,
+            "reorderKeys": true
+          }
+        },
+        "normalize-artifacts": {
+          "enabled": true
+        },
+        "normalize-bundler": {
+          "enabled": true
+        },
+        "normalize-dependencies": {
+          "enabled": true,
+          "settings": {
+            "pinDependencyVersions": true,
+            "pinDevDependencyVersions": true
+          }
+        },
+        "normalize-modules": {
+          "enabled": true
+        },
+        "normalize-tooling": {
+          "enabled": true
+        },
+        "sync-environment": {
+          "enabled": true,
+          "settings": {
+            "trackNodeLtsVersions": true
+          }
+        },
+        "sync-identity": {
+          "enabled": true
+        },
+        "sync-ownership": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "environment": {
+    "project": {
+      "prefix": "PROJECT_"
+    },
+    "workspaces": {
+      "./": {
+        "prefix": "ROOT_",
+        "variables": [
+          {
+            "defaultValue": "1000",
+            "key": "PGID",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "1000",
+            "key": "PUID",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "UTC",
+            "key": "TZ",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "1000",
+            "key": "BOT_CONTROL_POLL_INTERVAL_MS",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "10",
+            "key": "DATABASE_MAX_CONNECTIONS",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "5",
+            "key": "JOB_ATTEMPT_LIMIT",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "stonker",
+            "key": "POSTGRES_DB",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "5432",
+            "key": "POSTGRES_PORT",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "stonker",
+            "key": "POSTGRES_USER",
+            "reach": "local"
+          },
+          {
+            "key": "WEB_HOST",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "22604",
+            "key": "WEB_PORT",
+            "reach": "local"
+          },
+          {
+            "defaultValue": "1000",
+            "key": "WORKER_POLL_INTERVAL_MS",
+            "reach": "local"
+          }
+        ]
+      },
+      "./apps/bot": {
+        "prefix": "BOT_",
+        "variables": [
+          {
+            "key": "POSTGRES_PASSWORD",
+            "reach": "local"
+          }
+        ]
+      },
+      "./apps/docs": {
+        "prefix": "DOCS_"
+      },
+      "./packages/docker": {
+        "prefix": "DOCKER_"
+      }
+    },
+    "workflows": {
+      "sponsor-check": {
+        "prefix": "SGS_"
+      }
+    }
+  },
+  "settings": {
+    "lockStepVersioning": true,
+    "runWorkspaces": {
+      "cache": {
+        "enabled": true,
+        "directory": "./node_modules/.cache/nova/run-workspaces",
+        "scripts": [
+          "build",
+          "check"
+        ]
+      },
+      "concurrency": {
+        "build": 2,
+        "check": 2,
+        "deploy": 2
+      }
+    },
+    "versionStrategy": "semver"
+  }
+}

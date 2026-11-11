@@ -1,0 +1,117 @@
+---
+id: first-run
+title: First-Run Setup
+description: Create the owner account with the setup code from the container log, save the Bot Token, start the bot, and add it to your Discord server.
+keywords:
+  - stonker bot for discord
+  - first run
+  - setup code
+  - owner account
+  - bot token
+  - add server
+tags:
+  - getting started
+  - control panel
+sidebar_position: 4
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import firstRunOneLight from './_assets_/first-run-1-light.png';
+import firstRunOneDark from './_assets_/first-run-1-dark.png';
+import firstRunTwoLight from './_assets_/first-run-2-light.png';
+import firstRunTwoDark from './_assets_/first-run-2-dark.png';
+
+Create the owner account with the one-time <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>, save the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, start the bot, and then add it to your Discord server, in that order.
+
+## Find the Setup Code
+
+While no account exists, the web service prints a <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> to the container log each time it starts. Read it on the Docker host:
+
+```bash
+docker compose logs app | grep setup_code_issued
+```
+
+```json title="The setup code line"
+{"component":"web","context":{"expiresAt":"2026-10-25T13:00:00.000Z","message":"No account exists yet. Open the control panel to create the owner account with the setup code.","setupCode":"K7Q2M-XR9TD-P4W8N"},"event":"setup_code_issued","level":"warn","timestamp":"2026-10-25T12:30:00.000Z"}
+```
+
+- **The code** — `setupCode` holds a code like `K7Q2M-XR9TD-P4W8N`, and `expiresAt` shows when it stops working.
+- **Lifetime** — A code works for 30 minutes, and only once.
+- **New codes** — Each restart prints a new code and the old one stops working, so the last matching line holds the current code.
+- **Container log only** — The code never appears on the control panel's **Logs** page.
+
+To get a fresh code, restart the container and read the log again:
+
+```bash
+docker compose restart app
+docker compose logs app | grep setup_code_issued
+```
+
+## Create the Owner Account
+
+Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. Until an account exists, the control panel shows **Set up your account**.
+
+1. Enter the code in **One-time code**. Letter case, spaces, and dashes don't matter.
+2. Choose a **Username** of 3 to 64 letters, digits, periods, underscores, or hyphens, starting with a letter or digit.
+3. Choose a **Password** of at least 12 characters, and type it again in **Confirm password**. The bar under the field rates it from **Weak** to **Strong**, and any password of 12 or more characters is accepted.
+4. Select **Create account**.
+
+<Frame caption="Creating the owner account" style={{ maxWidth: 450, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: firstRunOneLight, dark: firstRunOneDark }} alt="Set up your account screen with a one-time code, the username morgan, and a password rated Strong typed twice" width={448} height={735} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+You're signed in right away as the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, with access to every Discord server. The setup screen doesn't come back once the account exists.
+
+- **"That setup code is wrong or expired. Restart the container to print a new one."** — Check the code against the last log line, or restart the container for a new one.
+- **"Too many setup attempts. Try again in 15 minutes."** — Setup pauses for 15 minutes after 10 wrong codes from one address.
+
+:::tip
+Only someone who can read the container log can create the owner account. It is still recommended to finish setup before you open the panel to other devices.
+:::
+
+## Save the Bot Token
+
+1. Open **Connection** under **Settings** in the desktop sidebar or with the **Settings** tab on a phone, or select **Add the bot token** on the Overview page.
+2. Paste the token from the Developer Portal into **Bot token**.
+3. Select **Save token**.
+
+<Frame caption="Pasting the Bot Token">
+  <ThemedImage sources={{ light: firstRunTwoLight, dark: firstRunTwoDark }} alt="Bot token field on the Connection page with a pasted token hidden as dots, the hint to reset the token in the Discord Developer Portal, and the Save token button" width={942} height={172} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+The **Bot token** section then shows **Saved** with "Stored encrypted. It's never shown again." Saving the token doesn't start the bot.
+
+## Start the Bot
+
+Select **Start** in the **Bot** section of the Connection or Overview page. The status moves from **Stopped** to **Starting**, then to **Online** or **Stopped by an error**.
+
+On its first connection, the bot records your <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology>'s ID and every server it can see. If the status shows **Stopped by an error**, see [Bot Lifecycle](/docs/control-panel/bot-lifecycle/#bot-statuses).
+
+## Add Your Server
+
+1. On the **Connection** page, open the **Invite link** under **Add the bot to a server**, or choose **Add a server** in the server menu.
+2. Choose your server on Discord's page and approve the install.
+3. Give the bot a role with the permissions your features need, as described in [Discord Application](/docs/getting-started/discord-application/#grant-permissions).
+
+The server then appears in the server menu with its channels and roles, usually within a minute. Before the bot's first sign-in, the Connection page shows "The link appears once the bot signs in to Discord with its token." instead of the link.
+
+You can add the same bot to more servers later, and each server keeps its own features, settings, and secrets.
+
+## Turn On Your First Feature
+
+1. Open **Features** and select a feature.
+2. Select **Start from the example** to load <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology>, or **Start from scratch** for an empty form. You can also choose **An older config.json** in the [Backup wizard](/docs/control-panel/export-and-import/#import-an-older-configjson).
+3. Choose your own channels and roles, enter any secret the feature needs, then select **Save** in the bar at the bottom.
+4. Turn on the switch at the top of the feature's page.
+
+Saving and switching make the bot reconnect on its own, so the change takes effect within a few seconds. [Managing Features](/docs/control-panel/managing-features/) explains the editor in detail.
+
+## Secure Your Account
+
+Open **Sign-in and security** in the account menu to add an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>. [Users and Security](/docs/control-panel/users-and-security/) covers both, along with adding accounts for your moderators.
+
+:::warning
+Nobody can reset the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s password or two-factor sign-in in the control panel. It is recommended to keep the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> somewhere other than the phone with the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, and to add a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+:::

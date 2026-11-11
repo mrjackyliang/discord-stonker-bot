@@ -1,0 +1,10 @@
+{
+  "label": "Community",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Reply to matching messages, announce scheduled events, and post notices when members gain or lose roles."
+  }
+}

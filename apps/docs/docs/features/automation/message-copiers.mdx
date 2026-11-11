@@ -1,0 +1,120 @@
+---
+id: message-copiers
+title: Message Copiers
+description: Message copiers copy member messages that match a pattern into other channels or Discord webhooks, with find-and-replace rules and attachment links.
+keywords:
+  - stonker bot for discord
+  - message copiers
+  - message forwarding
+  - discord webhooks
+  - automation
+  - cross-posting
+tags:
+  - features
+  - automation
+  - messages
+sidebar_position: 2
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Copy member messages that match a pattern into other channels or <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhooks</Terminology>, with optional find-and-replace rules and attachment links.
+
+## Why Use This Feature?
+
+1. Gathers matching messages from busy channels into one place, so important calls aren't lost in chat.
+2. Rewrites the text on the way with <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology> and a template, so copies read the way you want.
+3. Posts through webhooks with a name and avatar you choose, so copies can appear under a distinct identity.
+4. Turns off every mention in the copy, so copied messages never ping anyone.
+
+## How It Works
+
+- **What it reads** — New messages from members, not bots or system messages, and edits are ignored.
+- **Which rule fires** — The first rule, in order, whose member lists, channel lists, and pattern all match, and later rules don't run.
+- **How the text is built** — The bot applies the rule's <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>, fills the template, then adds an "Attachments:" list of up to 5 file links when **Include attachments** is on.
+- **Where it goes** — The bot sends the result to each destination in turn, as itself in a channel or through a <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhook</Terminology>.
+
+The final text is cut at 2,000 characters, so a long message can lose its attachment links. Files are linked, never uploaded again, and a webhook copy uses the name and avatar you set rather than the author's.
+
+Channel filters compare the channel where the message was posted, so a message in a thread uses the thread's ID.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel destinations** — The bot needs View Channel and Send Messages in each destination channel.
+- **Webhook destinations** — Each needs a <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhook</Terminology> URL in the form `https://discord.com/api/webhooks/<id>/<token>`, with no query string. The host has to be `discord.com` itself, so change a `ptb.discord.com`, `canary.discord.com`, or `discordapp.com` URL before you paste it.
+
+Saving checks each webhook URL, and a wrong one shows "Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/." next to the field. If the bot still can't use a URL when it connects, every copier rule for the server stays off until you fix it.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                                                                                                                                                              | Description                                                                                                                                                                                                                         |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                                                                                                                                      | The rule's name, up to 100 characters.                                                                                                                                                                                              |
+| Regular expression (`regex`)                                                                                                                                       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                                                                                         |
+| Allowed members (`allowed-users`)                                                                                                                                  | Optional list of up to 100 member IDs, and an empty list allows everyone.                                                                                                                                                           |
+| Blocked members (`disallowed-users`)                                                                                                                               | Optional list of up to 100 member IDs to ignore.                                                                                                                                                                                    |
+| Allowed channels (`allowed-channels`)                                                                                                                              | Optional list of up to 100 channels, and an empty list allows every channel.                                                                                                                                                        |
+| Blocked channels (`disallowed-channels`)                                                                                                                           | Optional list of up to 100 channels to ignore.                                                                                                                                                                                      |
+| <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">Replacements</Terminology> (`replacements`) | Optional list of up to 50 <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>, each with a Pattern, Flags, and **Replace with** text. |
+| Message template (`message`)                                                                                                                                       | The template, up to 4,000 characters, `%MESSAGE_CONTENT%` by default.                                                                                                                                                               |
+| Include attachments (`include-attachments`)                                                                                                                        | On to add links to the first 5 files.                                                                                                                                                                                               |
+| Destinations (`destinations`)                                                                                                                                      | 1 to 10 destinations, each a channel or a webhook.                                                                                                                                                                                  |
+
+| Destination field                           | Description                                                                                                                                                                                                   |
+|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Send to (`method`)                          | **Discord channel** (`discord-channel`) or **Discord webhook** (`discord-webhook`).                                                                                                                           |
+| Channel (`channel`)                         | The destination channel, for `discord-channel`.                                                                                                                                                               |
+| Webhook → URL (`webhook.url`)               | The webhook URL, stored as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>, for `discord-webhook`. |
+| Webhook → Username (`webhook.username`)     | Optional name the webhook posts under, up to 80 characters.                                                                                                                                                   |
+| Webhook → Avatar URL (`webhook.avatar-url`) | Optional image URL for the webhook's avatar.                                                                                                                                                                  |
+
+A <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacement</Terminology> can use `$1` for a captured group, and without the `g` flag it changes only the first match.
+
+## Example
+
+```json title="Message copiers settings"
+[
+  {
+    "name": "Copy trade alerts",
+    "regex": { "pattern": "^ALERT\\b" },
+    "allowed-channels": [{ "channel-id": "123456789012345678" }],
+    "message": "%MEMBER_TAG% in %CHANNEL_MENTION%: %MESSAGE_CONTENT%",
+    "include-attachments": true,
+    "destinations": [
+      { "method": "discord-channel", "channel": { "channel-id": "123456789012345679" } },
+      { "method": "discord-webhook", "webhook": { "url": { "$secret": "message-copiers.alerts.webhook" }, "username": "Alerts" } }
+    ]
+  }
+]
+```
+
+## Message Variables
+
+| Variable            | Becomes                                                                                                                                                                  |
+|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `%CHANNEL_MENTION%` | A mention of the source channel                                                                                                                                          |
+| `%MEMBER_MENTION%`  | A mention of the author                                                                                                                                                  |
+| `%MEMBER_TAG%`      | The author's username                                                                                                                                                    |
+| `%MESSAGE_CONTENT%` | The message text after <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology> |
+| `%MESSAGE_EXCERPT%` | The first 500 characters of that text                                                                                                                                    |
+| `%MESSAGE_URL%`     | A link to the original message                                                                                                                                           |
+
+## Limits
+
+- **Rules** — Up to 100, each with up to 10 destinations and 50 <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>.
+- **Copy length** — 2,000 characters, including attachment links.
+- **Attachments** — Links to the first 5 files.
+
+## Troubleshooting
+
+- **Copies stopped for every rule** — The bot couldn't use a webhook URL when it connected, so check the <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology> on the Overview page.
+- **`message_copier_delivery_failed` in the bot log** — A destination refused the copy, such as a deleted channel or webhook or a missing permission. The entry names the rule but not the reason, and the bot doesn't retry the copy.
+- **A copy is missing its attachment links** — The text reached 2,000 characters before the links were added.
+- **A copied card asks for a webhook URL** — **Copy** doesn't copy secrets, so enter the URL for the new card before you save. Each card keeps its own stored URL.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> sent a copy for every matching rule, uploaded attachments again, and could post to Twitter. The rewrite stops at the first matching rule, links attachments, drops Twitter destinations on import, and turns off mentions in copies.
+:::

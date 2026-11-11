@@ -1,0 +1,1249 @@
+{
+  "settings": {
+    "discord": {
+      "token": "",
+      "guild": {
+        "description": "Stonker Bot for Discord migration rehearsal server",
+        "guild-id": "1197999049190674442"
+      }
+    },
+    "twitter": {
+      "api-key": "E2E_REPLACE_WITH_X_API_KEY",
+      "api-key-secret": "E2E_REPLACE_WITH_X_API_KEY_SECRET",
+      "access-token": "E2E_REPLACE_WITH_X_ACCESS_TOKEN",
+      "access-token-secret": "E2E_REPLACE_WITH_X_ACCESS_TOKEN_SECRET"
+    },
+    "time-zone": "America/New_York",
+    "log-level": 30
+  },
+  "anti-raid": {
+    "auto-ban": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      },
+      "avatars": [
+        {
+          "description": "Known raid-account avatar fingerprint placeholder",
+          "avatar": "E2E_REPLACE_WITH_REVIEWED_AVATAR_HASH"
+        }
+      ],
+      "usernames": [
+        {
+          "description": "Fake Discord staff display name",
+          "username": "Discord Support"
+        },
+        {
+          "description": "Fake server administrator display name",
+          "username": "Stonker Administrator"
+        }
+      ]
+    },
+    "membership-gate": {
+      "roles": [
+        {
+          "description": "Replace with the verified-member role before activation",
+          "role-id": "000000000000000000"
+        }
+      ],
+      "payload": {
+        "content": "Welcome to %GUILD_NAME%, %MEMBER_MENTION%. Your membership check is complete.",
+        "footer": {
+          "text": "Stonker community safety • %YEAR%"
+        }
+      },
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      }
+    }
+  },
+  "auto-replies": [
+    {
+      "name": "Help and command discovery",
+      "channels": [
+        {
+          "description": "General",
+          "channel-id": "1197999049811439729"
+        }
+      ],
+      "regex": {
+        "description": "Members asking the bot for help",
+        "pattern": "^(?:stonker[ ,:]*)?(?:help|commands)\\??$",
+        "flags": "i"
+      },
+      "payloads": [
+        {
+          "content": "I am being rebuilt with a database-backed control panel. An operator can enable each reviewed module from the dashboard."
+        },
+        {
+          "content": "Need a hand? Ask a moderator while the modern slash-command catalog is being completed."
+        }
+      ],
+      "reply": true
+    },
+    {
+      "name": "Scam-report guidance",
+      "channels": [
+        {
+          "description": "General",
+          "channel-id": "1197999049811439729"
+        }
+      ],
+      "regex": {
+        "description": "Members asking how to report suspicious activity",
+        "pattern": "^(?:how (?:do|can) i )?report (?:a )?(?:scam|scammer)\\??$",
+        "flags": "i"
+      },
+      "payloads": [
+        {
+          "content": "Please send screenshots and message links to the moderation team. Never post private keys, seed phrases, passwords, or tokens."
+        }
+      ],
+      "reply": true
+    },
+    {
+      "name": "Bot status",
+      "channels": [
+        {
+          "description": "General",
+          "channel-id": "1197999049811439729"
+        }
+      ],
+      "regex": {
+        "description": "Members asking whether the bot is online",
+        "pattern": "^(?:bot|stonker) (?:status|online)\\??$",
+        "flags": "i"
+      },
+      "payloads": [
+        {
+          "content": "The bot is online. Integrations that need credentials stay off until they pass review in the new control panel."
+        }
+      ],
+      "reply": true
+    }
+  ],
+  "broadcast-alerts": [
+    {
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "name": "Scheduled community event",
+      "status": "SCHEDULED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Any approved event creator",
+        "user-id": "000000000000000000"
+      },
+      "message": "📅 Event scheduled: **%EVENT_NAME%**\n%EVENT_DESCRIPTION%\nStarts: %SCHEDULED_TIME%\nLocation: %CHANNEL_TAG%%LOCATION%"
+    },
+    {
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "name": "Updated community event",
+      "status": "UPDATED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Any approved event creator",
+        "user-id": "000000000000000000"
+      },
+      "message": "✏️ Event updated: **%EVENT_NAME%**\nStarts: %SCHEDULED_TIME%\nLocation: %CHANNEL_TAG%%LOCATION%"
+    },
+    {
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "name": "Live community event",
+      "status": "ACTIVE",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Any approved event creator",
+        "user-id": "000000000000000000"
+      },
+      "message": "🔴 Live now: **%EVENT_NAME%**\nJoin at %CHANNEL_TAG%%LOCATION% • %USER_COUNT% interested"
+    },
+    {
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "name": "Completed community event",
+      "status": "COMPLETED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Any approved event creator",
+        "user-id": "000000000000000000"
+      },
+      "message": "✅ Event completed: **%EVENT_NAME%**. Thanks for joining."
+    },
+    {
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "name": "Canceled community event",
+      "status": "CANCELED",
+      "entity-types": [
+        "STAGE_INSTANCE",
+        "VOICE",
+        "EXTERNAL"
+      ],
+      "creator": {
+        "description": "Any approved event creator",
+        "user-id": "000000000000000000"
+      },
+      "message": "⚠️ Event canceled: **%EVENT_NAME%**. Watch for a replacement date."
+    }
+  ],
+  "bump-threads": [
+    {
+      "name": "Daily discussion",
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "thread": {
+        "description": "Replace with the active daily discussion thread",
+        "thread-id": "000000000000000000"
+      }
+    }
+  ],
+  "detect-suspicious-words": {
+    "categories": [
+      {
+        "category": "Credential theft",
+        "words": [
+          "send me your password",
+          "verify your account",
+          "log in to claim your reward",
+          "share your two-factor code"
+        ]
+      },
+      {
+        "category": "Impersonated support",
+        "words": [
+          "official support will dm you",
+          "message me for account recovery",
+          "admin needs your password"
+        ]
+      },
+      {
+        "category": "Invite spam",
+        "words": [
+          "join my server",
+          "check out my server",
+          "dm me for an invite"
+        ]
+      }
+    ],
+    "channel": {
+      "description": "Moderator only",
+      "channel-id": "1209383231867326487"
+    }
+  },
+  "impersonator-alerts": {
+    "entities": [
+      {
+        "name": "Moderator impersonation",
+        "user": {
+          "description": "Replace with a trusted moderator account",
+          "user-id": "000000000000000000"
+        },
+        "regex": {
+          "description": "Suspicious support or staff display names",
+          "pattern": "(?:admin(?:istrator)?|moderator|official[ _-]?support|help[ _-]?desk)",
+          "flags": "i"
+        },
+        "payload": {
+          "content": "Potential staff impersonation detected: %MEMBER_USER_MENTION%. Review the account before taking action."
+        }
+      }
+    ],
+    "channel": {
+      "description": "Moderator only",
+      "channel-id": "1209383231867326487"
+    }
+  },
+  "message-copiers": [
+    {
+      "name": "Copy reviewed announcements",
+      "regex": {
+        "description": "Messages explicitly prefixed as reviewed announcements",
+        "pattern": "^\\[ANNOUNCEMENT\\]\\s+(.+)$",
+        "flags": "i"
+      },
+      "allowed-users": [],
+      "allowed-channels": [
+        {
+          "description": "Moderator only",
+          "channel-id": "1209383231867326487"
+        }
+      ],
+      "disallowed-users": [],
+      "disallowed-channels": [
+        {
+          "description": "Rules",
+          "channel-id": "1209383231867326486"
+        }
+      ],
+      "replacements": [
+        {
+          "description": "Remove the internal review prefix",
+          "pattern": "^\\[ANNOUNCEMENT\\]\\s+",
+          "flags": "i",
+          "replace-with": ""
+        }
+      ],
+      "message": "%MESSAGE_CONTENT%\n\nSource: %MESSAGE_URL% • Submitted by %MEMBER_TAG%",
+      "include-attachments": true,
+      "destinations": [
+        {
+          "description": "Publish to general",
+          "method": "discord-channel",
+          "channel": {
+            "description": "General",
+            "channel-id": "1197999049811439729"
+          }
+        },
+        {
+          "description": "Publish to an external Discord webhook after credentials are configured",
+          "method": "discord-webhook",
+          "webhook": {
+            "description": "E2E placeholder webhook",
+            "username": "Stonker Announcements",
+            "avatar-url": "https://cdn.discordapp.com/embed/avatars/0.png",
+            "url": "https://discord.com/api/webhooks/1197999215838773279/E2E_REPLACE_WITH_DISCORD_WEBHOOK_TOKEN"
+          }
+        },
+        {
+          "description": "Publish through the future X provider adapter",
+          "method": "twitter-account"
+        }
+      ]
+    }
+  ],
+  "message-proxies": [
+    {
+      "name": "Proxy reviewed announcements",
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      },
+      "replacements": [
+        {
+          "description": "Remove the approval prefix",
+          "pattern": "^\\[APPROVED\\]\\s+",
+          "flags": "i",
+          "replace-with": ""
+        }
+      ],
+      "print-payload": false,
+      "webhook": {
+        "description": "E2E placeholder announcement webhook",
+        "webhook-url": "https://discord.com/api/webhooks/1209383231867326487/E2E_REPLACE_WITH_ANNOUNCEMENT_WEBHOOK_TOKEN"
+      }
+    }
+  ],
+  "regex-rules": [
+    {
+      "name": "Block unsolicited Discord invite links",
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "match": true,
+      "regex": {
+        "description": "Discord invite URLs",
+        "pattern": "(?:discord\\.gg/|discord(?:app)?\\.com/invite/)[A-Za-z0-9-]+",
+        "flags": "i"
+      },
+      "direct-message-payload": {
+        "content": "Your message included a Discord invite link. Please ask a moderator before promoting another server."
+      }
+    },
+    {
+      "name": "Block common credential-harvesting links",
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "match": true,
+      "regex": {
+        "description": "Suspicious account verification wording followed by a URL",
+        "pattern": "(?:verify|validate|confirm|restore)\\s+(?:your\\s+)?account.{0,80}https?://",
+        "flags": "i"
+      },
+      "direct-message-payload": {
+        "content": "Your message matched a credential-harvesting safety rule and was removed for moderator review."
+      }
+    }
+  ],
+  "remove-affiliates": {
+    "platforms": [
+      {
+        "platform": "Generic referral parameters",
+        "regex": {
+          "description": "Common affiliate and campaign query parameters",
+          "pattern": "[?&](?:tag|ref|affiliate|aff_id|utm_(?:source|medium|campaign))=[^\\s&#]+",
+          "flags": "i"
+        }
+      },
+      {
+        "platform": "Amazon associate tags",
+        "regex": {
+          "description": "Amazon URLs containing an associate tag",
+          "pattern": "https?://(?:www\\.)?amazon\\.[^/\\s]+/[^\\s]*[?&]tag=[^\\s&#]+",
+          "flags": "i"
+        }
+      }
+    ],
+    "channel": {
+      "description": "General",
+      "channel-id": "1197999049811439729"
+    },
+    "direct-message-payload": {
+      "content": "Your post contained an affiliate or campaign-tracking link. Please share a clean destination URL instead."
+    }
+  },
+  "role-messages": [
+    {
+      "name": "Welcome verified members",
+      "role": {
+        "description": "Replace with the verified-member role before activation",
+        "role-id": "000000000000000000"
+      },
+      "direction": "add",
+      "payload": {
+        "content": "Welcome, %MEMBER_MENTION%! You now have access to the community channels.",
+        "footer": {
+          "text": "Stonker community • %YEAR%"
+        }
+      },
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      }
+    },
+    {
+      "name": "Record verified-role removal",
+      "role": {
+        "description": "Replace with the verified-member role before activation",
+        "role-id": "000000000000000000"
+      },
+      "direction": "remove",
+      "payload": {
+        "content": "%MEMBER_MENTION% no longer has the verified-member role.",
+        "footer": {
+          "text": "Stonker community • %YEAR%"
+        }
+      },
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    }
+  ],
+  "rss-feeds": [
+    {
+      "name": "Reviewed community news feed",
+      "url": "https://example.com/community-news.xml",
+      "user-agent": "discord-stonker-bot/modern-migration",
+      "follow-redirects": true,
+      "remove-parameters": true,
+      "allowed-urls": [
+        "https://example.com/news/",
+        "https://example.com/events/"
+      ],
+      "payload": {
+        "content": "📰 **%ITEM_TITLE%**\n%ITEM_LINK%"
+      },
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "fetch-on": {
+        "time-zone": "America/New_York",
+        "days-of-week": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "dates": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "hours": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "minutes": [
+          0,
+          15,
+          30,
+          45
+        ],
+        "seconds": [
+          0
+        ]
+      }
+    },
+    {
+      "name": "Reviewed community updates feed",
+      "url": "https://example.com/community-updates.xml",
+      "user-agent": "discord-stonker-bot/modern-migration",
+      "follow-redirects": true,
+      "remove-parameters": true,
+      "allowed-urls": [
+        "https://example.com/community/"
+      ],
+      "payload": {
+        "content": "📣 **%ITEM_TITLE%**\n%ITEM_LINK%"
+      },
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "fetch-on": {
+        "time-zone": "America/New_York",
+        "days-of-week": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "dates": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "hours": [
+          9,
+          12,
+          15,
+          18
+        ],
+        "minutes": [
+          0
+        ],
+        "seconds": [
+          0
+        ]
+      }
+    }
+  ],
+  "scammer-alerts": {
+    "entities": [
+      {
+        "name": "Credential-recovery scam",
+        "regex": {
+          "description": "Account recovery solicitation",
+          "pattern": "(?:recover|restore|unlock).{0,40}account.{0,40}(?:dm|message|contact)",
+          "flags": "i"
+        },
+        "payload": {
+          "content": "Potential recovery scam detected from %MEMBER_USER_MENTION%. Review the message and surrounding context."
+        }
+      },
+      {
+        "name": "Free Nitro scam",
+        "regex": {
+          "description": "Free Nitro or gift-link bait",
+          "pattern": "(?:free|claim).{0,40}(?:nitro|gift)",
+          "flags": "i"
+        },
+        "payload": {
+          "content": "Potential free-Nitro scam detected from %MEMBER_USER_MENTION%. Review before taking action."
+        }
+      }
+    ],
+    "channel": {
+      "description": "Moderator only",
+      "channel-id": "1209383231867326487"
+    }
+  },
+  "schedule-posts": [
+    {
+      "name": "Weekday morning reminder",
+      "payload": {
+        "content": "🔔 Good morning! Share links from trusted sources, report suspicious DMs, and protect personal information.",
+        "footer": {
+          "text": "Stonker community reminder • %YEAR%"
+        }
+      },
+      "reactions": [
+        "👋",
+        "✅",
+        "🧭"
+      ],
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      },
+      "send-on": {
+        "time-zone": "America/New_York",
+        "days-of-week": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "dates": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "hours": [
+          9
+        ],
+        "minutes": [
+          30
+        ],
+        "seconds": [
+          0
+        ]
+      },
+      "skip-dates": [
+        "2026-11-26",
+        "2026-12-25",
+        "2027-01-01"
+      ]
+    },
+    {
+      "name": "Weekly safety reminder",
+      "payload": {
+        "content": "🛡️ Staff will never ask for your password, bot token, private key, or seed phrase. Report suspicious direct messages to moderators.",
+        "footer": {
+          "text": "Stonker community safety • %YEAR%"
+        }
+      },
+      "reactions": [
+        "✅"
+      ],
+      "channel": {
+        "description": "Rules",
+        "channel-id": "1209383231867326486"
+      },
+      "send-on": {
+        "time-zone": "America/New_York",
+        "days-of-week": [
+          1
+        ],
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "dates": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "hours": [
+          10
+        ],
+        "minutes": [
+          0
+        ],
+        "seconds": [
+          0
+        ]
+      },
+      "skip-dates": []
+    }
+  ],
+  "server-tools": {
+    "bulk-ban": {
+      "base-commands": [
+        "!stonker-bulk-ban"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted administrator role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-duplicates": {
+      "base-commands": [
+        "!stonker-duplicates"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted moderator role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-emojis": {
+      "base-commands": [
+        "!stonker-emojis"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted moderator role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "fetch-members": {
+      "base-commands": [
+        "!stonker-members"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted moderator role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "role-manager": {
+      "base-commands": [
+        "!stonker-role"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted role manager role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    },
+    "voice-tools": {
+      "base-commands": [
+        "!stonker-voice"
+      ],
+      "delete-message": true,
+      "allowed-roles": [
+        {
+          "description": "Replace with a trusted voice moderator role before activation",
+          "role-id": "000000000000000000"
+        }
+      ]
+    }
+  },
+  "snitch": {
+    "change-nickname": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "change-username": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "delete-message": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "guild-join": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "guild-leave": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "includes-link": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      },
+      "excluded-links": [
+        {
+          "name": "Discord-hosted attachments",
+          "regex": {
+            "description": "Official Discord CDN hosts",
+            "pattern": "^https://(?:cdn|media)\\.discordapp\\.(?:com|net)/",
+            "flags": "i"
+          }
+        },
+        {
+          "name": "Local documentation links",
+          "regex": {
+            "description": "Self-hosted control-panel documentation",
+            "pattern": "^https?://127\\.0\\.0\\.1(?::\\d+)?/",
+            "flags": "i"
+          }
+        }
+      ]
+    },
+    "role-change": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "update-message": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    },
+    "upload-attachment": {
+      "channel": {
+        "description": "Moderator only",
+        "channel-id": "1209383231867326487"
+      }
+    }
+  },
+  "sync-roles": {
+    "timeout": 2,
+    "events": [
+      {
+        "name": "Remove onboarding role after verification",
+        "some-roles": [
+          {
+            "description": "Replace with the verified-member role",
+            "role-id": "000000000000000001"
+          }
+        ],
+        "has-some-roles": true,
+        "to-remove-roles": [
+          {
+            "description": "Replace with the onboarding role",
+            "role-id": "000000000000000002"
+          }
+        ]
+      },
+      {
+        "name": "Restore onboarding role if verification is removed",
+        "some-roles": [
+          {
+            "description": "Replace with the verified-member role",
+            "role-id": "000000000000000001"
+          }
+        ],
+        "has-some-roles": false,
+        "to-add-roles": [
+          {
+            "description": "Replace with the onboarding role",
+            "role-id": "000000000000000002"
+          }
+        ]
+      }
+    ]
+  },
+  "toggle-perms": [
+    {
+      "name": "Open the weekday lounge",
+      "command": {
+        "base-commands": [
+          "!stonker-lounge-open"
+        ],
+        "allowed-roles": [
+          {
+            "description": "Replace with a trusted administrator role before activation",
+            "role-id": "000000000000000000"
+          }
+        ]
+      },
+      "toggle-on": {
+        "time-zone": "America/New_York",
+        "days-of-week": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "dates": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "hours": [
+          9
+        ],
+        "minutes": [
+          0
+        ],
+        "seconds": [
+          0
+        ]
+      },
+      "skip-dates": [
+        "2026-11-26",
+        "2026-12-25",
+        "2027-01-01"
+      ],
+      "toggles": [
+        {
+          "description": "Allow members to read and send messages in general",
+          "channel": {
+            "description": "General",
+            "channel-id": "1197999049811439729"
+          },
+          "permissions": [
+            {
+              "description": "Replace with the member role before activation",
+            "target-type": "role",
+              "user-or-role-id": "000000000000000000",
+              "user-or-role-perms": {
+                "ViewChannel": true,
+                "SendMessages": true,
+                "AddReactions": true,
+                "ReadMessageHistory": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "twitter-feeds": [
+    {
+      "name": "Reviewed announcements account",
+      "twitter-id": "E2E_REPLACE_WITH_X_ACCOUNT_ID",
+      "exclude-retweets": true,
+      "exclude-replies": true,
+      "payload": {
+        "content": "New update: %TWEET_TEXT%\n%TWEET_LINK%"
+      },
+      "channel": {
+        "description": "General",
+        "channel-id": "1197999049811439729"
+      }
+    }
+  ],
+  "web-applications": {
+    "http-server": {
+      "port": 8080
+    },
+    "https-server": {
+      "port": 8443,
+      "key": "",
+      "cert": "",
+      "ca": ""
+    },
+    "invite-generator": {
+      "options": {
+        "path": "/invite",
+        "max-age": 300,
+        "max-uses": 1
+      },
+      "recaptcha": {
+        "site-key": "E2E_REPLACE_WITH_RECAPTCHA_SITE_KEY",
+        "secret-key": "E2E_REPLACE_WITH_RECAPTCHA_SECRET_KEY"
+      }
+    },
+    "map-webhooks": [
+      {
+        "name": "Donation alert intake",
+        "path": "/webhooks/donation-alert",
+        "signing-secret": "E2E_REPLACE_WITH_DONATION_WEBHOOK_SIGNING_SECRET_32_CHARS",
+        "variables": [
+          {
+            "id": "DONOR",
+            "type": "string",
+            "path": "donation.donor"
+          },
+          {
+            "id": "AMOUNT_USD",
+            "type": "usd-dollars",
+            "path": "donation.amount"
+          },
+          {
+            "id": "RECEIVED_AT",
+            "type": "ts-millis",
+            "path": "donation.timestamp"
+          },
+          {
+            "id": "IS_RECURRING",
+            "type": "boolean",
+            "path": "donation.recurring"
+          }
+        ],
+        "payload": {
+          "content": "New donation: **@DONOR@** gave @AMOUNT_USD@ • Recurring: @IS_RECURRING@ • @RECEIVED_AT@",
+          "footer": {
+            "text": "Stonker webhook bridge • %YEAR%"
+          }
+        },
+        "channel": {
+          "description": "Moderator only",
+          "channel-id": "1209383231867326487"
+        }
+      },
+      {
+        "name": "Community operations intake",
+        "path": "/webhooks/community-operations",
+        "signing-secret": "E2E_REPLACE_WITH_COMMUNITY_WEBHOOK_SIGNING_SECRET_32_CHARS",
+        "variables": [
+          {
+            "id": "EVENT_NAME",
+            "type": "string",
+            "path": "event.name"
+          },
+          {
+            "id": "EVENT_START",
+            "type": "ts-seconds",
+            "path": "event.startsAt"
+          }
+        ],
+        "payload": {
+          "content": "Community operation: **@EVENT_NAME@** • @EVENT_START@",
+          "footer": {
+            "text": "Stonker operations • %YEAR%"
+          }
+        },
+        "channel": {
+          "description": "Moderator only",
+          "channel-id": "1209383231867326487"
+        }
+      }
+    ]
+  }
+}

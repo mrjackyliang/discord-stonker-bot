@@ -1,0 +1,78 @@
+---
+id: development
+title: Development
+description: Find your way around the Stonker Bot for Discord repository, run the console against a mock API, run the checks and tests, and see which files Nova generates.
+keywords:
+  - stonker bot for discord
+  - development
+  - contributing
+  - npm workspaces
+  - tests
+  - nova
+tags:
+  - contributing
+  - development
+sidebar_position: 2
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Find your way around the repository, run the console against a mock API, run the checks and tests, and see which files Nova generates.
+
+## Repository Layout
+
+| Path               | Contents                                                                                                                                                                                                     |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `apps/bot`         | The bot, control panel, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> workspace, `discord-stonker-bot-app-bot` |
+| `apps/docs`        | This documentation site, `discord-stonker-bot-docs`                                                                                                                                                          |
+| `packages/docker`  | The s6-overlay service definitions and root filesystem for the image                                                                                                                                         |
+| `scripts`          | Repository maintenance scripts                                                                                                                                                                               |
+| `tests`            | Repository-level tests, such as the Docker architecture checks                                                                                                                                               |
+| `Dockerfile`       | The multi-stage image build                                                                                                                                                                                  |
+| `compose.yml`      | The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>'s Docker Compose file                                               |
+| `nova.config.json` | Project identity and workspace settings for Nova                                                                                                                                                             |
+
+## Workspaces and Commands
+
+The repository uses npm workspaces with Node.js 22 or 24.
+
+| Command                                                   | What it does                                                                                                                                                                                                                                                                                       |
+|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `npm run dev --workspace discord-stonker-bot-app-bot`     | Runs the bot's `src/index.ts` with `tsx watch`, plus the console's Vite dev server, but not the web process or the worker                                                                                                                                                                          |
+| `npm run dev:web --workspace discord-stonker-bot-app-bot` | Starts the console's Vite dev server on port 5175, which sends `/api` and `/media` requests to the web process at `http://127.0.0.1:22604`, such as a running <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> |
+| `npm run mock --workspace discord-stonker-bot-app-bot`    | Starts the console on port 5175 against a mock API, with no database or bot needed                                                                                                                                                                                                                 |
+| `npm run check --workspace discord-stonker-bot-app-bot`   | Runs the bot's lint, four type checks, and tests                                                                                                                                                                                                                                                   |
+| `npm run build --workspace discord-stonker-bot-app-bot`   | Transpiles the bot into `apps/bot/build` and builds the console into `apps/bot/build/console`                                                                                                                                                                                                      |
+| `npm run e2e --workspace discord-stonker-bot-app-bot`     | Builds the image as `discord-stonker-bot:e2e` and runs the Playwright smoke test against it                                                                                                                                                                                                        |
+| `npm run deploy:container`                                | Builds and starts the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> with Docker Compose                                                                                                                     |
+
+For the documentation site, run `npm run check` and `npm run build` from `apps/docs`.
+
+## The Mock API
+
+`npm run mock` serves the console at `http://localhost:5175/` with an in-memory API, so you can try every page without Docker.
+
+- **What it has** — Two servers, the real feature catalog and editors, users of every role, access tokens, notification destinations, and live logs.
+- **Lost key** — Start it with `MOCK_KEY_REPLACED=true` to see the **Saved secrets were removed** notice and a paused notification destination.
+- **Signing in** — The terminal prints the mock <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> and the test accounts you can use after setup.
+- **Resets** — Everything lives in memory, so restarting the command starts over.
+
+## Tests
+
+- **Unit tests** — Vitest files named `*.test.ts` sit next to the sources in `apps/bot/src/lib`.
+- **Route tests** — Files in `apps/bot/src/routes` run the whole Express app against PGlite, an in-memory PostgreSQL, with every migration applied, through the helpers in `apps/bot/src/tests/support`.
+- **Repository tests** — `tests/` checks the Docker architecture and the project setup.
+- **End-to-end tests** — `apps/bot/tests/e2e` holds a Playwright smoke test that starts the built image, adds one Discord server straight to its database, and drives the control panel in Google Chrome without contacting Discord. It reads the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> from the container log, creates the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, signs in again with the password, opens every page except **Notifications**, saves a fixture <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> on **Connection**, and signs out.
+- **Documentation tests** — `apps/docs/src/tests` checks frontmatter, links, tables, terminology, dotenv files, and type declarations.
+
+## Legacy Reference
+
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s code is in the repository's Git history, at the `v3.4.3` tag. It is recommended to use it as a record of past behavior rather than as code to copy.
+
+## Generated Files
+
+Nova generates several files, and local edits to them are lost the next time Nova runs.
+
+- **Agent instructions** — `CLAUDE.md`, `AGENTS.md`, and `conventions/*.md`, from `nova generate must-haves agent-conventions`.
+- **Environment samples** — The `.env.sample` files, from `nova generate must-haves dotenv`.
+- **Project files** — The `README.md` files, `.editorconfig`, `.gitignore`, `.dockerignore`, and the GitHub workflows, issue templates, and funding file.

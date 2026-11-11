@@ -1,0 +1,96 @@
+---
+id: message-proxies
+title: Message Proxies
+description: Message proxies repost messages from other bots in a channel through a Discord webhook, with optional find-and-replace rules applied to the text.
+keywords:
+  - stonker bot for discord
+  - message proxies
+  - discord webhooks
+  - bot messages
+  - automation
+  - relay
+tags:
+  - features
+  - automation
+  - webhooks
+sidebar_position: 3
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Repost messages from other bots in a channel through a <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhook</Terminology>, with optional find-and-replace rules on the text.
+
+## Why Use This Feature?
+
+1. Moves another bot's posts into a channel or server where that bot can't post itself.
+2. Keeps the source bot's name and avatar, so the reposts look like the original posts.
+3. Cleans the text with <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology> before reposting, such as removing a mention or a promotional line.
+
+## How It Works
+
+- **What it reads** — New messages from bots in each rule's source channel, skipping messages posted by webhooks.
+- **Which rule fires** — The first rule whose source channel matches.
+- **How the text is built** — The bot takes the message text, adds an "Attachments:" list of up to 5 file links, applies the <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>, and fills in `%YEAR%`.
+- **What it posts** — The text and up to 10 of the original embeds, through the rule's webhook, under the source bot's username and avatar.
+
+<Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">Replacements</Terminology> change only the text, not the embeds, and mentions in the repost never notify anyone. A message with no text and no embeds is skipped.
+
+Stonker's own messages in a source channel count as bot messages, so they are proxied too.
+
+## Requirements
+
+- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Source channel** — The bot needs View Channel in each source channel.
+- **Webhook URL** — Each rule needs a <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhook</Terminology> URL in the form `https://discord.com/api/webhooks/<id>/<token>`, with no query string. The host has to be `discord.com` itself, so change a `ptb.discord.com`, `canary.discord.com`, or `discordapp.com` URL before you paste it.
+
+Saving checks each webhook URL, and a wrong one shows "Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/." next to the field. If the bot still can't use a URL when it connects, every proxy rule for the server stays off until you fix it.
+
+## Settings
+
+Each rule has these fields.
+
+| Field                                                                                                                                                              | Description                                                                                                                                                                                                                         |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                                                                                                                                      | The rule's name, up to 100 characters.                                                                                                                                                                                              |
+| Channel (`channel`)                                                                                                                                                | The source channel to watch.                                                                                                                                                                                                        |
+| Webhook → Webhook URL (`webhook.webhook-url`)                                                                                                                      | The webhook that posts the repost, stored as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>.                            |
+| <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">Replacements</Terminology> (`replacements`) | Optional list of up to 50 <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>, each with a Pattern, Flags, and **Replace with** text. |
+| Show the submitted message (`print-payload`)                                                                                                                       | Legacy setting, accepted but ignored.                                                                                                                                                                                               |
+
+## Example
+
+```json title="Message proxies settings"
+[
+  {
+    "name": "Relay news bot",
+    "channel": { "channel-id": "123456789012345678" },
+    "webhook": { "webhook-url": { "$secret": "message-proxies.news.webhook" } },
+    "replacements": [
+      { "pattern": "Sponsored by .*$", "flags": "m", "replace-with": "" }
+    ]
+  }
+]
+```
+
+## Message Variables
+
+| Variable | Becomes                 |
+|----------|-------------------------|
+| `%YEAR%` | The current year in UTC |
+
+## Limits
+
+- **Rules** — Up to 100, each with up to 50 <Terminology title="Find-and-replace rule applied before text is relayed" to="/docs/reference/terminology#replacement">replacements</Terminology>.
+- **Repost** — Up to 2,000 characters of text, 10 embeds, and links to 5 files.
+
+## Troubleshooting
+
+- **"Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/."** — Saving found a URL that isn't a <Terminology title="Channel URL that posts without the bot's account" to="/docs/reference/terminology#discord-webhook">Discord webhook</Terminology> URL, so paste the URL from the channel's **Integrations** settings in Discord.
+- **Every proxy rule stopped** — The bot couldn't use a webhook URL when it connected, and the <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology> on the Overview page show the server ID followed by "message-proxies: 0.webhook.webhook-url: Enter a Discord webhook URL…" for the first rule.
+- **A message wasn't reposted** — It came from a member or a webhook, so use [Message Copiers](/docs/features/automation/message-copiers/) for member messages.
+- **Show the submitted message does nothing** — That legacy setting is ignored.
+- **`message_proxy_delivery_failed` in the bot log** — Discord refused the repost, such as when the webhook was deleted. The entry doesn't include the reason, and the bot doesn't retry.
+
+:::info[Changes from the legacy bot]
+The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> also proxied webhook messages, fired every matching rule, uploaded attachments again, kept text-to-speech, and pinged the original mentions again. The rewrite proxies bot messages only, stops at the first rule, links attachments, and never pings or uses text-to-speech.
+:::

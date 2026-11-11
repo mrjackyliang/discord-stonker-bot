@@ -1,0 +1,10 @@
+{
+  "label": "Automation",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Keep threads open, copy or proxy messages to other channels and webhooks, and publish posts on a schedule."
+  }
+}

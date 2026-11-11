@@ -1,0 +1,22 @@
+{
+    "name": "Stonker Bot for Discord",
+    "short_name": "Stonker Bot",
+    "icons": [
+        {
+            "src": "/discord-stonker-bot/web-app-manifest-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/discord-stonker-bot/web-app-manifest-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "theme_color": "#7367F0",
+    "background_color": "#F1F0FE",
+    "start_url": "/discord-stonker-bot/",
+    "display": "standalone"
+}

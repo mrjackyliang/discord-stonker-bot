@@ -1,0 +1,125 @@
+---
+id: legacy-migration
+title: Legacy Migration
+description: Bring an older config.json through the Backup wizard, review what it replaces or skips, and fix the features that stay off before turning them on.
+keywords:
+  - stonker bot for discord
+  - legacy migration
+  - config.json
+  - import
+  - import report
+  - upgrade
+tags:
+  - migration
+  - import
+  - legacy bot
+sidebar_position: 1
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Bring the <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s `config.json` into the selected server through **Backup**'s import wizard, then review any feature that the current checks keep off.
+
+## Why Migrate?
+
+1. Brings your existing rules across in one step, so you don't retype 19 features by hand.
+2. Moves webhook URLs, signing secrets, and the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> out of a plain file and into encrypted storage.
+3. Checks each feature's settings before anything turns on, so a feature with broken settings stays off instead of failing in Discord.
+
+## Before You Import
+
+- **Back up first** — Keep a copy of `config.json`, and back up the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> as described in [Storage and Backups](/docs/operations/storage-and-backups/), because the wizard replaces settings.
+- **Discover the server** — Start the bot and add it to the server, so the server appears in the server menu, because the import works on the selected server.
+- **Match the server** — When the file has `settings.discord.guild.guild-id`, it has to match the selected server, or the import stops with "This config.json belongs to another Discord server. Switch to that server first."
+- **Check the token** — The import replaces the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> whenever the file has `settings.discord.token`, so remove an old token from the file first if you don't want it.
+
+## How config.json Is Staged
+
+The wizard checks each recognized section with the same settings and real secret values that a feature save uses. A valid, supported feature follows **Turn on features that pass checks**, while every other recognized feature is still imported but stays off until you fix it on its feature page.
+
+The untouched v3.4.3 `config-sample.json` imports successfully. Its five incomplete sample sections stay off, for these reasons.
+
+| Section            | Why it stays off                                                                                                                                      |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `anti-raid`        | `auto-ban.channel` has no alert channel.                                                                                                              |
+| `broadcast-alerts` | The sample event rules have no destination channels.                                                                                                  |
+| `sync-roles`       | Reusing the same placeholder Role ID makes the sample dependency graph cyclic.                                                                        |
+| `toggle-perms`     | The legacy `user-or-role-id` entries do not say whether their target is a member or role.                                                             |
+| `web-applications` | The reCAPTCHA values are empty, webhook signing secrets are absent, and paths such as `path.to[0].sample-text` do not match the supported dot format. |
+
+Other incomplete legacy settings behave the same way: they don't reject the whole import, but they can't run until they pass the current checks. Malformed JSON, a mismatched <Terminology title="Number Discord uses to identify a server" to="/docs/reference/terminology#server-id">Server ID</Terminology>, and files over 750 KB still reject the source.
+
+- **Text-only messages** — Direct messages, auto-reply responses, and scammer and impersonator alerts need `content`, and a feature with only a legacy embed stays off.
+- **Empty credentials** — Enter <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> keys and <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secrets</Terminology> on the affected feature page before turning it on.
+- **<Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">Time zones</Terminology>** — Schedules use each rule's own `time-zone` and default to UTC, while the legacy `settings.time-zone` is stored but not used.
+
+## Run the Import
+
+Only the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology> can open **Backup** and run the import from a <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology>.
+
+1. Select the server in the server menu.
+2. Open **Backup** under **Settings**, then select **Import…**.
+3. In **Source**, choose **An older config.json**, then select your file of up to 750 KB.
+4. Optionally select **Turn on features that pass checks**, so valid, supported features go on during the import. Leave it clear to review every feature first.
+5. In **Settings**, compare **In the file** with **Here**. **Needs attention after import** lists features that are imported switched off until you fix them, and **Not brought over** lists the older data this import leaves out.
+6. Check **Review**, select **Import**, and complete <Terminology title="Fresh account check before an export or import" to="/docs/reference/terminology#confirm-its-you">**Confirm it’s you**</Terminology> with your password and authenticator code, when enabled, or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+7. Wait for **Importing** to finish, then select **Done**.
+
+[Export and Import](/docs/control-panel/export-and-import/#import-an-older-configjson) shows the complete wizard and its security model.
+
+## Review and Importing
+
+- **Settings** — Shows whether the file includes the connection, how many features it brings to the selected server, and what is already here. Imported features that need repairs are listed by display name under **Needs attention after import**.
+- **Needs attention after import** — Lists each feature that was imported switched off, and says to fix its settings on the Features page before turning it on.
+- **Not brought over** — Lists unsupported sections and skipped legacy values with specific labels. Records that always stay local are covered by a note on **Review** instead.
+- **Review** — Separately counts features that turn on and features that stay off until fixed. When **Turn on features that pass checks** is clear, a note confirms that imported features stay off until you turn them on.
+- **Importing** — Applies the connection and features together, then shows each section as imported.
+
+The database keeps the detailed legacy report, including imported, enabled, invalid, and skipped feature names and the compatibility warnings.
+
+## What the Import Replaces
+
+:::danger
+A successful import replaces every feature for the selected server and clears the features the file doesn't contain. It also deletes every secret stored for that server, including secrets you entered on feature pages, and it replaces the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> for the whole <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> when the file contains one.
+:::
+
+These writes share one PostgreSQL transaction. If any database write fails, the previous features, secrets, report, and <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> remain unchanged.
+
+- **<Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">Revision</Terminology>** — Increases, so a running bot reconnects with the imported settings.
+- **The invite page design** — Stays as it is, because the import doesn't touch it.
+
+## What Is Dropped
+
+- **Market data** — The `api-fetch` section and its API keys.
+- **Twitter and X** — The `twitter-feeds` and `x-feeds` sections, the `settings.twitter` credentials, and `twitter-account` copier destinations.
+- **Copier rules without destinations** — A copier rule left with no destination after Twitter destinations are removed.
+- **Unknown sections** — Top-level sections that don't match a feature, which the report lists under **Sections skipped**.
+- **Unknown keys** — Keys a feature doesn't use, which stay in the stored settings but don't appear in the form, where they do nothing.
+- **Legacy settings** — `settings.log-level` is dropped, while <Terminology title="Legacy text command such as !ban or !members" to="/docs/reference/terminology#prefix-command">prefix command</Terminology> settings such as `base-commands` stay in the stored settings, hidden from the form, and do nothing.
+
+## Secrets
+
+The import moves these values into <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secrets</Terminology> for the selected server.
+
+- **<Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>** — `settings.discord.token`, which becomes the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>'s <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> instead of a server secret.
+- **<Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology>** — The <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology>'s `secret-key`.
+- **<Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">Signing secrets</Terminology>** — Each `map-webhooks` route's `signing-secret`.
+- **Webhook URLs** — Message copier and message proxy webhook URLs.
+- **HTTPS files** — The `https-server` `ca`, `cert`, and `key` values, which the rewrite stores but doesn't use.
+
+## The Invite Page
+
+The import doesn't read `invites.ejs` any more, so a customized template doesn't carry over. The invite path, the invite limits, and the <Terminology title="Google check that blocks automated invite requests" to="/docs/reference/terminology#recaptcha">reCAPTCHA</Terminology> keys from `web-applications` do import.
+
+To bring a customized page across, open **Features**, select **Web applications**, and set the invite page's title, description, button, footer, colors, logo, and banner, as described in [Web Applications](/docs/features/web/web-applications/#invite-page-designer).
+
+## After Importing
+
+1. Open each feature listed under **Needs attention** and fix the fields its page marks.
+2. Enter any secret that was empty in the file.
+3. Turn the features on one at a time, if you left **Turn on features that pass checks** off.
+4. Check the <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology> on the Overview page after each change, and the **Web** log for web applications.
+
+:::info[Twitter and X]
+The rewrite has no Twitter or X integration. The import skips those sections and credentials without storing them, and the [Feature Matrix](/docs/migration/feature-matrix/) lists every other change.
+:::

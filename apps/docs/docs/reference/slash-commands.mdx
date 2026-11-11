@@ -1,0 +1,84 @@
+---
+id: slash-commands
+title: Slash Commands
+description: Run the six Stonker Bot for Discord slash commands, with each command's options, required permissions, and possible replies.
+keywords:
+  - stonker bot for discord
+  - slash commands
+  - stonker commands
+  - moderation commands
+tags:
+  - reference
+  - slash commands
+sidebar_position: 2
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Run the bot's <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> from Discord's message box, with the options, permissions, and replies for each one.
+
+## Who Can Use Commands
+
+- **Server tools** — You need one of the tool's <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted roles</Terminology> and the command's Discord permission, and the server owner isn't exempt from the <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology>.
+- **Where they work** — In the server only, not in direct messages.
+- **Who sees the reply** — Only you, so other members don't see your commands or their answers.
+
+The **Default permission** below is the permission Discord uses to decide who sees a command by default.
+
+## Server Tool Commands
+
+### `/stonker-members`
+
+Shows the server's member count and how many members the bot has seen. Default permission: Manage Server.
+
+### `/stonker-emojis`
+
+Lists the server's custom emoji names, up to 50, and says how many were left out. Default permission: Manage Server.
+
+### `/stonker-duplicates`
+
+Lists up to 20 display names that more than one member shares, among the members the bot has seen. Default permission: Manage Server.
+
+### `/stonker-role`
+
+Adds or removes one role for one member. Default permission: Manage Roles.
+
+| Option    | Description                                      |
+|-----------|--------------------------------------------------|
+| `action`  | Required, **Add** or **Remove**.                 |
+| `member`  | Required, the member to change.                  |
+| `role`    | Required, the role to add or remove.             |
+| `confirm` | Required, and nothing changes unless it is true. |
+
+### `/stonker-voice`
+
+Moves one member to another voice channel, or disconnects them from voice. Default permission: Move Members.
+
+| Option    | Description                                                     |
+|-----------|-----------------------------------------------------------------|
+| `action`  | Required, **Disconnect** or **Move**.                           |
+| `member`  | Required, the member to move or disconnect.                     |
+| `confirm` | Required, and nothing changes unless it is true.                |
+| `channel` | The voice or stage channel to move the member to, for **Move**. |
+
+### `/stonker-bulk-ban`
+
+Bans 1 to 25 users by ID, including users who aren't members. Default permission: Ban Members.
+
+| Option                   | Description                                                                            |
+|--------------------------|----------------------------------------------------------------------------------------|
+| `user-ids`               | Required, Discord user IDs separated by commas or spaces, up to 525 characters.        |
+| `confirm`                | Required, and nothing changes unless it is true.                                       |
+| `delete-message-seconds` | Optional, how much of each user's message history to delete, from 0 to 604800 seconds. |
+
+The command refuses the whole list when it includes you, the server owner, or the bot, or when a member in the list is out of reach in the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology>. The reply counts how many bans succeeded and failed.
+
+## The Confirm Option
+
+`/stonker-role`, `/stonker-voice`, and `/stonker-bulk-ban` change nothing unless `confirm` is true. A false value replies with a message such as "No role was changed because confirmation was false."
+
+## Limits
+
+- **Replies** — Plain text up to 2,000 characters.
+- **Bulk ban** — Up to 25 unique user IDs, written as numbers rather than mentions.
+- **Registration** — When the bot connects, it registers each server's commands in that server only, for the tools that are turned on and pass their checks.

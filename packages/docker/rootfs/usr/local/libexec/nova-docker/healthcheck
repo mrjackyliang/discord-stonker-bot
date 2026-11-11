@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+for service in postgres web worker; do
+  [ "$(/command/s6-svstat -o up "/run/service/${service}")" = "true" ]
+done
+
+exec /command/s6-applyuidgid \
+  -u "${PUID:-1000}" \
+  -g "${PGID:-1000}" \
+  -G "${PGID:-1000}" \
+  /usr/local/bin/node \
+  /app/apps/bot/build/healthcheck.js

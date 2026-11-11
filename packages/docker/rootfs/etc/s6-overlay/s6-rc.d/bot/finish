@@ -1,0 +1,6 @@
+#!/command/with-contenv sh
+set -eu
+
+echo "Bot service exited (code=${1:-0}, signal=${2:-0}); s6 will restart only the bot service." >&2
+
+exit 0

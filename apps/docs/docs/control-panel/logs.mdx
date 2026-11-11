@@ -1,0 +1,114 @@
+---
+id: logs
+title: Logs
+description: Follow live log entries from the Stonker Bot for Discord bot, web service, and worker in the control panel, filter and search them, or read them from Docker.
+keywords:
+  - stonker bot for discord
+  - logs
+  - live logs
+  - troubleshooting
+  - docker compose logs
+  - log events
+tags:
+  - control panel
+  - logs
+sidebar_position: 6
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import logsOneLight from './_assets_/logs-1-light.png';
+import logsOneDark from './_assets_/logs-1-dark.png';
+
+Follow live entries from the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> in the control panel, or read the same events from Docker.
+
+## Why Use the Logs Page?
+
+1. Shows each service's events in the control panel, so you don't need a terminal on the Docker host.
+2. Records who changed what, from sign-ins to feature saves, without ever logging a secret.
+3. Filters by level and searches every stored entry, so you can find one failure among routine events.
+
+## Live Logs
+
+Open **Logs** in the desktop sidebar or phone tab bar to see one service at a time, with the newest entry at the top.
+
+- **Debug logging** — Adds debug entries for all three services, as described in [Debug Logging](#debug-logging).
+- **Bot, Web, <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">Worker</Terminology>** — Switches between the three services.
+- **Level** — **Every level**, **Info and up**, **Warnings and errors**, or **Errors only**.
+- **Search events and details** — Finds entries whose event name or details contain your text, among every stored entry, not just the ones on the page.
+- **Pause and Resume** — Stops and restarts the live updates.
+- **Status** — Shows **Live**, **Connecting…**, **Paused**, or **Disconnected**, and **Reconnect** appears when the page loses the stream.
+
+<Frame caption="The Bot log with one entry open">
+  <ThemedImage sources={{ light: logsOneLight, dark: logsOneDark }} alt="Logs page with Debug logging off, showing the Bot service at Every level with the stream Live, a search for gateway_ready, and the gateway_ready entry open as JSON with its active features, no configuration errors, generation 1, two servers, one shard, and the bot's user tag" width={1280} height={638} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+The page loads the latest 200 entries that match, then adds new ones as the services write them, checking once a second. It keeps up to 500 entries, dropping the oldest.
+
+## Reading an Entry
+
+Each row shows the time, the level, the event name, such as `gateway_ready`, and its details on one line. Select a row to see every detail, laid out as JSON.
+
+- **`generation`** — The <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology> the event belongs to.
+- **`activeFeatures`** — The features that started on that connection.
+- **`configurationErrors`** — The <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology>, with the setting that failed.
+- **`userId` and `username`** — The control panel account that made a change, including a backup import.
+
+## Debug Logging
+
+The **Debug logging** switch at the top of the **Logs** page adds `debug` entries for the work that most often goes wrong. Turn it on while you track down a problem, then turn it off again, because the database keeps every entry. The **Web** service changes right away, the **Bot** and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">**Worker**</Terminology> within a few seconds, and the switch stays on after a restart.
+
+Any role that can start and stop the bot can turn it. A <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology> sees whether it's on but can't change it.
+
+| Event                                                                             | Service                      | When it's written                                                                                                        |
+|-----------------------------------------------------------------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| `gateway_shard_ready`, `gateway_shard_resumed`                                    | **Bot**                      | The connection to Discord came up, with how long the first connect took (`connectMs`) or how long it was down (`downMs`) |
+| `gateway_shard_disconnected`, `gateway_shard_reconnecting`, `gateway_shard_error` | **Bot**                      | The connection to Discord dropped with Discord's close `code`, started over, or hit an error                             |
+| `rest_rate_limited`                                                               | **Bot**, **Worker**          | A request to Discord hit a rate limit, with its `route` and how long it waits (`waitMs`)                                 |
+| `feature_handler_slow`, `feature_handler_failed`                                  | **Bot**                      | A feature took a second or more to handle a Discord event, or failed, with its `module`, `event`, and `elapsedMs`        |
+| `job_slow`                                                                        | **Worker**                   | A scheduled job or delivery took a second or more, with its `jobType` and `elapsedMs`                                    |
+| `database_query_slow`                                                             | **Bot**, **Web**, **Worker** | A database query took a quarter second or more, with the start of its SQL as `statement`                                 |
+
+`debug_logging_on` and `debug_logging_off` mark each change in all three services, and the **Web** entry names who made it. Routes show `:id` and `:token` in place of Discord IDs and webhook tokens, and `statement` never includes the values a query sends, so no debug entry holds a token or a secret.
+
+## Account and Change Events
+
+The **Web** service records sign-ins and every change made in the control panel or through the API.
+
+| Event                                                                                          | When it's written                                                                                                                                                                                                                                                                                                                                  |
+|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `setup_completed`, `setup_code_rejected`                                                       | The owner account was created, or someone entered a wrong or expired <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>                                                                                                                                   |
+| `sign_in_succeeded`, `sign_in_failed`, `sign_out`                                              | Someone signed in, a sign-in failed, or someone signed out                                                                                                                                                                                                                                                                                         |
+| `password_changed`, `username_changed`                                                         | A user changed their own password or username                                                                                                                                                                                                                                                                                                      |
+| `totp_enabled`, `totp_disabled`, `recovery_codes_replaced`                                     | A user turned their <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> on or off, or made new <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> |
+| `passkey_added`, `passkey_removed`                                                             | A user added or removed a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>                                                                                                                                                                                  |
+| `token_created`, `token_updated`, `token_revoked`                                              | A user created, edited, or revoked an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology>                                                                                                                                                               |
+| `user_created`, `user_updated`, `user_deleted`, `user_password_reset`, `user_two_factor_reset` | Someone changed another user on the **Users** page                                                                                                                                                                                                                                                                                                 |
+| `bot_action_requested`, `bot_token_saved`                                                      | Someone started, stopped, or restarted the bot, or saved the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>                                                                                                                                                     |
+| `debug_logging_on`, `debug_logging_off`                                                        | Someone turned [Debug logging](#debug-logging) on or off                                                                                                                                                                                                                                                                                           |
+| `feature_saved`, `feature_enabled`, `feature_disabled`                                         | Someone saved a feature or turned it on or off                                                                                                                                                                                                                                                                                                     |
+| `invite_page_saved`, `backup_imported`                                                         | Someone saved the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> or completed an import from **Backup**                                                                                                                                              |
+| `notification_created`, `notification_updated`, `notification_removed`                         | Someone added, edited, or removed a [notification](/docs/control-panel/notifications/) <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>                                                                                                       |
+
+Each change records the user's ID and username. No entry on the **Logs** page holds a password, a sign-in code, a token, or a secret.
+
+The **Worker** log adds `notification_delivered` for each alert sent and `notification_skipped` for an alert whose <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> was removed or is waiting for its secrets.
+
+## Container Logs
+
+Every service also writes each event to standard output as one line of JSON. Follow them on the Docker host with Compose.
+
+```bash
+docker compose logs --follow app
+```
+
+```json title="One log line"
+{"component":"bot","context":{"generation":3},"event":"gateway_stopped","level":"info","timestamp":"2026-01-01T00:00:00.000Z"}
+```
+
+The <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> line, `setup_code_issued`, appears only here and never on the **Logs** page.
+
+## How Long Entries Last
+
+The database keeps every entry and never deletes old ones, so the log table grows over time. Any signed-in role can read the logs, and an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology> needs the `logs:read` <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology>.

@@ -1,0 +1,2 @@
+#!/command/with-contenv sh
+exec /usr/local/libexec/nova-docker/finish-critical postgres "$@"

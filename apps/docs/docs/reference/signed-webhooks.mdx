@@ -1,0 +1,157 @@
+---
+id: signed-webhooks
+title: Signed Webhooks
+description: Sign requests to a Stonker Bot for Discord mapped webhook with HMAC-SHA-256, map JSON fields into the message, and read every response the route returns.
+keywords:
+  - stonker bot for discord
+  - signed webhooks
+  - hmac
+  - webhook signature
+  - mapped webhooks
+  - api
+tags:
+  - reference
+  - webhooks
+  - api
+sidebar_position: 4
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Sign requests to a <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">mapped webhook</Terminology> with HMAC-SHA-256, so the bot accepts them and posts the message to Discord.
+
+## Why Use Signed Webhooks?
+
+1. Proves that each request came from a service holding the <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology>, so nobody else can post through your route.
+2. Rejects requests whose timestamp is more than five minutes away from the server's clock, so a captured request can't be sent again later.
+3. Queues each accepted message in the database, so the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> still posts it after a busy moment or a restart.
+
+## Requirements
+
+- **A <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">mapped webhook</Terminology> route** — Configure a path, a channel, a message, and a <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology> in [Web Applications](/docs/features/web/web-applications/#incoming-webhook-settings).
+- **The <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology>** — At least 32 characters, with the same value saved in the route's **Signing secret** field and in your sender.
+- **A running bot** — Requests get HTTP 503 while the bot is stopped or no <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved.
+- **A reachable address** — The route is served on the control panel's port, so senders need a path through your reverse proxy.
+
+## Endpoint and Headers
+
+Send a `POST` request to the exact path you configured, with the raw JSON body and two headers.
+
+```http
+POST /webhooks/price-alert HTTP/1.1
+Host: bot.example.com
+Content-Type: application/json
+X-Stonker-Timestamp: 1792684800
+X-Stonker-Signature: sha256=15d6b9d6363377cdc90373d41faab297a3d14be396656dd3431cda8b0f748e1f
+
+{"alert":{"symbol":"TEST","price":123.45}}
+```
+
+- **`X-Stonker-Timestamp`** — The current Unix time in seconds, as 10 digits.
+- **`X-Stonker-Signature`** — The hex HMAC-SHA-256 of the timestamp, a period, and the raw body, with an optional `sha256=` prefix and either letter case.
+- **Body** — A JSON object of up to 128 KiB, sent exactly as signed.
+
+## Compute the Signature
+
+Sign the string `<timestamp>.<raw body>` with the <Terminology title="Shared key that proves a webhook request is genuine" to="/docs/reference/terminology#signing-secret">signing secret</Terminology>, using the same bytes you send as the body.
+
+<Tabs groupId="signed-webhooks-examples">
+  <TabItem value="node" label="Node.js" default>
+
+    ```js
+    import { createHmac } from 'node:crypto';
+
+    // The value saved for the route's signing secret.
+    const secret = process.env.STONKER_SIGNING_SECRET;
+    const body = JSON.stringify({ alert: { symbol: 'TEST', price: 123.45 } });
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const signature = createHmac('sha256', secret).update(`${timestamp}.${body}`, 'utf8').digest('hex');
+
+    const response = await fetch('https://bot.example.com/webhooks/price-alert', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Stonker-Timestamp': timestamp,
+        'X-Stonker-Signature': `sha256=${signature}`,
+      },
+      body,
+    });
+
+    // 202 {"accepted":true,"duplicate":false}
+    console.log(response.status, await response.text());
+    ```
+
+  </TabItem>
+  <TabItem value="openssl" label="OpenSSL">
+
+    ```bash
+    SECRET="${STONKER_SIGNING_SECRET:?}"
+    BODY='{"alert":{"symbol":"TEST","price":123.45}}'
+    TIMESTAMP="$(date +%s)"
+
+    # Sign "<timestamp>.<body>" without a trailing newline.
+    SIGNATURE="$(printf '%s' "${TIMESTAMP}.${BODY}" | openssl dgst -sha256 -hmac "${SECRET}" | awk '{print $NF}')"
+
+    curl --request POST 'https://bot.example.com/webhooks/price-alert' \
+      --header 'Content-Type: application/json' \
+      --header "X-Stonker-Timestamp: ${TIMESTAMP}" \
+      --header "X-Stonker-Signature: sha256=${SIGNATURE}" \
+      --data-binary "${BODY}"
+    ```
+
+  </TabItem>
+</Tabs>
+
+To check your code, sign the body `{"alert":{"symbol":"TEST","price":123.45}}` with the timestamp `1792684800` and the secret `a-webhook-signing-secret-with-at-least-32-characters`. The result is `15d6b9d6363377cdc90373d41faab297a3d14be396656dd3431cda8b0f748e1f`, the signature shown above.
+
+## Map JSON Fields to Variables
+
+Each <Terminology title="Placeholder filled from a field in the request's JSON" to="/docs/reference/terminology#webhook-variable">webhook variable</Terminology> has an ID, a path into the JSON body, and a type, and the message uses it as `@ID@`.
+
+- **ID** — Uppercase letters and digits, starting with a letter, with single underscores between parts, such as `SYMBOL` or `PRICE_2`.
+- **Path** — Up to 10 dot-separated keys, such as `alert.symbol`, and arrays aren't supported.
+- **Missing values** — A missing field, or a value of the wrong kind, shows as "Unavailable".
+
+| Type          | Accepts                       | Shows                                                                                                                                                                |
+|---------------|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `string`      | Text, a number, or true/false | The value as text, with Markdown characters escaped, up to 500 characters                                                                                            |
+| `boolean`     | true or false                 | "Yes" or "No"                                                                                                                                                        |
+| `ts-seconds`  | A Unix time in seconds        | A Discord timestamp in each reader's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> |
+| `ts-millis`   | A Unix time in milliseconds   | A Discord timestamp in each reader's <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> |
+| `usd-dollars` | A number of dollars           | A US dollar amount, such as $123.45                                                                                                                                  |
+| `usd-cents`   | A number of cents             | A US dollar amount, such as $123.45 for 12345                                                                                                                        |
+
+The message is the route's content, then its footer on a second line, with `%YEAR%` filled in as the current year in UTC. After the variables are filled in, it has to be 1 to 2,000 characters.
+
+## Responses
+
+| Status | Body                                                                                         | Meaning                                                                                                                                                         |
+|--------|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 202    | `{"accepted":true,"duplicate":false}`                                                        | The message was queued.                                                                                                                                         |
+| 200    | `{"accepted":true,"duplicate":true}`                                                         | The same request was already queued.                                                                                                                            |
+| 400    | "Webhook body must be valid JSON." or "Webhook body must be a JSON object."                  | The body isn't a JSON object.                                                                                                                                   |
+| 401    | "Invalid or expired webhook signature."                                                      | The signature, the timestamp, or the secret doesn't match.                                                                                                      |
+| 404    | "Not found."                                                                                 | No route matches the path, the feature is off, or its settings fail their checks, such as a missing signing secret.                                             |
+| 405    | "Method not allowed."                                                                        | The request wasn't a `POST`.                                                                                                                                    |
+| 503    | "Discord delivery is not available while the bot is stopped or unconfigured."                | The bot is stopped or has no <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>. |
+| 413    | `{"error":{"code":"payload_too_large","message":"The request body is too large."}}`          | The body is over 128 KiB.                                                                                                                                       |
+| 415    | `{"error":{"code":"unsupported_encoding","message":"Send the request body as UTF-8 JSON."}}` | The request used a `Content-Encoding` the web service can't read.                                                                                               |
+| 422    | "Rendered webhook content must contain between 1 and 2000 characters."                       | The message is empty or over 2,000 characters after the variables are filled in.                                                                                |
+
+## Replay Protection
+
+- **<Terminology title="Five-minute limit on a signed request's timestamp" to="/docs/reference/terminology#freshness-window">Freshness window</Terminology>** — The timestamp has to be within 300 seconds of the server's clock, in either direction.
+- **Duplicate detection** — The bot builds a <Terminology title="Identity that stops the same job queuing twice" to="/docs/reference/terminology#deduplication-key">deduplication key</Terminology> from the path, the timestamp, and the normalized signature value, so sending the same request again returns HTTP 200 with `"duplicate":true` even if the hexadecimal letters or optional `sha256=` prefix use different case.
+
+:::warning
+The <Terminology title="Identity that stops the same job queuing twice" to="/docs/reference/terminology#deduplication-key">deduplication key</Terminology> uses the signature header exactly as sent, while the signature check ignores letter case and the `sha256=` prefix. Within the <Terminology title="Five-minute limit on a signed request's timestamp" to="/docs/reference/terminology#freshness-window">freshness window</Terminology>, a copy of a request with a changed prefix or letter case is accepted as a new message.
+:::
+
+## Troubleshooting
+
+- **HTTP 401** — Check that the server's clock is correct, that the timestamp is in seconds, and that the body wasn't reformatted after you signed it.
+- **HTTP 404 on a configured path** — The path has to match exactly, including a trailing slash, and the Web applications feature has to be on with settings that pass their checks.
+- **HTTP 503** — Start the bot, or save a <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>.
+- **"Unavailable" in the message** — A variable's path or type doesn't match the JSON you sent.

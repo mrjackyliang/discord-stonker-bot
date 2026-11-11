@@ -1,0 +1,10 @@
+{
+  "label": "Reference",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Look up the intents and permissions each feature needs, slash commands, message variables, signed webhooks, and glossary terms."
+  }
+}

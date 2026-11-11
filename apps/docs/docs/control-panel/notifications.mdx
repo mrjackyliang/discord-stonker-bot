@@ -1,0 +1,389 @@
+---
+id: notifications
+title: Notifications
+description: Send alerts to ntfy, Telegram, email, and eight other services when the Discord bot can't sign in, drops offline, a job gives up, or sign-in is locked.
+keywords:
+  - stonker bot for discord
+  - notifications
+  - alerts
+  - ntfy
+  - telegram
+  - webhook
+  - email
+tags:
+  - control panel
+  - notifications
+  - alerts
+sidebar_position: 8
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import notificationsOneLight from './_assets_/notifications-1-light.png';
+import notificationsOneDark from './_assets_/notifications-1-dark.png';
+import notificationsTwoLight from './_assets_/notifications-2-light.png';
+import notificationsTwoDark from './_assets_/notifications-2-dark.png';
+import notificationsThreeLight from './_assets_/notifications-3-light.png';
+import notificationsThreeDark from './_assets_/notifications-3-dark.png';
+import notificationsFourLight from './_assets_/notifications-4-light.png';
+import notificationsFourDark from './_assets_/notifications-4-dark.png';
+import notificationsFiveLight from './_assets_/notifications-5-light.png';
+import notificationsFiveDark from './_assets_/notifications-5-dark.png';
+import notificationsSixLight from './_assets_/notifications-6-light.png';
+import notificationsSixDark from './_assets_/notifications-6-dark.png';
+import notificationsSevenLight from './_assets_/notifications-7-light.png';
+import notificationsSevenDark from './_assets_/notifications-7-dark.png';
+import notificationsEightLight from './_assets_/notifications-8-light.png';
+import notificationsEightDark from './_assets_/notifications-8-dark.png';
+import notificationsNineLight from './_assets_/notifications-9-light.png';
+import notificationsNineDark from './_assets_/notifications-9-dark.png';
+
+Send an alert to your phone, chat, or inbox when the bot can't sign in, drops off Discord, or a background job gives up, so you hear about problems without watching the control panel.
+
+## Why Use Notifications?
+
+1. Tells you when the bot has been off Discord for a minute, and again when it's back, so you know features paused without keeping the Overview page open.
+2. Includes Discord's own reason when the bot can't sign in, matching the failure recorded in the **Bot** log, so you can fix the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> or a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> right away.
+3. Warns you when a scheduled post, an RSS item, a <Terminology title="Endpoint that turns signed JSON into a channel message" to="/docs/reference/terminology#mapped-webhook">mapped webhook</Terminology> message, or a permission change fails on every try, so nothing goes missing without a word.
+4. Sends each alert to every <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> that chose its <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>, from ntfy and Telegram to email and webhooks, so it reaches you wherever you look.
+5. Seals tokens, passwords, and webhook URLs with the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> and never shows them again, so the list of <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> doesn't expose them.
+
+## Who Can Manage Notifications
+
+- **Roles** — The <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology>, and <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operators</Terminology> can add, test, edit, and remove <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology>. <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewers</Terminology> don't see the page, and the API refuses them with "Your role can't change settings."
+- **One shared list** — <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">Destinations</Terminology> belong to the whole installation rather than to one user or Discord server, so everyone who can open the page manages the same list.
+- **Wide screens** — Select **Notifications** in the sidebar, under **Settings** after **Access tokens**.
+- **Narrow screens** — Select **Settings** in the bottom bar, then choose **Notifications** from the sheet.
+
+<Frame caption="The Settings sheet on a phone" style={{ maxWidth: 782, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsOneLight, dark: notificationsOneDark }} alt="The control panel on a phone with the Settings sheet open, listing Connection, Backup, Users, Access tokens, and Notifications above a bottom bar with Overview, Features, Logs, and Settings" width={780} height={1688} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+Under **<Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">Destinations</Terminology>**, each row shows a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s name and service, how many <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> it hears about, and the result of its last send, such as `6 events · last sent 2 hours ago`. The newest <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> is listed first.
+
+<Frame caption="The Notifications page with three destinations">
+  <ThemedImage sources={{ light: notificationsTwoLight, dark: notificationsTwoDark }} alt="Notifications page listing the Homelab alerts, Mod alerts, and My phone destinations with their services, event counts, and last sends, where the last attempt to Homelab alerts failed with HTTP 502: Bad Gateway" width={1280} height={423} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Add a Destination
+
+1. Select **Add notification**.
+2. In **Service**, choose where alerts go. **ntfy** is selected at first.
+3. Enter a **Name** you'll recognize, such as the device or chat it goes to.
+4. Fill in the service's fields, as listed in [Services](#services).
+5. Under **<Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">Events</Terminology>**, keep the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> this <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> should hear about. All six are checked at first.
+6. Select **Add notification** in the dialog.
+
+<Frame caption="Adding an ntfy destination" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsThreeLight, dark: notificationsThreeDark }} alt="Add notification dialog with ntfy selected, the name Work laptop, a topic URL, an empty optional access token, and all six events checked" width={584} height={903} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+- **Names** — A name can have up to 80 characters, and each <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> needs a different one, whatever the letter case. A taken name shows "A notification with this name already exists."
+- **The dialog's button** — **Add notification** stays unavailable until the name is filled in and at least one <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology> is checked.
+- **Field problems** — A field with a problem shows the reason under it, such as `Use the full topic URL, like https://ntfy.sh/my-alerts.`
+
+It is recommended to select **Send test** after you add a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, as described in [Send a Test](#send-a-test).
+
+## Services
+
+The dialog lists the services in this order.
+
+| Service                | Required fields                                                                                                                  | Optional fields                                                       |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| ntfy                   | **Topic URL**, the full topic address, such as `https://ntfy.sh/my-alerts`                                                       | **Access token**, for a topic that needs one                          |
+| Reverse Proxy for ntfy | **Context URL**, the `https://` address of a context whose interpreter is `discord-stonker-bot`                                  | **Context token**, for a context that needs one                       |
+| Telegram               | **Bot token** from @BotFather, and the **Chat ID** of a user, group, or channel your Telegram bot can post to                    | None                                                                  |
+| Discord                | **Webhook URL** from the channel's Integrations settings, starting with `https://discord.com/api/webhooks/`                      | None                                                                  |
+| Slack                  | **Webhook URL** of an incoming webhook in your Slack app, starting with `https://hooks.slack.com/`                               | None                                                                  |
+| Gotify                 | **Server URL**, and the **App token** of an application you made in Gotify                                                       | None                                                                  |
+| Pushover               | **User key**, and the **App token** of an application you made in Pushover                                                       | None                                                                  |
+| Matrix                 | **Homeserver URL**, a **Room ID** such as `!room:example.com`, and the **Access token** of an account that's already in the room | None                                                                  |
+| Email                  | **SMTP server**, **Port** (`587` at first), **Security** (STARTTLS, TLS, or None), **From**, and **To**                          | **Username** and **Password**, for a server that needs a sign-in      |
+| Apprise                | **Apprise URL**, the notify URL of your Apprise API server with its config key                                                   | **Service URLs**, separated by spaces, for a stateless Apprise server |
+| Webhook                | **URL** that accepts a JSON `POST`                                                                                               | **Bearer token**, for an endpoint that needs one                      |
+
+- **<Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">Secret fields</Terminology>** — Every token, key, and password is a <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret field</Terminology>, and so are the Discord, Slack, Apprise, and webhook URLs. The other fields are plain and show their saved values when you edit.
+- **Addresses** — The ntfy, Gotify, Apprise, and webhook URLs can start with `http://` or `https://`, while the Reverse Proxy for ntfy and Matrix addresses need `https://`. Discord also accepts `https://discordapp.com/api/webhooks/`.
+- **Matrix room IDs** — Use the room ID that starts with `!`, such as `!room:example.com`. Room aliases that start with `#` aren't accepted, because sending needs the room ID.
+- **Email** — **To** takes several addresses separated by commas, and the **Password** is sent only when **Username** is filled in. **STARTTLS** refuses to send when the server doesn't offer it, **TLS** connects encrypted from the start, and **None** sends without encryption.
+- **Reverse Proxy for ntfy** — Alerts arrive as the JSON <Terminology title="JSON body sent to webhooks and Reverse Proxy for ntfy" to="/docs/reference/terminology#notification-payload">payload</Terminology> described in [Webhook Payload](#webhook-payload), and the context's `discord-stonker-bot` interpreter in [Reverse Proxy for ntfy](https://nrp.cbnventures.io/docs/interpreters/discord-stonker-bot/) turns it into a notification.
+
+<Frame caption="The email fields" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsFourLight, dark: notificationsFourDark }} alt="Add notification dialog with Email selected, showing the SMTP server, Port 587, STARTTLS security, Username, Password, From, and To fields filled in" width={584} height={1323} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Events
+
+| Event                          | Sent when                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Saved secrets were removed** | The container started without its <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> and removed the secrets the old key sealed. It's sent while the container starts, and it lists what to enter again.                                                                                                                           |
+| **Sign-in locked**             | Ten failed sign-in attempts from one address within 15 minutes paused sign-in from it. Each address is reported once per 15 minutes.                                                                                                                                                                                                                                                                                               |
+| **Bot can't sign in**          | A connection attempt failed, such as when Discord refused the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> or a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> is off. It includes Discord's reason, and each attempt is reported once. |
+| **Bot disconnected**           | The bot lost its connection to Discord and hasn't reconnected after a minute. Shorter drops that Discord resumes on its own aren't reported.                                                                                                                                                                                                                                                                                       |
+| **Bot reconnected**            | The bot is back on Discord after a **Bot disconnected** alert. It says how long the bot was away.                                                                                                                                                                                                                                                                                                                                  |
+| **Job gave up**                | A <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology> failed its last try, whether a Discord message, a permission change, or an RSS feed check. Notification jobs never count.                                                                                                                                                                |
+
+- **Checked at first** — Every <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology> starts checked when you add a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, and you can clear the ones it shouldn't get.
+- **Your own changes** — Stopping or restarting the bot, or the reconnect after a saved change, never sends **Bot disconnected**.
+- **Retries first** — A job gives up after `JOB_ATTEMPT_LIMIT` tries, 30 seconds apart and 5 by default, as described in [Environment Variables](/docs/operations/environment-variables/#optional).
+- **Stopped bot** — Discord messages and permission changes that were already queued wait without spending attempts while the bot is stopped. They resume after you start it again instead of sending a false **Job gave up** alert.
+- **Sign-in attempts** — Wrong passwords, wrong authenticator or <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, rejected <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, and wrong password checks on **Sign-in and security** all count, while wrong <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup codes</Terminology> don't. The count lives in memory, so a container restart clears it.
+
+## How Alerts Look
+
+- **Title** — An alert's title starts with `Stonker Bot for Discord:` and the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>, such as `Stonker Bot for Discord: Bot disconnected`, and email uses it as the subject.
+- **High priority** — Every <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology> except **Bot reconnected** uses priority 4 on ntfy, 8 on Gotify, and 1 on Pushover. Discord shows it in red, and Apprise sends it as a warning.
+- **Normal priority** — **Bot reconnected** and the test use priority 3 on ntfy, 5 on Gotify, and 0 on Pushover. Discord shows them in blue, and Apprise sends them as info.
+- **Webhooks** — Webhook and Reverse Proxy for ntfy <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> get JSON instead, as described in [Webhook Payload](#webhook-payload).
+
+```text title="Example alerts"
+Stonker Bot for Discord: Bot disconnected
+The bot lost its connection to Discord and hasn't reconnected after a minute. Features that need Discord are paused until it does.
+
+Stonker Bot for Discord: Bot reconnected
+The bot is back on Discord after 4 minutes away.
+
+Stonker Bot for Discord: Bot can't sign in
+The bot couldn't sign in to Discord: An invalid token was provided. Check the Bot Token on the Connection page, then restart the bot.
+
+Stonker Bot for Discord: Job gave up
+A Discord message for Morning news failed on all 5 tries and won't run again: Missing Permissions
+
+Stonker Bot for Discord: Sign-in locked
+Ten failed sign-ins from 192.0.2.10. Sign-in from it is paused for 15 minutes.
+```
+
+## Send a Test
+
+1. Select **Send test** on a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, which reads **Sending…** while it works.
+2. Check that `Stonker Bot for Discord: Test notification` arrives with the message "This is a test from Stonker Bot for Discord. Alerts for the events you chose will look like this."
+
+- **Result** — A notification in the corner then shows "Test sent to" and the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s name, or "The test to … couldn't be sent:" with the reason, such as `HTTP 401: Unauthorized` or `No answer within 10 seconds.`
+- **Sent right away** — A test goes out from the web service instead of the job queue, whichever <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> chose, and it isn't retried. It also becomes the row's last send.
+- **Unavailable** — **Send test** can't be selected while another test is sending, or while the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> waits for secrets that a lost key removed.
+
+<Frame caption="A destination after Send test">
+  <ThemedImage sources={{ light: notificationsFiveLight, dark: notificationsFiveDark }} alt="Destinations list where the My phone row shows last sent just now, with a Test sent to My phone. notification in the corner" width={992} height={386} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Edit or Remove a Destination
+
+- **Edit** — Opens the same dialog with the note "Leave a saved secret blank to keep it." Change the name, the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology>, or the fields, then select **Save**.
+- **Service** — It can't be changed, so add a new <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> to switch services.
+- **Saved secrets** — A saved <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret field</Terminology> shows **Saved** in place of its value. Leaving it blank keeps the saved value, and typing a new one replaces it.
+- **Optional secrets** — Select **Remove saved value** below an optional secret, such as an ntfy **Access token**, to delete it when you save, or **Keep saved value** to undo that. Required secrets can't be removed this way.
+- **Remove** — Opens a dialog that asks you to confirm with "Alerts stop going to this destination. You can add it again later.", then stops its alerts right away, including any still waiting in the queue.
+
+<Frame caption="Editing a destination with a saved secret" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsSixLight, dark: notificationsSixDark }} alt="Edit Homelab alerts dialog with the service fixed to Reverse Proxy for ntfy, the context URL, the context token showing Saved with Remove saved value below it, and three events checked" width={584} height={973} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+<Frame caption="Confirming a removal" style={{ maxWidth: 490, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsSevenLight, dark: notificationsSevenDark }} alt="Remove Homelab alerts? dialog saying alerts stop going to this destination and that it can be added again later, with Cancel and Remove buttons" width={488} height={235} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+## Secrets
+
+- **Sealed** — <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">Secret fields</Terminology> are encrypted with the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> before they're saved, and each <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s secrets open only for that <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>.
+- **Never shown** — The control panel and the API only show that a secret is saved, never its value.
+- **Backups** — A database backup doesn't include the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>, so it is recommended to keep a copy of the key with each backup, as described in [Storage and Backups](/docs/operations/storage-and-backups/#back-up-the-database).
+
+## After a Lost Credential Key
+
+When the container starts without its <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>, it makes a new one and removes what the old key sealed, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+
+- **Secrets removed** — Every <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology> are removed, while the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> keeps its name, service, <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology>, and plain fields.
+- **Paused** — A <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> missing a secret gets no alerts, and its **Send test** is unavailable. Its row names the fields to enter, such as "Enter the webhook URL again. Alerts are paused until you do."
+- **Notice** — The **Saved secrets were removed** notice at the top of every page links each paused <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, such as **Set up the Mod alerts notification again**, which opens **Notifications**. Dismissing the notice hides it only for your account; another user still sees it until they dismiss it or the secret is restored.
+- **Others keep working** — <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">Destinations</Terminology> without <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology>, such as ntfy without an access token or email without a password, keep getting alerts. The ones that chose **Saved secrets were removed** get that alert while the container starts.
+
+<Frame caption="Destinations paused after a lost key">
+  <ThemedImage sources={{ light: notificationsEightLight, dark: notificationsEightDark }} alt="Notifications page under the Saved secrets were removed notice, which links to Set up the Homelab alerts and Mod alerts notifications again, where the paused Homelab alerts and Mod alerts rows ask for their context token and webhook URL again with Send test unavailable, and My phone isn't paused" width={1280} height={721} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+To set a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> up again:
+
+1. Select **Edit** on it.
+2. Enter each required field marked "A lost key removed it. Enter it again." For an optional one, enter it again or select **Continue without this value**.
+3. Select **Save**.
+
+<Frame caption="Entering a removed secret again" style={{ maxWidth: 586, marginInline: 'auto' }}>
+  <ThemedImage sources={{ light: notificationsNineLight, dark: notificationsNineDark }} alt="Edit Homelab alerts dialog with an empty Context token field whose hint says a lost key removed it, Continue without this value below it, and three events checked" width={584} height={973} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+The <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> then leaves the notice and gets alerts again.
+
+- **Optional secrets** — For an optional secret that a lost key removed, such as an ntfy **Access token**, either enter it again or select **Continue without this value** before you save, and the destination resumes. **Require this value** undoes that choice.
+- **Dismiss** — Dismissing the notice doesn't set anything up again, so a paused <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> stays paused until you enter its secrets.
+
+## Delivery and Retries
+
+- **Queued** — When an <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology> happens, one <Terminology title="Queued task kept in the database until done" to="/docs/reference/terminology#durable-job">durable job</Terminology> is queued for each <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> that chose it, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> sends them one at a time.
+- **10-second limit** — Each try waits up to 10 seconds for the service, and a failed try shows on the row in red as `Last attempt failed` with the reason.
+- **Retries** — A failed alert is sent again 30 seconds later, up to `JOB_ATTEMPT_LIMIT` tries, 5 by default. An alert that gives up never sends **Job gave up**, so a broken <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> can't report itself.
+- **Once per occurrence** — The same occurrence is queued only once for each <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, such as one **Bot can't sign in** for each connection attempt.
+- **Without the bot** — Alerts don't use the bot's Discord connection, so they still go out while the bot is stopped or offline.
+- **Skipped** — An alert whose <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> was removed, or is waiting for removed secrets, is dropped when its turn comes.
+
+## Webhook Payload
+
+Webhook and Reverse Proxy for ntfy <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> receive the same JSON <Terminology title="JSON body sent to webhooks and Reverse Proxy for ntfy" to="/docs/reference/terminology#notification-payload">payload</Terminology> in a `POST`. A saved token is sent as `Authorization: Bearer <token>`.
+
+```json title="Webhook body"
+{
+  "app": "discord-stonker-bot",
+  "details": {
+    "downSince": "2026-10-26T14:02:11.000Z"
+  },
+  "event": "bot-disconnected",
+  "message": "The bot lost its connection to Discord and hasn't reconnected after a minute. Features that need Discord are paused until it does.",
+  "occurredAt": "2026-10-26T14:03:11.000Z",
+  "priority": 4,
+  "tags": ["warning"],
+  "title": "Bot disconnected",
+  "version": 1
+}
+```
+
+| Field        | Description                                                                                                                                                                                                 |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `app`        | Always `discord-stonker-bot`.                                                                                                                                                                               |
+| `details`    | Extra data for the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>, listed in the next table.                        |
+| `event`      | The <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>'s key, or `test` for **Send test**.                              |
+| `message`    | The alert's text.                                                                                                                                                                                           |
+| `occurredAt` | When the alert was made, in UTC with milliseconds.                                                                                                                                                          |
+| `priority`   | `4` for high-priority <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> and `3` for the rest, on ntfy's 1-to-5 scale. |
+| `tags`       | ntfy tag names that show as emoji.                                                                                                                                                                          |
+| `title`      | The <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>'s name, without `Stonker Bot for Discord:`.                      |
+| `version`    | The <Terminology title="JSON body sent to webhooks and Reverse Proxy for ntfy" to="/docs/reference/terminology#notification-payload">payload</Terminology> format, `1`.                                     |
+
+| Key                  | Event                      | Priority | Tags               | `details`                                                                                                                                                                                   |
+|----------------------|----------------------------|----------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `secrets-removed`    | Saved secrets were removed | `4`      | `key`, `warning`   | `items`, the removed secrets in the log's words                                                                                                                                             |
+| `sign-in-locked`     | Sign-in locked             | `4`      | `lock`             | `address`                                                                                                                                                                                   |
+| `bot-sign-in-failed` | Bot can't sign in          | `4`      | `x`                | `generation`, the attempt's <Terminology title="Counter that makes a running bot reconnect" to="/docs/reference/terminology#revision">revision</Terminology>, and `reason`, Discord's error |
+| `bot-disconnected`   | Bot disconnected           | `4`      | `warning`          | `downSince`, when the connection dropped                                                                                                                                                    |
+| `bot-reconnected`    | Bot reconnected            | `3`      | `white_check_mark` | `downSince` and `upAt`                                                                                                                                                                      |
+| `job-failed`         | Job gave up                | `4`      | `x`                | `attempts`, `error`, `jobId`, and `jobType`                                                                                                                                                 |
+| `test`               | Send test                  | `3`      | `bell`             | Empty                                                                                                                                                                                       |
+
+- `jobType` is `discord.message.send`, `discord.permissions.apply`, or `rss.feed.fetch`.
+- `downSince` and `upAt` are UTC times with milliseconds.
+
+## Manage Notifications From Scripts
+
+The **Notifications** page uses these routes, which scripts can call too.
+
+| Route                                              | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET /api/v1/notifications`                        | Lists every <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, newest first, with `secrets` naming its saved <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology> but never their values.                                                                                                                                               |
+| `GET /api/v1/notifications/events`                 | Lists the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology> in the dialog's order, with their labels, descriptions, and `defaultEnabled` for the ones checked at first.                                                                                                                                                                                                                                                                            |
+| `POST /api/v1/notifications`                       | Adds a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> from `name`, `service`, `events`, and `settings`, and answers `201`.                                                                                                                                                                                                                                                                                                        |
+| `PUT /api/v1/notifications/{notificationId}`       | Changes a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s `name`, `events`, and `settings`, keeping saved <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology> that are left out or blank. `clearSecrets` lists optional secrets to clear, saved or removed by a lost key, each once and never with a new value for the same field. |
+| `DELETE /api/v1/notifications/{notificationId}`    | Removes a <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> and answers `204`.                                                                                                                                                                                                                                                                                                                                                       |
+| `POST /api/v1/notifications/{notificationId}/test` | Sends the test and answers `{"delivered":true}`, or `false` with a `message`.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+`notificationId` is the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s `id`, such as `ntf-3e5a7c9b1d2f4a60`, and any other value answers like a removed <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>.
+
+:::warning
+These routes accept only a signed-in <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology>. A request with an `Authorization` header, such as an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology>, gets `403` with the code `session_required`, whatever its <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>.
+:::
+
+### Sign In From a Script
+
+A script signs in the way the control panel does and keeps the session cookies.
+
+```bash
+read -r -s STONKER_PASSWORD
+
+# Sign in and save the session cookies.
+printf '{"username":"owner","password":"%s"}' "$STONKER_PASSWORD" \
+  | curl --silent --show-error --fail-with-body --cookie-jar session.txt \
+      --header 'Content-Type: application/json' --data @- \
+      https://bot.example.com/api/v1/auth/login
+
+unset STONKER_PASSWORD
+
+# Read the CSRF value that changes need from the dsb_csrf cookie.
+csrf_token="$(awk '$6 == "dsb_csrf" { print $7 }' session.txt)"
+
+# List the destinations.
+curl --silent --show-error --fail-with-body --cookie session.txt \
+  https://bot.example.com/api/v1/notifications
+
+# Send a test to one destination.
+curl --silent --show-error --fail-with-body --cookie session.txt \
+  --request POST --header "X-CSRF-Token: $csrf_token" \
+  https://bot.example.com/api/v1/notifications/ntf-3e5a7c9b1d2f4a60/test
+
+# Sign out, which ends the session, then delete the cookies.
+curl --silent --show-error --cookie session.txt \
+  --request POST --header "X-CSRF-Token: $csrf_token" \
+  https://bot.example.com/api/v1/auth/logout
+
+rm session.txt
+```
+
+- **Username** — Replace `owner` with your username. `printf` doesn't escape JSON, so a password with `"` or `\` needs those characters escaped first.
+- **Changes** — `POST`, `PUT`, and `DELETE` need the `X-CSRF-Token` header with the value of the `dsb_csrf` cookie, which the sign-in answer also returns as `csrfToken`.
+- **Authenticator app** — When it's on, the sign-in answers with a `challenge` instead, which you send with a `code` to `POST /api/v1/auth/login/second-factor`.
+- **Failed sign-ins** — They count toward the sign-in limit, and ten from one address send **Sign-in locked** to the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> that chose it.
+- **Session file** — `session.txt` holds a working session for up to 24 hours, or until you sign out, so it's worth keeping it private.
+
+### Request Body
+
+```json title="POST /api/v1/notifications"
+{
+  "name": "My phone",
+  "service": "ntfy",
+  "events": ["bot-sign-in-failed", "bot-disconnected", "bot-reconnected", "job-failed"],
+  "settings": {
+    "url": "https://ntfy.sh/my-alerts",
+    "token": "tk_example"
+  }
+}
+```
+
+| `service`            | `settings` keys                                                                                 |
+|----------------------|-------------------------------------------------------------------------------------------------|
+| `ntfy`               | `url`, `token`                                                                                  |
+| `ntfy-reverse-proxy` | `url`, `token`                                                                                  |
+| `telegram`           | `botToken`, `chatId`                                                                            |
+| `discord`            | `webhookUrl`                                                                                    |
+| `slack`              | `webhookUrl`                                                                                    |
+| `gotify`             | `url`, `token`                                                                                  |
+| `pushover`           | `userKey`, `appToken`                                                                           |
+| `matrix`             | `homeserverUrl`, `roomId`, `accessToken`                                                        |
+| `email`              | `host`, `port`, `security` (`starttls`, `tls`, or `none`), `username`, `password`, `from`, `to` |
+| `apprise`            | `url`, `urls`                                                                                   |
+| `webhook`            | `url`, `token`                                                                                  |
+
+- **Text values** — Every `settings` value is a string, including `port`, such as `"587"`.
+- **Events** — `events` takes the keys from [Webhook Payload](#webhook-payload), except `test`, with each key once.
+- **Unknown fields** — A field that isn't listed for the service is refused with "This field isn't accepted."
+- **Editing** — `PUT` takes the same body, where `service` can be left out but can't change. A saved <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret field</Terminology> that's left out or blank keeps its value.
+- **Removing secrets** — On `PUT`, `clearSecrets` lists the optional secrets to clear, such as `["token"]`: saved ones, or ones a lost key removed, each listed once. A field can't be cleared and given a new value at once.
+- **Plain fields** — `PUT` replaces them all, so a required field that's left out is refused and an optional one is cleared.
+
+### Errors
+
+| Status | Code                      | When                                                                                                                                                                                                   |
+|--------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `401`  | `authentication_required` | No signed-in session.                                                                                                                                                                                  |
+| `403`  | `session_required`        | The request has an `Authorization` header, such as an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology>.  |
+| `403`  | `csrf_invalid`            | A change came without a matching `X-CSRF-Token` header.                                                                                                                                                |
+| `403`  | `permission_required`     | Your role can't change settings, as with a <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology>.                               |
+| `404`  | `notification_not_found`  | The <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> doesn't exist or was removed.                |
+| `409`  | `notification_exists`     | Another <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> uses the name, whatever the letter case. |
+| `422`  | `invalid_request`         | A field failed its check, and `issues` names each one, such as `settings.url` or `events.2`.                                                                                                           |
+
+The answers every route shares, such as `429` after 300 requests in a minute, are listed in [Status Codes](/docs/control-panel/access-tokens/#status-codes).
+
+## Troubleshooting
+
+- **Send test works, but alerts don't arrive** — Check that the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> chose the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>. The **Worker** log shows `notification_delivered` for each alert sent, `job_failed` with the reason for each failed try, and `notification_skipped` for alerts that were dropped.
+- **"The test couldn't be sent: HTTP 401: Unauthorized"** — The service refused the token or key, so enter it again with **Edit**.
+- **"The test couldn't be sent: No answer within 10 seconds."** — The service didn't answer in time, so check its address and that the container can reach it.
+- **No Bot disconnected alert** — Drops that end within a minute aren't reported, and neither are stops, restarts, or reconnects you started.
+- **"Enter the … again. Alerts are paused until you do."** — A lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> removed the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s secrets, as described in [After a Lost Credential Key](#after-a-lost-credential-key).

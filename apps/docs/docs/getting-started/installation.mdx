@@ -1,0 +1,107 @@
+---
+id: installation
+title: Installation
+description: Build the Stonker Bot for Discord image from source, create the two environment files, and start the appliance with Docker Compose on your own host.
+keywords:
+  - stonker bot for discord
+  - installation
+  - docker compose
+  - environment file
+  - self-hosting
+  - postgres password
+tags:
+  - getting started
+  - installation
+  - self-hosting
+sidebar_position: 2
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Build the Docker image from the source code and start the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> with Docker Compose.
+
+## Get the Source
+
+Clone the repository and work from its root folder.
+
+```bash
+git clone https://github.com/mrjackyliang/discord-stonker-bot.git
+cd discord-stonker-bot
+```
+
+## Create the Environment Files
+
+The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> reads settings from two files, and each setting belongs in one of them.
+
+### Bot Environment File
+
+Copy the sample, then set `POSTGRES_PASSWORD` to a unique password of at least 16 characters.
+
+```bash
+cp apps/bot/.env.sample apps/bot/.env
+```
+
+```dotenv title="apps/bot/.env"
+POSTGRES_PASSWORD="use-a-unique-password-of-at-least-16-characters"
+```
+
+`POSTGRES_PASSWORD` is the only required value. There's no admin username or password to set, because you create the first account in the browser with a one-time <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>.
+
+### Compose Environment File
+
+Copy the root sample to `.env` next to `compose.yml`, then add any settings you want to change, such as `WEB_PORT`.
+
+```bash
+cp .env.sample .env
+```
+
+```dotenv title=".env"
+PGID="1000"
+PUID="1000"
+TZ="UTC"
+```
+
+:::warning
+Set `WEB_PORT`, `PUID`, `PGID`, `TZ`, and the other Compose settings in the root `.env`, not in `apps/bot/.env`. The `environment` block in `compose.yml` fills these keys from your shell or the root `.env`, and Docker Compose gives that block priority over `apps/bot/.env`.
+:::
+
+See [Environment Variables](/docs/operations/environment-variables/) for every setting and its default.
+
+## Start the Appliance
+
+Build the image and start the container in the background, then check its status.
+
+```bash
+docker compose up --build --detach
+docker compose ps
+```
+
+`npm run deploy:container` from the repository root runs the same `docker compose up --build --detach` command.
+
+On the first start, the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> start after these steps finish.
+
+## Open the Control Panel
+
+Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. The first visit shows **Set up your account**, which asks for the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> from the container log, and [First-Run Setup](/docs/getting-started/first-run/) walks you through the rest.
+
+## Update the Appliance
+
+Get the newer source code, then run the same command to rebuild the image and replace the container.
+
+```bash
+docker compose up --build --detach
+```
+
+The <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology> survives the rebuild, and new database migrations run automatically at start. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
+
+## Stop or Remove the Appliance
+
+`docker compose down` stops and removes the container but keeps the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>.
+
+```bash
+docker compose down
+```
+
+:::danger
+`docker compose down --volumes` also deletes the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>, which holds the database and the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>.
+:::

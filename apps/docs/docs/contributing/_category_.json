@@ -1,0 +1,10 @@
+{
+  "label": "Contributing",
+  "position": 8,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Learn how the services fit together and how to build, test, and change the bot from the repository."
+  }
+}

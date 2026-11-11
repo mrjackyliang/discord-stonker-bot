@@ -1,0 +1,117 @@
+---
+id: troubleshooting
+title: Troubleshooting
+description: Fix common Stonker Bot for Discord problems with the container, bot connection, features, notifications, Backup imports, setup, and signing in.
+keywords:
+  - stonker bot for discord
+  - troubleshooting
+  - errors
+  - bot stopped by an error
+  - backup import rejected
+  - sign-in problems
+tags:
+  - operations
+  - troubleshooting
+sidebar_position: 5
+---
+
+import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+Fix the most common problems with the container, the bot connection, features, scheduled work, notifications, Backup imports, setup, and signing in.
+
+For a problem that isn't listed here, turn on [Debug logging](/docs/control-panel/logs/#debug-logging) and read the `debug` entries on the **Logs** page.
+
+## The Container Won't Start
+
+`docker compose logs app` shows why the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> stopped.
+
+- **"POSTGRES_PASSWORD must contain at least 16 characters."** — Set a longer password in `apps/bot/.env`.
+- **"POSTGRES_DB must start with a lowercase letter…"** — Database and role names use only lowercase letters, digits, and underscores.
+- **"Unknown timezone: …"** — Set `TZ` to an IANA name, such as `America/New_York`.
+- **"PostgreSQL data directory is non-empty but has no PG_VERSION marker."** — The <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology> holds files that aren't a PostgreSQL database.
+- **"Credential encryption key must contain exactly 32 bytes."** — The <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> file was changed or cut short.
+- **"The credential key at /data/secrets/credential.key doesn't belong to this database. Put back the key file this database was created with, or delete /data/secrets/credential.key and restart to make a new key, then enter the saved secrets again."** — The <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> file comes from another database, such as after restoring a dump into a new container, as described in [Storage and Backups](/docs/operations/storage-and-backups/#restore-from-a-backup).
+- **"Migration … changed after it was applied."** — A migration file in the image differs from the one the database already ran.
+
+## The Bot Shows Stopped by an Error
+
+The panel shows "Check the bot token on the Connection page, then restart the bot." for every failure, so check each cause in turn. The `gateway_start_failed` entry in the **Bot** log and a **Bot can't sign in** [notification](/docs/control-panel/notifications/#events) include Discord's own reason.
+
+- **Wrong token** — On the **Connection** page, select **Replace token**, paste a fresh token from the Developer Portal, and select **Save token**. A running bot reconnects with it on its own.
+- **A <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> is off** — Switch on the intents your enabled features need, as described in [Discord Application](/docs/getting-started/discord-application/#turn-on-privileged-intents), then select **Restart**.
+- **Slow connection** — The start gives up after 15 seconds, so check the host's network access to Discord.
+
+## The Bot Shows Not Connected
+
+No <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved. Save one on the **Connection** page, then select **Start**.
+
+When **Saved secrets were removed** is at the top of the page, a lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> took the token, so select **Enter the Bot Token** in that notice, as described in [Storage and Backups](/docs/operations/storage-and-backups/#the-saved-secrets-notice).
+
+## The Bot Shows Not Responding
+
+The bot is set to run, but its process hasn't written a <Terminology title="Latest status a service reported to the database" to="/docs/reference/terminology#heartbeat">heartbeat</Terminology> for 90 seconds. `docker compose logs app` shows what happened, and s6 restarts the bot process on its own when it exits.
+
+## A Feature Won't Turn On
+
+- **The switch is disabled** — The feature isn't set up yet, so select **<Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">Start from the example</Terminology>** or **Start from scratch**, or import configuration from [Backup](/docs/control-panel/export-and-import/).
+- **"Set up this feature before turning it on."** — The same cause, reported by the API.
+- **"Fix this feature's settings before turning it on."** — The saved settings fail a check, so fix the marked fields, save, and turn it on again.
+- **"Check the highlighted fields."** — Saving found a problem, so fix the marked fields and save again.
+- **"Enter this secret."** — A secret field has no value, so enter one before you save.
+- **"This feature changed since you opened it. Reload to see the latest version."** — Someone else saved the feature first, so select **Reload** and make your change again.
+- **Anti-raid stays off after an older config.json import** — The old file has no <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> under **Raid bans**, so choose one and save.
+- **It turns on but does nothing** — Check the <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology> on the Overview page, which lists problems found when the bot connected. Scheduled posts, RSS feeds, permission toggles, and web applications don't show there, so check the **Worker** or **Web** log instead.
+
+## The Bot Doesn't Post or Act
+
+- **Missing permissions** — Give the bot's role the permissions the feature needs, as listed in [Permissions and Intents](/docs/reference/permissions-and-intents/).
+- **Role order** — Move the bot's role above every role it gives, removes, or manages.
+- **Unknown channel or role** — A picker shows **Unknown channel** or **Unknown role** when the ID isn't in the selected server, so choose one from the list.
+- **Missed events** — The bot sees edits, deletes, and member changes only for messages and members it has seen since its last reconnect.
+
+## Scheduled Posts Are Missing or Repeated
+
+- **Missing** — The bot was stopped at that time, and scheduled times that pass while it is stopped are skipped.
+- **Failed** — Every delivery attempt failed, and the **Worker** log shows `job_failed` with the reason, such as "Missing Permissions". A **Job gave up** [notification](/docs/control-panel/notifications/#events) can tell you when a post fails on every try.
+- **Reaction failed** — The posted message ID is saved before reactions are added, so a failed reaction retry adds only the remaining reactions and doesn't post the message again.
+- **Many at once** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> caught up on up to 24 hours of missed times after it had been down.
+- **Wrong hour** — Each schedule uses UTC unless you set its **<Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">Time zone</Terminology>**.
+
+## Notifications Don't Arrive
+
+- **Send test fails** — The row shows the service's reason, such as `HTTP 401: Unauthorized` for a wrong token or `No answer within 10 seconds.` for an address the container can't reach.
+- **Send test works, but alerts don't arrive** — Check that the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> chose the <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">event</Terminology>, then look for `job_failed` and `notification_skipped` in the **Worker** log.
+- **"Enter the … again. Alerts are paused until you do."** — A lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> removed the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>'s secrets, so select **Edit** and enter them again.
+
+More causes are listed in [Notifications](/docs/control-panel/notifications/#troubleshooting).
+
+## A Backup Import Is Rejected
+
+- **A feature is imported but stays off** — Its older settings don't pass the current checks, so open it in **Features** and fix the marked fields, as described in [Legacy Migration](/docs/migration/legacy-migration/#how-configjson-is-staged).
+- **"This config.json belongs to another Discord server. Switch to that server first."** — Select the server that matches the file's `guild-id` in the server menu, or remove that value from the file.
+- **"Another server already uses …"** — Change the conflicting invite or webhook path in the older file or on the other server before importing.
+- **"That file is not valid JSON."** — The selected file is damaged or is not JSON.
+- **The export file is rejected in Source** — Choose the original `discord-stonker-bot-export-YYYY-MM-DD.json` file without adding, removing, or renaming its fields.
+- **An older config.json is rejected in Source** — Check that the file is the legacy bot's `config.json` and is no larger than 750 KB.
+- **"Choose a JSON file smaller than 10 MB."** — The browser refuses any selected source above its upload limit.
+- **"Confirm it's you again."** — The five-minute confirmation expired, was already used, came from another browser session, or was made for export instead of import. Return to **Review** and confirm again.
+
+[Export and Import](/docs/control-panel/export-and-import/) explains the **Source**, **Settings**, **Review**, and **Importing** steps and what each source replaces, adds, or skips.
+
+## Setup Problems
+
+- **"That setup code is wrong or expired. Restart the container to print a new one."** — Each restart prints a new <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>, so use the last `setup_code_issued` line, or run `docker compose restart app` for a fresh one.
+- **"Too many setup attempts. Try again in 15 minutes."** — Setup allows 10 wrong codes from one address in 15 minutes.
+- **No code in the log** — An account already exists, so the panel shows the sign-in screen instead.
+
+## Sign-In Problems
+
+- **"The username or password is incorrect."** — Check both, and note that a suspended account shows the same message.
+- **"Too many sign-in attempts. Try again in 15 minutes."** — Sign-in pauses for an address after 10 failures in 15 minutes, while other addresses can still sign in.
+- **"Your sign-in timed out. Enter your password again."** — The code step lasts 5 minutes after the password.
+- **A <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology> isn't offered or isn't accepted** — <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">Passkeys</Terminology> work only at the hostname they were added on, over HTTPS or at `localhost`, as described in [Remote Access](/docs/operations/remote-access/#passkeys-and-the-address).
+- **A lost <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>** — Sign in with one of your <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, or ask an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> or the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> to tick **Turn off two-factor** under **Edit** on the **Users** page, which also removes your <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>. Nobody can turn off the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s two-factor sign-in, so the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> needs a <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery code</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+- **Sign-in stopped asking for a code** — A lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> turned off your <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> and its <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, so set it up again on **Sign-in and security**.
+- **A forgotten password** — Ask an <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrator</Terminology> or the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> to tick **Set a new password** under **Edit** on the **Users** page. Nobody can reset the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s password in the control panel.
+- **Signed out unexpectedly** — Sessions end after 24 hours, and changing your password signs out your other browsers. A password reset or a suspension signs you out everywhere.
+- **A script gets HTTP 401** — The <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology> was revoked, has expired, or belongs to a suspended account, as described in [Access Tokens and API](/docs/control-panel/access-tokens/#status-codes).

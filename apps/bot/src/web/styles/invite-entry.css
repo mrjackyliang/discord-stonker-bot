@@ -1,0 +1,38 @@
+/* The public invite page loads only its own styles, not the control panel's. */
+@import "./invite.css";
+
+html,
+body {
+  min-width: 20rem;
+  margin: 0;
+}
+
+.invite-missing {
+  display: grid;
+  gap: 0.5rem;
+  place-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Inter,
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
+  color: #3d4249;
+  text-align: center;
+
+  & h1 {
+    margin: 0;
+
+    font-size: 1.25rem;
+    color: #181b1f;
+  }
+
+  & p {
+    margin: 0;
+  }
+}

@@ -1,0 +1,11 @@
+#!/command/with-contenv sh
+set -eu
+
+cd /app/apps/bot
+
+exec /command/s6-applyuidgid \
+  -u "${PUID:-1000}" \
+  -g "${PGID:-1000}" \
+  -G "${PGID:-1000}" \
+  /usr/local/bin/node \
+  build/worker.js

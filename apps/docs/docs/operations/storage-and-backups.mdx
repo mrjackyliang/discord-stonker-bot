@@ -1,0 +1,127 @@
+---
+id: storage-and-backups
+title: Storage and Backups
+description: Back up the Stonker Bot for Discord PostgreSQL database with pg_dump, keep its credential key, and see what the data volume stores.
+keywords:
+  - stonker bot for discord
+  - storage
+  - backups
+  - pg_dump
+  - credential key
+  - data volume
+tags:
+  - operations
+  - backups
+sidebar_position: 2
+---
+
+import ThemedImage from '@theme/ThemedImage';
+import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
+
+import storageAndBackupsOneLight from './_assets_/storage-and-backups-1-light.png';
+import storageAndBackupsOneDark from './_assets_/storage-and-backups-1-dark.png';
+
+Protect the bot's settings and history by backing up the database with `pg_dump` and keeping a separate copy of the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>.
+
+## The Data Volume
+
+Compose mounts one <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>, `stonker-data`, at `/data` in the container, and `docker volume ls` lists it as `discord-stonker-bot_stonker-data`.
+
+| Path                           | What it holds                                                                                                                                                                                                                 |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/data/postgres`               | The PostgreSQL database, with every setting, account, token, <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> image, job, and log |
+| `/data/secrets/credential.key` | The <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> that encrypts stored secrets                                           |
+
+`docker compose down` keeps the volume, and only `docker compose down --volumes` deletes it.
+
+## The Credential Key
+
+The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> creates the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> on its first start, with permissions that only the services' user can read. It encrypts the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, every feature secret, every <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> secret, and the <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology> of every [notification](/docs/control-panel/notifications/) <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>.
+
+Accounts, passwords, <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, sessions, and <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology> don't use the key, because the panel stores hashes or public keys for them. A `pg_dump` backup doesn't include the key.
+
+### If the Key File Is Missing
+
+When the key file is gone but the database holds secrets the old key encrypted, the next start makes a new key and removes those secrets. Everything else stays, including feature settings, accounts, passwords, <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>, sessions, <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access tokens</Terminology>, and logs.
+
+- **<Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>** — The bot can't sign in until you enter the token again on the **Connection** page.
+- **Feature secrets** — Webhook URLs, API keys, and signing secrets are removed, but each feature keeps its other settings, so only the secret fields need filling again.
+- **<Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">Authenticator apps</Terminology>** — Each one is turned off, the same as **Turn off**, along with its <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, so nobody is locked out. Its user signs in with a password or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>, then sets the app up again on **Sign-in and security**.
+- **Notification <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology>** — Each one keeps its name, service, <Terminology title="Something the bot can send an alert about" to="/docs/reference/terminology#notification-event">events</Terminology>, and plain fields, but loses its <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology>, so it gets no alerts until you enter them again on **Notifications**.
+
+The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> writes one `credential_key_replaced` warning to the container log that names each removed secret. The line never appears on the **Logs** page.
+
+```bash
+docker compose logs app | grep credential_key_replaced
+```
+
+```json title="The credential key line"
+{"component":"migration","context":{"message":"No credential key was found at /data/secrets/credential.key, so Stonker Bot for Discord made a new one. These saved secrets were locked with the old key and were removed: the Bot Token, the <Feature> secrets for <Server>, the authenticator app for <username>, the <Name> notification. Enter them again in the control panel."},"event":"credential_key_replaced","level":"warn","timestamp":"2026-10-25T12:30:00.000Z"}
+```
+
+Notification <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology> that kept working, because they have no <Terminology title="Destination setting sealed with the credential key" to="/docs/reference/terminology#secret-field">secret fields</Terminology>, also get a **Saved secrets were removed** alert with the same list, as described in [Notifications](/docs/control-panel/notifications/#after-a-lost-credential-key).
+
+When nothing depended on the old key, such as on a fresh install, there's no warning and no notice.
+
+### The Saved Secrets Notice
+
+After a new key replaces a lost one, the control panel shows **Saved secrets were removed** at the top of every page, with the date the new key was made and a link for each removed secret.
+
+- **<Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>** — **Enter the Bot Token** opens the **Connection** page.
+- **Feature secrets** — One link per feature and server, in the form `Enter the <Feature> secrets for <Server>`, opens that feature in that server.
+- **<Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">Authenticator app</Terminology>** — **Set up the authenticator app** opens **Sign-in and security**.
+- **Notification <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destinations</Terminology>** — One link per <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology>, in the form `Set up the <Name> notification again`, opens **Notifications**.
+
+<Frame caption="The saved secrets notice">
+  <ThemedImage sources={{ light: storageAndBackupsOneLight, dark: storageAndBackupsOneDark }} alt="Saved secrets were removed notice with the date the new key was made, links to Enter the Bot Token, Enter the Message copiers secrets for Stonker Lounge, Set up the Homelab alerts notification again, and Set up the Mod alerts notification again, and a Dismiss button" width={992} height={275} style={{ maxWidth: '100%', height: 'auto' }} />
+</Frame>
+
+Everyone sees the link for their own <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>. The <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology>, and <Terminology title="Role that changes features and runs the bot" to="/docs/reference/terminology#operator">Operators</Terminology> also see the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> link, the notification links, and the feature links for the servers they can open, while <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewers</Terminology> see only their own.
+
+- **Entering a secret again** — Saving the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> or the feature, turning the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> back on, or saving the notification <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> with every removed secret takes its link off the notice. Removing the <Terminology title="One place alerts go, such as a chat or topic" to="/docs/reference/terminology#notification-destination">destination</Terminology> takes its link off too.
+- **Dismiss** — Hides the notice, and anything not entered again stays removed. It also hides the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, notification, and feature links from everyone else who sees them, while other users keep their own <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> link.
+
+### If the Key File Belongs to Another Database
+
+A key file that doesn't match the database, such as one from another install, stops startup instead. The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> logs `migration_failed` with this error, and the bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> don't start:
+
+```text
+The credential key at /data/secrets/credential.key doesn't belong to this database. Put back the key file this database was created with, or delete /data/secrets/credential.key and restart to make a new key, then enter the saved secrets again.
+```
+
+Every start stops the same way until you put back the key file this database was created with. Deleting the key file instead makes a new one on the next start, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+
+## Back Up the Database
+
+Run `pg_dump` inside the container and write a custom-format dump to the Docker host.
+
+```bash
+docker compose exec --no-TTY --user "${PUID:-1000}:${PGID:-1000}" app sh -c \
+  'pg_dump --host=/run/postgresql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=custom' \
+  > stonker.dump
+```
+
+It is recommended to store the dump away from the Docker host, keep a copy of the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> with the same care as a password, and test a restore before you rely on it.
+
+## Restore From a Backup
+
+A restore needs the database dump and the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> from the same <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology>.
+
+A new container makes its own key on its first start, while a dump restored into it brings back the old database's key check. The next start then stops with the error in [If the Key File Belongs to Another Database](/docs/operations/storage-and-backups/#if-the-key-file-belongs-to-another-database).
+
+- **With the old key** — Copy the old install's `credential.key`, or the copy you kept with the backup, over `/data/secrets/credential.key`, then restart the container. The restored <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, feature secrets, and <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator apps</Terminology> keep working.
+- **Without the old key** — Delete `/data/secrets/credential.key` and restart. The start makes a new key and removes the restored secrets, and the notice lists them to enter again, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+
+## Network Storage
+
+PostgreSQL expects the behavior of a local filesystem. It is recommended to keep the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology> on local disk and copy `pg_dump` backups to a NAS or other remote storage, instead of placing the live database on NFS or SMB.
+
+## Growth Over Time
+
+The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> never deletes old log entries or finished jobs, so the database grows as the bot runs. <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">Invite page</Terminology> images are the exception: saving the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> deletes the uploads it no longer uses.
+
+## Delete Everything
+
+:::danger
+`docker compose down --volumes` permanently deletes the database and the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>.
+:::

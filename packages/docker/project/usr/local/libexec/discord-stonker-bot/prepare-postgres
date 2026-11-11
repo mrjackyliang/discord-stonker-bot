@@ -1,0 +1,90 @@
+#!/command/with-contenv sh
+set -eu
+
+data_directory="${POSTGRES_DATA_DIRECTORY:-/data/postgres}"
+runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}"
+credential_key_file="${CREDENTIAL_KEY_FILE:-/data/secrets/credential.key}"
+credential_key_directory="${credential_key_file%/*}"
+database_name="${POSTGRES_DB:-stonker}"
+database_user="${POSTGRES_USER:-stonker}"
+database_password="${POSTGRES_PASSWORD:-}"
+database_port="${POSTGRES_PORT:-5432}"
+application_user_id="${PUID:-1000}"
+application_group_id="${PGID:-1000}"
+
+if ! printf '%s\n' "${database_name}" | grep -Eq '^[a-z][a-z0-9_]*$'; then
+  echo 'POSTGRES_DB must start with a lowercase letter and contain only lowercase letters, digits, or underscores.' >&2
+  exit 1
+fi
+
+if ! printf '%s\n' "${database_user}" | grep -Eq '^[a-z][a-z0-9_]*$'; then
+  echo 'POSTGRES_USER must start with a lowercase letter and contain only lowercase letters, digits, or underscores.' >&2
+  exit 1
+fi
+
+if [ "${#database_password}" -lt 16 ]; then
+  echo 'POSTGRES_PASSWORD must contain at least 16 characters.' >&2
+  exit 1
+fi
+
+case "${database_port}" in
+  ''|*[!0-9]*)
+    echo 'POSTGRES_PORT must be a number.' >&2
+    exit 1
+    ;;
+esac
+
+if [ "${database_port}" -lt 1 ] || [ "${database_port}" -gt 65535 ]; then
+  echo 'POSTGRES_PORT must be between 1 and 65535.' >&2
+  exit 1
+fi
+
+mkdir -p /data "${credential_key_directory}" "${data_directory}" "${runtime_directory}"
+
+chown postgres:postgres "${data_directory}" "${runtime_directory}"
+find "${data_directory}" \( ! -user postgres -o ! -group postgres \) -exec chown postgres:postgres {} +
+chmod 0700 "${data_directory}"
+chmod 0755 "${runtime_directory}"
+
+chown "${application_user_id}:${application_group_id}" "${credential_key_directory}"
+chmod 0700 "${credential_key_directory}"
+
+# The migrate step makes the key when it's missing, after it removes what an old key sealed.
+if [ -e "${credential_key_file}" ]; then
+  chown "${application_user_id}:${application_group_id}" "${credential_key_file}"
+  chmod 0600 "${credential_key_file}"
+
+  credential_key_bytes="$(wc -c < "${credential_key_file}")"
+
+  if [ "${credential_key_bytes}" -ne 32 ]; then
+    echo 'Credential encryption key must contain exactly 32 bytes.' >&2
+    exit 1
+  fi
+fi
+
+if [ ! -s "${data_directory}/PG_VERSION" ]; then
+  directory_entry="$(find "${data_directory}" -mindepth 1 -maxdepth 1 -print -quit)"
+
+  if [ -n "${directory_entry}" ]; then
+    echo 'PostgreSQL data directory is non-empty but has no PG_VERSION marker.' >&2
+    exit 1
+  fi
+
+  password_file="${runtime_directory}/.init-password"
+
+  umask 077
+  printf '%s\n' "${database_password}" > "${password_file}"
+  chown postgres:postgres "${password_file}"
+
+  /command/s6-setuidgid postgres \
+    /usr/lib/postgresql/17/bin/initdb \
+    --auth-host=scram-sha-256 \
+    --auth-local=trust \
+    --encoding=UTF8 \
+    --locale=C \
+    --pgdata="${data_directory}" \
+    --pwfile="${password_file}" \
+    --username="${database_user}"
+
+  rm -f "${password_file}"
+fi

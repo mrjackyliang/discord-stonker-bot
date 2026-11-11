@@ -1,0 +1,10 @@
+{
+  "label": "Features",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Review all 19 features by category, including what each one does, the Discord access it needs, its settings, and its limits."
+  }
+}

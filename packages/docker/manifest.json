@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "services": [
+    {
+      "command": "node build/index.js",
+      "critical": false,
+      "dependencies": [
+        "migrate"
+      ],
+      "environment": {},
+      "kind": "longrun",
+      "name": "bot",
+      "requiredForHealth": false,
+      "runAsRoot": false,
+      "workspace": "apps/bot",
+      "writablePaths": [
+        "/data/secrets"
+      ]
+    },
+    {
+      "command": "/usr/local/libexec/discord-stonker-bot/migrate",
+      "critical": false,
+      "dependencies": [
+        "postgres"
+      ],
+      "environment": {},
+      "kind": "oneshot",
+      "name": "migrate",
+      "requiredForHealth": false,
+      "runAsRoot": true,
+      "workspace": "apps/bot",
+      "writablePaths": [
+        "/data/secrets"
+      ]
+    },
+    {
+      "command": "/command/s6-setuidgid postgres /usr/lib/postgresql/17/bin/postgres -D \"${POSTGRES_DATA_DIRECTORY:-/data/postgres}\" -c \"listen_addresses=127.0.0.1\" -c \"log_destination=stderr\" -c \"logging_collector=off\" -c \"password_encryption=scram-sha-256\" -c \"port=${POSTGRES_PORT:-5432}\" -c \"unix_socket_directories=${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}\" -c \"unix_socket_permissions=0777\"",
+      "critical": true,
+      "dependencies": [
+        "prepare-postgres"
+      ],
+      "environment": {},
+      "healthCommand": "/usr/lib/postgresql/17/bin/pg_isready --quiet --host=/run/postgresql --port=${POSTGRES_PORT:-5432}",
+      "kind": "longrun",
+      "name": "postgres",
+      "requiredForHealth": true,
+      "runAsRoot": true,
+      "workspace": "apps/bot",
+      "writablePaths": []
+    },
+    {
+      "command": "/usr/local/libexec/discord-stonker-bot/prepare-postgres",
+      "critical": false,
+      "dependencies": [],
+      "environment": {},
+      "kind": "oneshot",
+      "name": "prepare-postgres",
+      "requiredForHealth": false,
+      "runAsRoot": true,
+      "workspace": "apps/bot",
+      "writablePaths": [
+        "/data/secrets"
+      ]
+    },
+    {
+      "command": "node build/web.js",
+      "critical": true,
+      "dependencies": [
+        "migrate"
+      ],
+      "environment": {},
+      "healthCommand": "node build/healthcheck.js",
+      "kind": "longrun",
+      "name": "web",
+      "port": 22604,
+      "requiredForHealth": true,
+      "runAsRoot": false,
+      "workspace": "apps/bot",
+      "writablePaths": [
+        "/data/secrets"
+      ]
+    },
+    {
+      "command": "node build/worker.js",
+      "critical": true,
+      "dependencies": [
+        "migrate"
+      ],
+      "environment": {},
+      "kind": "longrun",
+      "name": "worker",
+      "requiredForHealth": true,
+      "runAsRoot": false,
+      "workspace": "apps/bot",
+      "writablePaths": [
+        "/data/secrets"
+      ]
+    }
+  ],
+  "workspaces": [
+    {
+      "packageName": "discord-stonker-bot-app-bot",
+      "path": "apps/bot",
+      "profile": "background-service",
+      "runtimePaths": [
+        "examples",
+        "migrations"
+      ]
+    }
+  ]
+}

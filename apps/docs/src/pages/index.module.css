@@ -1,0 +1,232 @@
+/**
+ * ============================
+ * Hero
+ * ============================
+ */
+
+.hero {
+  overflow-x: clip;
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  max-width: var(--nova-grid-container-max);
+  margin-inline: auto;
+  padding-inline: var(--nova-grid-padding);
+  padding-block: clamp(3rem, 8vh, 5rem);
+
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-inner {
+    flex-direction: row;
+    gap: 3rem;
+
+    text-align: left;
+  }
+}
+
+/**
+ * ============================
+ * Hero - Content
+ * ============================
+ */
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .hero-content {
+    flex: 1;
+    width: auto;
+  }
+}
+
+.hero-content :global(.nova-hero-eyebrow),
+.hero-content :global(.nova-hero-heading),
+.hero-content :global(.nova-hero-tagline),
+.hero-content :global(.nova-hero-actions) {
+  margin: 0;
+}
+
+.hero-content :global(.nova-hero-eyebrow) {
+  align-self: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-content :global(.nova-hero-eyebrow) {
+    align-self: flex-start;
+  }
+}
+
+.hero-content :global(.nova-hero-tagline) {
+  max-width: none;
+}
+
+/* The tagline-length heading needs a smaller size in Sentinel's wide display font. */
+.hero-content :global(.nova-hero-heading) {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+}
+
+.hero-actions {
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-actions {
+    justify-content: flex-start;
+  }
+}
+
+/**
+ * ============================
+ * Alert Channel
+ * ============================
+ */
+
+/* Mirrors the plain-text alerts the bot posts in a moderator channel. */
+.alert-channel {
+  --alert-channel-background: #17181c;
+  --alert-channel-header: #1f2126;
+  --alert-channel-border: #2c2f36;
+  --alert-channel-text: #e3e5e8;
+  --alert-channel-muted: #9aa0a6;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 28rem;
+
+  font-family: var(--nova-font-body);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--alert-channel-text);
+  text-align: left;
+
+  background: var(--alert-channel-background);
+  border: 1px solid var(--alert-channel-border);
+  border-radius: var(--nova-shape-radius);
+
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .alert-channel {
+    flex: none;
+    width: 26rem;
+  }
+}
+
+.alert-channel-header {
+  margin: 0;
+  padding: 0.75rem 1rem;
+
+  font-weight: 700;
+
+  background: var(--alert-channel-header);
+  border-bottom: 1px solid var(--alert-channel-border);
+}
+
+.alert-channel-hash {
+  margin-right: 0.375rem;
+
+  color: var(--alert-channel-muted);
+}
+
+/**
+ * ============================
+ * Alert Channel - Messages
+ * ============================
+ */
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+
+  list-style: none;
+}
+
+.alert {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.alert-avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  font-weight: 700;
+  color: #ffffff;
+
+  background: var(--nova-color-primary-600);
+  border-radius: 50%;
+}
+
+.alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.alert-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.alert-author {
+  font-weight: 600;
+}
+
+.alert-tag {
+  padding: 0 0.3125rem;
+
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #ffffff;
+
+  background: var(--nova-color-primary-600);
+  border-radius: 0.25rem;
+}
+
+.alert-time {
+  font-size: 0.6875rem;
+  color: var(--alert-channel-muted);
+}
+
+.alert-line {
+  margin: 0;
+
+  overflow-wrap: anywhere;
+}
+
+.alert-mention {
+  padding: 0 0.125rem;
+
+  font-weight: 500;
+  white-space: nowrap;
+  color: #d9d6ff;
+
+  background: color-mix(in srgb, var(--nova-color-primary-600) 30%, transparent);
+  border-radius: 0.25rem;
+}
