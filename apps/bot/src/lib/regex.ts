@@ -14,7 +14,7 @@ export const LIB_REGEX_PATTERN_DATABASE_IDENTIFIER = /^[a-z][a-z0-9_]*$/;
  * Accepts the opaque prefix and 32-byte base64url payload issued after fresh
  * identity confirmation. Digest lookup remains the authoritative check.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_BACKUP_GRANT = /^bkg_[A-Za-z0-9_-]{43}$/;
 
@@ -24,7 +24,7 @@ export const LIB_REGEX_PATTERN_BACKUP_GRANT = /^bkg_[A-Za-z0-9_-]{43}$/;
  * Restricts fresh backup confirmation to the six-digit authenticator value
  * accepted by the panel's current TOTP implementation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_BACKUP_TOTP_CODE = /^\d{6}$/;
 
@@ -34,7 +34,7 @@ export const LIB_REGEX_PATTERN_BACKUP_TOTP_CODE = /^\d{6}$/;
  * Restricts portable feature identifiers to the established kebab-case key
  * space used by the feature catalog and configuration database.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_BACKUP_FEATURE_KEY = /^[a-z][a-z0-9-]{0,99}$/;
 
@@ -44,7 +44,7 @@ export const LIB_REGEX_PATTERN_BACKUP_FEATURE_KEY = /^[a-z][a-z0-9-]{0,99}$/;
  * Accepts the stable hexadecimal identifiers stored for notification targets.
  * Collision handling still runs transactionally during import.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_NOTIFICATION_TARGET_ID = /^ntf-[0-9a-f]{16}$/;
 
@@ -54,7 +54,7 @@ export const LIB_REGEX_PATTERN_NOTIFICATION_TARGET_ID = /^ntf-[0-9a-f]{16}$/;
  * Accepts stable hexadecimal identifiers used by panel access tokens.
  * Import assigns a fresh identifier whenever the supplied one is occupied.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_PANEL_TOKEN_ID = /^tok-[0-9a-f]{16}$/;
 
@@ -64,7 +64,7 @@ export const LIB_REGEX_PATTERN_PANEL_TOKEN_ID = /^tok-[0-9a-f]{16}$/;
  * Restricts portable stored token hashes to lowercase SHA-256 hexadecimal text.
  * The raw personal access token is never part of an export.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const LIB_REGEX_PATTERN_SHA256_HASH = /^[0-9a-f]{64}$/;
 

@@ -24,7 +24,6 @@ export default [
       'apps/**',
       'packages/**',
       'tools/**',
-      'assets/legacy/**',
     ],
   },
   {

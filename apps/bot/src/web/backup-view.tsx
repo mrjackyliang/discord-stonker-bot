@@ -59,7 +59,7 @@ import type {
  * Describes every portable section and selects all of them initially.
  * The shared dialog renders these app-specific choices.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const exportOptions: Web_BackupComponents_ExportOption[] = [
   {
@@ -90,7 +90,7 @@ const exportOptions: Web_BackupComponents_ExportOption[] = [
  * Defines the approved shared import flow.
  * Confirmation replaces Review in place before progress begins.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const baseWizardSteps: Web_BackupComponents_WizardStep[] = [
   {
@@ -113,7 +113,7 @@ const baseWizardSteps: Web_BackupComponents_WizardStep[] = [
  * Supplies a safe value until current factors are loaded.
  * Real account state replaces it before confirmation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const emptySecurity: Web_Api_AccountSecurity = {
   hostname: '',
@@ -136,7 +136,7 @@ const emptySecurity: Web_Api_AccountSecurity = {
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const countLabel = (count: number, singular: string, plural: string = `${singular}s`): string => `${String(count)} ${(count === 1) ? singular : plural}`;
 
@@ -150,7 +150,7 @@ const countLabel = (count: number, singular: string, plural: string = `${singula
  *
  * @returns {ReactElement}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactElement => {
   const [
@@ -363,7 +363,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {Promise<void>}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const loadSecurity = async (): Promise<void> => setSecurity(await getAccountSecurity());
 
@@ -375,7 +375,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const clearImport = (): void => {
     setImportOpen(false);
@@ -400,7 +400,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const selectSource = (type: Web_Backup_SourceType): void => {
     if (type !== sourceType) {
@@ -423,7 +423,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {Promise<void>}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const loadSource = async (nextSource: Web_Backup_ImportSource, nextFilename: string): Promise<void> => {
     const nextPreview: Web_Backup_ImportPreview = await previewBackupImport(nextSource);
@@ -443,7 +443,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {Promise<void>}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const chooseFile = async (event: ChangeEvent<HTMLInputElement>, type: Web_Backup_SourceType): Promise<void> => {
     const input: HTMLInputElement = event.currentTarget;
@@ -504,7 +504,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {Promise<void>}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const applyImport = async (grant: string): Promise<void> => {
     if (source === null || preview === null) {
@@ -563,7 +563,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const next = (): void => {
     if (step === 'source') {
@@ -584,7 +584,7 @@ export const BackupView = ({ onImported, server }: Web_Backup_ViewProps): ReactE
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const back = (): void => {
     if (step === 'settings') {

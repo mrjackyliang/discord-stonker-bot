@@ -78,7 +78,7 @@ const STREAM_KEEP_ALIVE_MILLISECONDS: Routes_Logs_StreamKeepAliveMilliseconds = 
  * Reads the Debug logging switch from a change request.
  * Nothing else may be sent with it.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const diagnosticsSchema = z.object({
   debugLogging: z.boolean({ error: 'Choose on or off.' }),
@@ -237,7 +237,7 @@ export class Runner {
    *
    * @returns {Routes_Logs_Runner_RouteDiagnostics_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routeDiagnostics(_request: Routes_Logs_Runner_RouteDiagnostics_Request, response: Routes_Logs_Runner_RouteDiagnostics_Response): Routes_Logs_Runner_RouteDiagnostics_Returns {
     response.json({
@@ -398,7 +398,7 @@ export class Runner {
    *
    * @returns {Routes_Logs_Runner_RouteUpdateDiagnostics_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routeUpdateDiagnostics(request: Routes_Logs_Runner_RouteUpdateDiagnostics_Request, response: Routes_Logs_Runner_RouteUpdateDiagnostics_Response): Routes_Logs_Runner_RouteUpdateDiagnostics_Returns {
     const body: Routes_Logs_Runner_RouteUpdateDiagnostics_Body = diagnosticsSchema.safeParse(request.body);

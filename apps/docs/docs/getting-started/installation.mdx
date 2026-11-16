@@ -18,7 +18,7 @@ sidebar_position: 2
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Build the Docker image from the source code and start the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> with Docker Compose.
+Build the Docker image from the source code and start the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> with Docker Compose.
 
 ## Get the Source
 
@@ -31,7 +31,7 @@ cd discord-stonker-bot
 
 ## Create the Environment Files
 
-The <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> reads settings from two files, and each setting belongs in one of them.
+The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> reads settings from two files, and each setting belongs in one of them.
 
 ### Bot Environment File
 
@@ -45,7 +45,7 @@ cp apps/bot/.env.sample apps/bot/.env
 POSTGRES_PASSWORD="use-a-unique-password-of-at-least-16-characters"
 ```
 
-`POSTGRES_PASSWORD` is the only required value. There's no admin username or password to set, because you create the first account in the browser with a one-time <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>.
+`POSTGRES_PASSWORD` is the only required value. There's no admin username or password to set, because you create the first account in the browser with a one-time <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology>.
 
 ### Compose Environment File
 
@@ -78,11 +78,11 @@ docker compose ps
 
 `npm run deploy:container` from the repository root runs the same `docker compose up --build --detach` command.
 
-On the first start, the <Terminology title="The single container that runs every service" to="/docs/reference/terminology#appliance">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> start after these steps finish.
+On the first start, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start after these steps finish.
 
 ## Open the Control Panel
 
-Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. The first visit shows **Set up your account**, which asks for the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> from the container log, and [First-Run Setup](/docs/getting-started/first-run/) walks you through the rest.
+Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. The first visit shows **Set up your account**, which asks for the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, and [First-Run Setup](/docs/getting-started/first-run/) walks you through the rest.
 
 ## Update the Appliance
 
@@ -92,16 +92,16 @@ Get the newer source code, then run the same command to rebuild the image and re
 docker compose up --build --detach
 ```
 
-The <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology> survives the rebuild, and new database migrations run automatically at start. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
+The <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology> survives the rebuild, and new database migrations run automatically at start. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
 
 ## Stop or Remove the Appliance
 
-`docker compose down` stops and removes the container but keeps the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>.
+`docker compose down` stops and removes the container but keeps the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>.
 
 ```bash
 docker compose down
 ```
 
 :::danger
-`docker compose down --volumes` also deletes the <Terminology title="Docker volume that stores the database and key" to="/docs/reference/terminology#data-volume">data volume</Terminology>, which holds the database and the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology>.
+`docker compose down --volumes` also deletes the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, which holds the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>.
 :::

@@ -15,7 +15,7 @@ export type Web_AppNavigation_Items = Web_Navigation_Items;
 /**
  * App Navigation - Paths.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_AppNavigation_Paths = {
   accessTokens: string;
@@ -35,7 +35,7 @@ export type Web_AppNavigation_Paths = {
 /**
  * App Navigation - Route.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_AppNavigation_Route = {
   featureKey?: string;
@@ -46,6 +46,6 @@ export type Web_AppNavigation_Route = {
 /**
  * App Navigation - Path match.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_AppNavigation_PathMatch = Web_Navigation_PathMatch<Web_AppNavigation_Route>;

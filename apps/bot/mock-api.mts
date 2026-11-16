@@ -282,7 +282,7 @@ type MockModules = {
  * Names the sensitive operation one fresh-authentication grant can authorize.
  * A separate union prevents export and import grants from being mixed.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupPurpose = 'export' | 'import';
 
@@ -292,7 +292,7 @@ type MockBackupPurpose = 'export' | 'import';
  * Keeps one feature's portable settings and opened secrets together.
  * The mock uses the same shape as the version-one file.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupFeature = {
   configuration: unknown
@@ -307,7 +307,7 @@ type MockBackupFeature = {
  * Groups portable feature state by Discord server identifier.
  * Runtime server names remain outside the export.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupServerFeatures = {
   features: MockBackupFeature[]
@@ -321,7 +321,7 @@ type MockBackupServerFeatures = {
  * Opens one notification target's secret fields for the temporary file.
  * All values are invented and exist only in the mock process.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupNotification = {
   events: string[]
@@ -338,7 +338,7 @@ type MockBackupNotification = {
  * Carries the one-way token material that can be restored without exposing a token.
  * The raw access token never appears in an export.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupAccessToken = {
   expiresAt: string | null
@@ -354,7 +354,7 @@ type MockBackupAccessToken = {
  * Mirrors the browser and server version-one export contract.
  * Optional properties correspond to the selected export sections.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupDocument = {
   accessTokens?: MockBackupAccessToken[] | undefined
@@ -376,7 +376,7 @@ type MockBackupDocument = {
  * Represents either source card in the shared import wizard.
  * Legacy text continues through the established config.json mapper.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupSource = {
   document: MockBackupDocument
@@ -394,7 +394,7 @@ type MockBackupSource = {
  * Holds the counts rendered by Settings and Review.
  * Apply returns the same counts after mutation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupSummary = {
   accessTokens: {
@@ -418,7 +418,7 @@ type MockBackupSummary = {
  * Retains only the grant digest with its browser-session binding.
  * Expiry and purpose are checked before sensitive work begins.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupGrantRecord = {
   expiresAt: number
@@ -432,7 +432,7 @@ type MockBackupGrantRecord = {
  * Binds the passkey prompt to the requesting session and purpose.
  * Account-management ceremonies use their own map.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 type MockBackupPasskeyCeremony = MockBackupGrantRecord;
 
@@ -1199,7 +1199,7 @@ const passkeyCeremonies: Map<string, string> = new Map();
  * Stores only fresh-authentication grant digests for the mock process lifetime.
  * Raw grants are returned once and are never retained here.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupGrants: Map<string, MockBackupGrantRecord> = new Map();
 
@@ -1209,7 +1209,7 @@ const backupGrants: Map<string, MockBackupGrantRecord> = new Map();
  * Keeps short-lived passkey bindings separate from account-management ceremonies.
  * Each binding expires after the same five-minute confirmation window.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupPasskeyCeremonies: Map<string, MockBackupPasskeyCeremony> = new Map();
 
@@ -1287,7 +1287,7 @@ const bot: MockBot = {
  * The one Debug logging switch the bot, the control panel, and the worker share.
  * It starts off, as it does in a new container.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 let debugLogging: boolean = false;
 
@@ -3065,7 +3065,7 @@ const collectReferences = (value: unknown, path: string[] = []): {
  *
  * @returns {string[]}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const stringList = (value: unknown): string[] => (Array.isArray(value)) ? value.map(String) : [];
 
@@ -3080,7 +3080,7 @@ const stringList = (value: unknown): string[] => (Array.isArray(value)) ? value.
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const featureDisplayName = (featureKey: string, modules: MockModules): string => {
   const feature: MockCatalogEntry | undefined = modules.catalog.find((candidate: MockCatalogEntry): boolean => candidate.key === featureKey);
@@ -3098,7 +3098,7 @@ const featureDisplayName = (featureKey: string, modules: MockModules): string =>
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const legacyWarningLabel = (warning: string): string => {
   if (warning.startsWith('Twitter/X keys ')) {
@@ -3140,7 +3140,7 @@ const legacyWarningLabel = (warning: string): string => {
  *
  * @returns {MockBackupSummary}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const emptyBackupSummary = (): MockBackupSummary => ({
   accessTokens: {
@@ -3169,7 +3169,7 @@ const emptyBackupSummary = (): MockBackupSummary => ({
  *
  * @returns {{ expiresAt: string; grant: string }}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const issueBackupGrant = (sessionId: string, purpose: MockBackupPurpose): {
   expiresAt: string
@@ -3200,7 +3200,7 @@ const issueBackupGrant = (sessionId: string, purpose: MockBackupPurpose): {
  *
  * @returns {boolean}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const consumeBackupGrant = (value: unknown, sessionId: string, purpose: MockBackupPurpose): boolean => {
   if (typeof value !== 'string') {
@@ -3229,7 +3229,7 @@ const consumeBackupGrant = (value: unknown, sessionId: string, purpose: MockBack
  *
  * @returns {MockBackupSource | null}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const parseMockBackupSource = (value: unknown): MockBackupSource | null => {
   if (!isRecord(value)) {
@@ -3264,7 +3264,7 @@ const parseMockBackupSource = (value: unknown): MockBackupSource | null => {
  *
  * @returns {MockBackupDocument}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const createMockBackupDocument = (sections: Record<string, unknown>, user: MockUser): MockBackupDocument => {
   const document: MockBackupDocument = {
@@ -3341,7 +3341,7 @@ const createMockBackupDocument = (sections: Record<string, unknown>, user: MockU
  *
  * @returns {Record<string, unknown>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: MockModules): Record<string, unknown> => {
   const summary: MockBackupSummary = emptyBackupSummary();
@@ -3518,7 +3518,7 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
  *
  * @returns {Record<string, unknown>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const applyMockBackup = (source: MockBackupSource, user: MockUser, modules: MockModules): Record<string, unknown> => {
   const preview: Record<string, unknown> = previewMockBackup(source, user, modules);

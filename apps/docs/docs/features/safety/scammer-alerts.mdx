@@ -24,7 +24,7 @@ Alert moderators when a message matches a pattern you associate with scams, and 
 
 1. Watches every channel the bot can see, so scam offers posted outside your busiest channels still reach moderators.
 2. Links straight to the message, so moderators can judge it in context.
-3. Stays <Terminology title="Alerts moderators without banning, kicking, or deleting" to="/docs/reference/terminology#observation-only">observation-only</Terminology>, so a false match never deletes a member's message.
+3. Stays <Terminology title="Only alerts moderators; never acts on members" to="/docs/reference/terminology#feature-settings">observation-only</Terminology>, so a false match never deletes a member's message.
 
 ## How It Works
 
@@ -35,22 +35,22 @@ Alert moderators when a message matches a pattern you associate with scams, and 
 
 Scammer alerts run separately from regex rules and affiliate cleanup, so a message can raise an alert even when another feature deletes it.
 
-These alerts post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+These alerts post only in your Discord <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
 
 ## Requirements
 
-- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
-- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+- **<Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel and Send Messages in the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>.
 
 ## Settings
 
-| Field                                         | Description                                                                                                                                                   |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Alert destination → Channel (`channel`)       | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, required. |
-| Detection rules (`entities`)                  | 1 to 100 rules.                                                                                                                                               |
-| Name (`entities[].name`)                      | The rule's name, shown in each alert, up to 100 characters.                                                                                                   |
-| Regular expression (`entities[].regex`)       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                   |
-| Message → Text (`entities[].payload.content`) | Optional alert text of up to 2,000 characters.                                                                                                                |
+| Field                                         | Description                                                                                                                                                        |
+|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Alert destination → Channel (`channel`)       | The <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, required. |
+| Detection rules (`entities`)                  | 1 to 100 rules.                                                                                                                                                    |
+| Name (`entities[].name`)                      | The rule's name, shown in each alert, up to 100 characters.                                                                                                        |
+| Regular expression (`entities[].regex`)       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                        |
+| Message → Text (`entities[].payload.content`) | Optional alert text of up to 2,000 characters.                                                                                                                     |
 
 Without a message, the alert starts with "A potential scam message was detected from %MEMBER_USER_MENTION%."
 
@@ -85,8 +85,8 @@ Only `%MEMBER_USER_MENTION%` is replaced, and any other variable the form offers
 
 - **Several alerts for one message** — Each edit that still matches posts a new alert.
 - **No alert for an edited message** — The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
-- **"Configured scammer-alert channel is unavailable."** — This log entry means the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead, and a channel the bot can't see logs "Missing Access".
+- **"Configured scammer-alert channel is unavailable."** — This log entry means the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead, and a channel the bot can't see logs "Missing Access".
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> matched the usernames of joining members, and posted an alert for every matching rule. The rewrite matches message text instead, and posts one alert for the first matching rule.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> matched the usernames of joining members, and posted an alert for every matching rule. The rewrite matches message text instead, and posts one alert for the first matching rule.
 :::

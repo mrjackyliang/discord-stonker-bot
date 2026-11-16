@@ -12,7 +12,7 @@ import type { Web_Components_View } from '@/types/web/components.d.ts';
  * Owns every bookmarkable console address, including feature editors and the
  * specialized invite-page editor. The selected server remains browser-local.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const appNavigationPaths: Web_AppNavigation_Paths = {
   accessTokens: '/access-tokens',
@@ -138,7 +138,7 @@ export const appNavigationItems: Web_AppNavigation_Items = [
  *
  * @returns {Web_AppNavigation_Route}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const appRouteForFeature = (featureKey: string): Web_AppNavigation_Route => ({
   featureKey,
@@ -154,7 +154,7 @@ export const appRouteForFeature = (featureKey: string): Web_AppNavigation_Route 
  *
  * @returns {Web_AppNavigation_Route}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const appRouteForInvite = (): Web_AppNavigation_Route => ({
   path: appNavigationPaths['invite'],
@@ -171,7 +171,7 @@ export const appRouteForInvite = (): Web_AppNavigation_Route => ({
  *
  * @returns {Web_AppNavigation_Route}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const appRouteForView = (view: Web_Components_View): Web_AppNavigation_Route => {
   switch (view) {
@@ -254,7 +254,7 @@ export const appRouteForView = (view: Web_Components_View): Web_AppNavigation_Ro
  *
  * @returns {Web_AppNavigation_PathMatch}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const resolveAppNavigationPath = (pathname: string): Web_AppNavigation_PathMatch => {
   if (pathname === appNavigationPaths['root']) {

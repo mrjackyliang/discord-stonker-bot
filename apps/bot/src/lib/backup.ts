@@ -157,7 +157,7 @@ export { GrantStore } from './backup-grants.js';
  * Restricts portable subscriptions to events this application can emit.
  * The tuple also supplies Zod's non-empty enum contract.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const notificationEventKeys: Lib_Backup_NotificationEventKeys = [
   'secrets-removed',
@@ -176,7 +176,7 @@ const notificationEventKeys: Lib_Backup_NotificationEventKeys = [
  *
  * @returns {boolean}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const uniqueNotificationEvents: Lib_Backup_NotificationEventsPredicate = (events) => new Set(events).size === events.length;
 
@@ -188,7 +188,7 @@ const uniqueNotificationEvents: Lib_Backup_NotificationEventsPredicate = (events
  *
  * @returns {boolean}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const uniqueAccessTokenScopes: Lib_Backup_AccessTokenScopesPredicate = (scopes) => new Set(scopes).size === scopes.length;
 
@@ -198,7 +198,7 @@ const uniqueAccessTokenScopes: Lib_Backup_AccessTokenScopesPredicate = (scopes) 
  * Accepts only finite, JSON-compatible feature configuration values.
  * Recursive size bounds constrain untrusted uploaded documents.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const jsonValueSchema: Lib_Backup_JsonValueSchema = z.lazy(() => z.union([
   z.null(),
@@ -215,7 +215,7 @@ const jsonValueSchema: Lib_Backup_JsonValueSchema = z.lazy(() => z.union([
  * Bounds portable settings and plain-text secret maps.
  * Nested values and unbounded field names are rejected.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const stringMapSchema: Lib_Backup_StringMapSchema = z.record(z.string().min(1).max(512), z.string().max(32_768));
 
@@ -227,7 +227,7 @@ const stringMapSchema: Lib_Backup_StringMapSchema = z.record(z.string().min(1).m
  *
  * @returns {void}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const validateNotification: Lib_Backup_NotificationRefinement = (notification, context) => {
   const fields: Lib_Backup_NotificationFields = notificationServices[notification['service']]['fields'];
@@ -240,7 +240,7 @@ const validateNotification: Lib_Backup_NotificationRefinement = (notification, c
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const isPlainField: Lib_Backup_NotificationFieldPredicate = (field) => field['secret'] === false;
 
@@ -252,7 +252,7 @@ const validateNotification: Lib_Backup_NotificationRefinement = (notification, c
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const isSecretField: Lib_Backup_NotificationFieldPredicate = (field) => field['secret'] === true;
 
@@ -264,7 +264,7 @@ const validateNotification: Lib_Backup_NotificationRefinement = (notification, c
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const fieldKey: Lib_Backup_NotificationFieldMapper = (field) => field['key'];
   const plainKeys: Lib_Backup_StringSet = new Set(fields.filter(isPlainField).map(fieldKey));
@@ -324,7 +324,7 @@ const validateNotification: Lib_Backup_NotificationRefinement = (notification, c
  * Validates one complete portable notification target.
  * Strict objects reject unrelated fields before service refinement.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const notificationSchema: Lib_Backup_NotificationSchema = z.object({
   events: z.array(z.enum(notificationEventKeys)).min(1).max(notificationEventKeys.length).refine(uniqueNotificationEvents),
@@ -355,7 +355,7 @@ const notificationSchema: Lib_Backup_NotificationSchema = z.object({
  *
  * @returns {void}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const validateFeature: Lib_Backup_FeatureRefinement = (feature, context) => {
   /**
@@ -366,7 +366,7 @@ const validateFeature: Lib_Backup_FeatureRefinement = (feature, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const secretReferenceKey: Lib_Backup_SecretReferenceMapper = (reference) => reference['key'];
 
@@ -378,7 +378,7 @@ const validateFeature: Lib_Backup_FeatureRefinement = (feature, context) => {
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const isNonEmptyString: Lib_Backup_NonEmptyStringPredicate = (value) => value !== '';
   const references: Lib_Backup_StringSet = new Set(collectSecretReferences(feature['configuration']).map(secretReferenceKey).filter(isNonEmptyString));
@@ -405,7 +405,7 @@ const validateFeature: Lib_Backup_FeatureRefinement = (feature, context) => {
  * Keeps one feature's settings and opened secrets together.
  * The refinement rejects secrets unrelated to its configuration.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const featureSchema: Lib_Backup_FeatureSchema = z.object({
   configuration: jsonValueSchema,
@@ -422,7 +422,7 @@ const featureSchema: Lib_Backup_FeatureSchema = z.object({
  *
  * @returns {void}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
   if (
@@ -462,7 +462,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const serverId: Lib_Backup_ServerIdMapper = (server) => server['serverId'];
 
@@ -474,7 +474,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const notificationId: Lib_Backup_NotificationIdMapper = (notification) => notification['id'];
 
@@ -486,7 +486,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const notificationName: Lib_Backup_NotificationNameMapper = (notification) => notification['name'].toLocaleLowerCase();
 
@@ -498,7 +498,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const accessTokenId: Lib_Backup_AccessTokenIdMapper = (token) => token['id'];
 
@@ -510,7 +510,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const accessTokenName: Lib_Backup_AccessTokenNameMapper = (token) => token['name'].toLocaleLowerCase();
 
@@ -522,7 +522,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const accessTokenHash: Lib_Backup_AccessTokenHashMapper = (token) => token['tokenHash'];
 
@@ -534,7 +534,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
    *
    * @returns {string}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const featureKey: Lib_Backup_FeatureKeyMapper = (feature) => feature['key'];
   const serverIds: Lib_Backup_StringList = (document['features'] ?? []).map(serverId);
@@ -582,7 +582,7 @@ const validateDocument: Lib_Backup_DocumentRefinement = (document, context) => {
  * Defines the strict version-one export format at every fixed object boundary.
  * Cross-field and duplicate checks run after nested validation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const backupDocumentSchema: Lib_Backup_DocumentSchema = z.object({
   accessTokens: z.array(z.object({
@@ -622,7 +622,7 @@ export const backupDocumentSchema: Lib_Backup_DocumentSchema = z.object({
  * Accepts either a strict export or the text accepted by the older importer.
  * Both preview and apply use this same discriminated contract.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const backupImportSourceSchema: Lib_Backup_ImportSourceSchema = z.discriminatedUnion('type', [
   z.object({
@@ -647,7 +647,7 @@ export const backupImportSourceSchema: Lib_Backup_ImportSourceSchema = z.discrim
  *
  * @returns {Lib_Backup_ParseBackupDocument_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function parseBackupDocument(value: Lib_Backup_ParseBackupDocument_Value): Lib_Backup_ParseBackupDocument_Returns {
   return backupDocumentSchema.parse(value);
@@ -663,7 +663,7 @@ export function parseBackupDocument(value: Lib_Backup_ParseBackupDocument_Value)
  *
  * @returns {Lib_Backup_ParseImportSource_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function parseImportSource(value: Lib_Backup_ParseImportSource_Value): Lib_Backup_ParseImportSource_Returns {
   return backupImportSourceSchema.parse(value);
@@ -675,7 +675,7 @@ export function parseImportSource(value: Lib_Backup_ParseImportSource_Value): Li
  * Opens selected secrets for export, plans imports, and applies each import atomically.
  * Secret-bearing values remain confined to transient request objects.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export class BackupService {
   /**
@@ -686,7 +686,7 @@ export class BackupService {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #context: Lib_Backup_Service_Context;
 
@@ -698,7 +698,7 @@ export class BackupService {
    *
    * @param {Lib_Backup_Service_Constructor_Context} context - Context.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public constructor(context: Lib_Backup_Service_Constructor_Context) {
     this.#context = context;
@@ -716,7 +716,7 @@ export class BackupService {
    *
    * @returns {Lib_Backup_Service_CreateDocument_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public async createDocument(sections: Lib_Backup_Service_CreateDocument_Sections, userId: Lib_Backup_Service_CreateDocument_UserId): Lib_Backup_Service_CreateDocument_Returns {
     const document: Lib_Backup_Document = {
@@ -757,7 +757,7 @@ export class BackupService {
          *
          * @returns {[string, string]}
          *
-         * @since UNRELEASED
+         * @since 4.0.0
          */
         const storedSecretEntry: Lib_Backup_Service_StoredSecretMapper = (secret) => [
           secret['key'],
@@ -842,7 +842,7 @@ export class BackupService {
    *
    * @returns {Lib_Backup_Service_Preview_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public async preview(source: Lib_Backup_Service_Preview_Source, userId: Lib_Backup_Service_Preview_UserId): Lib_Backup_Service_Preview_Returns {
     if (source['type'] === 'legacy') {
@@ -897,7 +897,7 @@ export class BackupService {
        *
        * @returns {number}
        *
-       * @since UNRELEASED
+       * @since 4.0.0
        */
       const addFeatureCount: Lib_Backup_Service_FeatureCountReducer = (count, server) => count + server['features'].filter((feature) => isFeatureKey(feature['key'])).length;
 
@@ -935,7 +935,7 @@ export class BackupService {
        *
        * @returns {boolean}
        *
-       * @since UNRELEASED
+       * @since 4.0.0
        */
       const notificationExists: Lib_Backup_Service_NotificationPredicate = (target) => names.has(target['name'].toLocaleLowerCase());
 
@@ -973,7 +973,7 @@ export class BackupService {
        *
        * @returns {boolean}
        *
-       * @since UNRELEASED
+       * @since 4.0.0
        */
       const accessTokenExists: Lib_Backup_Service_AccessTokenPredicate = (token) => names.has(token['name'].toLocaleLowerCase()) || hashes.has(token['tokenHash']);
 
@@ -1020,7 +1020,7 @@ export class BackupService {
    *
    * @returns {Lib_Backup_Service_Apply_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public async apply(source: Lib_Backup_Service_Apply_Source, userId: Lib_Backup_Service_Apply_UserId): Lib_Backup_Service_Apply_Returns {
     if (source['type'] === 'legacy') {
@@ -1216,7 +1216,7 @@ export class BackupService {
    *
    * @returns {Lib_Backup_Service_Preview_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async previewLegacy(source: Lib_Backup_LegacySource): Lib_Backup_Service_Preview_Returns {
     const result: Lib_Backup_Service_LegacyResult = importLegacyConfiguration(source['configuration'], source['enableFeatures'], new Date());
@@ -1266,7 +1266,7 @@ export class BackupService {
      *
      * @returns {Lib_Backup_ExcludedItem}
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const invalidFeature: Lib_Backup_Service_PreviewLegacy_InvalidFeature = (key) => ({
       id: `needs-attention-${key}`,
@@ -1282,7 +1282,7 @@ export class BackupService {
      *
      * @returns {Lib_Backup_ExcludedItem}
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const unsupportedSection: Lib_Backup_Service_PreviewLegacy_UnsupportedSection = (key) => ({
       id: `unsupported-${key}`,
@@ -1298,7 +1298,7 @@ export class BackupService {
      *
      * @returns {Lib_Backup_ExcludedItem}
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const warningItem: Lib_Backup_Service_PreviewLegacy_WarningItem = (warning, index) => ({
       id: `warning-${String(index)}`,
@@ -1335,7 +1335,7 @@ export class BackupService {
    *
    * @returns {Lib_Backup_Service_Apply_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async applyLegacy(source: Lib_Backup_LegacySource): Lib_Backup_Service_Apply_Returns {
     const preview: Lib_Backup_ImportPreview = await this.previewLegacy(source);
@@ -1350,7 +1350,7 @@ export class BackupService {
      *
      * @returns {boolean}
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const isPortableSecret: Lib_Backup_Service_LegacySecretPredicate = (secret) => secret['key'] !== 'settings.discord.token';
 
@@ -1362,7 +1362,7 @@ export class BackupService {
      *
      * @returns {Lib_Database_SaveLegacyImport_EncryptedSecret}
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const encryptPortableSecret: Lib_Backup_Service_LegacySecretMapper = (secret) => ({
       ciphertext: encryptSecret(secret['value'], `guild-secret:${source['serverId']}:${secret['key']}`, this.#context['credentialKey']),
@@ -1406,7 +1406,7 @@ export class BackupService {
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function rowName(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Service_RowStringMapper_Returns {
   return String(row['name']).toLocaleLowerCase();
@@ -1420,7 +1420,7 @@ function rowName(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Servic
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function rowTokenHash(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Service_RowStringMapper_Returns {
   return String(row['token_hash']);
@@ -1434,7 +1434,7 @@ function rowTokenHash(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_S
  *
  * @returns {string}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function rowId(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Service_RowStringMapper_Returns {
   return String(row['id']);
@@ -1448,7 +1448,7 @@ function rowId(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Service_
  *
  * @returns {[string, string]}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function rowNameId(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Service_RowNameIdMapper_Returns {
   return [
@@ -1465,7 +1465,7 @@ function rowNameId(row: Lib_Backup_Service_RowStringMapper_Row): Lib_Backup_Serv
  *
  * @returns {Lib_Backup_EmptySummary_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function emptySummary(): Lib_Backup_EmptySummary_Returns {
   return {
@@ -1496,7 +1496,7 @@ function emptySummary(): Lib_Backup_EmptySummary_Returns {
  *
  * @returns {Lib_Backup_CountLabel_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function countLabel(count: Lib_Backup_CountLabel_Count, noun: Lib_Backup_CountLabel_Noun): Lib_Backup_CountLabel_Returns {
   const suffix: Lib_Backup_CountLabel_Returns = (count === 1) ? '' : 's';
@@ -1514,7 +1514,7 @@ function countLabel(count: Lib_Backup_CountLabel_Count, noun: Lib_Backup_CountLa
  *
  * @returns {Lib_Backup_IsRecord_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function isRecord(value: Lib_Backup_IsRecord_Value): value is Lib_Backup_IsRecord_Record {
   return (
@@ -1534,7 +1534,7 @@ function isRecord(value: Lib_Backup_IsRecord_Value): value is Lib_Backup_IsRecor
  *
  * @returns {Lib_Backup_LegacyWarningLabel_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function legacyWarningLabel(warning: Lib_Backup_LegacyWarningLabel_Warning): Lib_Backup_LegacyWarningLabel_Returns {
   if (warning.startsWith('Twitter/X keys ') === true) {
@@ -1580,7 +1580,7 @@ function legacyWarningLabel(warning: Lib_Backup_LegacyWarningLabel_Warning): Lib
  *
  * @returns {Lib_Backup_NewNotificationId_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function newNotificationId(): Lib_Backup_NewNotificationId_Returns {
   return `ntf-${randomBytes(8).toString('hex')}`;
@@ -1594,7 +1594,7 @@ function newNotificationId(): Lib_Backup_NewNotificationId_Returns {
  *
  * @returns {Lib_Backup_NewTokenId_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function newTokenId(): Lib_Backup_NewTokenId_Returns {
   return `tok-${randomBytes(8).toString('hex')}`;

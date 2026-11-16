@@ -42,7 +42,7 @@ import type {
  *
  * @returns {Lib_DebugTiming_Test_ReadEntries_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function readEntries(write: Lib_DebugTiming_Test_ReadEntries_Write): Lib_DebugTiming_Test_ReadEntries_Returns {
   return write.mock.calls
@@ -61,7 +61,7 @@ function readEntries(write: Lib_DebugTiming_Test_ReadEntries_Write): Lib_DebugTi
  * Covers slow queries, slow and failing feature handlers, Gateway connection
  * changes, and REST rate limits, with nothing written while Debug logging is off.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 describe('debug timing', () => {
   afterEach(() => {

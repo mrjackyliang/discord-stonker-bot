@@ -29,7 +29,7 @@ Post new items from RSS and Atom feeds to a channel on a schedule, starting with
 
 ## How It Works
 
-- **Schedule** — At each time the **Fetch schedule** matches, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> fetches the feed.
+- **Schedule** — At each time the **Fetch schedule** matches, the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> fetches the feed.
 - **First fetch** — The first successful fetch records the current items without posting any.
 - **Later fetches** — The bot posts up to 20 new items per fetch, and any other new items are marked as seen and never posted.
 - **Order** — The bot takes the first 20 new items in the feed's order and posts them in reverse, so a feed that lists the newest item first posts oldest first.
@@ -53,7 +53,7 @@ Item titles keep HTML entities as written, so a title can show `&amp;` instead o
 
 ## Requirements
 
-- **No extra intent** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> posts through Discord's REST API, so this feature adds no <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>.
+- **No extra intent** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> posts through Discord's REST API, so this feature adds no <Terminology title="A kind of Discord event the bot asks to hear about" to="/docs/reference/terminology#discord-basics">Gateway intent</Terminology>.
 - **Channel permissions** — The bot needs View Channel and Send Messages in each feed's channel.
 - **Running bot** — Nothing is fetched on schedule while the bot is stopped.
 
@@ -61,19 +61,19 @@ Item titles keep HTML entities as written, so a title can show `&amp;` instead o
 
 Each feed has these fields.
 
-| Field                                            | Description                                                                                                                                                                          |
-|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Name (`name`)                                    | The feed's name, up to 100 characters.                                                                                                                                               |
-| URL (`url`)                                      | The feed's `https://` address.                                                                                                                                                       |
-| Channel (`channel`)                              | The channel to post in.                                                                                                                                                              |
-| Message → Text (`payload.content`)               | The post template, up to 2,000 characters, required.                                                                                                                                 |
-| Fetch schedule (`fetch-on`)                      | The <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology>, required. |
-| Allowed item URLs (`allowed-urls`)               | Optional list of 1 to 100 `https://` addresses that item links have to fall under.                                                                                                   |
-| Follow redirects (`follow-redirects`)            | Off by default.                                                                                                                                                                      |
-| Remove tracking parameters (`remove-parameters`) | On by default.                                                                                                                                                                       |
-| Request user agent (`user-agent`)                | Optional, `discord-stonker-bot/0.0.1` by default.                                                                                                                                    |
+| Field                                            | Description                                                                                                                                                               |
+|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)                                    | The feed's name, up to 100 characters.                                                                                                                                    |
+| URL (`url`)                                      | The feed's `https://` address.                                                                                                                                            |
+| Channel (`channel`)                              | The channel to post in.                                                                                                                                                   |
+| Message → Text (`payload.content`)               | The post template, up to 2,000 characters, required.                                                                                                                      |
+| Fetch schedule (`fetch-on`)                      | The <Terminology title="The calendar fields that say when a schedule runs" to="/docs/reference/terminology#schedules-and-jobs">calendar selector</Terminology>, required. |
+| Allowed item URLs (`allowed-urls`)               | Optional list of 1 to 100 `https://` addresses that item links have to fall under.                                                                                        |
+| Follow redirects (`follow-redirects`)            | Off by default.                                                                                                                                                           |
+| Remove tracking parameters (`remove-parameters`) | On by default.                                                                                                                                                            |
+| Request user agent (`user-agent`)                | Optional, `discord-stonker-bot/0.0.1` by default.                                                                                                                         |
 
-[Scheduled Posts](/docs/features/automation/scheduled-posts/#schedules) explains the <Terminology title="Months, dates, weekdays, hours, minutes, and seconds to match" to="/docs/reference/terminology#calendar-selector">calendar selector</Terminology> fields. RSS feeds don't support <Terminology title="Local dates when a schedule does not run" to="/docs/reference/terminology#skip-dates">skip dates</Terminology>.
+[Scheduled Posts](/docs/features/automation/scheduled-posts/#schedules) explains the <Terminology title="The calendar fields that say when a schedule runs" to="/docs/reference/terminology#schedules-and-jobs">calendar selector</Terminology> fields. RSS feeds don't support <Terminology title="Dates a schedule sits out" to="/docs/reference/terminology#schedules-and-jobs">skip dates</Terminology>.
 
 ## Example
 
@@ -113,5 +113,5 @@ Each feed has these fields.
 - **A changed URL posted nothing** — A new URL starts a new silent baseline.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> accepted any URL, decoded HTML entities, shortened Google News titles, posted every new item, and started over after each restart. The rewrite fetches public HTTPS feeds only, remembers items in the database, posts up to 20 items per fetch, and leaves titles as written.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> accepted any URL, decoded HTML entities, shortened Google News titles, posted every new item, and started over after each restart. The rewrite fetches public HTTPS feeds only, remembers items in the database, posts up to 20 items per fetch, and leaves titles as written.
 :::

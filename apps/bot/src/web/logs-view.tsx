@@ -251,7 +251,7 @@ export const LogsView = ({ canChangeDebugLogging }: Web_Components_LogsView_Prop
    * Moves the switch at once, saves it, and shows what the server kept.
    * A failed save puts the switch back where it was.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const toggleDebugLogging = async (enabled: boolean): Promise<void> => {
     const previous: boolean | null = debugLogging;

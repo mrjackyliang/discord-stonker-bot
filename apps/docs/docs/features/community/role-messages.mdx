@@ -36,7 +36,7 @@ The bot sees role changes only for members it has seen since its last reconnect,
 
 ## Requirements
 
-- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **<Terminology title="Lets the bot see members join, leave, and change" to="/docs/reference/terminology#discord-basics">Server Members intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
 - **Channel permissions** — The bot needs View Channel and Send Messages in each rule's channel.
 
 ## Settings
@@ -86,5 +86,5 @@ A message needs content, a footer, or both. The **Role** picker leaves out roles
 - **`role_message_dispatch_failed` in the bot log** — The bot couldn't post in the rule's channel, and the entry's `error`, such as "Missing Permissions", gives the reason.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> sent full message objects that could include embeds. The rewrite posts plain text with the footer on a second line, uses UTC for `%YEAR%`, and never pings the member.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> sent full message objects that could include embeds. The rewrite posts plain text with the footer on a second line, uses UTC for `%YEAR%`, and never pings the member.
 :::

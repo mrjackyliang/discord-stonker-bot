@@ -323,7 +323,7 @@ export const App = (): ReactElement => {
    *
    * @param {Web_AppNavigation_Route} route - Route.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const applyAppRoute = (route: Web_AppNavigation_Route): void => {
     setFeatureDirty(false);
@@ -345,7 +345,7 @@ export const App = (): ReactElement => {
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const openRoute = (
     route: Web_AppNavigation_Route,
@@ -391,7 +391,7 @@ export const App = (): ReactElement => {
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const openView = (view: Web_Components_View): boolean => openRoute(appRouteForView(view));
 

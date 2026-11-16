@@ -94,7 +94,7 @@ import type {
  * Names this app in the browser's passkey prompt.
  * WebAuthn displays it beside the requesting hostname.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const RP_NAME: Routes_Backup_RelyingPartyName = 'Stonker Bot for Discord';
 
@@ -104,7 +104,7 @@ const RP_NAME: Routes_Backup_RelyingPartyName = 'Stonker Bot for Discord';
  * Restricts grants to one sensitive operation.
  * Export and import credentials are never interchangeable.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const purposeSchema = z.enum([
   'export',
@@ -117,7 +117,7 @@ const purposeSchema = z.enum([
  * Validates password and optional authenticator proof.
  * Factor requirements still come from the current account.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const confirmationSchema = z.object({
   code: z.string().trim().regex(LIB_REGEX_PATTERN_BACKUP_TOTP_CODE, 'Enter the 6-digit code from your authenticator app.').optional(),
@@ -133,7 +133,7 @@ const confirmationSchema = z.object({
  *
  * @returns {boolean}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const hasSection: Routes_Backup_HasSection = (sections) => Object.values(sections).some(Boolean);
 
@@ -143,7 +143,7 @@ const hasSection: Routes_Backup_HasSection = (sections) => Object.values(section
  * Lists all version-one export sections.
  * Strict validation rejects unknown section flags.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const sectionsSchema = z.object({
   accessTokens: z.boolean(),
@@ -158,7 +158,7 @@ const sectionsSchema = z.object({
  * Bounds opaque grants before a digest lookup.
  * The in-memory store remains authoritative for validity.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const grantSchema = z.string().regex(LIB_REGEX_PATTERN_BACKUP_GRANT);
 
@@ -168,7 +168,7 @@ const grantSchema = z.string().regex(LIB_REGEX_PATTERN_BACKUP_GRANT);
  * Couples selected sections to one export grant.
  * The route consumes the grant before opening secrets.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const exportSchema = z.object({
   grant: grantSchema,
@@ -181,7 +181,7 @@ const exportSchema = z.object({
  * Accepts one fully validated wizard source.
  * Preview never mutates application state.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const previewSchema = z.object({ source: backupImportSourceSchema }).strict();
 
@@ -191,7 +191,7 @@ const previewSchema = z.object({ source: backupImportSourceSchema }).strict();
  * Revalidates the reviewed source beside a one-use import grant.
  * Validation repeats immediately before apply.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const importSchema = z.object({
   grant: grantSchema,
@@ -204,7 +204,7 @@ const importSchema = z.object({
  * Binds a passkey ceremony to its requested operation.
  * The route also binds it to the current browser session.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const passkeyOptionsSchema = z.object({ purpose: purposeSchema }).strict();
 
@@ -214,7 +214,7 @@ const passkeyOptionsSchema = z.object({ purpose: purposeSchema }).strict();
  * Adds an operation purpose to the normal passkey assertion contract.
  * A mismatched purpose invalidates the ceremony.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const passkeyVerifySchema = passkeySignInVerify.extend({ purpose: purposeSchema }).strict();
 
@@ -229,7 +229,7 @@ const passkeyVerifySchema = passkeySignInVerify.extend({ purpose: purposeSchema 
  *
  * @returns {Routes_Backup_SendLegacySourceError_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function sendLegacySourceError(response: Routes_Backup_SendLegacySourceError_Response, error: Routes_Backup_SendLegacySourceError_Error): Routes_Backup_SendLegacySourceError_Returns {
   const message: Routes_Backup_SendLegacySourceError_Message = (error instanceof Error) ? error.message : '';
@@ -257,7 +257,7 @@ function sendLegacySourceError(response: Routes_Backup_SendLegacySourceError_Res
  * Protects every backup operation with a browser session and the strongest permission.
  * Personal access tokens cannot reach these endpoints.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export class Runner {
   /**
@@ -268,7 +268,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #access: Routes_Backup_Runner_Access;
 
@@ -280,7 +280,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #attempts: Routes_Backup_Runner_Attempts;
 
@@ -292,7 +292,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #ceremonies: Routes_Backup_Ceremonies = new Map();
 
@@ -304,7 +304,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #context: Routes_Backup_Runner_Context;
 
@@ -316,7 +316,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #grants: Routes_Backup_Runner_Grants;
 
@@ -328,7 +328,7 @@ export class Runner {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #service: Routes_Backup_Runner_Service;
 
@@ -343,7 +343,7 @@ export class Runner {
    * @param {Routes_Backup_Runner_Constructor_Attempts} attempts - Attempts.
    * @param {Routes_Backup_Runner_Constructor_Grants}   [grants] - Grants.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public constructor(context: Routes_Backup_Runner_Constructor_Context, access: Routes_Backup_Runner_Constructor_Access, attempts: Routes_Backup_Runner_Constructor_Attempts, grants?: Routes_Backup_Runner_Constructor_Grants) {
     this.#access = access;
@@ -364,7 +364,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Runner_Register_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public register(app: Routes_Backup_Runner_Register_App): Routes_Backup_Runner_Register_Returns {
     const guards: Routes_Backup_Runner_Guards = [
@@ -393,7 +393,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_SessionId_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private sessionId(principal: Routes_Backup_Principal): Routes_Backup_SessionId_Returns {
     if (principal['kind'] !== 'session' || principal['sessionToken'] === undefined) {
@@ -415,7 +415,7 @@ export class Runner {
    *
    * @returns {boolean}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private isRateLimited(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_IsRateLimited_Returns {
     const key: Routes_Backup_AttemptKey = `sign-in:${getClientLimitKey(request)}`;
@@ -444,7 +444,7 @@ export class Runner {
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private rejectIdentity(request: Routes_Backup_Request, response: Routes_Backup_Response, field: Routes_Backup_RejectIdentity_Field, message: Routes_Backup_RejectIdentity_Message): Routes_Backup_RejectIdentity_Returns {
     this.#attempts.recordFailure(`sign-in:${getClientLimitKey(request)}`);
@@ -470,7 +470,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routeConfirmation(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     if (this.isRateLimited(request, response) === true) {
@@ -520,7 +520,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routePasskeyOptions(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     const body: Routes_Backup_PasskeyOptionsBody = passkeyOptionsSchema.safeParse(request.body);
@@ -570,7 +570,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routePasskeyVerify(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     if (this.isRateLimited(request, response) === true) {
@@ -650,7 +650,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routeExport(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     const body: Routes_Backup_ExportBody = exportSchema.safeParse(request.body);
@@ -687,7 +687,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routePreview(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     const body: Routes_Backup_PreviewBody = previewSchema.safeParse(request.body);
@@ -724,7 +724,7 @@ export class Runner {
    *
    * @returns {Routes_Backup_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private async routeImport(request: Routes_Backup_Request, response: Routes_Backup_Response): Routes_Backup_Returns {
     const body: Routes_Backup_ImportBody = importSchema.safeParse(request.body);

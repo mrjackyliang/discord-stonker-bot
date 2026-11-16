@@ -230,7 +230,7 @@ export const AppShell = ({
      * Shows the bottom fade only while more navigation content remains below
      * the viewport. A one-pixel tolerance avoids subpixel rounding flicker.
      *
-     * @since UNRELEASED
+     * @since 4.0.0
      */
     const updateSidebarOverflow = (): void => {
       const canScroll: boolean = navigation.scrollHeight > navigation.clientHeight + 1;

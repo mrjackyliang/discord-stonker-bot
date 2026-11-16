@@ -35,12 +35,12 @@ The feature has two parts, and you can use either one or both.
 - **What it checks** — When a member joins, the bot compares their avatar hash with your avatar list, and their username and display name with your username list.
 - **How names match** — Names match when they are equal after the bot turns styled and fullwidth letters into plain ones, trims outer spaces, and lowercases them. Accents, extra inner spaces, and partial names still don't match.
 - **What it does** — Any match bans the member, with the matched signals as the ban reason in the server's audit log, such as `Anti-raid: configured username`.
-- **What it posts** — After each ban, the bot posts one plain-text report to the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, naming the member and the signals that matched.
+- **What it posts** — After each ban, the bot posts one plain-text report to the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, naming the member and the signals that matched.
 - **When Discord refuses the ban** — The report says the bot couldn't ban the member and adds Discord's error, so a moderator can step in.
 
 The avatar check uses the member's main avatar, not a server-specific avatar, and a member without an avatar never matches.
 
-These reports post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+These reports post only in your Discord <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
 
 ### New Member Access
 
@@ -52,24 +52,24 @@ The gate message posts even when the member already had every gate role.
 
 ## Requirements
 
-- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **<Terminology title="Lets the bot see members join, leave, and change" to="/docs/reference/terminology#discord-basics">Server Members intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
 - **Membership screening** — New member access runs only when a member finishes Discord's membership screening, so the server needs screening turned on.
 - **Ban permission** — The bot needs Ban Members to ban matching members.
-- **Channel permissions** — The bot needs View Channel and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> and the gate channel.
+- **Channel permissions** — The bot needs View Channel and Send Messages in the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> and the gate channel.
 - **Role permissions** — The bot needs Manage Roles, and its highest role has to sit above every gate role.
 
 ## Settings
 
-| Field                                                   | Description                                                                                                                                                                                 |
-|---------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Raid bans → Channel (`auto-ban.channel`)                | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> for ban reports, required for raid bans. |
-| Raid bans → Avatars (`auto-ban.avatars`)                | 1 to 100 avatar hashes to match exactly.                                                                                                                                                    |
-| Raid bans → Usernames (`auto-ban.usernames`)            | 1 to 100 names to compare with each joining member's username and display name.                                                                                                             |
-| New member access → Channel (`membership-gate.channel`) | The channel where the gate message posts.                                                                                                                                                   |
-| New member access → Roles (`membership-gate.roles`)     | 1 to 25 roles to give members who finish screening.                                                                                                                                         |
-| New member access → Message (`membership-gate.payload`) | Optional **Text** of up to 2,000 characters and **Footer** → **Footer text** of up to 1,000, posted as two lines of plain text.                                                             |
+| Field                                                   | Description                                                                                                                                                                                      |
+|---------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Raid bans → Channel (`auto-ban.channel`)                | The <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> for ban reports, required for raid bans. |
+| Raid bans → Avatars (`auto-ban.avatars`)                | 1 to 100 avatar hashes to match exactly.                                                                                                                                                         |
+| Raid bans → Usernames (`auto-ban.usernames`)            | 1 to 100 names to compare with each joining member's username and display name.                                                                                                                  |
+| New member access → Channel (`membership-gate.channel`) | The channel where the gate message posts.                                                                                                                                                        |
+| New member access → Roles (`membership-gate.roles`)     | 1 to 25 roles to give members who finish screening.                                                                                                                                              |
+| New member access → Message (`membership-gate.payload`) | Optional **Text** of up to 2,000 characters and **Footer** → **Footer text** of up to 1,000, posted as two lines of plain text.                                                                  |
 
-Raid bans need at least one avatar or username. Without a message, the gate posts "You have successfully passed the <Terminology title="Roles and welcome text given after rules screening" to="/docs/reference/terminology#membership-gate">membership gate</Terminology>."
+Raid bans need at least one avatar or username. Without a message, the gate posts "You have successfully passed the <Terminology title="Roles and a welcome once a member passes screening" to="/docs/reference/terminology#feature-settings">membership gate</Terminology>."
 
 Mentions in the gate message don't notify anyone, so the new member gets no ping.
 
@@ -91,7 +91,7 @@ Mentions in the gate message don't notify anyone, so the new member gets no ping
 
 ## Message Variables
 
-The gate message supports these <Terminology title="Placeholder the bot fills in when a message sends" to="/docs/reference/terminology#message-variable">message variables</Terminology>. The ban report text is fixed and has none.
+The gate message supports these <Terminology title="A %PLACEHOLDER% the bot fills in when it sends" to="/docs/reference/terminology#feature-settings">message variables</Terminology>. The ban report text is fixed and has none.
 
 | Variable           | Becomes                 |
 |--------------------|-------------------------|
@@ -110,11 +110,11 @@ The gate message supports these <Terminology title="Placeholder the bot fills in
 - **"Couldn't ban a joining member who matched anti-raid signals."** — The report's **Error** line has Discord's reason. Usually the bot is missing Ban Members, or the member has a role at or above the bot's highest role.
 - **The gate didn't run for a member** — The bot sees screening only for members it has seen since its last reconnect, so a member who joined before a reconnect and finishes screening after it is missed.
 - **"Membership-gate role … is unavailable or not manageable."** — This log entry means a gate role was deleted, is managed by an integration, or sits above the bot's highest role.
-- **"Fix this feature's settings before turning it on."** — Imported settings may have no <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, so choose one under **Raid bans** → **Channel** and save.
-- **Example role `000000000000000000`** — Replace the placeholder role, the placeholder avatar hash, and both example channels from the <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology> before you turn the feature on.
+- **"Fix this feature's settings before turning it on."** — Imported settings may have no <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, so choose one under **Raid bans** → **Channel** and save.
+- **Example role `000000000000000000`** — Replace the placeholder role, the placeholder avatar hash, and both example channels from the <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology> before you turn the feature on.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> banned members whose avatar or exact username matched, without posting anything in Discord. The rewrite also checks display names, ignores letter case and styled letters, and reports each ban in an <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> set in `auto-ban.channel`, so an imported legacy feature without one stays off until you choose a channel.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> banned members whose avatar or exact username matched, without posting anything in Discord. The rewrite also checks display names, ignores letter case and styled letters, and reports each ban in an <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> set in `auto-ban.channel`, so an imported legacy feature without one stays off until you choose a channel.
 
-The gate message is now plain text with the footer on a second line, and `%YEAR%` uses UTC instead of the legacy <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> setting.
+The gate message is now plain text with the footer on a second line, and `%YEAR%` uses UTC instead of the legacy <Terminology title="The zone a schedule's times are read in; UTC by default" to="/docs/reference/terminology#schedules-and-jobs">time zone</Terminology> setting.
 :::

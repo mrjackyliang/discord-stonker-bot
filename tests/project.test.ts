@@ -32,7 +32,7 @@ describe('Project root', () => {
  * Protects the product name while keeping stable repository identifiers intact.
  * Generated metadata and deployment links depend on this distinction.
  *
- * @since UNRELEASED
+ * @since 0.0.0
  */
 describe('Project identity', () => {
   it('separates the product name from the repository slug', () => {

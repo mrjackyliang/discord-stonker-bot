@@ -1,5 +1,10 @@
 # discord-stonker-bot-app-bot
 
+## 4.0.1 - 2026-11-16
+
+### FIXED
+- New access tokens show in regular weight in the dialog that reveals them, instead of semi-bold.
+
 ## 4.0.0 - 2026-11-01
 
 ### UPDATED

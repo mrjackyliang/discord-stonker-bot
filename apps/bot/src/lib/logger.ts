@@ -48,7 +48,7 @@ let mutedChecks: Lib_Logger_MutedChecks = 0;
  * Whether debug entries are written. Each process follows the saved switch, so the
  * bot, the control panel, and the worker change together.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 let debugLogging: Lib_Logger_DebugLogging = false;
 
@@ -100,7 +100,7 @@ export function getErrorMessage(error: Lib_Logger_GetErrorMessage_Error): Lib_Lo
  *
  * @returns {Lib_Logger_IsDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function isDebugLogging(): Lib_Logger_IsDebugLogging_Returns {
   return debugLogging;
@@ -132,7 +132,7 @@ export function muteLogs(): Lib_Logger_MuteLogs_Returns {
  *
  * @returns {Lib_Logger_SetDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function setDebugLogging(enabled: Lib_Logger_SetDebugLogging_Enabled): Lib_Logger_SetDebugLogging_Returns {
   debugLogging = enabled;

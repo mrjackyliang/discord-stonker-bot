@@ -24,18 +24,18 @@ import accessTokensOneDark from './_assets_/access-tokens-1-dark.png';
 import accessTokensTwoLight from './_assets_/access-tokens-2-light.png';
 import accessTokensTwoDark from './_assets_/access-tokens-2-dark.png';
 
-Create a personal <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology> for each script or app, then call the control panel's API with it to read settings and logs, change features, or start and stop the bot.
+Create a personal <Terminology title="A key that lets your scripts call the panel's API as you" to="/docs/reference/terminology#accounts-and-access">access token</Terminology> for each script or app, then call the control panel's API with it to read settings and logs, change features, or start and stop the bot.
 
 ## Why Use Access Tokens?
 
 1. Lets scripts, dashboards, and shortcuts use the API without your password or a browser sign-in.
-2. Gives each client only the <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology> it needs, so a leaked token can't do everything you can.
+2. Gives each client only the <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology> it needs, so a leaked token can't do everything you can.
 3. Lets you revoke one client without affecting the others.
 4. Ends temporary access on its own when you set an expiry.
 
 ## How Tokens Work
 
-- **Acts as you** — A token uses your <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology> and your <Terminology title="Which Discord servers a panel account may open" to="/docs/reference/terminology#server-access">server access</Terminology>, limited to its <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>, so it can never do more than you can.
+- **Acts as you** — A token uses your <Terminology title="An account's level: Owner, Administrator, Operator, or Viewer" to="/docs/reference/terminology#accounts-and-access">panel role</Terminology> and your <Terminology title="Which Discord servers an account is allowed to open" to="/docs/reference/terminology#accounts-and-access">server access</Terminology>, limited to its <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology>, so it can never do more than you can.
 - **Yours only** — Each user creates their own tokens on **Access tokens**, under **Settings**, and sees only their own.
 - **Tied to your account** — Suspending or deleting your account stops your tokens right away, while a password reset doesn't.
 - **Stored as a hash** — The panel keeps only a SHA-256 hash of each token, so a lost token can't be shown again.
@@ -43,16 +43,16 @@ Create a personal <Terminology title="Personal dsb_ token that scripts use for t
 
 ## Scopes
 
-| Scope            | What it allows                                                                                                                                                                                                         |
-|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `features:read`  | See your servers with their channels and roles, feature settings, and the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> |
-| `features:write` | Change feature settings, turn features on or off, and edit the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology>            |
-| `bot:control`    | See the bot's status, and start, stop, or restart it                                                                                                                                                                   |
-| `logs:read`      | Read the bot, web, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology> logs                                                    |
+| Scope            | What it allows                                                                                                                                                                                                                              |
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `features:read`  | See your servers with their channels and roles, feature settings, and the <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> |
+| `features:write` | Change feature settings, turn features on or off, and edit the <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology>            |
+| `bot:control`    | See the bot's status, and start, stop, or restart it                                                                                                                                                                                        |
+| `logs:read`      | Read the bot, web, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> logs                                                         |
 
-- **Exact** — <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">Scopes</Terminology> never include each other, so a token that saves features with `features:write` also needs `features:read` to read them first.
-- **Limited by role** — A <Terminology title="Role that can look but not change anything" to="/docs/reference/terminology#viewer">Viewer</Terminology> can give only `features:read` and `logs:read`, and the dialog marks the others "Your role can't grant this scope."
-- **Checked twice** — A write request needs both the <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology> and your role's permission, so your role still has to be allowed to make the change.
+- **Exact** — <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">Scopes</Terminology> never include each other, so a token that saves features with `features:write` also needs `features:read` to read them first.
+- **Limited by role** — A <Terminology title="Read-only role: sees everything, changes nothing" to="/docs/reference/terminology#accounts-and-access">Viewer</Terminology> can give only `features:read` and `logs:read`, and the dialog marks the others "Your role can't grant this scope."
+- **Checked twice** — A write request needs both the <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scope</Terminology> and your role's permission, so your role still has to be allowed to make the change.
 
 ## Create a Token
 
@@ -81,17 +81,17 @@ A lost token can't be shown again, so create a new one and revoke the old one.
 
 ## Edit or Revoke a Token
 
-Each row on **Access tokens** shows the token's name and <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>, when it was created and last used, and when it expires.
+Each row on **Access tokens** shows the token's name and <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology>, when it was created and last used, and when it expires.
 
-- **Edit** — Changes the name, the <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>, and the expiry, while the token's value stays the same. When an expiry is set, **Keep** and its date stay selected, and **Never** removes it.
+- **Edit** — Changes the name, the <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology>, and the expiry, while the token's value stays the same. When an expiry is set, **Keep** and its date stay selected, and **Never** removes it.
 - **Revoke** — Select **Revoke**, then **Revoke** again to confirm. Apps using the token stop working right away, and the row disappears.
 - **Expired** — An expired token stays in the list and is rejected, so edit it to set a new expiry, or revoke it.
 
-To rotate a token, create a replacement with the same <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>, update the client and check that one request works, then revoke the old token.
+To rotate a token, create a replacement with the same <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology>, update the client and check that one request works, then revoke the old token.
 
 ## Call the API
 
-The **Calling the API** section of the page shows the **Base URL**, the header, and the main paths with the <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology> each one needs.
+The **Calling the API** section of the page shows the **Base URL**, the header, and the main paths with the <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scope</Terminology> each one needs.
 
 - **Base URL** — The address your browser has the control panel open at, such as `https://bot.example.com`. Every path starts with `/api/v1`.
 - **Header** — Send `Authorization: Bearer dsb_…` with every request, and a token request never needs the browser's CSRF header.
@@ -113,24 +113,24 @@ unset STONKER_TOKEN
 
 ## Endpoints
 
-| Method and path                                                | Scope            | What it does                                                                                                                                                                      |
-|----------------------------------------------------------------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `GET /api/v1/auth/me`                                          | Any              | Shows the token's ID, name, <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scopes</Terminology>, and username               |
-| `GET /api/v1/servers`                                          | `features:read`  | Lists the servers you can open, with how many features each has on                                                                                                                |
-| `GET /api/v1/servers/{serverId}/resources`                     | `features:read`  | Lists a server's channels and roles                                                                                                                                               |
-| `GET /api/v1/servers/{serverId}/features`                      | `features:read`  | Lists all 19 features with their state                                                                                                                                            |
-| `GET /api/v1/servers/{serverId}/features/{featureKey}`         | `features:read`  | Shows one feature's settings, form, and example                                                                                                                                   |
-| `PUT /api/v1/servers/{serverId}/features/{featureKey}`         | `features:write` | Saves one feature's settings                                                                                                                                                      |
-| `PUT /api/v1/servers/{serverId}/features/{featureKey}/enabled` | `features:write` | Turns one feature on or off                                                                                                                                                       |
-| `GET /api/v1/servers/{serverId}/invite-page`                   | `features:read`  | Shows the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> design and its public link |
-| `PUT /api/v1/servers/{serverId}/invite-page`                   | `features:write` | Saves the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> design                     |
-| `POST /api/v1/servers/{serverId}/invite-page/images`           | `features:write` | Uploads a logo or banner image                                                                                                                                                    |
-| `GET /api/v1/bot`                                              | `bot:control`    | Shows the bot's status                                                                                                                                                            |
-| `POST /api/v1/bot/actions`                                     | `bot:control`    | Starts, stops, or restarts the bot                                                                                                                                                |
-| `GET /api/v1/logs`                                             | `logs:read`      | Lists log entries                                                                                                                                                                 |
-| `GET /api/v1/logs/stream`                                      | `logs:read`      | Sends new log entries as they arrive, as server-sent events                                                                                                                       |
+| Method and path                                                | Scope            | What it does                                                                                                                                                                                           |
+|----------------------------------------------------------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET /api/v1/auth/me`                                          | Any              | Shows the token's ID, name, <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scopes</Terminology>, and username                         |
+| `GET /api/v1/servers`                                          | `features:read`  | Lists the servers you can open, with how many features each has on                                                                                                                                     |
+| `GET /api/v1/servers/{serverId}/resources`                     | `features:read`  | Lists a server's channels and roles                                                                                                                                                                    |
+| `GET /api/v1/servers/{serverId}/features`                      | `features:read`  | Lists all 19 features with their state                                                                                                                                                                 |
+| `GET /api/v1/servers/{serverId}/features/{featureKey}`         | `features:read`  | Shows one feature's settings, form, and example                                                                                                                                                        |
+| `PUT /api/v1/servers/{serverId}/features/{featureKey}`         | `features:write` | Saves one feature's settings                                                                                                                                                                           |
+| `PUT /api/v1/servers/{serverId}/features/{featureKey}/enabled` | `features:write` | Turns one feature on or off                                                                                                                                                                            |
+| `GET /api/v1/servers/{serverId}/invite-page`                   | `features:read`  | Shows the <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> design and its public link |
+| `PUT /api/v1/servers/{serverId}/invite-page`                   | `features:write` | Saves the <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> design                     |
+| `POST /api/v1/servers/{serverId}/invite-page/images`           | `features:write` | Uploads a logo or banner image                                                                                                                                                                         |
+| `GET /api/v1/bot`                                              | `bot:control`    | Shows the bot's status                                                                                                                                                                                 |
+| `POST /api/v1/bot/actions`                                     | `bot:control`    | Starts, stops, or restarts the bot                                                                                                                                                                     |
+| `GET /api/v1/logs`                                             | `logs:read`      | Lists log entries                                                                                                                                                                                      |
+| `GET /api/v1/logs/stream`                                      | `logs:read`      | Sends new log entries as they arrive, as server-sent events                                                                                                                                            |
 
-- **`serverId`** — A <Terminology title="Number Discord uses to identify a server" to="/docs/reference/terminology#server-id">Server ID</Terminology> from `GET /api/v1/servers`. A server your account can't open answers like an unknown one, with "That Discord server isn't available."
+- **`serverId`** — A <Terminology title="The number Discord uses to name a server" to="/docs/reference/terminology#discord-basics">Server ID</Terminology> from `GET /api/v1/servers`. A server your account can't open answers like an unknown one, with "That Discord server isn't available."
 - **`featureKey`** — The feature's settings key, which is its `config.json` section name, such as `auto-replies`, `message-proxies`, or `web-applications`.
 
 ### Restart the Bot
@@ -227,45 +227,45 @@ A body that fails its checks also lists each problem in `issues`, with the `fiel
 
 ## Status Codes
 
-| Status | Error code                | Meaning                                                                                                                                                                                         |
-|--------|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `200`  | —                         | The request worked                                                                                                                                                                              |
-| `201`  | —                         | An image upload worked, and the answer has the image's `id` and `url`                                                                                                                           |
-| `202`  | —                         | The bot accepted a start, stop, or restart                                                                                                                                                      |
-| `400`  | `invalid_json`            | The body isn't valid JSON                                                                                                                                                                       |
-| `401`  | `authentication_required` | The token is missing, malformed, unknown, expired, or revoked, or its owner is suspended                                                                                                        |
-| `403`  | `scope_required`          | The token lacks the route's <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology>                                            |
-| `403`  | `permission_required`     | Your role can't make this change, such as "Your role can't change settings."                                                                                                                    |
-| `403`  | `session_required`        | The route needs a signed-in browser session                                                                                                                                                     |
-| `404`  | `server_not_found`        | The server doesn't exist, or your account can't open it                                                                                                                                         |
-| `404`  | `feature_not_found`       | The feature key doesn't exist                                                                                                                                                                   |
-| `404`  | `not_found`               | No route matches the method and path                                                                                                                                                            |
-| `409`  | `revision_conflict`       | Someone saved the feature or the <Terminology title="Public page that gives an invite after reCAPTCHA" to="/docs/reference/terminology#invite-page">invite page</Terminology> after you read it |
-| `409`  | `feature_not_configured`  | The feature isn't set up yet                                                                                                                                                                    |
-| `409`  | `bot_token_required`      | No <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> is saved, so the bot can't start                           |
-| `413`  | `payload_too_large`       | The body is over 64 KB, or over 2 MB for a feature save or an image upload                                                                                                                      |
-| `415`  | `unsupported_encoding`    | The body isn't UTF-8 JSON                                                                                                                                                                       |
-| `415`  | `unsupported_image`       | An upload isn't a PNG, JPEG, WebP, or GIF image                                                                                                                                                 |
-| `422`  | `invalid_request`         | A field failed its check, and `issues` lists each problem                                                                                                                                       |
-| `429`  | `rate_limited`            | The address sent more than 300 requests in a minute                                                                                                                                             |
-| `500`  | `internal_error`          | Something unexpected went wrong, and the **Web** log has the detail                                                                                                                             |
+| Status | Error code                | Meaning                                                                                                                                                                                                              |
+|--------|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `200`  | —                         | The request worked                                                                                                                                                                                                   |
+| `201`  | —                         | An image upload worked, and the answer has the image's `id` and `url`                                                                                                                                                |
+| `202`  | —                         | The bot accepted a start, stop, or restart                                                                                                                                                                           |
+| `400`  | `invalid_json`            | The body isn't valid JSON                                                                                                                                                                                            |
+| `401`  | `authentication_required` | The token is missing, malformed, unknown, expired, or revoked, or its owner is suspended                                                                                                                             |
+| `403`  | `scope_required`          | The token lacks the route's <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scope</Terminology>                                                      |
+| `403`  | `permission_required`     | Your role can't make this change, such as "Your role can't change settings."                                                                                                                                         |
+| `403`  | `session_required`        | The route needs a signed-in browser session                                                                                                                                                                          |
+| `404`  | `server_not_found`        | The server doesn't exist, or your account can't open it                                                                                                                                                              |
+| `404`  | `feature_not_found`       | The feature key doesn't exist                                                                                                                                                                                        |
+| `404`  | `not_found`               | No route matches the method and path                                                                                                                                                                                 |
+| `409`  | `revision_conflict`       | Someone saved the feature or the <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> after you read it |
+| `409`  | `feature_not_configured`  | The feature isn't set up yet                                                                                                                                                                                         |
+| `409`  | `bot_token_required`      | No <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> is saved, so the bot can't start                           |
+| `413`  | `payload_too_large`       | The body is over 64 KB, or over 2 MB for a feature save or an image upload                                                                                                                                           |
+| `415`  | `unsupported_encoding`    | The body isn't UTF-8 JSON                                                                                                                                                                                            |
+| `415`  | `unsupported_image`       | An upload isn't a PNG, JPEG, WebP, or GIF image                                                                                                                                                                      |
+| `422`  | `invalid_request`         | A field failed its check, and `issues` lists each problem                                                                                                                                                            |
+| `429`  | `rate_limited`            | The address sent more than 300 requests in a minute                                                                                                                                                                  |
+| `500`  | `internal_error`          | Something unexpected went wrong, and the **Web** log has the detail                                                                                                                                                  |
 
-The checks run in order: the JSON body, the rate limit, the token, its <Terminology title="One kind of API request a token may make" to="/docs/reference/terminology#scope">scope</Terminology>, your role, the server, and then the body's fields.
+The checks run in order: the JSON body, the rate limit, the token, its <Terminology title="What an access token is allowed to do" to="/docs/reference/terminology#accounts-and-access">scope</Terminology>, your role, the server, and then the body's fields.
 
 ## Rate Limits
 
 - **Limit** — Every path under `/api/v1`, including the control panel's own requests, allows 300 requests per minute from one address, or one `/56` network for IPv6.
 - **Headers** — Answers carry `RateLimit-Policy`, `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset`, and a `429` also carries `Retry-After` in seconds.
-- **Behind a proxy** — The address comes from `X-Forwarded-For` when a <Terminology title="Private address whose forwarded headers are believed" to="/docs/reference/terminology#trusted-proxy">trusted proxy</Terminology> sends it, as described in [Remote Access](/docs/operations/remote-access/#forwarded-headers).
+- **Behind a proxy** — The address comes from `X-Forwarded-For` when a <Terminology title="A nearby reverse proxy whose forwarded headers are believed" to="/docs/reference/terminology#accounts-and-access">trusted proxy</Terminology> sends it, as described in [Remote Access](/docs/operations/remote-access/#forwarded-headers).
 
 ## Routes Tokens Can't Use
 
-Some routes need a signed-in <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology>, so a token gets `403` with "A signed-in browser session is required."
+Some routes need a signed-in <Terminology title="Your browser's sign-in, good for 24 hours" to="/docs/reference/terminology#accounts-and-access">browser session</Terminology>, so a token gets `403` with "A signed-in browser session is required."
 
-- **Your account** — The password, the username, the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology>, and <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkeys</Terminology>.
+- **Your account** — The password, the username, the <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology>, <Terminology title="A one-time backup code for when your authenticator is gone" to="/docs/reference/terminology#sign-in-security">recovery codes</Terminology>, and <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkeys</Terminology>.
 - **Tokens and users** — Listing, creating, editing, and revoking tokens, and every route on the **Users** page.
 - **Notifications** — Every route on the [Notifications](/docs/control-panel/notifications/#manage-notifications-from-scripts) page, including **Send test**.
-- **Bot Token and Backup** — Saving the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, exporting configuration, and importing an <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology> or an older `config.json` from [Backup](/docs/control-panel/export-and-import/).
-- **Saved secrets notice** — `DELETE /api/v1/auth/removed-secrets`, which dismisses the notice a lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> leaves. A token's `GET /api/v1/auth/me` also leaves out the `removedSecrets` list that a <Terminology title="24-hour sign-in kept in a browser cookie" to="/docs/reference/terminology#browser-session">browser session</Terminology> gets.
+- **Bot Token and Backup** — Saving the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, exporting configuration, and importing an <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export file</Terminology> or an older `config.json` from [Backup](/docs/control-panel/export-and-import/).
+- **Saved secrets notice** — `DELETE /api/v1/auth/removed-secrets`, which dismisses the notice a lost <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> leaves. A token's `GET /api/v1/auth/me` also leaves out the `removedSecrets` list that a <Terminology title="Your browser's sign-in, good for 24 hours" to="/docs/reference/terminology#accounts-and-access">browser session</Terminology> gets.
 
 A request with an `Authorization` header is always handled as a token request, even when the browser also sends a session cookie.

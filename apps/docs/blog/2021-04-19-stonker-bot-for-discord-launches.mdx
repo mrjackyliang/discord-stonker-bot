@@ -1,0 +1,46 @@
+---
+title: "Stonker Bot for Discord Launches for Finance Servers"
+description: Version 1.0.0 brings change logs, scheduled posts, auto replies, regex rules, and join-time bans to finance-focused Discord servers in one bot.
+slug: stonker-bot-for-discord-launches
+authors:
+  - mrjackyliang
+keywords:
+  - stonker bot for discord
+  - discord bot
+  - finance discord
+  - discord moderation
+  - auto replies
+tags:
+  - release
+  - discord
+---
+
+Stonker Bot for Discord 1.0.0 shipped on April 19, 2021, as one bot for finance-related Discord servers. It logged member and message changes, sent scheduled posts, answered common questions, and banned known bad accounts as they joined.
+
+{/* truncate */}
+
+## Why It Mattered
+
+Busy finance servers draw scammers, fake staff accounts, and affiliate spam, while moderators also keep announcements and answers flowing. Covering all of that took several bots, each with its own permissions and settings.
+
+The first release put those jobs in one bot.
+
+## What the First Release Did
+
+- **Change logs** — Posts nickname changes, username changes, edited messages, and deleted messages to a log channel.
+- **Scheduled posts** — Sends messages on a schedule.
+- **Auto replies** — Answers messages that match a pattern.
+- **Channel rules** — Deletes messages that break a channel's regex rule or contain affiliate links.
+- **Suspicious words** — Reports messages that use words you list.
+- **Join-time bans** — Bans users with a listed avatar hash or username when they join.
+- **Staff commands** — `!fetch-members`, `!find-duplicate-users`, `!toggle-perms`, and `!voice` for members with allowed roles.
+
+Attachments in new and edited messages were cached as they arrived, so a deleted message's files still showed up in the log.
+
+## What Came Next
+
+Two days later, version 1.1.0 added a scanner that checks the server every minute for members who share an avatar and alerts a channel. The bot went on to gain an invite page, webhooks, feeds, and a full rebuild with a browser control panel.
+
+## Where It Led
+
+Today's Stonker Bot for Discord runs safety, moderation, automation, and community features from one self-hosted container. The [Overview](/docs/overview/) covers everything it does.

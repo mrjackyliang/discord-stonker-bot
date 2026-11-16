@@ -75,7 +75,7 @@ import type { Web_AppNavigation_Route } from '@/types/web/app-navigation.d.ts';
  *
  * @returns {Tests_Web_Navigation_PathFromHistoryUrl_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const pathFromHistoryURL = (
   url: Tests_Web_Navigation_PathFromHistoryUrl_Url,
@@ -102,7 +102,7 @@ const pathFromHistoryURL = (
  *
  * @returns {Tests_Web_Navigation_CreateHistoryBrowser_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const createHistoryBrowser = (
   initialPath: Tests_Web_Navigation_CreateHistoryBrowser_InitialPath,
@@ -122,7 +122,7 @@ const createHistoryBrowser = (
    *
    * @returns {Tests_Web_Navigation_Move_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const move: Tests_Web_Navigation_Move = (
     direction: Tests_Web_Navigation_Move_Direction,

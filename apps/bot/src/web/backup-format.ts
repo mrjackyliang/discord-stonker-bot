@@ -11,7 +11,7 @@ import type { Web_Backup_Document } from '@/types/web/backup.d.ts';
  * Accepts only finite JSON-compatible feature configuration.
  * Size bounds keep untrusted uploads practical to validate.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
   z.null(),
@@ -28,7 +28,7 @@ const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
  * Bounds portable public settings and plain-text secrets.
  * Nested values are rejected by the record value schema.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const stringMapSchema = z.record(z.string().min(1).max(512), z.string().max(32_768));
 
@@ -42,7 +42,7 @@ const stringMapSchema = z.record(z.string().min(1).max(512), z.string().max(32_7
  *
  * @returns {Set<string>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const collectSecretReferences = (value: unknown): Set<string> => {
   const references: Set<string> = new Set();
@@ -56,7 +56,7 @@ const collectSecretReferences = (value: unknown): Set<string> => {
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const visit = (candidate: unknown): void => {
     if (Array.isArray(candidate)) {
@@ -82,7 +82,7 @@ const collectSecretReferences = (value: unknown): Set<string> => {
  * Keeps plain-text feature secrets limited to keys used by its configuration.
  * Unreferenced values make the complete file invalid.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const featureSchema = z.object({
   configuration: jsonValueSchema,
@@ -111,7 +111,7 @@ const featureSchema = z.object({
  * Restricts targets to services, events, and fields supported by this console.
  * Public and secret values stay in their respective maps.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const notificationSchema = z.object({
   events: z.array(z.enum([
@@ -178,7 +178,7 @@ const notificationSchema = z.object({
  * Mirrors the server's strict version-one portable contract.
  * Unknown keys and duplicate identities are rejected.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.object({
   accessTokens: z.array(z.object({
@@ -264,6 +264,6 @@ export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.objec
  *
  * @returns {Web_Backup_Document}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const parseBackupDocument = (value: unknown): Web_Backup_Document => backupDocumentSchema.parse(value);

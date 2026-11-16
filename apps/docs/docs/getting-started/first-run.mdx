@@ -23,11 +23,11 @@ import firstRunOneDark from './_assets_/first-run-1-dark.png';
 import firstRunTwoLight from './_assets_/first-run-2-light.png';
 import firstRunTwoDark from './_assets_/first-run-2-dark.png';
 
-Create the owner account with the one-time <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology>, save the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, start the bot, and then add it to your Discord server, in that order.
+Create the owner account with the one-time <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology>, save the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, start the bot, and then add it to your Discord server, in that order.
 
 ## Find the Setup Code
 
-While no account exists, the web service prints a <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> to the container log each time it starts. Read it on the Docker host:
+While no account exists, the web service prints a <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> to the container log each time it starts. Read it on the Docker host:
 
 ```bash
 docker compose logs app | grep setup_code_issued
@@ -62,7 +62,7 @@ Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the na
   <ThemedImage sources={{ light: firstRunOneLight, dark: firstRunOneDark }} alt="Set up your account screen with a one-time code, the username morgan, and a password rated Strong typed twice" width={448} height={735} style={{ maxWidth: '100%', height: 'auto' }} />
 </Frame>
 
-You're signed in right away as the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>, with access to every Discord server. The setup screen doesn't come back once the account exists.
+You're signed in right away as the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>, with access to every Discord server. The setup screen doesn't come back once the account exists.
 
 - **"That setup code is wrong or expired. Restart the container to print a new one."** — Check the code against the last log line, or restart the container for a new one.
 - **"Too many setup attempts. Try again in 15 minutes."** — Setup pauses for 15 minutes after 10 wrong codes from one address.
@@ -87,7 +87,7 @@ The **Bot token** section then shows **Saved** with "Stored encrypted. It's neve
 
 Select **Start** in the **Bot** section of the Connection or Overview page. The status moves from **Stopped** to **Starting**, then to **Online** or **Stopped by an error**.
 
-On its first connection, the bot records your <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology>'s ID and every server it can see. If the status shows **Stopped by an error**, see [Bot Lifecycle](/docs/control-panel/bot-lifecycle/#bot-statuses).
+On its first connection, the bot records your <Terminology title="Your bot's entry in the Discord Developer Portal" to="/docs/reference/terminology#discord-basics">Discord application</Terminology>'s ID and every server it can see. If the status shows **Stopped by an error**, see [Bot Lifecycle](/docs/control-panel/bot-lifecycle/#bot-statuses).
 
 ## Add Your Server
 
@@ -102,7 +102,7 @@ You can add the same bot to more servers later, and each server keeps its own fe
 ## Turn On Your First Feature
 
 1. Open **Features** and select a feature.
-2. Select **Start from the example** to load <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology>, or **Start from scratch** for an empty form. You can also choose **An older config.json** in the [Backup wizard](/docs/control-panel/export-and-import/#import-an-older-configjson).
+2. Select **Start from the example** to load <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology>, or **Start from scratch** for an empty form. You can also choose **An older config.json** in the [Backup wizard](/docs/control-panel/export-and-import/#import-an-older-configjson).
 3. Choose your own channels and roles, enter any secret the feature needs, then select **Save** in the bar at the bottom.
 4. Turn on the switch at the top of the feature's page.
 
@@ -110,8 +110,8 @@ Saving and switching make the bot reconnect on its own, so the change takes effe
 
 ## Secure Your Account
 
-Open **Sign-in and security** in the account menu to add an <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology> or a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>. [Users and Security](/docs/control-panel/users-and-security/) covers both, along with adding accounts for your moderators.
+Open **Sign-in and security** in the account menu to add an <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> or a <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkey</Terminology>. [Users and Security](/docs/control-panel/users-and-security/) covers both, along with adding accounts for your moderators.
 
 :::warning
-Nobody can reset the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s password or two-factor sign-in in the control panel. It is recommended to keep the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology>'s <Terminology title="One-time code used instead of an authenticator code" to="/docs/reference/terminology#recovery-code">recovery codes</Terminology> somewhere other than the phone with the <Terminology title="App that generates six-digit sign-in codes" to="/docs/reference/terminology#authenticator-app">authenticator app</Terminology>, and to add a <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+Nobody can reset the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>'s password or two-factor sign-in in the control panel. It is recommended to keep the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>'s <Terminology title="A one-time backup code for when your authenticator is gone" to="/docs/reference/terminology#sign-in-security">recovery codes</Terminology> somewhere other than the phone with the <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology>, and to add a <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkey</Terminology>.
 :::

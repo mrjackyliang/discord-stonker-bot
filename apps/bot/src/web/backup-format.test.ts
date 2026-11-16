@@ -17,7 +17,7 @@ import type {
  * Supplies a minimal version-one export to the browser-side validator.
  * Each invalid case derives an independent untrusted file value.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const validDocument: Web_BackupFormatTest_Document = {
   appVersion: '4.0.0',
@@ -36,7 +36,7 @@ const validDocument: Web_BackupFormatTest_Document = {
  * Mirrors strict server rejection for unknown keys and duplicate identities.
  * Unsafe files stop before the wizard asks the server for a preview.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 describe('browser backup format boundaries', () => {
   it('rejects unknown fields, empty files, and duplicate identities', () => {

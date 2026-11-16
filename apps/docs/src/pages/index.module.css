@@ -230,3 +230,17 @@
   background: color-mix(in srgb, var(--nova-color-primary-600) 30%, transparent);
   border-radius: 0.25rem;
 }
+
+/**
+ * ============================
+ * Control Panel Showcase
+ * ============================
+ */
+
+/*
+ * The screenshot section uses the full page width instead of the preset's
+ * 768px text column, so the control panel shows near its real size.
+ */
+.shot-spotlight :global(.nova-spotlight-inner) {
+  max-width: var(--nova-grid-container-max);
+}

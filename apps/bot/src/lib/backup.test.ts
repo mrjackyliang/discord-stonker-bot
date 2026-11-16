@@ -17,7 +17,7 @@ import type {
  * Supplies a minimal strict server-side version-one document.
  * Invalid cases derive independent values without mutating this fixture.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const validDocument: Lib_Backup_Test_Document = {
   appVersion: '4.0.0',
@@ -36,7 +36,7 @@ const validDocument: Lib_Backup_Test_Document = {
  * Rejects unknown fields, empty files, duplicate identities, and unrelated secrets.
  * These checks all run before import opens a transaction.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 describe('server backup format boundaries', () => {
   it('strictly rejects unknown and empty documents', () => {

@@ -29,9 +29,9 @@ Each feature has its own settings page and its own on and off switch. Features y
 
 1. Combines 19 features in one bot, so you don't have to coordinate several bots with separate permissions and settings.
 2. Requests only the Discord access your enabled features need, so the bot doesn't receive message or member data it won't use.
-3. Encrypts the credentials you enter in the control panel, so the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, API keys, and webhook URLs are never stored as plain text.
+3. Encrypts the credentials you enter in the control panel, so the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, API keys, and webhook URLs are never stored as plain text.
 4. Runs in one container on your own hardware, so the database and logs stay with you.
-5. Exports selected configuration and imports <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export files</Terminology> or the <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s `config.json`, so you can move or restore settings without retyping them.
+5. Exports selected configuration and imports <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export files</Terminology> or the <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology>'s `config.json`, so you can move or restore settings without retyping them.
 
 ## What's Included
 
@@ -46,23 +46,23 @@ Each feature has its own settings page and its own on and off switch. Features y
 
 ## How It Runs
 
-- **One container** — Docker runs the bot, the control panel, a background <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#worker">worker</Terminology>, and a PostgreSQL database together.
-- **Browser control panel** — You create the owner account with the <Terminology title="One-time code from the log that creates the owner" to="/docs/reference/terminology#setup-code">setup code</Terminology> from the container log, then paste the <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology>, start the bot, and configure features at `http://<docker-host>:22604/` by default.
-- **Accounts for your team** — Each person signs in with their own account and <Terminology title="Owner, Administrator, Operator, or Viewer access level" to="/docs/reference/terminology#panel-role">panel role</Terminology>, and scripts call the API with an <Terminology title="Personal dsb_ token that scripts use for the API" to="/docs/reference/terminology#access-token">access token</Terminology>.
+- **One container** — Docker runs the bot, the control panel, a background <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, and a PostgreSQL database together.
+- **Browser control panel** — You create the owner account with the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, then paste the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, start the bot, and configure features at `http://<docker-host>:22604/` by default.
+- **Accounts for your team** — Each person signs in with their own account and <Terminology title="An account's level: Owner, Administrator, Operator, or Viewer" to="/docs/reference/terminology#accounts-and-access">panel role</Terminology>, and scripts call the API with an <Terminology title="A key that lets your scripts call the panel's API as you" to="/docs/reference/terminology#accounts-and-access">access token</Terminology>.
 - **Alerts about the bot** — The [Notifications](/docs/control-panel/notifications/) page sends an alert to ntfy, Telegram, email, or another service when the bot can't sign in, drops offline, or a job gives up.
 - **Separate bot connection** — Stopping or restarting the bot leaves the control panel and the database running.
-- **Members use Discord** — Moderators run <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> and read the bot's alerts, and members see its posts and replies in your channels.
+- **Members use Discord** — Moderators run <Terminology title="A /command members type in Discord's message box" to="/docs/reference/terminology#discord-basics">slash commands</Terminology> and read the bot's alerts, and members see its posts and replies in your channels.
 
 ## Current Status
 
 Stonker Bot for Discord is built from the source code because there is no published Docker image.
 
-One Discord application can serve multiple servers from the same installation. Feature settings, encrypted integration secrets, event handlers, and <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> remain scoped to each server.
+One Discord application can serve multiple servers from the same installation. Feature settings, encrypted integration secrets, event handlers, and <Terminology title="A /command members type in Discord's message box" to="/docs/reference/terminology#discord-basics">slash commands</Terminology> remain scoped to each server.
 
 ## Next Steps
 
 - **[Requirements](/docs/getting-started/requirements/)** — Check what you need before you install.
 - **[Installation](/docs/getting-started/installation/)** — Build the image and start the container.
 - **[First-Run Setup](/docs/getting-started/first-run/)** — Create the owner account, connect the bot, and add your server.
-- **[Export and Import](/docs/control-panel/export-and-import/)** — Export selected configuration, import an <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology>, or bring in an older `config.json` from **Backup**.
+- **[Export and Import](/docs/control-panel/export-and-import/)** — Export selected configuration, import an <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export file</Terminology>, or bring in an older `config.json` from **Backup**.
 - **[Legacy Migration](/docs/migration/legacy-migration/)** — Review what the older `config.json` source replaces, keeps off, and skips.

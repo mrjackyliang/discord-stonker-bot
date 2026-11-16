@@ -6,14 +6,14 @@ import type {
 /**
  * Navigation - Browser history URL.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_HistoryURL = string | URL | null | undefined;
 
 /**
  * Navigation - Browser history.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_History = {
   pushState: (data: unknown, unused: string, url?: Web_Navigation_HistoryURL) => void;
@@ -23,7 +23,7 @@ export type Web_Navigation_History = {
 /**
  * Navigation - Browser location.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_Location = {
   pathname: string;
@@ -32,14 +32,14 @@ export type Web_Navigation_Location = {
 /**
  * Navigation - Pop state listener.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_PopStateListener = () => void;
 
 /**
  * Navigation - Browser.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_Browser = {
   addEventListener: (type: 'popstate', listener: Web_Navigation_PopStateListener) => void;
@@ -51,7 +51,7 @@ export type Web_Navigation_Browser = {
 /**
  * Navigation - Path match.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_PathMatch<Route> = {
   path: string;
@@ -62,14 +62,14 @@ export type Web_Navigation_PathMatch<Route> = {
 /**
  * Navigation - Path resolver.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_PathResolver<Route> = (pathname: string) => Web_Navigation_PathMatch<Route>;
 
 /**
  * Navigation - Route listener.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_RouteListener<Route> = (route: Route) => void;
 
@@ -178,7 +178,7 @@ export type Web_Navigation_SheetStack = Web_Navigation_SheetLevel[];
 /**
  * Navigation - Phone tab action.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Navigation_PhoneTabAction =
   | {

@@ -26,7 +26,7 @@ import type {
  * Keeps only grant digests in memory and binds each credential to one session,
  * purpose, expiry, and successful single use.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export class GrantStore {
   /**
@@ -37,7 +37,7 @@ export class GrantStore {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   static readonly #durationMilliseconds: Lib_Backup_GrantStore_DurationMilliseconds = 5 * 60 * 1000;
 
@@ -49,7 +49,7 @@ export class GrantStore {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #clock: Lib_Backup_GrantStore_Clock;
 
@@ -61,7 +61,7 @@ export class GrantStore {
    *
    * @private
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   readonly #grants: Lib_Backup_GrantStore_Grants = new Map();
 
@@ -73,7 +73,7 @@ export class GrantStore {
    *
    * @param {Lib_Backup_GrantStore_Clock} [clock] - Clock.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public constructor(clock: Lib_Backup_GrantStore_Clock = Date.now) {
     this.#clock = clock;
@@ -91,7 +91,7 @@ export class GrantStore {
    *
    * @returns {Lib_Backup_GrantStore_Issue_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public issue(sessionId: Lib_Backup_GrantStore_SessionId, purpose: Lib_Backup_Purpose): Lib_Backup_GrantStore_Issue_Returns {
     const now: Lib_Backup_GrantStore_Now = this.#clock();
@@ -124,7 +124,7 @@ export class GrantStore {
    *
    * @returns {Lib_Backup_GrantStore_Consume_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   public consume(grant: Lib_Backup_GrantStore_Grant, sessionId: Lib_Backup_GrantStore_SessionId, purpose: Lib_Backup_Purpose): Lib_Backup_GrantStore_Consume_Returns {
     const now: Lib_Backup_GrantStore_Now = this.#clock();
@@ -156,7 +156,7 @@ export class GrantStore {
    *
    * @returns {Lib_Backup_GrantStore_Prune_Returns}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   private prune(now: Lib_Backup_GrantStore_Now): Lib_Backup_GrantStore_Prune_Returns {
     for (const entry of this.#grants) {

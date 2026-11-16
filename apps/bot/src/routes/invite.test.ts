@@ -88,7 +88,7 @@ const SERVER_ID = '1197999049190674442';
  * Allows the backup import route to freshly confirm the test administrator.
  * The value exists only in the isolated in-memory test database.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const ADMIN_PASSWORD = 'invite fixture admin password';
 

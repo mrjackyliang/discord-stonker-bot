@@ -1,16 +1,24 @@
 import {
   BlogPreview,
+  BrowserFrame,
   Canvas,
   Features,
-  InstallStrip,
-  Stats,
+  Showcase,
+  Spotlight,
 } from '@cbnventures/docusaurus-preset-nova/blocks';
 import Head from '@docusaurus/Head';
 import Link from '@docusaurus/Link';
 import { translate } from '@docusaurus/Translate';
 import Heading from '@theme/Heading';
 import Layout from '@theme/Layout';
+import ThemedImage from '@theme/ThemedImage';
 
+import logsOneDark from '../../docs/control-panel/_assets_/logs-1-dark.png';
+import logsOneLight from '../../docs/control-panel/_assets_/logs-1-light.png';
+import managingFeaturesOneDark from '../../docs/control-panel/_assets_/managing-features-1-dark.png';
+import managingFeaturesOneLight from '../../docs/control-panel/_assets_/managing-features-1-light.png';
+import panelBasicsThreeDark from '../../docs/control-panel/_assets_/panel-basics-3-dark.png';
+import panelBasicsThreeLight from '../../docs/control-panel/_assets_/panel-basics-3-light.png';
 import styles from './index.module.css';
 
 import type { Pages_Index_Home_Returns } from '../types/pages/index.d.ts';
@@ -18,8 +26,8 @@ import type { Pages_Index_Home_Returns } from '../types/pages/index.d.ts';
 /**
  * Pages - Home.
  *
- * Landing page that composes the hero with the bot's moderator alerts, the install
- * strip, the feature grid, stats, and the blog preview using theme blocks.
+ * Landing page that composes the hero with the bot's moderator alerts, the feature
+ * grid, and the blog preview using theme blocks.
  *
  * @constructor
  *
@@ -71,7 +79,7 @@ function Home(): Pages_Index_Home_Returns {
             <div className={`nova-hero-actions ${styles['hero-actions']}`}>
               <Link
                 className="nova-cta-primary"
-                to="/docs/overview/"
+                to="/docs/getting-started/installation/"
               >
                 {translate({
                   id: 'home.hero.ctaLabel',
@@ -81,11 +89,11 @@ function Home(): Pages_Index_Home_Returns {
               </Link>
               <Link
                 className="nova-cta-secondary"
-                to="https://github.com/mrjackyliang/discord-stonker-bot"
+                to="/docs/overview/"
               >
                 {translate({
                   id: 'home.hero.secondaryCtaLabel',
-                  message: 'View on GitHub',
+                  message: 'Learn More',
                   description: 'Front page hero secondary call-to-action button label',
                 })}
               </Link>
@@ -152,7 +160,6 @@ function Home(): Pages_Index_Home_Returns {
           </div>
         </div>
       </Canvas>
-      <InstallStrip command="docker compose up --build --detach" />
       <main>
         <Features
           items={[
@@ -236,51 +243,151 @@ function Home(): Pages_Index_Home_Returns {
             },
           ]}
         />
-        <Stats
+        <Spotlight
+          surface="alt"
+          className={styles['shot-spotlight']}
           heading={translate({
-            id: 'home.stats.heading',
-            message: 'By the Numbers',
-            description: 'Front page Stats section heading',
+            id: 'home.showcase.heading',
+            message: 'Inside the control panel',
+            description: 'Front page heading above the control panel screenshots',
           })}
-          items={[
-            {
-              value: '20',
-              label: translate({
-                id: 'home.stats.features.label',
-                message: 'Features in one bot',
-                description: 'Front page Stats label for the feature count',
-              }),
-              color: 'primary',
-            },
-            {
-              value: '6',
-              label: translate({
-                id: 'home.stats.categories.label',
-                message: 'Feature categories',
-                description: 'Front page Stats label for the feature category count',
-              }),
-              color: 'accent',
-            },
-            {
-              value: '4',
-              label: translate({
-                id: 'home.stats.safetyFeatures.label',
-                message: 'Safety features',
-                description: 'Front page Stats label for the safety feature count',
-              }),
-              color: 'primary',
-            },
-            {
-              value: '1',
-              label: translate({
-                id: 'home.stats.container.label',
-                message: 'Container to run',
-                description: 'Front page Stats label for the container count',
-              }),
-              color: 'accent',
-            },
-          ]}
-        />
+        >
+          <Showcase
+            tabsLabel={translate({
+              id: 'home.showcase.tabsLabel',
+              message: 'Control panel pages',
+              description: 'Accessible label for the screenshot tabs on the front page',
+            })}
+            items={[
+              {
+                label: translate({
+                  id: 'home.showcase.overview.label',
+                  message: 'Overview',
+                  description: 'Front page screenshot tab for the Overview page',
+                }),
+                heading: translate({
+                  id: 'home.showcase.overview.heading',
+                  message: 'Your bot at a glance',
+                  description: 'Front page heading for the Overview page screenshot',
+                }),
+                description: translate({
+                  id: 'home.showcase.overview.description',
+                  message: 'See whether the bot, control panel, and scheduled jobs are running, which server you are looking at, and how many features are on. Restart or stop the bot from the same page.',
+                  description: 'Front page description for the Overview page screenshot',
+                }),
+                link: {
+                  label: translate({
+                    id: 'home.showcase.overview.link',
+                    message: 'Tour the Control Panel',
+                    description: 'Front page link from the Overview screenshot to its guide',
+                  }),
+                  to: '/docs/control-panel/panel-basics/',
+                },
+                content: (
+                  <BrowserFrame title="Stonker Bot for Discord" url="localhost:22604" favicon="/favicon.svg">
+                    <ThemedImage
+                      sources={{
+                        light: panelBasicsThreeLight,
+                        dark: panelBasicsThreeDark,
+                      }}
+                      alt={translate({
+                        id: 'home.showcase.overview.alt',
+                        message: 'Overview page with the bot, services, server, and account panels',
+                        description: 'Alt text for the Overview page screenshot on the front page',
+                      })}
+                      width={1280}
+                      height={984}
+                    />
+                  </BrowserFrame>
+                ),
+              },
+              {
+                label: translate({
+                  id: 'home.showcase.features.label',
+                  message: 'Features',
+                  description: 'Front page screenshot tab for the Features page',
+                }),
+                heading: translate({
+                  id: 'home.showcase.features.heading',
+                  message: 'Turn on only what your server needs',
+                  description: 'Front page heading for the Features page screenshot',
+                }),
+                description: translate({
+                  id: 'home.showcase.features.description',
+                  message: 'Every feature has its own form with example settings. Set one up, check it, and switch it on for each server. The bot picks up changes within a few seconds.',
+                  description: 'Front page description for the Features page screenshot',
+                }),
+                link: {
+                  label: translate({
+                    id: 'home.showcase.features.link',
+                    message: 'Manage Features',
+                    description: 'Front page link from the Features screenshot to its guide',
+                  }),
+                  to: '/docs/control-panel/managing-features/',
+                },
+                content: (
+                  <BrowserFrame title="Stonker Bot for Discord" url="localhost:22604" favicon="/favicon.svg">
+                    <ThemedImage
+                      sources={{
+                        light: managingFeaturesOneLight,
+                        dark: managingFeaturesOneDark,
+                      }}
+                      alt={translate({
+                        id: 'home.showcase.features.alt',
+                        message: 'Features page filtered to automation features, each with its setup state and switch',
+                        description: 'Alt text for the Features page screenshot on the front page',
+                      })}
+                      width={1280}
+                      height={683}
+                    />
+                  </BrowserFrame>
+                ),
+              },
+              {
+                label: translate({
+                  id: 'home.showcase.logs.label',
+                  message: 'Logs',
+                  description: 'Front page screenshot tab for the Logs page',
+                }),
+                heading: translate({
+                  id: 'home.showcase.logs.heading',
+                  message: 'Live logs without a terminal',
+                  description: 'Front page heading for the Logs page screenshot',
+                }),
+                description: translate({
+                  id: 'home.showcase.logs.description',
+                  message: 'Follow what the bot, the control panel, and the scheduled jobs write as it happens. Filter by service and level, search, and turn on debug logging when you need it.',
+                  description: 'Front page description for the Logs page screenshot',
+                }),
+                link: {
+                  label: translate({
+                    id: 'home.showcase.logs.link',
+                    message: 'Read the Logs',
+                    description: 'Front page link from the Logs screenshot to its guide',
+                  }),
+                  to: '/docs/control-panel/logs/',
+                },
+                content: (
+                  <BrowserFrame title="Stonker Bot for Discord" url="localhost:22604" favicon="/favicon.svg">
+                    <ThemedImage
+                      sources={{
+                        light: logsOneLight,
+                        dark: logsOneDark,
+                      }}
+                      alt={translate({
+                        id: 'home.showcase.logs.alt',
+                        message: 'Logs page streaming bot entries with service, level, and search filters',
+                        description: 'Alt text for the Logs page screenshot on the front page',
+                      })}
+                      width={1280}
+                      height={638}
+                    />
+                  </BrowserFrame>
+                ),
+              },
+            ]}
+          />
+        </Spotlight>
         <BlogPreview
           heading={translate({
             id: 'home.blogPreview.heading',
@@ -289,11 +396,12 @@ function Home(): Pages_Index_Home_Returns {
           })}
           description={translate({
             id: 'home.blogPreview.description',
-            message: 'Release notes, migration guides, and notes on running a safer, sharper community.',
+            message: 'Launches, milestones, and what\'s new in Stonker Bot for Discord.',
             description: 'Front page BlogPreview section description',
           })}
           auto={true}
           limit={3}
+          sort="newest"
         />
       </main>
     </Layout>

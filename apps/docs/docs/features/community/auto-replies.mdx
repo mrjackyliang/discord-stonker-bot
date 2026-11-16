@@ -37,7 +37,7 @@ Auto replies skip a message that a regex rule or affiliate cleanup has deleted.
 
 ## Requirements
 
-- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **<Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
 - **Channel permissions** — The bot needs View Channel and Send Messages, and reply mode also needs Read Message History.
 
 ## Settings
@@ -82,5 +82,5 @@ Responses post as written, so a message variable such as `%MEMBER_MENTION%` isn'
 - **A reply failed** — The member's message was deleted before the reply was sent.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s responses could include embeds, and its replies pinged the member. The rewrite sends plain text, never pings, and skips messages that another feature deleted.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology>'s responses could include embeds, and its replies pinged the member. The rewrite sends plain text, never pings, and skips messages that another feature deleted.
 :::

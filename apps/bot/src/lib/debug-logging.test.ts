@@ -27,7 +27,7 @@ import type {
  * Covers the saved switch, the log line that marks each change, and how another
  * process follows a change within a few seconds.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 describe('debug logging switch', () => {
   it('starts off, saves each change, and marks each change in the log once', async () => {

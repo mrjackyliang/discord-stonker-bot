@@ -340,7 +340,7 @@ const accountSecuritySchema: Web_Api_Schema<Web_Api_AccountSecurity> = z.object(
  * Validates the short-lived credential returned by fresh authentication.
  * The raw value is held only long enough for one sensitive request.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupGrantSchema: Web_Api_Schema<Web_Backup_Grant> = z.object({
   expiresAt: z.string(),
@@ -353,7 +353,7 @@ const backupGrantSchema: Web_Api_Schema<Web_Backup_Grant> = z.object({
  * Validates change counts shared by preview and apply answers.
  * Secret-bearing values never appear in this response shape.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupImportSummarySchema = z.object({
   accessTokens: z.object({
@@ -381,7 +381,7 @@ const backupImportSummarySchema = z.object({
  * Validates the comparison plan rendered by the import wizard.
  * Every fixed object boundary remains strict.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupImportPreviewSchema: Web_Api_Schema<Web_Backup_ImportPreview> = z.object({
   appVersion: z.string().nullable(),
@@ -425,7 +425,7 @@ const backupImportPreviewSchema: Web_Api_Schema<Web_Backup_ImportPreview> = z.ob
  * Adds the committed section list to the reviewed summary.
  * The console uses it to complete the progress presentation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const backupImportResultSchema: Web_Api_Schema<Web_Backup_ImportResult> = backupImportSummarySchema.extend({
   importedSections: z.array(z.enum([
@@ -747,7 +747,7 @@ const logPageSchema: Web_Api_Schema<Web_Api_LogPage> = z.object({
  * Reads whether Debug logging is on.
  * The bot, the control panel, and the worker share this one switch.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const diagnosticsSchema: Web_Api_Schema<Web_Api_Diagnostics> = z.object({
   debugLogging: z.boolean(),
@@ -1831,7 +1831,7 @@ export const logStreamPath = (query: Web_Api_LogQuery): string => `/api/v1/logs/
  * Reads whether Debug logging is on.
  * Anyone who can read the logs can see it.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const getDiagnostics = async (): Promise<Web_Api_Diagnostics> => requestJSON(
   '/api/v1/diagnostics',
@@ -1844,7 +1844,7 @@ export const getDiagnostics = async (): Promise<Web_Api_Diagnostics> => requestJ
  * Turns Debug logging on or off and answers with the saved setting.
  * The bot and the worker follow within a few seconds.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const updateDiagnostics = async (input: Web_Api_Diagnostics): Promise<Web_Api_Diagnostics> => requestJSON(
   '/api/v1/diagnostics',
@@ -1881,7 +1881,7 @@ export const parseLogEntry = (value: unknown): Web_Api_LogEntry | null => {
  *
  * @returns {Promise<string>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const confirmBackupOperation = async (purpose: Web_Backup_Purpose, password: string, code: string): Promise<string> => {
   const result: Web_Backup_Grant = await requestJSON('/api/v1/backup/confirmation', backupGrantSchema, {
@@ -1906,7 +1906,7 @@ export const confirmBackupOperation = async (purpose: Web_Backup_Purpose, passwo
  *
  * @returns {Promise<string>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const confirmBackupOperationWithPasskey = async (purpose: Web_Backup_Purpose): Promise<string> => {
   const ceremony: Web_Api_PasskeyCeremony = await requestJSON('/api/v1/backup/confirmation/passkey/options', passkeyCeremonySchema, {
@@ -1937,7 +1937,7 @@ export const confirmBackupOperationWithPasskey = async (purpose: Web_Backup_Purp
  *
  * @returns {Promise<void>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const downloadBackupExport = async (sections: Web_Backup_ExportSections, grant: string): Promise<void> => {
   const response: Response = await fetch('/api/v1/backup/export', {
@@ -1977,7 +1977,7 @@ export const downloadBackupExport = async (sections: Web_Backup_ExportSections, 
  *
  * @returns {Promise<Web_Backup_ImportPreview>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const previewBackupImport = async (source: Web_Backup_ImportSource): Promise<Web_Backup_ImportPreview> => requestJSON('/api/v1/backup/imports/preview', backupImportPreviewSchema, {
   body: { source },
@@ -1995,7 +1995,7 @@ export const previewBackupImport = async (source: Web_Backup_ImportSource): Prom
  *
  * @returns {Promise<Web_Backup_ImportResult>}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const applyBackupImport = async (source: Web_Backup_ImportSource, grant: string): Promise<Web_Backup_ImportResult> => requestJSON('/api/v1/backup/imports', backupImportResultSchema, {
   body: {

@@ -361,7 +361,7 @@ describe('legacy import boundaries', () => {
 
   it('stages the untouched v3.4.3 sample', () => {
     const result: Lib_LegacyImport_ImportLegacyConfiguration_Returns = importLegacyConfiguration(
-      readFileSync(new URL('../../../../assets/legacy/config-sample.json', import.meta.url), 'utf8'),
+      readFileSync(new URL('../../examples/legacy-config-sample.json', import.meta.url), 'utf8'),
       true,
       new Date('2026-10-22T12:00:00.000Z'),
     );

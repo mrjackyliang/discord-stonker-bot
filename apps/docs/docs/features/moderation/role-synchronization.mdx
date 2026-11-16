@@ -41,8 +41,8 @@ If any target role can't be managed, the bot changes none of that member's roles
 
 ## Requirements
 
-- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
-- **Role permissions** — The bot needs Manage Roles, and its role has to sit above every target role in the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology>.
+- **<Terminology title="Lets the bot see members join, leave, and change" to="/docs/reference/terminology#discord-basics">Server Members intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Role permissions** — The bot needs Manage Roles, and its role has to sit above every target role in the <Terminology title="The bot can only manage roles below its own top role" to="/docs/reference/terminology#discord-basics">role hierarchy</Terminology>.
 
 ## Settings
 
@@ -87,5 +87,5 @@ Each rule has exactly one of **Roles to add** and **Roles to remove**.
 - **The first change after a reconnect is ignored** — The bot sees role changes only for members it has seen since its last reconnect.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> ran on every member update, including nickname changes, added roles only when a member held none of them, and made one change per rule. The rewrite runs only on role changes, adds each missing role, combines all rules into one add and one remove, and checks for cycles when you save.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> ran on every member update, including nickname changes, added roles only when a member held none of them, and made one change per rule. The rewrite runs only on role changes, adds each missing role, combines all rules into one add and one remove, and checks for cycles when you save.
 :::

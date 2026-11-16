@@ -467,7 +467,7 @@ export type Web_Api_LogQuery = {
 /**
  * API.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Api_Diagnostics = {
   debugLogging: boolean;

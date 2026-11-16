@@ -42,11 +42,11 @@ Thread bumping posts nothing, and it leaves the thread's archive timer and lock 
 
 Each rule has these fields.
 
-| Field                       | Description                                                                                                                                                                    |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Name (`name`)               | The rule's name, up to 100 characters.                                                                                                                                         |
-| Channel (`channel`)         | The thread's parent channel, which the bot checks first.                                                                                                                       |
-| Thread (`thread.thread-id`) | The thread's <Terminology title="17- to 20-digit number that identifies a Discord object" to="/docs/reference/terminology#discord-id">Discord ID</Terminology>, typed by hand. |
+| Field                       | Description                                                                                                                                                                            |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name (`name`)               | The rule's name, up to 100 characters.                                                                                                                                                 |
+| Channel (`channel`)         | The thread's parent channel, which the bot checks first.                                                                                                                               |
+| Thread (`thread.thread-id`) | The thread's <Terminology title="The long number Discord gives every user, channel, and role" to="/docs/reference/terminology#discord-basics">Discord ID</Terminology>, typed by hand. |
 
 ## Example
 
@@ -71,7 +71,7 @@ Each rule has these fields.
 - **The thread stays archived** — The bot lacks permission in the thread, and a locked thread needs Manage Threads.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> checked its threads every second. The rewrite unarchives on connect and on each archive event, and checks the parent channel.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> checked its threads every second. The rewrite unarchives on connect and on each archive event, and checks the parent channel.
 
 The **Channel** picker lists only text-based channels, so a forum or media channel can't be chosen as the parent.
 :::

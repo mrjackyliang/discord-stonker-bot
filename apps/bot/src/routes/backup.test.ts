@@ -73,7 +73,7 @@ import type {
  * Identifies the invented Northwind Outfitters Discord server.
  * Legacy and export sources use the same stable test identity.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const SERVER_ID = '1197999049190674442';
 
@@ -83,7 +83,7 @@ const SERVER_ID = '1197999049190674442';
  * Represents the connection credential expected in a complete export.
  * The isolated fixture never reaches Discord.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const BOT_TOKEN = 'northwind-fixture-bot-token';
 
@@ -93,7 +93,7 @@ const BOT_TOKEN = 'northwind-fixture-bot-token';
  * Represents the signature key for an invented receiving route.
  * The export must open it only after fresh confirmation.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const FEATURE_SECRET = 'northwind-signing-secret-with-at-least-32-characters';
 
@@ -103,7 +103,7 @@ const FEATURE_SECRET = 'northwind-signing-secret-with-at-least-32-characters';
  * Represents the Telegram token for an invented notification target.
  * It verifies that notification credentials remain portable.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const NOTIFICATION_SECRET = '123456:northwind-notification-secret';
 
@@ -113,7 +113,7 @@ const NOTIFICATION_SECRET = '123456:northwind-notification-secret';
  * Gives one isolated administrator a real credential for fresh confirmation.
  * It is never expected in an exported document.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const ADMIN_PASSWORD: Tests_Routes_Backup_Password = 'northwind administrator password';
 
@@ -123,7 +123,7 @@ const ADMIN_PASSWORD: Tests_Routes_Backup_Password = 'northwind administrator pa
  * Exercises the former config.json mapping through the shared wizard source.
  * One unsupported section also verifies the not-brought-over report.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const legacyConfiguration: Tests_Routes_Backup_LegacyConfiguration = {
   'anti-raid': {},
@@ -182,7 +182,7 @@ const legacyConfiguration: Tests_Routes_Backup_LegacyConfiguration = {
  * Holds one running app with a fresh database per test.
  * Route assertions use the same production middleware stack.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 let harness: Tests_Routes_Backup_Harness = undefined;
 
@@ -208,7 +208,7 @@ afterEach(async () => {
  *
  * @returns {Tests_Routes_Backup_GetHarness_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function getHarness(): Tests_Routes_Backup_GetHarness_Returns {
   if (harness === undefined) {
@@ -231,7 +231,7 @@ function getHarness(): Tests_Routes_Backup_GetHarness_Returns {
  *
  * @returns {Tests_Routes_Backup_Confirm_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 async function confirm(
   client: Tests_Routes_Backup_Confirm_Client,
@@ -256,7 +256,7 @@ async function confirm(
  *
  * @returns {Tests_Routes_Backup_GrantFrom_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function grantFrom(response: Tests_Routes_Backup_GrantFrom_Response): Tests_Routes_Backup_GrantFrom_Returns {
   const body: Tests_Routes_Backup_LegacyConfiguration = Object(response['body']);

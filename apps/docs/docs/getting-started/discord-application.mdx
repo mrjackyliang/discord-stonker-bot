@@ -17,7 +17,7 @@ sidebar_position: 3
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Create the <Terminology title="Your bot's registration in the Discord Developer Portal" to="/docs/reference/terminology#discord-application">Discord application</Terminology> that the bot signs in as, and switch on the <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology> your features need.
+Create the <Terminology title="Your bot's entry in the Discord Developer Portal" to="/docs/reference/terminology#discord-basics">Discord application</Terminology> that the bot signs in as, and switch on the <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intents</Terminology> your features need.
 
 ## Create the Application
 
@@ -38,7 +38,7 @@ Keep the token private. Anyone who has it can sign in as your bot.
 
 ## Turn On Privileged Intents
 
-Switch on the <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intents</Terminology> for the features you plan to use, in the **Privileged <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway Intents</Terminology>** section of the **Bot** page.
+Switch on the <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intents</Terminology> for the features you plan to use, in the **Privileged <Terminology title="A kind of Discord event the bot asks to hear about" to="/docs/reference/terminology#discord-basics">Gateway Intents</Terminology>** section of the **Bot** page.
 
 | Intent          | Needed by                                                                                                                                                                       |
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -46,7 +46,7 @@ Switch on the <Terminology title="Intent you switch on in the Developer Portal" 
 | Server Members  | Anti-raid, impersonator alerts, role messages, role synchronization, the audit join, leave, nickname, username, and role routes, and every server tool except the emoji summary |
 | Presence        | Not used by any feature                                                                                                                                                         |
 
-The bot requests a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> only while an enabled, valid feature needs it. If a feature needs an intent that is off in the Developer Portal, Discord refuses the connection, and the control panel shows **Stopped by an error**.
+The bot requests a <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> only while an enabled, valid feature needs it. If a feature needs an intent that is off in the Developer Portal, Discord refuses the connection, and the control panel shows **Stopped by an error**.
 
 ## Install the Bot in Your Server
 

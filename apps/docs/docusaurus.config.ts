@@ -3,37 +3,60 @@ import { NovaIdentity } from '@cbnventures/nova/toolkit';
 import type { DocusaurusNovaConfig } from '@cbnventures/docusaurus-preset-nova/types/config';
 
 /**
- * Docusaurus - Identity.
- *
- * Reads the documentation identity from the generated Nova configuration.
- * Fallbacks keep the site runnable while consumers finish project metadata.
+ * Identity.
  *
  * @since 0.0.0
  */
 const identity = new NovaIdentity().forDocs();
 
 /**
- * Docusaurus - Config.
- *
- * Configures the generated documentation site with Nova's selected preset.
- * Consumers can extend these values through normal Docusaurus configuration.
+ * Docusaurus Configuration.
  *
  * @since 0.0.0
  */
 const config: DocusaurusNovaConfig = {
+  // Site Metadata.
   title: identity['title'] ?? '',
   titleDelimiter: '-',
-  tagline: identity['tagline'] ?? 'Documentation',
-  url: identity['url'] ?? 'https://www.example.com',
-  baseUrl: identity['baseUrl'] ?? '/',
+  tagline: identity['tagline'],
   favicon: './favicon.ico',
-  organizationName: identity['organizationName'] ?? 'your-org',
-  projectName: identity['projectName'] ?? 'discord-stonker-bot',
+
+  // Deployment.
+  url: identity['url'] ?? '',
+  baseUrl: identity['baseUrl'] ?? '/',
+  organizationName: identity['organizationName'],
+  projectName: identity['projectName'],
+  deploymentBranch: undefined,
+  githubHost: undefined,
+  githubPort: undefined,
   trailingSlash: true,
   noIndex: false,
-  onBrokenLinks: 'throw',
 
+  // Error Handling.
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
+  onDuplicateRoutes: 'throw',
+
+  // Static Assets.
+  staticDirectories: ['static'],
+  baseUrlIssueBanner: true,
+  scripts: [],
+  stylesheets: [],
+  clientModules: [],
+  themes: [],
+
+  // Custom Fields.
+  customFields: {},
+
+  // Head Tags.
   headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        property: 'og:type',
+        content: 'website',
+      },
+    },
     {
       tagName: 'link',
       attributes: {
@@ -68,17 +91,42 @@ const config: DocusaurusNovaConfig = {
     },
   ],
 
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: 'warn',
-    },
-  },
-
+  // Internationalization.
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
+    path: 'i18n',
+    localeConfigs: {
+      en: {
+        label: 'English',
+        direction: 'ltr',
+        htmlLang: 'en-US',
+        calendar: 'gregory',
+        path: 'en',
+      },
+    },
   },
 
+  // Markdown.
+  markdown: {
+    format: 'mdx',
+    mermaid: true,
+    emoji: true,
+    mdx1Compat: {
+      comments: true,
+      admonitions: true,
+      headingIds: true,
+    },
+    anchors: {
+      maintainCase: false,
+    },
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownImages: 'throw',
+    },
+  },
+
+  // Presets (Nova).
   presets: [[
     '@cbnventures/docusaurus-preset-nova',
     {
@@ -112,6 +160,21 @@ const config: DocusaurusNovaConfig = {
 
       // Plugins.
       plugins: {
+        docs: {
+          routeBasePath: 'docs',
+          sidebarPath: './sidebars.ts',
+          editUrl: 'https://github.com/mrjackyliang/discord-stonker-bot/tree/main/apps/docs/',
+          showLastUpdateTime: true,
+          showLastUpdateAuthor: true,
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: 'Current',
+              badge: false,
+              banner: 'none',
+            },
+          },
+        },
         blog: {
           showReadingTime: true,
           blogTitle: 'Blog',
@@ -130,25 +193,53 @@ const config: DocusaurusNovaConfig = {
             description: 'Release notes, migration guides, and notes on running a safer, sharper Discord community.',
           },
         },
-        docs: {
-          sidebarPath: './sidebars.ts',
-          routeBasePath: 'docs',
+        pages: {
+          editUrl: 'https://github.com/mrjackyliang/discord-stonker-bot/tree/main/apps/docs/',
+          showLastUpdateTime: true,
+          showLastUpdateAuthor: true,
         },
         sitemap: {
           lastmod: 'date',
           changefreq: 'weekly',
           priority: 0.5,
-          ignorePatterns: ['**/docs/tags/**'],
+          ignorePatterns: [`${identity['baseUrl'] ?? '/'}docs/tags/**`],
           filename: 'sitemap.xml',
         },
       },
 
+      // Analytics.
+      analytics: {
+        gtm: {
+          containerId: 'GTM-NJN3C25S',
+        },
+      },
+
       // Search.
-      search: {},
+      search: {
+        indexDocs: true,
+        indexBlog: true,
+        indexPages: true,
+        docsRouteBasePath: 'docs',
+        hashed: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        searchBarShortcutKeymap: 'mod+k',
+        searchResultLimits: 8,
+        fuzzyMatchingDistance: 1,
+        ignorePatterns: [],
+      },
+
+      // Progress Bar.
+      progressBar: true,
     },
   ]],
 
+  // Plugins.
+  plugins: [],
+
+  // Theme Config.
   themeConfig: {
+    // Site.
     site: {
       logo: {
         alt: 'Stonker Bot for Discord',
@@ -157,6 +248,13 @@ const config: DocusaurusNovaConfig = {
           dark: undefined,
         },
         href: '/',
+        target: undefined,
+        rel: undefined,
+        ariaLabel: undefined,
+        wordmark: {
+          light: undefined,
+          dark: undefined,
+        },
       },
       image: '/thumbnails/brand.png',
       metadata: [
@@ -170,22 +268,73 @@ const config: DocusaurusNovaConfig = {
         },
       ],
     },
+
+    // Color Mode.
+    colorMode: {
+      defaultMode: 'system',
+      disableSwitch: false,
+    },
+
+    // Navbar.
     navbar: {
       hideOnScroll: false,
       items: [
         {
-          label: 'Overview',
+          label: 'Docs',
           position: 'left',
-          type: 'doc',
-          docId: 'overview',
+          type: 'dropdown',
           icon: 'lucide:book-open',
+          items: [
+            {
+              label: 'Overview',
+              to: '/docs/overview/',
+              icon: 'lucide:rocket',
+              activeBaseRegex: '^/docs/(overview/|getting-started/|category/getting-started/|tags/)',
+            },
+            {
+              label: 'Control Panel',
+              to: '/docs/category/control-panel/',
+              icon: 'lucide:monitor-cog',
+              activeBaseRegex: '^/docs/(control-panel/|category/control-panel/)',
+            },
+            {
+              label: 'Features',
+              to: '/docs/category/features/',
+              icon: 'lucide:blocks',
+              activeBaseRegex: '^/docs/(features/|category/(features|safety|moderation|automation|community|integrations|web)/)',
+            },
+            {
+              label: 'Migration',
+              to: '/docs/category/migration/',
+              icon: 'lucide:layers',
+              activeBaseRegex: '^/docs/(migration/|category/migration/)',
+            },
+            {
+              label: 'Operations',
+              to: '/docs/category/operations/',
+              icon: 'lucide:activity',
+              activeBaseRegex: '^/docs/(operations/|category/operations/)',
+            },
+            {
+              label: 'Reference',
+              to: '/docs/category/reference/',
+              icon: 'lucide:library',
+              activeBaseRegex: '^/docs/(reference/|category/reference/)',
+            },
+            {
+              label: 'Contributing',
+              to: '/docs/category/contributing/',
+              icon: 'lucide:code',
+              activeBaseRegex: '^/docs/(contributing/|category/contributing/)',
+            },
+          ],
         },
         {
-          label: 'Installation',
+          label: 'Quick Start',
           position: 'left',
-          type: 'doc',
-          docId: 'getting-started/installation',
-          icon: 'lucide:rocket',
+          type: undefined,
+          to: '/docs/getting-started/installation/',
+          icon: 'lucide:play',
         },
         {
           label: 'Blog',
@@ -195,13 +344,43 @@ const config: DocusaurusNovaConfig = {
           icon: 'lucide:pen-line',
         },
         {
-          label: 'Sponsor',
-          position: 'right',
-          type: undefined,
-          href: 'https://github.com/sponsors/mrjackyliang',
-          icon: 'lucide:heart',
+          label: 'Resources',
+          position: 'left',
+          type: 'dropdown',
+          icon: 'lucide:life-buoy',
+          items: [
+            {
+              label: 'Troubleshooting',
+              to: '/docs/operations/troubleshooting/',
+              icon: 'lucide:wrench',
+            },
+            {
+              label: 'Changelog',
+              href: 'https://github.com/mrjackyliang/discord-stonker-bot/releases',
+              icon: 'lucide:history',
+            },
+            {
+              label: 'Report an Issue',
+              href: 'https://github.com/mrjackyliang/discord-stonker-bot/issues',
+              icon: 'lucide:bug',
+            },
+            {
+              label: 'Docker Hub',
+              href: 'https://hub.docker.com/r/mrjackyliang/discord-stonker-bot',
+              icon: 'lucide:package',
+            },
+          ],
         },
       ],
+    },
+
+    // Docs.
+    docs: {
+      versionPersistence: 'localStorage',
+      sidebar: {
+        hideable: false,
+        autoCollapseCategories: false,
+      },
     },
 
     // Blog.
@@ -224,6 +403,18 @@ const config: DocusaurusNovaConfig = {
       },
     },
 
+    // Table of Contents.
+    tableOfContents: {
+      minHeadingLevel: 2,
+      maxHeadingLevel: 3,
+    },
+
+    // Announcement Bar.
+    announcementBar: undefined,
+
+    // Back to Top Button.
+    backToTopButton: true,
+
     // Error Pages - overrides Nova's randomized defaults with consumer copy.
     // Any unset field falls through to the Nova-flavored randomized pool.
     errorPages: {
@@ -242,6 +433,7 @@ const config: DocusaurusNovaConfig = {
       },
     },
 
+    // Footer.
     footer: {
       sections: {
         docs: [
@@ -250,45 +442,83 @@ const config: DocusaurusNovaConfig = {
             href: '/docs/overview/',
           },
           {
-            label: 'Installation',
-            href: '/docs/getting-started/installation/',
+            label: 'Control Panel',
+            href: '/docs/category/control-panel/',
           },
           {
-            label: 'First-Run Setup',
-            href: '/docs/getting-started/first-run/',
+            label: 'Features',
+            href: '/docs/category/features/',
           },
           {
-            label: 'Legacy Migration',
-            href: '/docs/migration/legacy-migration/',
+            label: 'Migration',
+            href: '/docs/category/migration/',
+          },
+          {
+            label: 'Operations',
+            href: '/docs/category/operations/',
+          },
+          {
+            label: 'Reference',
+            href: '/docs/category/reference/',
+          },
+          {
+            label: 'Contributing',
+            href: '/docs/category/contributing/',
           },
         ],
-        project: [
+        resources: [
           {
             label: 'Blog',
             href: '/blog/',
           },
           {
-            label: 'GitHub',
+            label: 'Troubleshooting',
+            href: '/docs/operations/troubleshooting/',
+          },
+          {
+            label: 'Changelog',
+            href: 'https://github.com/mrjackyliang/discord-stonker-bot/releases',
+          },
+          {
+            label: 'Report an Issue',
+            href: 'https://github.com/mrjackyliang/discord-stonker-bot/issues',
+          },
+          {
+            label: 'Source Code',
             href: 'https://github.com/mrjackyliang/discord-stonker-bot',
+          },
+          {
+            label: 'Docker Hub',
+            href: 'https://hub.docker.com/r/mrjackyliang/discord-stonker-bot',
+          },
+        ],
+        project: [
+          {
+            label: 'Sponsor',
+            href: 'https://github.com/sponsors/mrjackyliang',
           },
           {
             label: 'Discord Developer Portal',
             href: 'https://discord.com/developers/applications',
           },
           {
-            label: 'Report an Issue',
-            href: 'https://github.com/mrjackyliang/discord-stonker-bot/issues',
+            label: 'Other Projects',
+            href: 'https://www.mrjackyliang.com/work/',
           },
         ],
         legal: [{
           label: 'License',
-          href: 'https://github.com/mrjackyliang/discord-stonker-bot/blob/main/LICENSE',
+          href: 'https://github.com/mrjackyliang/discord-stonker-bot/blob/HEAD/LICENSE',
         }],
       },
       layout: {
         docs: {
           title: 'Docs',
           section: 'docs',
+        },
+        resources: {
+          title: 'Resources',
+          section: 'resources',
         },
         project: {
           title: 'Project',
@@ -301,9 +531,39 @@ const config: DocusaurusNovaConfig = {
       },
       socialLinks: [
         {
+          icon: 'ri:facebook-fill',
+          href: 'https://www.facebook.com/jackyliangofficial',
+          label: 'Facebook',
+        },
+        {
+          icon: 'ri:twitter-x-fill',
+          href: 'https://x.com/mrjackyliang',
+          label: 'X',
+        },
+        {
+          icon: 'ri:youtube-fill',
+          href: 'https://www.youtube.com/@mrjackyliang',
+          label: 'YouTube',
+        },
+        {
+          icon: 'ri:instagram-fill',
+          href: 'https://www.instagram.com/mrjackyliang/',
+          label: 'Instagram',
+        },
+        {
           icon: 'ri:github-fill',
           href: 'https://github.com/mrjackyliang',
           label: 'GitHub',
+        },
+        {
+          icon: 'ri:linkedin-fill',
+          href: 'https://www.linkedin.com/in/mrjackyliang/',
+          label: 'LinkedIn',
+        },
+        {
+          icon: 'ri:reddit-fill',
+          href: 'https://www.reddit.com/user/mrjackyliang/',
+          label: 'Reddit',
         },
         {
           icon: 'ri:heart-fill',
@@ -314,8 +574,8 @@ const config: DocusaurusNovaConfig = {
       copyright: identity['copyright'],
       credit: true,
       cta: {
-        label: 'View on GitHub',
-        href: 'https://github.com/mrjackyliang/discord-stonker-bot',
+        label: 'Ready to run your own bot?',
+        href: '/docs/getting-started/installation/',
       },
     },
   },

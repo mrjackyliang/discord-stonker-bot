@@ -29,8 +29,8 @@ Delete messages that match, or fail to match, a pattern you write, and optionall
 ## How It Works
 
 - **What it reads** — New messages and edits that change a message's text, from members other than bots. The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
-- **How rules apply** — Rules run in order, and each one skips messages outside its channel and authors with one of its <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">excluded roles</Terminology>.
-- **Patterns** — Each pattern is a JavaScript <Terminology title="Text pattern used to match names or messages" to="/docs/reference/terminology#regular-expression">regular expression</Terminology>, and matching is case-sensitive unless you add the `i` flag.
+- **How rules apply** — Rules run in order, and each one skips messages outside its channel and authors with one of its <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">excluded roles</Terminology>.
+- **Patterns** — Each pattern is a JavaScript <Terminology title="A text pattern that matches names or messages" to="/docs/reference/terminology#feature-settings">regular expression</Terminology>, and matching is case-sensitive unless you add the `i` flag.
 - **Match setting** — With **Act when the message matches** on, a rule acts when its pattern matches, and with it off, the rule acts when the pattern doesn't match.
 - **What it does** — The first rule that applies sends its direct message, if any, then makes one attempt to delete the message, and no later rule runs.
 
@@ -40,7 +40,7 @@ When a regex rule deletes a message, affiliate cleanup and auto replies skip tha
 
 ## Requirements
 
-- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **<Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
 - **Channel permissions** — The bot needs View Channel and Manage Messages wherever a rule applies.
 - **Direct messages** — A member who blocks direct messages from server members doesn't receive the explanation, and the delete still happens.
 
@@ -48,14 +48,14 @@ When a regex rule deletes a message, affiliate cleanup and auto replies skip tha
 
 Each rule has these fields.
 
-| Field                                                                                                                                                  | Description                                                                   |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| Name (`name`)                                                                                                                                          | The rule's name, up to 100 characters.                                        |
-| Act when the message matches (`match`)                                                                                                                 | On to act when the pattern matches, off to act when it doesn't.               |
-| Regular expression (`regex`)                                                                                                                           | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.   |
-| Channel (`channel`)                                                                                                                                    | Optional single channel the rule is limited to.                               |
-| <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Roles to ignore</Terminology> (`excluded-roles`) | Optional list of 1 to 100 roles whose members the rule skips.                 |
-| Direct message → Text (`direct-message-payload.content`)                                                                                               | Optional text of up to 2,000 characters sent to the author before the delete. |
+| Field                                                                                                                                                    | Description                                                                   |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Name (`name`)                                                                                                                                            | The rule's name, up to 100 characters.                                        |
+| Act when the message matches (`match`)                                                                                                                   | On to act when the pattern matches, off to act when it doesn't.               |
+| Regular expression (`regex`)                                                                                                                             | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.   |
+| Channel (`channel`)                                                                                                                                      | Optional single channel the rule is limited to.                               |
+| <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">Roles to ignore</Terminology> (`excluded-roles`) | Optional list of 1 to 100 roles whose members the rule skips.                 |
+| Direct message → Text (`direct-message-payload.content`)                                                                                                 | Optional text of up to 2,000 characters sent to the author before the delete. |
 
 The direct message is sent as written, so a message variable the form offers, such as `%MEMBER_MENTION%`, isn't filled in.
 
@@ -80,11 +80,11 @@ The direct message is sent as written, so a message variable the form offers, su
 
 ## Troubleshooting
 
-- **A moderator's message was deleted** — Administrators and the server owner aren't skipped automatically, so add their roles to **<Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Roles to ignore</Terminology>**.
+- **A moderator's message was deleted** — Administrators and the server owner aren't skipped automatically, so add their roles to **<Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">Roles to ignore</Terminology>**.
 - **A rule doesn't apply inside a thread** — The channel filter compares the thread's own ID, so a rule limited to a parent channel doesn't cover its threads.
 - **`regex_rule_delete_failed` in the bot log** — The bot usually lacks Manage Messages in that channel, and the entry's `error` gives Discord's reason.
 - **`regex_rule_direct_message_failed` in the bot log** — The author doesn't accept direct messages from the bot, and the delete still ran.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> skipped anyone with the Administrator permission, and a skipped member also stopped later rules from running. The rewrite skips only <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">excluded roles</Terminology>, keeps evaluating later rules, and sends the direct message before the delete instead of at the same time.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> skipped anyone with the Administrator permission, and a skipped member also stopped later rules from running. The rewrite skips only <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">excluded roles</Terminology>, keeps evaluating later rules, and sends the direct message before the delete instead of at the same time.
 :::

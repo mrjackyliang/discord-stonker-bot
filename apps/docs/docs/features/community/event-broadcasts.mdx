@@ -76,15 +76,15 @@ Each rule has these fields.
 
 ## Message Variables
 
-| Variable              | Becomes                                                                                                                                                                    |
-|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `%CHANNEL_TAG%`       | A mention of the event's channel, or nothing for an external event                                                                                                         |
-| `%CREATOR_TAG%`       | A mention of the event's creator, or "Unknown creator"                                                                                                                     |
-| `%EVENT_DESCRIPTION%` | The event's description, or "No description"                                                                                                                               |
-| `%EVENT_NAME%`        | The event's name, or "Unnamed event"                                                                                                                                       |
-| `%LOCATION%`          | The external event's location, or nothing                                                                                                                                  |
-| `%SCHEDULED_TIME%`    | The start time, shown in each reader's own <Terminology title="IANA zone name such as America/New_York" to="/docs/reference/terminology#time-zone">time zone</Terminology> |
-| `%USER_COUNT%`        | The interested-member count Discord sent, which is often 0                                                                                                                 |
+| Variable              | Becomes                                                                                                                                                                                             |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `%CHANNEL_TAG%`       | A mention of the event's channel, or nothing for an external event                                                                                                                                  |
+| `%CREATOR_TAG%`       | A mention of the event's creator, or "Unknown creator"                                                                                                                                              |
+| `%EVENT_DESCRIPTION%` | The event's description, or "No description"                                                                                                                                                        |
+| `%EVENT_NAME%`        | The event's name, or "Unnamed event"                                                                                                                                                                |
+| `%LOCATION%`          | The external event's location, or nothing                                                                                                                                                           |
+| `%SCHEDULED_TIME%`    | The start time, shown in each reader's own <Terminology title="The zone a schedule's times are read in; UTC by default" to="/docs/reference/terminology#schedules-and-jobs">time zone</Terminology> |
+| `%USER_COUNT%`        | The interested-member count Discord sent, which is often 0                                                                                                                                          |
 
 ## Limits
 
@@ -93,12 +93,12 @@ Each rule has these fields.
 
 ## Troubleshooting
 
-- **Example rules never post** — The <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology> set the creator to `000000000000000000`, so remove that creator or replace it with a real member ID.
+- **Example rules never post** — The <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology> set the creator to `000000000000000000`, so remove that creator or replace it with a real member ID.
 - **A deleted event wasn't announced** — No rule has the **Canceled** status with that event's type and creator.
 - **"Configured channel is not sendable for rule: …"** — The rule's channel can't hold messages, such as a category or forum channel, so choose a text channel. A missing permission shows Discord's error, such as "Missing Permissions", in a `broadcast_event_create_failed`, `broadcast_event_update_failed`, or `broadcast_event_delete_failed` log entry.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> posted event changes to Twitter only, required a creator, and treated every new event as scheduled. The rewrite posts to a Discord channel, so imported rules without a `channel` stay off until you choose a destination.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> posted event changes to Twitter only, required a creator, and treated every new event as scheduled. The rewrite posts to a Discord channel, so imported rules without a `channel` stay off until you choose a destination.
 
 `%CHANNEL_TAG%` now becomes a channel mention instead of a channel name, and `%SCHEDULED_TIME%` shows only the start time.
 :::

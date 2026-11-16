@@ -24,7 +24,6 @@ discord-stonker-bot/
 |   |-- bot/              - Nova Discord bot workspace
 |   `-- docs/             - Docusaurus documentation workspace
 |-- assets/
-|   `-- legacy/           - Local pre-rewrite implementation and configuration reference
 |-- conventions/          - Nova-generated coding conventions
 |-- packages/
 |   `-- docker/           - Private s6 appliance assembly and root filesystem
@@ -177,8 +176,6 @@ configuration keys in the new runtime.
 
 - Build the replacement in `apps/bot` from Nova's Discord bot scaffold with Docker
   packaging.
-- Treat `assets/legacy/src/`, `assets/legacy/config-sample.json`, and the legacy documentation as a
-  behavior inventory, not a code structure to preserve.
 - Do not port the legacy initializer or modules line by line.
 - Do not promise feature parity until a feature matrix records an explicit decision for
   every legacy capability.

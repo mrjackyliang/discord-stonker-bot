@@ -55,7 +55,7 @@ import type {
  * How long a database query has to take before Debug logging notes it.
  * Quick queries stay out of the log so the slow ones stand out.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const SLOW_QUERY_MILLISECONDS: Lib_DebugTiming_SlowQueryMilliseconds = 250;
 
@@ -65,7 +65,7 @@ const SLOW_QUERY_MILLISECONDS: Lib_DebugTiming_SlowQueryMilliseconds = 250;
  * How long a feature handler has to take before Debug logging notes it.
  * Most handlers finish well inside a second.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const SLOW_HANDLER_MILLISECONDS: Lib_DebugTiming_SlowHandlerMilliseconds = 1_000;
 
@@ -79,7 +79,7 @@ const SLOW_HANDLER_MILLISECONDS: Lib_DebugTiming_SlowHandlerMilliseconds = 1_000
  *
  * @returns {Lib_DebugTiming_DescribeStatement_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function describeStatement(input: Lib_DebugTiming_DescribeStatement_Input): Lib_DebugTiming_DescribeStatement_Returns {
   let text: Lib_DebugTiming_DescribeStatement_Text = '';
@@ -110,7 +110,7 @@ function describeStatement(input: Lib_DebugTiming_DescribeStatement_Input): Lib_
  *
  * @returns {Lib_DebugTiming_TimeQuery_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 function timeQuery(component: Lib_DebugTiming_TimeQuery_Component, statement: Lib_DebugTiming_TimeQuery_Statement, startedAt: Lib_DebugTiming_TimeQuery_StartedAt, result: Lib_DebugTiming_TimeQuery_Result): Lib_DebugTiming_TimeQuery_Returns {
   if ((result instanceof Promise) === false) {
@@ -144,7 +144,7 @@ function timeQuery(component: Lib_DebugTiming_TimeQuery_Component, statement: Li
  *
  * @returns {Lib_DebugTiming_TimeFeatureHandler_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export async function timeFeatureHandler<Result>(
   featureModule: Lib_DebugTiming_TimeFeatureHandler_Module,
@@ -196,7 +196,7 @@ export async function timeFeatureHandler<Result>(
  *
  * @returns {Lib_DebugTiming_TimedPool_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function timedPool<Target extends object>(pool: Lib_DebugTiming_TimedPool_Target<Target>, component: Lib_DebugTiming_TimedPool_Component): Lib_DebugTiming_TimedPool_Returns<Target> {
   return new Proxy(pool, {
@@ -257,7 +257,7 @@ export function timedPool<Target extends object>(pool: Lib_DebugTiming_TimedPool
  *
  * @returns {Lib_DebugTiming_WatchDiscordDebug_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Client): Lib_DebugTiming_WatchDiscordDebug_Returns {
   const attachedAt: Lib_DebugTiming_WatchDiscordDebug_AttachedAt = Date.now();
@@ -273,7 +273,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const markDown: Lib_DebugTiming_WatchDiscordDebug_MarkDown = (shardId) => {
     if (downSince.has(shardId) === false) {
@@ -293,7 +293,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
    *
    * @returns {Shared_LogContext}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const recovered: Lib_DebugTiming_WatchDiscordDebug_Recovered = (shardId) => {
     const droppedAt: Lib_DebugTiming_WatchDiscordDebug_DroppedAt = downSince.get(shardId);
@@ -374,7 +374,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
  *
  * @returns {Lib_DebugTiming_WatchRestRateLimits_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function watchRestRateLimits(rest: Lib_DebugTiming_WatchRestRateLimits_Rest, component: Lib_DebugTiming_WatchRestRateLimits_Component): Lib_DebugTiming_WatchRestRateLimits_Returns {
   rest.on(RESTEvents.RateLimited, (rateLimit) => {

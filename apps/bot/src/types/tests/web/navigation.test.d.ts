@@ -33,7 +33,7 @@ export type Tests_Web_Navigation_Tabs = Web_Navigation_Tabs;
 /**
  * Navigation - Create History Browser.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_CreateHistoryBrowser_InitialPath = string;
 export type Tests_Web_Navigation_CreateHistoryBrowser_Returns = Tests_Web_Navigation_HistoryFixture;
@@ -46,7 +46,7 @@ export type Tests_Web_Navigation_CreateHistoryBrowser_NextPath = string;
 /**
  * Navigation - History fixture.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_HistoryFixture = {
   back: () => void;
@@ -58,7 +58,7 @@ export type Tests_Web_Navigation_HistoryFixture = {
 /**
  * Navigation - History position.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_HistoryPosition = {
   value: number;
@@ -67,7 +67,7 @@ export type Tests_Web_Navigation_HistoryPosition = {
 /**
  * Navigation - Move.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_Move = (direction: Tests_Web_Navigation_Move_Direction) => Tests_Web_Navigation_Move_Returns;
 export type Tests_Web_Navigation_Move_Direction = number;
@@ -78,7 +78,7 @@ export type Tests_Web_Navigation_Move_NextPath = string | undefined;
 /**
  * Navigation - Path From History URL.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_PathFromHistoryUrl_Url = Web_Navigation_HistoryURL;
 export type Tests_Web_Navigation_PathFromHistoryUrl_CurrentPath = string;
@@ -87,14 +87,14 @@ export type Tests_Web_Navigation_PathFromHistoryUrl_Returns = string;
 /**
  * Navigation - Remember route.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_RememberRoute = (route: Web_AppNavigation_Route) => void;
 
 /**
  * Navigation - Route state.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_RouteState = {
   value: Web_AppNavigation_Route;
@@ -103,6 +103,6 @@ export type Tests_Web_Navigation_RouteState = {
 /**
  * Navigation - Stop.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Tests_Web_Navigation_Stop = () => void;

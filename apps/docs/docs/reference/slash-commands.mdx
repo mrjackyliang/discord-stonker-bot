@@ -15,11 +15,11 @@ sidebar_position: 2
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Run the bot's <Terminology title="A /command members run from Discord's message box" to="/docs/reference/terminology#slash-command">slash commands</Terminology> from Discord's message box, with the options, permissions, and replies for each one.
+Run the bot's <Terminology title="A /command members type in Discord's message box" to="/docs/reference/terminology#discord-basics">slash commands</Terminology> from Discord's message box, with the options, permissions, and replies for each one.
 
 ## Who Can Use Commands
 
-- **Server tools** — You need one of the tool's <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted roles</Terminology> and the command's Discord permission, and the server owner isn't exempt from the <Terminology title="Role you allow to run a bot command" to="/docs/reference/terminology#trusted-role">trusted role</Terminology>.
+- **Server tools** — You need one of the tool's <Terminology title="A role allowed to run a bot command" to="/docs/reference/terminology#feature-settings">trusted roles</Terminology> and the command's Discord permission, and the server owner isn't exempt from the <Terminology title="A role allowed to run a bot command" to="/docs/reference/terminology#feature-settings">trusted role</Terminology>.
 - **Where they work** — In the server only, not in direct messages.
 - **Who sees the reply** — Only you, so other members don't see your commands or their answers.
 
@@ -71,7 +71,7 @@ Bans 1 to 25 users by ID, including users who aren't members. Default permission
 | `confirm`                | Required, and nothing changes unless it is true.                                       |
 | `delete-message-seconds` | Optional, how much of each user's message history to delete, from 0 to 604800 seconds. |
 
-The command refuses the whole list when it includes you, the server owner, or the bot, or when a member in the list is out of reach in the <Terminology title="Rule that a role manages only roles below it" to="/docs/reference/terminology#role-hierarchy">role hierarchy</Terminology>. The reply counts how many bans succeeded and failed.
+The command refuses the whole list when it includes you, the server owner, or the bot, or when a member in the list is out of reach in the <Terminology title="The bot can only manage roles below its own top role" to="/docs/reference/terminology#discord-basics">role hierarchy</Terminology>. The reply counts how many bans succeeded and failed.
 
 ## The Confirm Option
 

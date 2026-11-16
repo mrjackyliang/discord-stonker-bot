@@ -18,7 +18,7 @@ import type {
  * Verifies purpose, browser session, single-use, and five-minute expiry rules.
  * Wrong bindings do not consume an otherwise valid credential.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 describe('backup grant bindings and expiry', () => {
   it('allows exactly one matching use', () => {

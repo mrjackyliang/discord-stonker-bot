@@ -216,7 +216,7 @@ export type Web_Components_Can = (permission: Web_Api_Permission) => boolean;
 /**
  * Components - App Shell phone sheet.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Components_AppShell_PhoneSheet = {
   content: ReactNode;
@@ -634,7 +634,7 @@ export type Web_Components_LogComponentOption = {
 /**
  * Components.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export type Web_Components_LogsView_Props = {
   canChangeDebugLogging: boolean;

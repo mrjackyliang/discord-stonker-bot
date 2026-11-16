@@ -52,13 +52,13 @@ The **Features** page shows all 19 features for the selected server as cards, wi
 
 A feature that isn't set up shows **Not set up yet** with two choices, and nothing is saved until you select **Save**. The feature stays off after its first save, until you turn it on with the switch.
 
-- **Start from the example** — Loads <Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">example settings</Terminology> into the form.
+- **Start from the example** — Loads <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology> into the form.
 - **Start from scratch** — Opens an empty form with only the parts the feature needs.
 
 You can also replace every feature for a server by choosing **An older config.json** in the [Backup wizard](/docs/control-panel/export-and-import/#import-an-older-configjson).
 
 :::warning
-<Terminology title="Example values that start a feature not set up" to="/docs/reference/terminology#example-settings">Example settings</Terminology> come from a test setup. Their channels and roles show as **Unknown channel** or **Unknown role** until you choose your own, some IDs are placeholders such as `000000000000000000`, and their secret fields start empty.
+<Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">Example settings</Terminology> come from a test setup. Their channels and roles show as **Unknown channel** or **Unknown role** until you choose your own, some IDs are placeholders such as `000000000000000000`, and their secret fields start empty.
 :::
 
 ## Edit Settings
@@ -66,11 +66,11 @@ You can also replace every feature for a server by choosing **An older config.js
 The form groups the settings into sections, with a hint under fields that need one.
 
 - **Pickers** — Channel and role fields list the names the bot found in the selected server. A deleted one shows **(deleted)**, and an ID that isn't in the server shows as **Unknown channel** or **Unknown role** with the ID.
-- **Typed IDs** — Thread IDs and member IDs are text fields that take a <Terminology title="17- to 20-digit number that identifies a Discord object" to="/docs/reference/terminology#discord-id">Discord ID</Terminology> of 17 to 20 digits.
+- **Typed IDs** — Thread IDs and member IDs are text fields that take a <Terminology title="The long number Discord gives every user, channel, and role" to="/docs/reference/terminology#discord-basics">Discord ID</Terminology> of 17 to 20 digits.
 - **Lists** — Simple lists take one value per line, and commas are kept as part of a value.
 - **Cards** — Repeatable items, such as rules, appear as cards with **Move up**, **Move down**, **Copy**, and **Remove** buttons, plus an **Add** button below the last card.
 - **Optional parts** — A group, list, or secret you haven't used shows an **Add** button, and an added one has a **Remove** button.
-- **Message fields** — Show a button for each <Terminology title="Placeholder the bot fills in when a message sends" to="/docs/reference/terminology#message-variable">message variable</Terminology>, which inserts it at the cursor. The buttons list only the variables that feature supports.
+- **Message fields** — Show a button for each <Terminology title="A %PLACEHOLDER% the bot fills in when it sends" to="/docs/reference/terminology#feature-settings">message variable</Terminology>, which inserts it at the cursor. The buttons list only the variables that feature supports.
 - **Other values** — Anything the form can't draw as a field appears as a JSON text box, with "This isn't valid JSON." when the text can't be read.
 
 <Frame caption="A feature form with an unsaved change">
@@ -100,13 +100,13 @@ Use the switch at the top of the feature's page, or the switch on the **Features
 
 ## Encrypted Secret Fields
 
-Wherever a feature needs a credential, such as an API key or a webhook URL, the form stores it as an <Terminology title="Credential stored encrypted and never shown again" to="/docs/reference/terminology#encrypted-secret">encrypted secret</Terminology>.
+Wherever a feature needs a credential, such as an API key or a webhook URL, the form stores it as an <Terminology title="A saved credential the panel encrypts and never shows again" to="/docs/reference/terminology#running-the-bot">encrypted secret</Terminology>.
 
 - **Saved value** — The field shows **Saved** with "Stored encrypted. It's never shown again." and a **Replace** button.
 - **Replace the value** — Select **Replace**, enter the new value of up to 3,000 characters, then save. Leaving the field empty, or selecting **Keep the saved value**, keeps the old one.
 - **Copies** — **Copy** on a card doesn't copy its secrets, so the copied card asks for its own value.
 - **Scope** — Each value belongs to the selected server only, and a secret no feature uses any more is deleted when you save.
-- **After a lost key** — A lost <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> removes every saved secret, so these fields are empty again, and the **Saved secrets were removed** notice links to each feature that had one. Entering the values and saving takes the feature off that notice, as described in [Storage and Backups](/docs/operations/storage-and-backups/#the-saved-secrets-notice).
+- **After a lost key** — A lost <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> removes every saved secret, so these fields are empty again, and the **Saved secrets were removed** notice links to each feature that had one. Entering the values and saving takes the feature off that notice, as described in [Storage and Backups](/docs/operations/storage-and-backups/#the-saved-secrets-notice).
 
 <Frame caption="A saved secret field" style={{ maxWidth: 902, marginInline: 'auto' }}>
   <ThemedImage sources={{ light: managingFeaturesThreeLight, dark: managingFeaturesThreeDark }} alt="Message copiers destination sending to a Discord webhook, with the webhook URL showing Saved, the note that it is stored encrypted and never shown again, and Replace" width={900} height={362} style={{ maxWidth: '100%', height: 'auto' }} />
@@ -120,7 +120,7 @@ Saving checks the settings with the feature's own rules and the real secret valu
 - **Wrong format** — A field shows what it expects, such as "Enter a Discord ID (17 to 20 digits)." or "Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/."
 - **Whole-feature problems** — A problem that no single field shows is listed in the message at the top.
 
-Some problems can still appear when the bot connects, such as a secret that was removed after the <Terminology title="Generated file that encrypts every stored secret" to="/docs/reference/terminology#credential-key">credential key</Terminology> was lost. That feature stays off while the others keep running, and the Overview page lists it under <Terminology title="Errors that kept features off at the last connect" to="/docs/reference/terminology#configuration-issues">configuration issues</Terminology>, except for scheduled posts, RSS feeds, permission toggles, and web applications, which the bot process doesn't run.
+Some problems can still appear when the bot connects, such as a secret that was removed after the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> was lost. That feature stays off while the others keep running, and the Overview page lists it under <Terminology title="Why a feature stayed off the last time the bot connected" to="/docs/reference/terminology#running-the-bot">configuration issues</Terminology>, except for scheduled posts, RSS feeds, permission toggles, and web applications, which the bot process doesn't run.
 
 ## Who Can Change Features
 

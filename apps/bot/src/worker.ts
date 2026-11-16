@@ -91,7 +91,7 @@ import type {
  * How long a job has to take before Debug logging notes it.
  * Most jobs finish well inside a second.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const SLOW_JOB_MILLISECONDS: Worker_SlowJobMilliseconds = 1_000;
 

@@ -29,7 +29,7 @@ Post a plain-text notice to a moderator channel when members join, leave, or cha
 
 ## How It Works
 
-Each <Terminology title="One audited event type sent to its own channel" to="/docs/reference/terminology#audit-route">audit route</Terminology> you configure sends its notices to its own channel.
+Each <Terminology title="One kind of audited event, sent to its own channel" to="/docs/reference/terminology#feature-settings">audit route</Terminology> you configure sends its notices to its own channel.
 
 | Section (setting)                     | Sent when                       | The notice includes                                              |
 |---------------------------------------|---------------------------------|------------------------------------------------------------------|
@@ -54,16 +54,16 @@ Audit notifications post in your Discord channels. Alerts about the bot itself, 
 
 ## Requirements
 
-| Routes                                                                           | <Terminology title="Category of Discord events the bot subscribes to" to="/docs/reference/terminology#gateway-intent">Gateway intent</Terminology>                      |
-|----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `guild-join`, `guild-leave`, `change-nickname`, `change-username`, `role-change` | Server Members, a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology>  |
-| `delete-message`, `update-message`, `includes-link`, `upload-attachment`         | Guild Messages                                                                                                                                                          |
-| `includes-link`, `update-message`                                                | Message Content, a <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> |
+| Routes                                                                           | <Terminology title="A kind of Discord event the bot asks to hear about" to="/docs/reference/terminology#discord-basics">Gateway intent</Terminology>                               |
+|----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `guild-join`, `guild-leave`, `change-nickname`, `change-username`, `role-change` | Server Members, a <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology>  |
+| `delete-message`, `update-message`, `includes-link`, `upload-attachment`         | Guild Messages                                                                                                                                                                     |
+| `includes-link`, `update-message`                                                | Message Content, a <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> |
 
 The bot also needs View Channel and Send Messages in each route's channel.
 
 :::warning
-The `upload-attachment` route doesn't request the <Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>. Discord leaves file details out of messages for bots without that intent, so this route may stay silent unless another enabled feature requests it.
+The `upload-attachment` route doesn't request the <Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>. Discord leaves file details out of messages for bots without that intent, so this route may stay silent unless another enabled feature requests it.
 :::
 
 ## Settings
@@ -99,9 +99,9 @@ Each route appears as its own section, and at least one route is required.
 ## Troubleshooting
 
 - **A deleted message wasn't reported** — The message arrived before the bot's last reconnect, fell outside the 200 most recent messages in its channel, or went in a bulk delete.
-- **The file route stays silent** — Turn on a feature that requests the <Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>, as described in the warning above.
+- **The file route stays silent** — Turn on a feature that requests the <Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>, as described in the warning above.
 - **"Configured audit channel is unavailable."** — This log entry means a route's channel is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> sent embeds that copied message text, re-uploaded attachments, and reported bulk deletes one message at a time. The rewrite sends plain text without message content, lists hosts instead of full URLs and file names instead of files, and doesn't report bulk deletes.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> sent embeds that copied message text, re-uploaded attachments, and reported bulk deletes one message at a time. The rewrite sends plain text without message content, lists hosts instead of full URLs and file names instead of files, and doesn't report bulk deletes.
 :::

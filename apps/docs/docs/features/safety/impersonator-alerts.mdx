@@ -26,7 +26,7 @@ Alert moderators when a member's username or display name matches a pattern that
 2. Strips accents before matching, so an accented copy of a staff name matches the same pattern as the original.
 3. Re-checks names when members change their server nickname or username, so an account that switches to a staff name later is still flagged.
 4. Exempts the real account per rule, so the person you protect never triggers their own alert.
-5. Stays <Terminology title="Alerts moderators without banning, kicking, or deleting" to="/docs/reference/terminology#observation-only">observation-only</Terminology>, so a false match never removes anyone.
+5. Stays <Terminology title="Only alerts moderators; never acts on members" to="/docs/reference/terminology#feature-settings">observation-only</Terminology>, so a false match never removes anyone.
 
 ## How It Works
 
@@ -38,23 +38,23 @@ Alert moderators when a member's username or display name matches a pattern that
 
 Because names are lowercased first, it is recommended to write patterns in lowercase. A pattern that contains capital letters matches only when you add the `i` flag.
 
-These alerts post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+These alerts post only in your Discord <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
 
 ## Requirements
 
-- **<Terminology title="Privileged intent for member join, leave, and update events" to="/docs/reference/terminology#server-members-intent">Server Members intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
-- **Channel permissions** — The bot needs View Channel and Send Messages in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+- **<Terminology title="Lets the bot see members join, leave, and change" to="/docs/reference/terminology#discord-basics">Server Members intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Send Messages in the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>.
 
 ## Settings
 
-| Field                                         | Description                                                                                                                                                   |
-|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Alert destination → Channel (`channel`)       | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, required. |
-| Protected identities (`entities`)             | 1 to 100 rules.                                                                                                                                               |
-| Name (`entities[].name`)                      | The rule's name, shown in each alert, up to 100 characters.                                                                                                   |
-| Regular expression (`entities[].regex`)       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                   |
-| Message → Text (`entities[].payload.content`) | Optional alert text of up to 2,000 characters.                                                                                                                |
-| Trusted member (`entities[].user.user-id`)    | Optional Discord ID, typed in, of the account this rule skips.                                                                                                |
+| Field                                         | Description                                                                                                                                                        |
+|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Alert destination → Channel (`channel`)       | The <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, required. |
+| Protected identities (`entities`)             | 1 to 100 rules.                                                                                                                                                    |
+| Name (`entities[].name`)                      | The rule's name, shown in each alert, up to 100 characters.                                                                                                        |
+| Regular expression (`entities[].regex`)       | The Pattern, up to 512 characters, and optional Flags, up to 16 characters.                                                                                        |
+| Message → Text (`entities[].payload.content`) | Optional alert text of up to 2,000 characters.                                                                                                                     |
+| Trusted member (`entities[].user.user-id`)    | Optional Discord ID, typed in, of the account this rule skips.                                                                                                     |
 
 Without a message, the alert starts with "A potential impersonator was detected: %MEMBER_USER_MENTION%."
 
@@ -90,8 +90,8 @@ Only `%MEMBER_USER_MENTION%` is replaced, and any other variable the form offers
 
 - **A pattern never matches** — Check it for capital letters, because names are lowercased before matching.
 - **A name change wasn't flagged** — The bot sees changes only for members it has seen since its last reconnect. Username, server nickname, and global display-name changes all trigger a new check.
-- **"Configured impersonator-alert channel is unavailable."** — This log entry means the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead, and a channel the bot can't see logs "Missing Access".
+- **"Configured impersonator-alert channel is unavailable."** — This log entry means the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead, and a channel the bot can't see logs "Missing Access".
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> checked usernames on join and on username changes, and nicknames on update, kept letter case, and posted one alert for every matching rule. The rewrite checks usernames and display names, lowercases them, and posts one alert per event.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> checked usernames on join and on username changes, and nicknames on update, kept letter case, and posted one alert for every matching rule. The rewrite checks usernames and display names, lowercases them, and posts one alert per event.
 :::

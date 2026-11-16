@@ -1,0 +1,45 @@
+---
+title: "Stonker Bot for Discord Serves Its Own Invite Page"
+description: Version 1.9.0 runs a web server inside the bot and hands visitors a single-use server invite once they pass a reCAPTCHA check.
+slug: stonker-bot-for-discord-adds-invite-page
+authors:
+  - mrjackyliang
+keywords:
+  - stonker bot for discord
+  - invite page
+  - recaptcha
+  - discord invites
+  - web server
+tags:
+  - release
+  - discord
+  - web
+---
+
+Stonker Bot for Discord 1.9.0 is the first version that serves web pages. Its Invite Generator shows a page where visitors pass a Google reCAPTCHA check and get a single-use invite to the server.
+
+{/* truncate */}
+
+## Why It Matters
+
+A permanent invite link spreads wherever it's pasted, and automated accounts can collect it the same way people do. Raids often start with an invite that was never meant to travel that far.
+
+With the Invite Generator, every visitor gets their own invite, and only after proving they're a person.
+
+## What's Included
+
+### A Web Server in the Bot
+
+The bot can run its own HTTP and HTTPS servers, set with an HTTP port, an HTTPS port, and the HTTPS key, certificate, and CA. No separate web host is needed.
+
+### Single-Use Invites
+
+Each visitor who passes the check gets a new invite with one use. A shared copy of the link stops working once it's used.
+
+### A Page You Design
+
+The page's design is customizable, with code injection for anything the settings don't cover.
+
+## Where It Is Today
+
+The invite page now lives in Web Applications: you design it in the control panel with a live preview, set each invite's lifetime and uses, and limit join attempts to 5 per network every 10 minutes. [Web Applications](/docs/features/web/web-applications/) covers the setup.

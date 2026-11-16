@@ -24,16 +24,16 @@ Alert moderators when a message contains a phrase from your watch list, even whe
 
 1. Matches disguised spellings such as "s33d phr4se" or "SEED-phrase", so simple tricks don't hide a phrase from moderators.
 2. Groups phrases into categories, so each alert says why the message was flagged.
-3. Stays <Terminology title="Alerts moderators without banning, kicking, or deleting" to="/docs/reference/terminology#observation-only">observation-only</Terminology>, so moderators decide what happens to the message.
+3. Stays <Terminology title="Only alerts moderators; never acts on members" to="/docs/reference/terminology#feature-settings">observation-only</Terminology>, so moderators decide what happens to the message.
 
 ## How It Works
 
 - **What it reads** — New messages and edits that change a message's text, from members other than bots.
-- **How it cleans text** — The bot applies the same <Terminology title="Text cleanup applied before names or phrases are compared" to="/docs/reference/terminology#normalization">normalization</Terminology> to your phrases and to each message before comparing them.
+- **How it cleans text** — The bot applies the same <Terminology title="Cleanup that makes look-alike text match" to="/docs/reference/terminology#feature-settings">normalization</Terminology> to your phrases and to each message before comparing them.
 - **How it matches** — A phrase matches only as whole words, so "scam" matches "sc4m alert" but not "scammer".
 - **What it posts** — One embed per message, titled "Suspicious phrase detected", listing every category that matched.
 
-The <Terminology title="Text cleanup applied before names or phrases are compared" to="/docs/reference/terminology#normalization">normalization</Terminology> steps, in order:
+The <Terminology title="Cleanup that makes look-alike text match" to="/docs/reference/terminology#feature-settings">normalization</Terminology> steps, in order:
 
 1. Accents and other marks are removed, and styled or fullwidth letters become plain ones.
 2. Symbols and punctuation become spaces, so "seed-phrase" reads as "seed phrase".
@@ -42,21 +42,21 @@ The <Terminology title="Text cleanup applied before names or phrases are compare
 
 The embed shows the author, the channel ID, the matching categories, an excerpt of up to 700 characters, and a link to the message. Suspicious words runs before regex rules and affiliate cleanup, so the link can point to a message another feature deleted a moment later.
 
-These alerts post only in your Discord <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
+These alerts post only in your Discord <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, while [Notifications](/docs/control-panel/notifications/) sends alerts about the bot itself to your phone or inbox.
 
 ## Requirements
 
-- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
-- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel, Send Messages, and Embed Links in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+- **<Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel in the channels it watches, and View Channel, Send Messages, and Embed Links in the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>.
 
 ## Settings
 
-| Field                                    | Description                                                                                                                                                   |
-|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Phrase categories (`categories`)         | 1 to 100 categories.                                                                                                                                          |
-| Category (`categories[].category`)       | The category's name, shown in each alert, up to 100 characters.                                                                                               |
-| Words and phrases (`categories[].words`) | 1 to 250 phrases, each up to 200 characters.                                                                                                                  |
-| Alert destination → Channel (`channel`)  | The <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, required. |
+| Field                                    | Description                                                                                                                                                        |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Phrase categories (`categories`)         | 1 to 100 categories.                                                                                                                                               |
+| Category (`categories[].category`)       | The category's name, shown in each alert, up to 100 characters.                                                                                                    |
+| Words and phrases (`categories[].words`) | 1 to 250 phrases, each up to 200 characters.                                                                                                                       |
+| Alert destination → Channel (`channel`)  | The <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, required. |
 
 The feature rejects a category whose phrases contain no letters or digits after cleanup. The **Words and phrases** field takes one phrase per line, so a phrase can contain a comma.
 
@@ -81,9 +81,9 @@ The feature rejects a category whose phrases contain no letters or digits after 
 ## Troubleshooting
 
 - **A contraction doesn't match** — Punctuation becomes a space, so "don't" in your list matches "don t" and "don't" but not "dont".
-- **"Moderation <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is unavailable: …"** — This log entry means the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead.
+- **"Moderation <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> is unavailable: …"** — This log entry means the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> is a category, forum, or other channel that can't hold messages. A deleted channel logs "Unknown Channel" instead.
 - **No alert for an edited message** — The bot sees edits only for messages it has seen since its last reconnect, up to the 200 most recent in each channel.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> deleted punctuation instead of turning it into spaces, and it didn't clean your phrases, so a phrase with capital letters never matched. The rewrite cleans both sides the same way and uses a new embed layout.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> deleted punctuation instead of turning it into spaces, and it didn't clean your phrases, so a phrase with capital letters never matched. The rewrite cleans both sides the same way and uses a new embed layout.
 :::

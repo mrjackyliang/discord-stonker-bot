@@ -28,7 +28,7 @@ import exportAndImportThreeDark from './_assets_/export-and-import-3-dark.png';
 
 Use **Backup** under **Settings** to move selected configuration between installations or bring an older `config.json` into Stonker Bot for Discord.
 
-Only the <Terminology title="The single account made at setup, with full access" to="/docs/reference/terminology#owner">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#administrator">Administrators</Terminology> can open **Backup**.
+Only the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology> and <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#accounts-and-access">Administrators</Terminology> can open **Backup**.
 
 <Frame caption="Backup under Settings">
   <ThemedImage sources={{ light: exportAndImportOneLight, dark: exportAndImportOneDark }} alt="Backup panel with Export and import, Save this setup to a file, or bring one in. You can also import an older config.json, and the Export and Import buttons" width={960} height={133} style={{ maxWidth: '100%', height: 'auto' }} />
@@ -37,15 +37,15 @@ Only the <Terminology title="The single account made at setup, with full access"
 ## Export
 
 1. Open **Backup** under **Settings**, then select **Export…**.
-2. Leave every section selected, or clear anything that should stay out of the <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology>.
+2. Leave every section selected, or clear anything that should stay out of the <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export file</Terminology>.
 3. Select **Continue**.
-4. Complete <Terminology title="Fresh account check before an export or import" to="/docs/reference/terminology#confirm-its-you">**Confirm it’s you**</Terminology>, then select **Confirm**.
+4. Complete <Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">**Confirm it’s you**</Terminology>, then select **Confirm**.
 
 The downloaded file is named `discord-stonker-bot-export-YYYY-MM-DD.json`.
 
 ### Export Sections
 
-- **Connection** — The <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> and whether the bot is set to run or stay stopped.
+- **Connection** — The <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> and whether the bot is set to run or stay stopped.
 - **Features** — Every feature's settings and on or off state for every server, each server's saved time zone, and every referenced feature secret.
 - **Notifications** — Every destination's name, service, events, settings, and secret fields.
 - **Access tokens** — Your tokens' names, scopes, expiries, and stored hashes. The token values are never included.
@@ -65,17 +65,17 @@ The export never includes these local or account-bound records.
 
 ### Confirm It's You
 
-<Terminology title="Fresh account check before an export or import" to="/docs/reference/terminology#confirm-its-you">Confirm it’s you</Terminology> asks for the current account password and, when the authenticator app is on, its current 6-digit **Authenticator code**. Select **Use a passkey instead** to complete the check with a saved <Terminology title="Device sign-in that replaces your password and code" to="/docs/reference/terminology#passkey">passkey</Terminology>.
+<Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">Confirm it’s you</Terminology> asks for the current account password and, when the authenticator app is on, its current 6-digit **Authenticator code**. Select **Use a passkey instead** to complete the check with a saved <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkey</Terminology>.
 
 The confirmation lasts five minutes, works once, belongs only to that browser session, and is limited to the export or import that requested it. Closing the dialog, using another browser session, or switching from export to import requires another confirmation.
 
 ## Import an Export File
 
 1. Open **Backup** under **Settings**, then select **Import…**.
-2. In **Source**, choose <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">**An export file**</Terminology>, then select its JSON file.
+2. In **Source**, choose <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">**An export file**</Terminology>, then select its JSON file.
 3. In **Settings**, compare **In the file** with **Here**, then open **Not brought over** when the file holds anything this import leaves out.
 4. Check **Review**, then select **Import**.
-5. Complete <Terminology title="Fresh account check before an export or import" to="/docs/reference/terminology#confirm-its-you">**Confirm it’s you**</Terminology>, then select **Confirm**.
+5. Complete <Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">**Confirm it’s you**</Terminology>, then select **Confirm**.
 6. Keep **Importing** open until it finishes, or close the dialog and return to the running import from **Backup**.
 
 <Frame caption="Review lists every change before anything is applied">
@@ -84,7 +84,7 @@ The confirmation lasts five minutes, works once, belongs only to that browser se
 
 ### What the Import Changes
 
-- **Connection** — When included, the saved <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> and run or stopped state replace the current connection.
+- **Connection** — When included, the saved <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> and run or stopped state replace the current connection.
 - **Features** — Every feature, on or off state, saved time zone, and referenced secret replaces the current configuration for each server included in the file. Servers not in the file stay as they are.
 - **Notifications** — A destination with the same name, ignoring letter case, is replaced. A new name is added, and destinations not in the file stay.
 - **Access tokens** — Tokens are added to the account running the import as stored hashes. A token with the same name on that account, or the same hash anywhere in the installation, is skipped, and tokens not in the file stay.
@@ -93,14 +93,14 @@ The confirmation lasts five minutes, works once, belongs only to that browser se
 
 ## Import an Older config.json
 
-The same wizard converts the <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology>'s `config.json` for one selected server.
+The same wizard converts the <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology>'s `config.json` for one selected server.
 
 1. Select the matching Discord server in the server menu.
 2. Open **Backup** under **Settings**, then select **Import…**.
 3. In **Source**, choose **An older config.json**, then select a file of up to 750 KB.
 4. Select **Turn on features that pass checks** if valid, supported features should turn on during the import. Leave it clear to bring every recognized feature over switched off.
 5. In **Settings**, compare the connection and features. **Needs attention after import** lists features that are imported switched off until you fix them, and **Not brought over** lists the older data this import leaves out.
-6. Check **Review**, select **Import**, complete <Terminology title="Fresh account check before an export or import" to="/docs/reference/terminology#confirm-its-you">**Confirm it’s you**</Terminology>, and select **Confirm**.
+6. Check **Review**, select **Import**, complete <Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">**Confirm it’s you**</Terminology>, and select **Confirm**.
 
 <Frame caption="An older config.json goes through the same wizard">
   <ThemedImage sources={{ light: exportAndImportThreeLight, dark: exportAndImportThreeDark }} alt="Import dialog on Source with An older config.json selected for Stonker Lounge, config-sample.json chosen, and Turn on features that pass checks ticked" width={1064} height={597} style={{ maxWidth: '100%', height: 'auto' }} />
@@ -112,7 +112,7 @@ The same wizard converts the <Terminology title="The original config.json bot th
 - **Feature secrets** — Every stored feature secret for the selected server is cleared, then the supported secrets from the file are saved.
 - **Feature state** — Valid, supported features turn on only when **Turn on features that pass checks** is selected. Features with settings that need repairs are still imported, are listed by display name under **Needs attention after import**, and stay off until fixed on the Features page.
 - **Review** — Counts features that turn on separately from features that stay off until fixed. When **Turn on features that pass checks** is clear, a note confirms that imported features stay off until you turn them on.
-- **Bot Token** — `settings.discord.token` replaces the installation's <Terminology title="Secret credential the bot uses to sign in" to="/docs/reference/terminology#bot-token">Bot Token</Terminology> when the file contains one.
+- **Bot Token** — `settings.discord.token` replaces the installation's <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> when the file contains one.
 - **Server check** — `settings.discord.guild.guild-id` has to match the selected server when it is present.
 
 ### Not Brought Over
@@ -144,7 +144,7 @@ An older `config.json` never contains these, and an import never changes them. *
 - **Browser session only** — Backup refuses personal access tokens, even when a token has every scope.
 - **Fresh proof** — Export and import each require their own password plus authenticator code, when enabled, or a passkey.
 - **Short-lived grant** — The five-minute confirmation works once, for one operation, in the browser session that requested it.
-- **Strict files** — An <Terminology title="Portable JSON backup made from selected sections" to="/docs/reference/terminology#export-file">export file</Terminology> is checked before the wizard previews it and again immediately before import.
+- **Strict files** — An <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export file</Terminology> is checked before the wizard previews it and again immediately before import.
 - **Atomic import** — The reviewed configuration is committed in one database transaction, without writing secret values to the log.
 
 ## FAQ

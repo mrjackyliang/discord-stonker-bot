@@ -35,22 +35,22 @@ Delete messages that contain affiliate or tracking links, alert moderators, and 
 The alert is an embed titled "Affiliate content removed" that shows the author, the channel ID, the matched platforms, an excerpt of up to 700 characters, and a link to the message. It posts before the delete, so it appears even when the delete fails.
 
 :::warning
-The panel labels the `channel` setting **Monitored channel**, but the feature checks every channel. That setting is only the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>, and leaving it out skips the alert.
+The panel labels the `channel` setting **Monitored channel**, but the feature checks every channel. That setting is only the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>, and leaving it out skips the alert.
 :::
 
 ## Requirements
 
-- **<Terminology title="Privileged intent that lets the bot read message text" to="/docs/reference/terminology#message-content-intent">Message Content intent</Terminology>** — Switch on this <Terminology title="Intent you switch on in the Developer Portal" to="/docs/reference/terminology#privileged-intent">privileged intent</Terminology> for your application in the Discord Developer Portal.
-- **Channel permissions** — The bot needs View Channel and Manage Messages in every channel, and Send Messages and Embed Links in the <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology>.
+- **<Terminology title="Lets the bot read what messages actually say" to="/docs/reference/terminology#discord-basics">Message Content intent</Terminology>** — Switch on this <Terminology title="An intent you must switch on in the Developer Portal first" to="/docs/reference/terminology#discord-basics">privileged intent</Terminology> for your application in the Discord Developer Portal.
+- **Channel permissions** — The bot needs View Channel and Manage Messages in every channel, and Send Messages and Embed Links in the <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology>.
 
 ## Settings
 
-| Field                                                                                                                                               | Description                                                                                                                                                                 |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Link patterns (`platforms`)                                                                                                                         | 1 to 100 platforms, each with a **Platform** name of up to 100 characters and a **Regular expression**.                                                                     |
-| Monitored channel (`channel`)                                                                                                                       | Optional <Terminology title="Channel where a feature posts moderator alerts" to="/docs/reference/terminology#alert-channel">alert channel</Terminology> for removal alerts. |
-| Member notice → Text (`direct-message-payload.content`)                                                                                             | Optional direct message of up to 2,000 characters, sent as written without filling in message variables.                                                                    |
-| <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Exempt roles</Terminology> (`excluded-roles`) | Optional list of 1 to 100 roles whose members the feature skips.                                                                                                            |
+| Field                                                                                                                                                 | Description                                                                                                                                                                      |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Link patterns (`platforms`)                                                                                                                           | 1 to 100 platforms, each with a **Platform** name of up to 100 characters and a **Regular expression**.                                                                          |
+| Monitored channel (`channel`)                                                                                                                         | Optional <Terminology title="Where a feature posts its reports for moderators" to="/docs/reference/terminology#feature-settings">alert channel</Terminology> for removal alerts. |
+| Member notice → Text (`direct-message-payload.content`)                                                                                               | Optional direct message of up to 2,000 characters, sent as written without filling in message variables.                                                                         |
+| <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">Exempt roles</Terminology> (`excluded-roles`) | Optional list of 1 to 100 roles whose members the feature skips.                                                                                                                 |
 
 ## Example
 
@@ -73,8 +73,8 @@ The panel labels the `channel` setting **Monitored channel**, but the feature ch
 
 - **The alert says "removed" but the message is still there** — The bot lacks Manage Messages in that channel.
 - **A member got two direct messages** — A regex rule matched but couldn't delete the message, so affiliate cleanup ran too.
-- **Moderators' links are removed** — Administrators aren't skipped automatically, so add their roles to **<Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">Exempt roles</Terminology>**.
+- **Moderators' links are removed** — Administrators aren't skipped automatically, so add their roles to **<Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">Exempt roles</Terminology>**.
 
 :::info[Changes from the legacy bot]
-The <Terminology title="The original config.json bot this rewrite replaces" to="/docs/reference/terminology#legacy-bot">legacy bot</Terminology> skipped anyone with the Administrator permission, and it sent the alert, the direct message, and the delete at the same time. The rewrite skips only <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#excluded-roles">excluded roles</Terminology> and runs those steps in order.
+The <Terminology title="The old v3.4.3 bot that ran from a config.json file" to="/docs/reference/terminology#legacy-migration">legacy bot</Terminology> skipped anyone with the Administrator permission, and it sent the alert, the direct message, and the delete at the same time. The rewrite skips only <Terminology title="Roles whose members a rule skips" to="/docs/reference/terminology#feature-settings">excluded roles</Terminology> and runs those steps in order.
 :::

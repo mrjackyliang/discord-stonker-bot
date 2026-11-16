@@ -50,7 +50,7 @@ export const PHONE_TABS = 4;
  *
  * @returns {Route}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const applyNavigationPath = <Route>(
   browser: Web_Navigation_Browser,
@@ -77,7 +77,7 @@ export const applyNavigationPath = <Route>(
  * @param {Web_Navigation_Browser} browser - Browser.
  * @param {string}                 path    - Path.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const pushNavigationPath = (
   browser: Web_Navigation_Browser,
@@ -101,7 +101,7 @@ export const pushNavigationPath = (
  * @param {Web_Navigation_Browser} browser - Browser.
  * @param {string}                 path    - Path.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const replaceNavigationPath = (
   browser: Web_Navigation_Browser,
@@ -124,7 +124,7 @@ export const replaceNavigationPath = (
  *
  * @returns {() => void}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const startNavigationHistory = <Route>(
   browser: Web_Navigation_Browser,
@@ -137,7 +137,7 @@ export const startNavigationHistory = <Route>(
    * Resolves the address reached by browser history navigation.
    * Back and Forward therefore share the initial path application behavior.
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const handlePopState = (): void => {
     applyNavigationPath(browser, resolve, onRoute);
@@ -418,7 +418,7 @@ export const createNavSheetLevel = (
  *
  * @returns {Web_Navigation_PhoneTabAction}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export const phoneTabAction = (
   item: Web_Navigation_Item,

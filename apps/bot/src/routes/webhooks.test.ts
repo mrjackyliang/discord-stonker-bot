@@ -74,7 +74,7 @@ const SIGNING_SECRET = 'a-webhook-signing-secret-with-at-least-32-characters';
  * Allows the backup import route to freshly confirm the test administrator.
  * The value exists only in the isolated in-memory test database.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const ADMIN_PASSWORD = 'webhook fixture admin password';
 

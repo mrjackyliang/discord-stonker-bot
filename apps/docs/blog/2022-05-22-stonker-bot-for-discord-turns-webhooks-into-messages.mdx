@@ -1,0 +1,50 @@
+---
+title: "Stonker Bot for Discord 3.0 Turns Webhooks Into Messages"
+description: Version 3.0.0 adds Web Applications, which converts JSON webhooks from other services into Discord messages, plus Twitter feeds and event broadcasts.
+slug: stonker-bot-for-discord-turns-webhooks-into-messages
+authors:
+  - mrjackyliang
+keywords:
+  - stonker bot for discord
+  - webhooks
+  - web applications
+  - discord messages
+  - integrations
+tags:
+  - release
+  - discord
+  - webhooks
+---
+
+Stonker Bot for Discord 3.0.0 connects your server to the services around it. Its new Web Applications module accepts JSON webhooks from other services and posts them to Discord as messages.
+
+{/* truncate */}
+
+## Why It Matters
+
+Alerts from monitoring tools, stores, and scripts usually land in email or a separate dashboard. Getting them in front of a community meant writing a custom bot or a relay for each service.
+
+With 3.0.0, the bot you already run becomes that relay.
+
+## What's Included
+
+### Web Applications
+
+The bot's HTTP and HTTPS server moved into Web Applications, which checks that no two routes share a path and method, and that the HTTPS key, certificate, and CA files exist before it starts.
+
+### Map Webhooks
+
+Map Webhooks reads an incoming JSON webhook and turns it into a Discord message on the route you choose.
+
+### More Ways In and Out
+
+- **Twitter Feeds** — Posts tweets from chosen users to a channel or thread, with options to leave out retweets and replies.
+- **Broadcast Alerts** — Posts Discord scheduled events to Twitter, filtered by status, type, and creator.
+- **Message Copier** — Sends copied messages to Discord webhooks or Twitter, as well as channels.
+- **Snitch** — Reports when members join, leave, or have their roles change.
+
+The configuration file became strictly type-checked, and its errors name the settings that are invalid.
+
+## Where It Is Today
+
+Mapped webhooks now check each request's HMAC signature and freshness window, queue the message in the database, and retry failed deliveries. [Signed Webhooks](/docs/reference/signed-webhooks/) explains how to sign requests.

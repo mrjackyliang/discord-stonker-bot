@@ -35,7 +35,7 @@ import type {
  * How often each process reads the saved switch.
  * A change made in the control panel reaches the bot and the worker within this time.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 const FOLLOW_INTERVAL_MILLISECONDS: Lib_DebugLogging_FollowIntervalMilliseconds = 5_000;
 
@@ -45,7 +45,7 @@ const FOLLOW_INTERVAL_MILLISECONDS: Lib_DebugLogging_FollowIntervalMilliseconds 
  * Counts the changes this process saved itself.
  * A check that started before one of them is out of date, so its answer is dropped.
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 let localChanges: Lib_DebugLogging_LocalChanges = 0;
 
@@ -61,7 +61,7 @@ let localChanges: Lib_DebugLogging_LocalChanges = 0;
  *
  * @returns {Lib_DebugLogging_ApplyDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function applyDebugLogging(
   component: Lib_DebugLogging_ApplyDebugLogging_Component,
@@ -92,7 +92,7 @@ export function applyDebugLogging(
  *
  * @returns {Lib_DebugLogging_ChangeDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export async function changeDebugLogging(
   pool: Lib_DebugLogging_ChangeDebugLogging_Pool,
@@ -123,7 +123,7 @@ export async function changeDebugLogging(
  *
  * @returns {Lib_DebugLogging_FollowDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export function followDebugLogging(
   pool: Lib_DebugLogging_FollowDebugLogging_Pool,
@@ -137,7 +137,7 @@ export function followDebugLogging(
    *
    * @returns {void}
    *
-   * @since UNRELEASED
+   * @since 4.0.0
    */
   const check: Lib_DebugLogging_FollowDebugLogging_Check = () => {
     const seen: Lib_DebugLogging_FollowDebugLogging_Seen = localChanges;
@@ -178,7 +178,7 @@ export function followDebugLogging(
  *
  * @returns {Lib_DebugLogging_ReadDebugLogging_Returns}
  *
- * @since UNRELEASED
+ * @since 4.0.0
  */
 export async function readDebugLogging(pool: Lib_DebugLogging_ReadDebugLogging_Pool): Lib_DebugLogging_ReadDebugLogging_Returns {
   const result: Lib_DebugLogging_ReadDebugLogging_Result = await pool.query<Lib_DebugLogging_ReadDebugLogging_Row>('SELECT debug_logging FROM runtime_settings WHERE singleton = TRUE');
