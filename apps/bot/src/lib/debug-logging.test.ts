@@ -61,15 +61,15 @@ describe('debug logging switch', () => {
 
       expect(isDebugLogging()).toBe(false);
 
-      const lines: Lib_DebugLogging_Test_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes('"event":"debug_logging_'));
+      const lines: Lib_DebugLogging_Test_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes(': debug_logging_'));
 
       expect(lines).toHaveLength(2);
 
-      expect(lines[0]).toContain('"event":"debug_logging_on"');
+      expect(lines[0]).toContain('INFO web: debug_logging_on');
 
-      expect(lines[0]).toContain('"username":"owner"');
+      expect(lines[0]).toContain('username=owner');
 
-      expect(lines[1]).toContain('"event":"debug_logging_off"');
+      expect(lines[1]).toContain('INFO web: debug_logging_off');
     } finally {
       setDebugLogging(false);
 
@@ -114,15 +114,13 @@ describe('debug logging switch', () => {
         return;
       });
 
-      const lines: Lib_DebugLogging_Test_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes('"event":"debug_logging_'));
+      const lines: Lib_DebugLogging_Test_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes(': debug_logging_'));
 
       expect(lines).toHaveLength(2);
 
-      expect(lines[0]).toContain('"component":"worker"');
+      expect(lines[0]).toContain('INFO worker: debug_logging_on');
 
-      expect(lines[0]).toContain('"event":"debug_logging_on"');
-
-      expect(lines[1]).toContain('"event":"debug_logging_off"');
+      expect(lines[1]).toContain('INFO worker: debug_logging_off');
     } finally {
       stop();
 

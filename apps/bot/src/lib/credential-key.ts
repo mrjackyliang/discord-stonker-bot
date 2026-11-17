@@ -1,8 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import {
+  chmod,
   mkdir,
   open,
   readFile,
+  rename,
+  rm,
 } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
@@ -13,6 +16,15 @@ import {
 import { getFeatureCatalog } from './feature-catalog.js';
 
 import type {
+  Lib_CredentialKey_CreateCredentialKeyFile_CredentialKey,
+  Lib_CredentialKey_CreateCredentialKeyFile_FilePath,
+  Lib_CredentialKey_CreateCredentialKeyFile_KeyFile,
+  Lib_CredentialKey_CreateCredentialKeyFile_Returns,
+  Lib_CredentialKey_DecodeCredentialKey_Contents,
+  Lib_CredentialKey_DecodeCredentialKey_ContentsText,
+  Lib_CredentialKey_DecodeCredentialKey_CredentialKey,
+  Lib_CredentialKey_DecodeCredentialKey_HexadecimalKey,
+  Lib_CredentialKey_DecodeCredentialKey_Returns,
   Lib_CredentialKey_FindSealedSample_Pool,
   Lib_CredentialKey_FindSealedSample_Returns,
   Lib_CredentialKey_FindSealedSample_SecretResult,
@@ -25,8 +37,11 @@ import type {
   Lib_CredentialKey_IsMissingFile_Returns,
   Lib_CredentialKey_PrepareCredentialKey_Client,
   Lib_CredentialKey_PrepareCredentialKey_CredentialKey,
+  Lib_CredentialKey_PrepareCredentialKey_CredentialKeyContents,
+  Lib_CredentialKey_PrepareCredentialKey_CredentialKeyDirectory,
+  Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey,
   Lib_CredentialKey_PrepareCredentialKey_FilePath,
-  Lib_CredentialKey_PrepareCredentialKey_KeyFile,
+  Lib_CredentialKey_PrepareCredentialKey_NeedsRewrite,
   Lib_CredentialKey_PrepareCredentialKey_NewKey,
   Lib_CredentialKey_PrepareCredentialKey_Pool,
   Lib_CredentialKey_PrepareCredentialKey_RemovedSecrets,
@@ -45,6 +60,13 @@ import type {
   Lib_CredentialKey_RemoveLockedSecrets_TokenResult,
   Lib_CredentialKey_RemoveLockedSecrets_TokenRowResult,
   Lib_CredentialKey_RemoveLockedSecrets_UserResult,
+  Lib_CredentialKey_RewriteCredentialKeyFile_CanonicalContents,
+  Lib_CredentialKey_RewriteCredentialKeyFile_CredentialKey,
+  Lib_CredentialKey_RewriteCredentialKeyFile_FilePath,
+  Lib_CredentialKey_RewriteCredentialKeyFile_KeyFile,
+  Lib_CredentialKey_RewriteCredentialKeyFile_Returns,
+  Lib_CredentialKey_RewriteCredentialKeyFile_TemporaryPath,
+  Lib_CredentialKey_RewriteCredentialKeyFile_TemporarySuffix,
   Lib_CredentialKey_VerifyCredentialKey_CheckResult,
   Lib_CredentialKey_VerifyCredentialKey_CheckRowResult,
   Lib_CredentialKey_VerifyCredentialKey_CredentialKey,
@@ -74,6 +96,83 @@ const CHECK_PURPOSE = 'credential-key-check';
  * @since 4.0.0
  */
 const CHECK_VALUE = 'discord-stonker-bot-credential-key-check';
+
+/**
+ * Credential Key - Create Credential Key File.
+ *
+ * Writes one new key in the appliance's canonical hexadecimal representation.
+ * Exclusive creation prevents an existing installation key from being replaced.
+ *
+ * @param {Lib_CredentialKey_CreateCredentialKeyFile_FilePath}      filePath      - File path.
+ * @param {Lib_CredentialKey_CreateCredentialKeyFile_CredentialKey} credentialKey - Credential key.
+ *
+ * @returns {Lib_CredentialKey_CreateCredentialKeyFile_Returns}
+ *
+ * @since 4.2.0
+ */
+async function createCredentialKeyFile(
+  filePath: Lib_CredentialKey_CreateCredentialKeyFile_FilePath,
+  credentialKey: Lib_CredentialKey_CreateCredentialKeyFile_CredentialKey,
+): Lib_CredentialKey_CreateCredentialKeyFile_Returns {
+  await mkdir(dirname(filePath), {
+    mode: parseInt('700', 8),
+    recursive: true,
+  });
+
+  await chmod(dirname(filePath), parseInt('700', 8));
+
+  const keyFile: Lib_CredentialKey_CreateCredentialKeyFile_KeyFile = await open(filePath, 'wx', parseInt('600', 8));
+
+  try {
+    await keyFile.writeFile(`${credentialKey.toString('hex')}\n`);
+
+    await keyFile.sync();
+  } finally {
+    await keyFile.close();
+  }
+
+  await chmod(filePath, parseInt('600', 8));
+
+  return;
+}
+
+/**
+ * Credential Key - Decode Credential Key.
+ *
+ * Accepts the canonical hexadecimal file and the version 4 raw-byte format.
+ * Callers rewrite compatible old forms only after the database verifies the key.
+ *
+ * @param {Lib_CredentialKey_DecodeCredentialKey_Contents} contents - Contents.
+ *
+ * @returns {Lib_CredentialKey_DecodeCredentialKey_Returns}
+ *
+ * @since 4.2.0
+ */
+function decodeCredentialKey(contents: Lib_CredentialKey_DecodeCredentialKey_Contents): Lib_CredentialKey_DecodeCredentialKey_Returns {
+  if (contents.length === 32) {
+    return {
+      credentialKey: contents,
+      needsRewrite: true,
+    };
+  }
+
+  const contentsText: Lib_CredentialKey_DecodeCredentialKey_ContentsText = contents.toString('utf8');
+  const hexadecimalKey: Lib_CredentialKey_DecodeCredentialKey_HexadecimalKey = (contentsText.endsWith('\n') === true) ? contentsText.slice(0, -1) : contentsText;
+  const credentialKey: Lib_CredentialKey_DecodeCredentialKey_CredentialKey = Buffer.from(hexadecimalKey, 'hex');
+
+  if (
+    hexadecimalKey.length !== 64
+    || credentialKey.length !== 32
+    || credentialKey.toString('hex') !== hexadecimalKey.toLowerCase()
+  ) {
+    throw new Error('The installation key must contain 64 hexadecimal characters followed by a newline.');
+  }
+
+  return {
+    credentialKey,
+    needsRewrite: contentsText !== `${credentialKey.toString('hex')}\n`,
+  };
+}
 
 /**
  * Credential Key - Find Sealed Sample.
@@ -161,16 +260,21 @@ function isMissingFile(error: Lib_CredentialKey_IsMissingFile_Error): Lib_Creden
  *
  * @returns {Lib_CredentialKey_PrepareCredentialKey_Returns}
  *
- * @since 4.0.0
+ * @since 4.2.0
  */
 export async function prepareCredentialKey(
   pool: Lib_CredentialKey_PrepareCredentialKey_Pool,
   filePath: Lib_CredentialKey_PrepareCredentialKey_FilePath,
 ): Lib_CredentialKey_PrepareCredentialKey_Returns {
   let credentialKey: Lib_CredentialKey_PrepareCredentialKey_CredentialKey = undefined;
+  let needsRewrite: Lib_CredentialKey_PrepareCredentialKey_NeedsRewrite = false;
 
   try {
-    credentialKey = await readFile(filePath);
+    const credentialKeyContents: Lib_CredentialKey_PrepareCredentialKey_CredentialKeyContents = await readFile(filePath);
+    const decodedCredentialKey: Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey = decodeCredentialKey(credentialKeyContents);
+
+    credentialKey = decodedCredentialKey['credentialKey'];
+    needsRewrite = decodedCredentialKey['needsRewrite'];
   } catch (error) {
     if (isMissingFile(error) === false) {
       throw error;
@@ -178,11 +282,17 @@ export async function prepareCredentialKey(
   }
 
   if (credentialKey !== undefined) {
-    if (credentialKey.length !== 32) {
-      throw new Error('The installation key must contain exactly 32 bytes.');
-    }
-
     await verifyCredentialKey(pool, credentialKey, filePath);
+
+    if (needsRewrite === true) {
+      await rewriteCredentialKeyFile(filePath, credentialKey);
+    } else {
+      const credentialKeyDirectory: Lib_CredentialKey_PrepareCredentialKey_CredentialKeyDirectory = dirname(filePath);
+
+      await chmod(credentialKeyDirectory, parseInt('700', 8));
+
+      await chmod(filePath, parseInt('600', 8));
+    }
 
     return [];
   }
@@ -210,20 +320,7 @@ export async function prepareCredentialKey(
     client.release();
   }
 
-  await mkdir(dirname(filePath), {
-    mode: parseInt('700', 8),
-    recursive: true,
-  });
-
-  const keyFile: Lib_CredentialKey_PrepareCredentialKey_KeyFile = await open(filePath, 'wx', parseInt('600', 8));
-
-  try {
-    await keyFile.writeFile(newKey);
-
-    await keyFile.sync();
-  } finally {
-    await keyFile.close();
-  }
+  await createCredentialKeyFile(filePath, newKey);
 
   return removedSecrets;
 }
@@ -341,6 +438,51 @@ async function removeLockedSecrets(
   }
 
   return removedSecrets;
+}
+
+/**
+ * Credential Key - Rewrite Credential Key File.
+ *
+ * Replaces a verified legacy representation through a same-directory rename.
+ * The old key remains intact unless the canonical temporary file is durable.
+ *
+ * @param {Lib_CredentialKey_RewriteCredentialKeyFile_FilePath}      filePath      - File path.
+ * @param {Lib_CredentialKey_RewriteCredentialKeyFile_CredentialKey} credentialKey - Credential key.
+ *
+ * @returns {Lib_CredentialKey_RewriteCredentialKeyFile_Returns}
+ *
+ * @since 4.2.0
+ */
+async function rewriteCredentialKeyFile(
+  filePath: Lib_CredentialKey_RewriteCredentialKeyFile_FilePath,
+  credentialKey: Lib_CredentialKey_RewriteCredentialKeyFile_CredentialKey,
+): Lib_CredentialKey_RewriteCredentialKeyFile_Returns {
+  const temporarySuffix: Lib_CredentialKey_RewriteCredentialKeyFile_TemporarySuffix = randomBytes(8).toString('hex');
+  const temporaryPath: Lib_CredentialKey_RewriteCredentialKeyFile_TemporaryPath = `${filePath}.tmp-${temporarySuffix}`;
+  const canonicalContents: Lib_CredentialKey_RewriteCredentialKeyFile_CanonicalContents = `${credentialKey.toString('hex')}\n`;
+  const keyFile: Lib_CredentialKey_RewriteCredentialKeyFile_KeyFile = await open(temporaryPath, 'wx', parseInt('600', 8));
+
+  try {
+    try {
+      await keyFile.writeFile(canonicalContents);
+
+      await keyFile.sync();
+    } finally {
+      await keyFile.close();
+    }
+
+    await rename(temporaryPath, filePath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true });
+
+    throw error;
+  }
+
+  await chmod(dirname(filePath), parseInt('700', 8));
+
+  await chmod(filePath, parseInt('600', 8));
+
+  return;
 }
 
 /**

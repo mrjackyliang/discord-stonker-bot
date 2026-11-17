@@ -1,87 +1,52 @@
 #!/command/with-contenv sh
 set -eu
 
-data_directory="${POSTGRES_DATA_DIRECTORY:-/data/postgres}"
-runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}"
-credential_key_file="${CREDENTIAL_KEY_FILE:-/data/keys/installation.key}"
-credential_key_directory="${credential_key_file%/*}"
-legacy_key_file="/data/secrets/credential.key"
-legacy_key_directory="${legacy_key_file%/*}"
+. /usr/local/libexec/nova-docker/log
+
+data_directory="${NOVA_DATABASE_DIRECTORY:-/config/database}"
+runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/tmp/postgresql}"
 database_name="${POSTGRES_DB:-stonker}"
 database_user="${POSTGRES_USER:-stonker}"
-application_user_id="${PUID:-1000}"
-application_group_id="${PGID:-1000}"
 
 if ! printf '%s\n' "${database_name}" | grep -Eq '^[a-z][a-z0-9_]*$'; then
-  echo 'POSTGRES_DB must start with a lowercase letter and contain only lowercase letters, digits, or underscores.' >&2
+  nova_log ERROR prepare-postgres 'POSTGRES_DB must start with a lowercase letter and contain only lowercase letters, digits, or underscores.'
+
   exit 1
 fi
 
 if ! printf '%s\n' "${database_user}" | grep -Eq '^[a-z][a-z0-9_]*$'; then
-  echo 'POSTGRES_USER must start with a lowercase letter and contain only lowercase letters, digits, or underscores.' >&2
+  nova_log ERROR prepare-postgres 'POSTGRES_USER must start with a lowercase letter and contain only lowercase letters, digits, or underscores.'
+
   exit 1
 fi
 
 # Older setups passed these, and they must keep starting, so each is noted once and ignored.
 if [ -n "${POSTGRES_PASSWORD:-}" ]; then
-  echo 'POSTGRES_PASSWORD is no longer used and is ignored. PostgreSQL accepts only local connections over its Unix socket, so you can remove it.'
+  nova_log WARN prepare-postgres 'POSTGRES_PASSWORD is no longer used and is ignored because PostgreSQL accepts only local Unix-socket connections.'
 fi
 
 if [ -n "${POSTGRES_PORT:-}" ]; then
-  echo 'POSTGRES_PORT is no longer used and is ignored. PostgreSQL listens only on its Unix socket, so you can remove it.'
+  nova_log WARN prepare-postgres 'POSTGRES_PORT is no longer used and is ignored because PostgreSQL uses its fixed internal port only.'
 fi
 
-mkdir -p /data "${credential_key_directory}" "${data_directory}" "${runtime_directory}"
+mkdir -p -- "${data_directory}" "${runtime_directory}"
 
-chown postgres:postgres "${data_directory}" "${runtime_directory}"
-find "${data_directory}" \( ! -user postgres -o ! -group postgres \) -exec chown postgres:postgres {} +
 chmod 0700 "${data_directory}"
 chmod 0755 "${runtime_directory}"
-
-chown "${application_user_id}:${application_group_id}" "${credential_key_directory}"
-chmod 0700 "${credential_key_directory}"
-
-# Version 4.0 kept the key at "/data/secrets/credential.key"; moving it keeps every saved secret readable.
-if [ -e "${legacy_key_file}" ] && [ "${credential_key_file}" != "${legacy_key_file}" ]; then
-  if [ -e "${credential_key_file}" ]; then
-    echo "Both ${legacy_key_file} and ${credential_key_file} exist. Stonker Bot for Discord uses ${credential_key_file} and leaves ${legacy_key_file} alone; remove it once you no longer need it." >&2
-  else
-    mv "${legacy_key_file}" "${credential_key_file}"
-
-    echo "Moved the installation key from ${legacy_key_file} to ${credential_key_file}."
-
-    legacy_directory_entry="$(find "${legacy_key_directory}" -mindepth 1 -maxdepth 1 -print -quit)"
-
-    if [ -z "${legacy_directory_entry}" ]; then
-      rmdir "${legacy_key_directory}"
-    fi
-  fi
-fi
-
-# The migrate step makes the key when it's missing, after it removes what an old key sealed.
-if [ -e "${credential_key_file}" ]; then
-  chown "${application_user_id}:${application_group_id}" "${credential_key_file}"
-  chmod 0600 "${credential_key_file}"
-
-  credential_key_bytes="$(wc -c < "${credential_key_file}")"
-
-  if [ "${credential_key_bytes}" -ne 32 ]; then
-    echo 'The installation key must contain exactly 32 bytes.' >&2
-    exit 1
-  fi
-fi
 
 # Only local socket connections are allowed, so the cluster needs no password.
 if [ ! -s "${data_directory}/PG_VERSION" ]; then
   directory_entry="$(find "${data_directory}" -mindepth 1 -maxdepth 1 -print -quit)"
 
   if [ -n "${directory_entry}" ]; then
-    echo 'PostgreSQL data directory is non-empty but has no PG_VERSION marker.' >&2
+    nova_log ERROR prepare-postgres "PostgreSQL data directory ${data_directory} is non-empty but has no PG_VERSION marker."
+
     exit 1
   fi
 
-  /command/s6-setuidgid postgres \
-    /usr/lib/postgresql/17/bin/initdb \
+  nova_log INFO prepare-postgres "Initializing PostgreSQL data at ${data_directory}."
+
+  /usr/lib/postgresql/17/bin/initdb \
     --auth-host=reject \
     --auth-local=trust \
     --encoding=UTF8 \

@@ -1,0 +1,108 @@
+#!/command/with-contenv sh
+set -eu
+
+nova_log_helper="${NOVA_LOG_HELPER:-/usr/local/libexec/nova-docker/log}"
+
+. "${nova_log_helper}"
+
+state_directory="${DATA_DIRECTORY:-${NOVA_STATE_DIRECTORY:-/config}}"
+database_directory="${NOVA_DATABASE_DIRECTORY:-${state_directory}/database}"
+installation_key_file="${NOVA_INSTALLATION_KEY_FILE:-${state_directory}/keys/installation.key}"
+legacy_database_directory="${state_directory}/postgres"
+legacy_key_file="${state_directory}/secrets/credential.key"
+legacy_key_directory="${legacy_key_file%/*}"
+installation_key_directory="${installation_key_file%/*}"
+
+directory_has_entries() {
+  directory_entry="$(find "$1" -mindepth 1 -maxdepth 1 -print -quit)"
+
+  [ -n "${directory_entry}" ]
+}
+
+fail_state_preparation() {
+  nova_log ERROR prepare-state "$1"
+
+  exit 1
+}
+
+validate_database_migration() {
+  if [ ! -e "${legacy_database_directory}" ] && [ ! -L "${legacy_database_directory}" ]; then
+    return
+  fi
+
+  if [ ! -d "${legacy_database_directory}" ] || [ -L "${legacy_database_directory}" ]; then
+    fail_state_preparation "Legacy PostgreSQL state is not a directory: ${legacy_database_directory}."
+  fi
+
+  if [ ! -d "${database_directory}" ] || [ -L "${database_directory}" ]; then
+    fail_state_preparation "The PostgreSQL destination is not a directory: ${database_directory}."
+  fi
+
+  if directory_has_entries "${database_directory}"; then
+    fail_state_preparation "Refusing to overwrite PostgreSQL state at ${database_directory}; legacy state remains at ${legacy_database_directory}."
+  fi
+}
+
+validate_key_migration() {
+  if [ ! -e "${legacy_key_file}" ] && [ ! -L "${legacy_key_file}" ]; then
+    return
+  fi
+
+  if [ ! -f "${legacy_key_file}" ] || [ -L "${legacy_key_file}" ]; then
+    fail_state_preparation "Legacy installation key is not a regular file: ${legacy_key_file}."
+  fi
+
+  if [ -e "${installation_key_file}" ] || [ -L "${installation_key_file}" ]; then
+    fail_state_preparation "Refusing to overwrite the installation key at ${installation_key_file}; legacy key remains at ${legacy_key_file}."
+  fi
+}
+
+move_database() {
+  if [ ! -d "${legacy_database_directory}" ] || [ -L "${legacy_database_directory}" ]; then
+    return
+  fi
+
+  if ! rmdir -- "${database_directory}"; then
+    fail_state_preparation "Could not prepare the empty PostgreSQL destination at ${database_directory}."
+  fi
+
+  if ! mv -- "${legacy_database_directory}" "${database_directory}"; then
+    mkdir -p -- "${database_directory}" 2>/dev/null || true
+
+    fail_state_preparation "Could not move PostgreSQL state from ${legacy_database_directory} to ${database_directory}."
+  fi
+
+  nova_log INFO prepare-state "Moved PostgreSQL state from ${legacy_database_directory} to ${database_directory}."
+}
+
+move_installation_key() {
+  if [ ! -f "${legacy_key_file}" ] || [ -L "${legacy_key_file}" ]; then
+    return
+  fi
+
+  mkdir -p -- "${installation_key_directory}"
+
+  if ! mv -- "${legacy_key_file}" "${installation_key_file}"; then
+    fail_state_preparation "Could not move the installation key from ${legacy_key_file} to ${installation_key_file}."
+  fi
+
+  nova_log INFO prepare-state "Moved the installation key from ${legacy_key_file} to ${installation_key_file}."
+
+  if [ -d "${legacy_key_directory}" ] && ! directory_has_entries "${legacy_key_directory}"; then
+    rmdir -- "${legacy_key_directory}"
+  fi
+}
+
+main() {
+  mkdir -p -- "${database_directory}" "${installation_key_directory}"
+
+  validate_database_migration
+  validate_key_migration
+
+  move_database
+  move_installation_key
+
+  return
+}
+
+main "$@"

@@ -39,8 +39,8 @@ With Compose, read it from the `app` service instead:
 docker compose logs app | grep setup_code_issued
 ```
 
-```json title="The setup code line"
-{"component":"web","context":{"expiresAt":"2026-10-25T13:00:00.000Z","message":"No account exists yet. Open the control panel to create the owner account with the setup code.","setupCode":"K7Q2M-XR9TD-P4W8N"},"event":"setup_code_issued","level":"warn","timestamp":"2026-10-25T12:30:00.000Z"}
+```text title="The setup code line"
+2026-10-25T12:30:00.000Z WARN web: setup_code_issued expiresAt=2026-10-25T13:00:00.000Z message=No account exists yet. Open the control panel to create the owner account with the setup code. setupCode=K7Q2M-XR9TD-P4W8N
 ```
 
 - **The code** — `setupCode` holds a code like `K7Q2M-XR9TD-P4W8N`, and `expiresAt` shows when it stops working.

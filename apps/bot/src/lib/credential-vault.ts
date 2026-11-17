@@ -5,6 +5,8 @@ import {
 } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
+import { LIB_REGEX_PATTERN_INSTALLATION_KEY_HEXADECIMAL } from './regex.js';
+
 import type {
   Lib_CredentialVault_CreateAssociatedData_Purpose,
   Lib_CredentialVault_CreateAssociatedData_Returns,
@@ -34,7 +36,10 @@ import type {
   Lib_CredentialVault_EncryptSecret_Secret,
   Lib_CredentialVault_EncryptSecret_Tag,
   Lib_CredentialVault_ReadCredentialKey_CredentialKey,
+  Lib_CredentialVault_ReadCredentialKey_FileContents,
   Lib_CredentialVault_ReadCredentialKey_FilePath,
+  Lib_CredentialVault_ReadCredentialKey_FileText,
+  Lib_CredentialVault_ReadCredentialKey_HexadecimalKey,
   Lib_CredentialVault_ReadCredentialKey_Returns,
   Lib_CredentialVault_ValidateCredentialKey_CredentialKey,
   Lib_CredentialVault_ValidateCredentialKey_Returns,
@@ -282,7 +287,7 @@ export function encryptSecret(
 /**
  * Credential Vault - Read Credential Key.
  *
- * Loads the automatically generated key from the persistent data volume.
+ * Loads the key in its 64-hex-character form, or the version 4 raw bytes.
  * A missing or malformed key fails closed before credential processing begins.
  *
  * @param {Lib_CredentialVault_ReadCredentialKey_FilePath} filePath - File path.
@@ -294,7 +299,10 @@ export function encryptSecret(
 export async function readCredentialKey(
   filePath: Lib_CredentialVault_ReadCredentialKey_FilePath,
 ): Lib_CredentialVault_ReadCredentialKey_Returns {
-  const credentialKey: Lib_CredentialVault_ReadCredentialKey_CredentialKey = await readFile(filePath);
+  const fileContents: Lib_CredentialVault_ReadCredentialKey_FileContents = await readFile(filePath);
+  const fileText: Lib_CredentialVault_ReadCredentialKey_FileText = fileContents.toString('utf8');
+  const hexadecimalKey: Lib_CredentialVault_ReadCredentialKey_HexadecimalKey = (fileText.endsWith('\n') === true) ? fileText.slice(0, -1) : fileText;
+  const credentialKey: Lib_CredentialVault_ReadCredentialKey_CredentialKey = (LIB_REGEX_PATTERN_INSTALLATION_KEY_HEXADECIMAL.test(hexadecimalKey) === true) ? Buffer.from(hexadecimalKey, 'hex') : fileContents;
 
   validateCredentialKey(credentialKey);
 

@@ -1,13 +1,41 @@
 #!/bin/sh
 set -eu
-
-for service in postgres web worker; do
-  [ "$(/command/s6-svstat -o up "/run/service/${service}")" = "true" ]
-done
-
-exec /command/s6-applyuidgid \
-  -u "${PUID:-1000}" \
-  -g "${PGID:-1000}" \
-  -G "${PGID:-1000}" \
-  /usr/local/bin/node \
-  /app/apps/bot/build/healthcheck.js
+. /usr/local/libexec/nova-docker/log
+if [ -f /run/nova-docker/environment ]; then
+  . /run/nova-docker/environment
+fi
+if [ -x /etc/nova-docker/healthcheck ]; then
+  exec /etc/nova-docker/healthcheck
+fi
+service_status="$(/command/s6-svstat -o up /run/service/bot 2>/dev/null || true)"
+if [ "${service_status}" != true ]; then
+  nova_log ERROR healthcheck 's6 service bot is down.'
+  exit 1
+fi
+service_status="$(/command/s6-svstat -o up /run/service/postgres 2>/dev/null || true)"
+if [ "${service_status}" != true ]; then
+  nova_log ERROR healthcheck 's6 service postgres is down.'
+  exit 1
+fi
+service_status="$(/command/s6-svstat -o up /run/service/web 2>/dev/null || true)"
+if [ "${service_status}" != true ]; then
+  nova_log ERROR healthcheck 's6 service web is down.'
+  exit 1
+fi
+service_status="$(/command/s6-svstat -o up /run/service/worker 2>/dev/null || true)"
+if [ "${service_status}" != true ]; then
+  nova_log ERROR healthcheck 's6 service worker is down.'
+  exit 1
+fi
+if ! http_status="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 4 --request GET "http://127.0.0.1:22604/health")"; then
+  nova_log ERROR healthcheck 'GET /health failed.'
+  exit 1
+fi
+case "${http_status}" in
+  2??) ;;
+  *)
+    nova_log ERROR healthcheck "GET /health returned HTTP ${http_status}."
+    exit 1
+    ;;
+esac
+exit 0

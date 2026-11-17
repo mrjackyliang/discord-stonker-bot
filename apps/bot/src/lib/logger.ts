@@ -2,6 +2,14 @@ import type {
   Lib_Logger_ConfigureLogPersistence_Pool,
   Lib_Logger_ConfigureLogPersistence_Returns,
   Lib_Logger_DebugLogging,
+  Lib_Logger_FormatLogMessage_Context,
+  Lib_Logger_FormatLogMessage_ContextEntries,
+  Lib_Logger_FormatLogMessage_ContextEntryKey,
+  Lib_Logger_FormatLogMessage_ContextEntryValue,
+  Lib_Logger_FormatLogMessage_ContextParts,
+  Lib_Logger_FormatLogMessage_Event,
+  Lib_Logger_FormatLogMessage_RawMessage,
+  Lib_Logger_FormatLogMessage_Returns,
   Lib_Logger_GetErrorMessage_Error,
   Lib_Logger_GetErrorMessage_Returns,
   Lib_Logger_IsDebugLogging_Returns,
@@ -16,9 +24,11 @@ import type {
   Lib_Logger_WriteLog_Entry,
   Lib_Logger_WriteLog_Event,
   Lib_Logger_WriteLog_Level,
+  Lib_Logger_WriteLog_Message,
+  Lib_Logger_WriteLog_OutputLevel,
+  Lib_Logger_WriteLog_OutputLine,
   Lib_Logger_WriteLog_PersistencePromise,
   Lib_Logger_WriteLog_Returns,
-  Lib_Logger_WriteLog_SerializedEntry,
 } from '../types/lib/logger.d.ts';
 
 /**
@@ -70,6 +80,38 @@ export function configureLogPersistence(
   logPersistencePool = pool;
 
   return;
+}
+
+/**
+ * Logger - Format Log Message.
+ *
+ * Renders the event and its redacted context as one newline-free plain message.
+ * Container output stays readable while the database retains the typed details.
+ *
+ * @param {Lib_Logger_FormatLogMessage_Event}   event   - Event.
+ * @param {Lib_Logger_FormatLogMessage_Context} context - Context.
+ *
+ * @returns {Lib_Logger_FormatLogMessage_Returns}
+ *
+ * @since 4.2.0
+ */
+function formatLogMessage(event: Lib_Logger_FormatLogMessage_Event, context: Lib_Logger_FormatLogMessage_Context): Lib_Logger_FormatLogMessage_Returns {
+  const contextParts: Lib_Logger_FormatLogMessage_ContextParts = [];
+  const contextEntries: Lib_Logger_FormatLogMessage_ContextEntries = Object.entries(context).sort((firstEntry, secondEntry) => firstEntry[0].localeCompare(secondEntry[0]));
+
+  for (const contextEntry of contextEntries) {
+    const contextEntryKey: Lib_Logger_FormatLogMessage_ContextEntryKey = contextEntry[0];
+    const contextEntryValue: Lib_Logger_FormatLogMessage_ContextEntryValue = contextEntry[1];
+
+    contextParts.push(`${contextEntryKey}=${String(contextEntryValue)}`);
+  }
+
+  const rawMessage: Lib_Logger_FormatLogMessage_RawMessage = [
+    event,
+    ...contextParts,
+  ].join(' ');
+
+  return rawMessage.replaceAll('\r', ' ').replaceAll('\n', ' ');
 }
 
 /**
@@ -159,8 +201,8 @@ export function unmuteLogs(): Lib_Logger_UnmuteLogs_Returns {
 /**
  * Logger - Write Log.
  *
- * Emits one structured JSON record for container log collection. Context is explicit so
- * secrets are never included implicitly, and debug entries wait for Debug logging.
+ * Emits one plain line that matches the appliance logger contract. Context is explicit
+ * so secrets are never included implicitly, and debug entries wait for Debug logging.
  *
  * @param {Lib_Logger_WriteLog_Level}     level     - Level.
  * @param {Lib_Logger_WriteLog_Component} component - Component.
@@ -169,7 +211,7 @@ export function unmuteLogs(): Lib_Logger_UnmuteLogs_Returns {
  *
  * @returns {Lib_Logger_WriteLog_Returns}
  *
- * @since 4.0.0
+ * @since 4.2.0
  */
 export function writeLog(
   level: Lib_Logger_WriteLog_Level,
@@ -194,9 +236,15 @@ export function writeLog(
     level,
     timestamp: new Date().toISOString(),
   };
-  const serializedEntry: Lib_Logger_WriteLog_SerializedEntry = JSON.stringify(entry);
+  const message: Lib_Logger_WriteLog_Message = formatLogMessage(event, context);
+  const outputLevel: Lib_Logger_WriteLog_OutputLevel = level.toUpperCase();
+  const outputLine: Lib_Logger_WriteLog_OutputLine = `${entry['timestamp']} ${outputLevel} ${component}: ${message}\n`;
 
-  process.stdout.write(`${serializedEntry}\n`);
+  if (level === 'warn' || level === 'error') {
+    process.stderr.write(outputLine);
+  } else {
+    process.stdout.write(outputLine);
+  }
 
   if (
     logPersistencePool !== undefined

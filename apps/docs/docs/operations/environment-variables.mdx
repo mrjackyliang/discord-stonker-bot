@@ -26,11 +26,11 @@ With `docker run`, pass each variable as an `-e` option. Docker Compose passes v
 - **The root `.env` or your shell** — The `environment` block in `compose.yml` fills every setting below from here.
 - **`apps/bot/.env`** — Compose loads this file into the container when it exists, but the `environment` block has priority over it, and no setting needs it.
 
-The startup scripts and the database migration check every setting before the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start. An invalid value stops the container, and `docker logs discord-stonker-bot` or `docker compose logs app` names the rejected value, either as a plain message or in a `migration_failed` line.
+The startup scripts and the database migration check every setting before the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start. An invalid value stops the container, and `docker logs discord-stonker-bot` or `docker compose logs app` names the rejected value in a plain log line.
 
 A Basic or Optional variable set to an empty value, such as `JOB_ATTEMPT_LIMIT=""`, counts as unset and uses its default.
 
-The control panel always listens on every address on port 22604, and no variable changes either. To keep it local-only, publish it on loopback with `-p 127.0.0.1:22604:22604` or `"127.0.0.1:22604:22604"` in `compose.yml`, or put it behind a reverse proxy. To open it on another host port, change the host side of the port mapping, such as `-p 8080:22604` with `docker run` or `"8080:22604"` in `compose.yml`. With `--net=host`, the port is always 22604.
+The control panel always listens on every address on port 22604, and no variable changes either. The supplied run line and Compose file use host networking, so the port is always 22604. To keep it local-only or select another host port, switch to bridge networking and publish the fixed container port, such as `--net=bridge -p 127.0.0.1:8080:22604`.
 
 ## Basic
 
@@ -38,7 +38,7 @@ No variable is required. Most installs set only these three.
 
 | Variable       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `PUID`, `PGID` | The user and group IDs that run the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, and that own the files in the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, from 1 to 2147483647, and 1000 by default. |
+| `PUID`, `PGID` | The user and group IDs that run PostgreSQL, the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, and that own the whole <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, from 1 to 60000, and 1000 by default. |
 | `TZ`           | The container's <Terminology title="The zone a schedule's times are read in; UTC by default" to="/docs/reference/terminology#schedules-and-jobs">time zone</Terminology>, an installed IANA name, `UTC` by default. It doesn't change any schedule.                                                                                                                                                                                                     |
 
 ## Optional
@@ -54,15 +54,21 @@ With Compose, set these in the root `.env`, next to `compose.yml`.
 | `DATABASE_MAX_CONNECTIONS`     | The database connections each service may open, from 1 to 30, and 10 by default. The bot, web, and worker each own a pool, so the maximum leaves room under PostgreSQL's connection limit.                                                                                                                                                                                                                                                                                                                    |
 | `IMAGE_NAME`                   | The image name Compose builds and runs, `discord-stonker-bot:local` by default.                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
-## Set by the Image
+## Set by the Appliance
 
-`compose.yml` sets, and the services default to, the paths the services use, such as `CREDENTIAL_KEY_FILE` for the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> at `/data/keys/installation.key`, `MIGRATIONS_DIRECTORY`, `STARTER_CONFIGURATION` for the <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology>, `POSTGRES_DATA_DIRECTORY`, and `POSTGRES_RUNTIME_DIRECTORY`, the folder for PostgreSQL's Unix socket.
+Nova resolves the state root on every start and writes these variables to `/run/nova-docker/environment` for every service:
 
-`compose.yml` sets each one to a fixed value, so a value in either `.env` file has no effect. With `docker run`, an `-e` value for one of them does take effect. `MIGRATIONS_DIRECTORY` and `STARTER_CONFIGURATION` point at files in the image, `CREDENTIAL_KEY_FILE` and `POSTGRES_DATA_DIRECTORY` point into the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, and `POSTGRES_RUNTIME_DIRECTORY` points into the in-memory `/run`.
+| Variable                     | Resolved value for a current install |
+|------------------------------|--------------------------------------|
+| `NOVA_STATE_DIRECTORY`       | `/config`                            |
+| `NOVA_KEYS_DIRECTORY`        | `/config/keys`                       |
+| `NOVA_INSTALLATION_KEY_FILE` | `/config/keys/installation.key`      |
+| `NOVA_DATABASE_DIRECTORY`    | `/config/database`                   |
+| `DATA_DIRECTORY`             | `/config`                            |
 
-:::danger
-A `CREDENTIAL_KEY_FILE` path without the key file counts as a lost <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>, so the next start removes the saved secrets the old key encrypted, as described in [Storage and Backups](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
-:::
+An old run line that still mounts only `/data` gets the same relative paths under `/data` until its mount is updated. These variables describe resolved appliance state and are not user settings.
+
+The image also fixes `MIGRATIONS_DIRECTORY`, `STARTER_CONFIGURATION` for the <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology>, and `POSTGRES_RUNTIME_DIRECTORY` for PostgreSQL's Unix socket at `/tmp/postgresql`.
 
 ## Unused Variables
 

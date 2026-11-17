@@ -1,23 +1,14 @@
 #!/command/with-contenv sh
 set -eu
 
+. /usr/local/libexec/nova-docker/log
+
 database_name="${POSTGRES_DB:-stonker}"
 database_user="${POSTGRES_USER:-stonker}"
-runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}"
-application_user_id="${PUID:-1000}"
-application_group_id="${PGID:-1000}"
+runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/tmp/postgresql}"
 attempt=0
 
-run_as_application() {
-  /command/s6-applyuidgid \
-    -u "${application_user_id}" \
-    -g "${application_group_id}" \
-    -G "${application_group_id}" \
-    "$@"
-}
-
-until run_as_application \
-  /usr/lib/postgresql/17/bin/pg_isready \
+until /usr/lib/postgresql/17/bin/pg_isready \
   --dbname=postgres \
   --host="${runtime_directory}" \
   --port=5432 \
@@ -27,7 +18,8 @@ do
   attempt=$((attempt + 1))
 
   if [ "${attempt}" -ge 60 ]; then
-    echo 'PostgreSQL did not become ready within 60 seconds.' >&2
+    nova_log ERROR migrate 'PostgreSQL did not become ready within 60 seconds.'
+
     exit 1
   fi
 
@@ -35,8 +27,7 @@ do
 done
 
 database_exists="$(
-  run_as_application \
-    /usr/lib/postgresql/17/bin/psql \
+  /usr/lib/postgresql/17/bin/psql \
     --dbname=postgres \
     --host="${runtime_directory}" \
     --no-align \
@@ -48,8 +39,7 @@ database_exists="$(
 )"
 
 if [ "${database_exists}" != '1' ]; then
-  run_as_application \
-    /usr/lib/postgresql/17/bin/createdb \
+  /usr/lib/postgresql/17/bin/createdb \
     --host="${runtime_directory}" \
     --port=5432 \
     --username="${database_user}" \
@@ -57,8 +47,7 @@ if [ "${database_exists}" != '1' ]; then
 fi
 
 # Version 4.0 set a password for TCP sign-in; the socket never asks for one, so it is cleared.
-run_as_application \
-  /usr/lib/postgresql/17/bin/psql \
+/usr/lib/postgresql/17/bin/psql \
   --dbname=postgres \
   --host="${runtime_directory}" \
   --port=5432 \
@@ -69,9 +58,4 @@ run_as_application \
 
 cd /app/apps/bot
 
-exec /command/s6-applyuidgid \
-  -u "${application_user_id}" \
-  -g "${application_group_id}" \
-  -G "${application_group_id}" \
-  /usr/local/bin/node \
-  build/migrate.js
+exec /usr/local/bin/node build/migrate.js

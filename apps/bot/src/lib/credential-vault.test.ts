@@ -1,3 +1,7 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import {
   describe,
   expect,
@@ -9,11 +13,14 @@ import {
   decryptSecret,
   encryptDiscordToken,
   encryptSecret,
+  readCredentialKey,
 } from './credential-vault.js';
 
 import type {
   Lib_CredentialVault_EncryptSecret_CredentialKey,
   Lib_CredentialVault_EncryptSecret_Returns,
+  Lib_CredentialVault_ReadCredentialKey_CredentialKey,
+  Lib_CredentialVault_ReadCredentialKey_FilePath,
 } from '../types/lib/credential-vault.d.ts';
 
 /**
@@ -55,6 +62,30 @@ describe('credential vault boundaries', () => {
     expect(decryptSecret(ciphertext, 'legacy:api-key', credentialKey)).toBe('provider-secret');
 
     expect(() => decryptSecret(ciphertext, 'legacy:webhook', credentialKey)).toThrow();
+
+    return;
+  });
+
+  it('reads the hexadecimal key file and the version 4 raw key as the same bytes', async () => {
+    const keyDirectory: Lib_CredentialVault_ReadCredentialKey_FilePath = await mkdtemp(join(tmpdir(), 'dsb-key-'));
+    const hexadecimalPath: Lib_CredentialVault_ReadCredentialKey_FilePath = join(keyDirectory, 'hexadecimal.key');
+    const rawPath: Lib_CredentialVault_ReadCredentialKey_FilePath = join(keyDirectory, 'raw.key');
+    const expectedKey: Lib_CredentialVault_ReadCredentialKey_CredentialKey = Buffer.alloc(32, 7);
+
+    try {
+      await writeFile(hexadecimalPath, `${expectedKey.toString('hex')}\n`);
+
+      await writeFile(rawPath, expectedKey);
+
+      expect((await readCredentialKey(hexadecimalPath)).equals(expectedKey)).toBe(true);
+
+      expect((await readCredentialKey(rawPath)).equals(expectedKey)).toBe(true);
+    } finally {
+      await rm(keyDirectory, {
+        force: true,
+        recursive: true,
+      });
+    }
 
     return;
   });

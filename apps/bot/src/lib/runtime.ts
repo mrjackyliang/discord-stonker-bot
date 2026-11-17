@@ -34,15 +34,15 @@ export const CONTROL_PANEL_PORT: Lib_Runtime_ControlPanelPort = 22604;
  * Validates every secret and setting before any runtime service starts.
  * Defaults cover internal single-container networking, never credentials.
  *
- * @since 4.0.0
+ * @since 4.2.0
  */
 const environmentSchema = z.object({
   BOT_CONTROL_POLL_INTERVAL_MS: z.coerce.number().int().min(250).max(60_000).default(1000),
-  CREDENTIAL_KEY_FILE: z.string().min(1).default('/data/keys/installation.key'),
   DATABASE_MAX_CONNECTIONS: z.coerce.number().int().min(1).max(30).default(10),
   JOB_ATTEMPT_LIMIT: z.coerce.number().int().min(1).max(20).default(5),
+  NOVA_INSTALLATION_KEY_FILE: z.string().min(1).default('/config/keys/installation.key'),
   POSTGRES_DB: z.string().regex(LIB_REGEX_PATTERN_DATABASE_IDENTIFIER).default('stonker'),
-  POSTGRES_RUNTIME_DIRECTORY: z.string().min(1).default('/run/postgresql'),
+  POSTGRES_RUNTIME_DIRECTORY: z.string().min(1).default('/tmp/postgresql'),
   POSTGRES_USER: z.string().regex(LIB_REGEX_PATTERN_DATABASE_IDENTIFIER).default('stonker'),
   WORKER_POLL_INTERVAL_MS: z.coerce.number().int().min(100).max(60_000).default(1000),
 });
@@ -77,7 +77,7 @@ export function readRuntimeConfiguration(): Lib_Runtime_ReadRuntimeConfiguration
 
   const botConfiguration: Lib_Runtime_ReadRuntimeConfiguration_BotConfiguration = {
     controlPollIntervalMilliseconds: environment['BOT_CONTROL_POLL_INTERVAL_MS'],
-    credentialKeyFile: environment['CREDENTIAL_KEY_FILE'],
+    credentialKeyFile: environment['NOVA_INSTALLATION_KEY_FILE'],
   };
 
   // Without a host, Node listens on every IPv6 and IPv4 address, or on IPv4 when IPv6 is off. The port mapping or a reverse proxy decides who can reach it.

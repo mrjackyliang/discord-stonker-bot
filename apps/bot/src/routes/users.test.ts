@@ -431,9 +431,9 @@ describe('user routes', () => {
 
     const written: Tests_Routes_Users_Output = output.mock.calls.map((call) => String(call[0])).join('');
 
-    expect(written).toContain('"event":"user_created"');
+    expect(written).toContain('INFO web: user_created');
 
-    expect(written).toContain('"event":"user_updated"');
+    expect(written).toContain('INFO web: user_updated');
 
     expect(written).not.toContain('operator password for tests');
 

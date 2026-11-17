@@ -10,6 +10,15 @@ import type {
 export type Lib_Logger_ConfigureLogPersistence_Pool = Pool;
 export type Lib_Logger_ConfigureLogPersistence_Returns = void;
 
+export type Lib_Logger_FormatLogMessage_Event = Shared_LogEvent;
+export type Lib_Logger_FormatLogMessage_Context = Shared_LogContext;
+export type Lib_Logger_FormatLogMessage_Returns = string;
+export type Lib_Logger_FormatLogMessage_ContextParts = string[];
+export type Lib_Logger_FormatLogMessage_ContextEntries = [string, unknown][];
+export type Lib_Logger_FormatLogMessage_ContextEntryKey = string;
+export type Lib_Logger_FormatLogMessage_ContextEntryValue = unknown;
+export type Lib_Logger_FormatLogMessage_RawMessage = string;
+
 export type Lib_Logger_GetErrorMessage_Error = unknown;
 export type Lib_Logger_GetErrorMessage_Returns = string;
 
@@ -39,7 +48,9 @@ export type Lib_Logger_WriteLog_Entry = {
 export type Lib_Logger_WriteLog_Event = Shared_LogEvent;
 export type Lib_Logger_WriteLog_Level = Shared_LogLevel;
 export type Lib_Logger_WriteLog_Returns = void;
-export type Lib_Logger_WriteLog_SerializedEntry = string;
+export type Lib_Logger_WriteLog_Message = string;
+export type Lib_Logger_WriteLog_OutputLevel = string;
+export type Lib_Logger_WriteLog_OutputLine = string;
 export type Lib_Logger_WriteLog_PersistencePromise = Promise<unknown>;
 
 export type Lib_Logger_LogPersistencePool = Pool | undefined;

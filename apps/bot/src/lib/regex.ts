@@ -69,6 +69,16 @@ export const LIB_REGEX_PATTERN_PANEL_TOKEN_ID = /^tok-[0-9a-f]{16}$/;
 export const LIB_REGEX_PATTERN_SHA256_HASH = /^[0-9a-f]{64}$/;
 
 /**
+ * Regex - Lib Regex Pattern Installation Key Hexadecimal.
+ *
+ * Matches the installation key file's 64 lowercase hexadecimal characters,
+ * which hold the 32 key bytes, without the trailing newline.
+ *
+ * @since 4.2.0
+ */
+export const LIB_REGEX_PATTERN_INSTALLATION_KEY_HEXADECIMAL = /^[0-9a-f]{64}$/;
+
+/**
  * Regex - Lib Regex Pattern Discord Identifier.
  *
  * Accepts opaque Discord snowflakes without converting them to numbers.

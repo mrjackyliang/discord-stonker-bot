@@ -11,7 +11,7 @@
     "check:lint": "eslint ./ --max-warnings=0",
     "check:types-config": "nova utility type-check --project tsconfig.config.json",
     "check:types-tests": "nova utility type-check --project tsconfig.tests.json",
-    "check:test": "vitest run",
+    "check:test": "bash ./packages/docker/tests/prepare-state.test.sh && vitest run",
     "build": "nova utility run-workspaces --node-env production build",
     "deploy": "nova utility run-workspaces --node-env production deploy",
     "deploy:container": "docker compose up --build --detach",

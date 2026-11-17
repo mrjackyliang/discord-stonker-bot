@@ -51,19 +51,8 @@ export type Lib_DebugTiming_WatchRestRateLimits_Component = Shared_LogComponent;
 export type Lib_DebugTiming_WatchRestRateLimits_Returns = void;
 
 export type Lib_DebugTiming_Test_Write = MockInstance<typeof process.stdout.write>;
-export type Lib_DebugTiming_Test_Entry = {
-  component: string;
-  context: Record<string, unknown>;
-  event: string;
-  level: string;
-};
-export type Lib_DebugTiming_Test_Summary = {
-  component: string;
-  context: Record<string, unknown>;
-  event: string;
-};
 export type Lib_DebugTiming_Test_ReadEntries_Write = Lib_DebugTiming_Test_Write;
-export type Lib_DebugTiming_Test_ReadEntries_Returns = Lib_DebugTiming_Test_Summary[];
+export type Lib_DebugTiming_Test_ReadEntries_Returns = string[];
 export type Lib_DebugTiming_Test_QueryResult = {
   rows: Record<string, unknown>[];
 };

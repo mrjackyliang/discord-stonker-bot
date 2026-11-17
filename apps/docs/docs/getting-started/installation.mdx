@@ -22,17 +22,21 @@ Start the <Terminology title="One container that holds the bot, panel, worker, a
 
 ## Run with Docker
 
-Pick a folder on the Docker host for the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, such as `/volume1/docker/discord-stonker-bot`, then start the container.
+Pick a folder on the Docker host for the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, such as `/path/to/discord-stonker-bot`, then start the container.
 
 ```bash
-sudo docker run -d -v /volume1/docker/discord-stonker-bot:/data -e "PGID=9999" -e "PUID=9999" -e "TZ=America/New_York" --restart always --user 0:0 --net=host --name discord-stonker-bot mrjackyliang/discord-stonker-bot:latest
+sudo docker run -d -v /path/to/discord-stonker-bot:/config -e "PGID=1000" -e "PUID=1000" -e "TZ=America/New_York" --restart always --user 0:0 --net=host --name discord-stonker-bot mrjackyliang/discord-stonker-bot:latest
 ```
 
-- **`-v …:/data`** — The host folder that keeps the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
-- **`PUID` and `PGID`** — The user and group that own the files in that folder. Use the IDs of the account that owns it on your host.
+- **`-v …:/config`** — The host folder that keeps the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
+- **`PUID` and `PGID`** — The user and group that own every file in that folder and run every service, including PostgreSQL. Use IDs from 1 through 60000.
 - **`TZ`** — An IANA time zone, such as `America/New_York`.
 - **`--user 0:0`** — Starts the container's service manager as root, which then runs the bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> as `PUID`.
 - **`--net=host`** — Shares the host's network. The only port the container opens is the control panel's port, `22604`, because PostgreSQL listens only on a Unix socket inside the container.
+
+:::info
+Earlier versions mounted the state folder at `/data`. Change the mount to the same host folder at `/config`; the first start moves `postgres/` into `database/`, moves the old key into `keys/installation.key`, and converts its representation without changing its key bytes. An unchanged old run line still starts from `/data` and performs the same internal migration, while logging that the mount is deprecated.
+:::
 
 There's no database password or admin account to set. You create the first account in the browser with a one-time <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology>.
 
@@ -84,6 +88,8 @@ docker compose ps
 
 `npm run deploy:container` from the repository root runs the same `docker compose up --build --detach` command.
 
+Docker marks the container healthy only when the bot, PostgreSQL, control panel, and worker are all up and `GET /health` answers with HTTP 200. The image checks every 30 seconds after a 30-second start period.
+
 ### Update the Appliance
 
 Get the newer source code, then run the same command to rebuild the image and replace the container.
@@ -106,7 +112,7 @@ docker compose down
 
 ## First Start
 
-On the first start, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> at `/data/keys/installation.key`. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start after these steps finish.
+On the first start, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> sets up PostgreSQL under `/config/database/`, applies the database migrations, and creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> at `/config/keys/installation.key`. The `keys/` folder has mode 0700, and the key is 64 lowercase hexadecimal characters plus a newline with mode 0600. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start after these steps finish.
 
 New database migrations run automatically on every start after an update. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
 

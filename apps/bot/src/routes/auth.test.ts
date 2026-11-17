@@ -42,6 +42,7 @@ import type {
   Tests_Routes_Auth_Client,
   Tests_Routes_Auth_Code,
   Tests_Routes_Auth_Count,
+  Tests_Routes_Auth_ErrorOutputSpy,
   Tests_Routes_Auth_Harness,
   Tests_Routes_Auth_KeyDirectory,
   Tests_Routes_Auth_Options,
@@ -334,7 +335,8 @@ describe('auth routes', () => {
     const client: Tests_Routes_Auth_Client = createClient(harness['baseUrl'], {
       'X-Forwarded-For': '198.51.100.10',
     });
-    const output: Tests_Routes_Auth_OutputSpy = vi.spyOn(process.stdout, 'write');
+    const errorOutputSpy: Tests_Routes_Auth_ErrorOutputSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true);
+    const output: Tests_Routes_Auth_OutputSpy = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
 
     await claimOwner(harness['pool'], client);
 
@@ -504,13 +506,16 @@ describe('auth routes', () => {
       code: recoveryCode,
     }))['status']).toBe(401);
 
-    const written: Tests_Routes_Auth_Output = output.mock.calls.map((call) => String(call[0])).join('');
+    const written: Tests_Routes_Auth_Output = [
+      ...errorOutputSpy.mock.calls,
+      ...output.mock.calls,
+    ].map((call) => String(call[0])).join('');
 
-    expect(written).toContain('"event":"sign_in_succeeded"');
+    expect(written).toContain('INFO web: sign_in_succeeded');
 
-    expect(written).toContain('"event":"sign_in_failed"');
+    expect(written).toContain('WARN web: sign_in_failed');
 
-    expect(written).toContain('"event":"setup_completed"');
+    expect(written).toContain('INFO web: setup_completed');
 
     expect(written).not.toContain(OWNER_PASSWORD);
 

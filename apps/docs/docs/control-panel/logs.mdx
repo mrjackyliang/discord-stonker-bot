@@ -97,7 +97,19 @@ The **Worker** log adds `notification_delivered` for each alert sent and `notifi
 
 ## Container Logs
 
-Every service also writes each event to standard output as one line of JSON. Follow them on the Docker host.
+Every service and startup helper writes one fact per plain line in this shape:
+
+```text
+<ISO time> <LEVEL> <component>: <message>
+```
+
+Application events put the event name first and append their explicit details as `key=value` fields. They never emit JSON or multiline records to the container log. Info and debug lines use standard output; warnings and errors use standard error.
+
+```text
+2026-01-15T18:42:07.000Z INFO bot: gateway_ready generation=3 message=Connected
+```
+
+Follow the lines on the Docker host.
 
 ```bash
 docker logs --follow discord-stonker-bot

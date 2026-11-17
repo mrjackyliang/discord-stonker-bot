@@ -1,6 +1,13 @@
 #!/command/with-contenv sh
 set -eu
-
-cd /app/apps/bot
-
-exec /usr/local/libexec/discord-stonker-bot/migrate
+. /usr/local/libexec/nova-docker/log
+. /run/nova-docker/environment
+if [ -f /app/.pnp.cjs ]; then
+  export NODE_OPTIONS="--require=/app/.pnp.cjs${NODE_OPTIONS:+ ${NODE_OPTIONS}}"
+fi
+if [ -f /app/.pnp.loader.mjs ]; then
+  export NODE_OPTIONS="--experimental-loader=/app/.pnp.loader.mjs${NODE_OPTIONS:+ ${NODE_OPTIONS}}"
+fi
+cd '/app/apps/bot'
+nova_log INFO 'migrate' 'Starting service.'
+exec /command/s6-applyuidgid -u "${PUID:-1000}" -g "${PGID:-1000}" -G "${PGID:-1000}" /usr/local/libexec/discord-stonker-bot/migrate

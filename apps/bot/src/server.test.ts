@@ -52,7 +52,7 @@ afterEach(async () => {
  * @since 4.0.0
  */
 describe('server pipeline', () => {
-  it('answers probes, unknown API paths, and page paths', async () => {
+  it('answers the Docker health probe with HTTP 200', async () => {
     if (harness === undefined) {
       throw new Error('The test server is not running.');
     }
@@ -63,6 +63,16 @@ describe('server pipeline', () => {
       body: 'ok',
       status: 200,
     }));
+
+    return;
+  });
+
+  it('answers readiness, unknown API paths, and page paths', async () => {
+    if (harness === undefined) {
+      throw new Error('The test server is not running.');
+    }
+
+    const client: Tests_Server_Client = createClient(harness['baseUrl']);
 
     expect(await client.request('GET', '/ready')).toEqual(expect.objectContaining({
       body: 'ready',

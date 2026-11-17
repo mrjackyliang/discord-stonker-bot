@@ -33,6 +33,7 @@ export type Tests_Routes_Auth_Options = Tests_Support_Passkeys_Options;
 export type Tests_Routes_Auth_Step = number;
 export type Tests_Routes_Auth_RecoveryCode = string;
 export type Tests_Routes_Auth_Output = string;
+export type Tests_Routes_Auth_ErrorOutputSpy = MockInstance<typeof process.stderr.write>;
 export type Tests_Routes_Auth_OutputSpy = MockInstance<typeof process.stdout.write>;
 export type Tests_Routes_Auth_KeyDirectory = string;
 export type Tests_Routes_Auth_RemovedSecrets = string[];

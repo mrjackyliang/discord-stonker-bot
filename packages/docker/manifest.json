@@ -1,4 +1,12 @@
 {
+  "healthPath": "/health",
+  "legacyStatePaths": [
+    "database",
+    "keys/installation.key",
+    "postgres",
+    "secrets/credential.key"
+  ],
+  "networkMode": "host",
   "schemaVersion": 1,
   "services": [
     {
@@ -10,12 +18,10 @@
       "environment": {},
       "kind": "longrun",
       "name": "bot",
-      "requiredForHealth": false,
+      "requiredForHealth": true,
       "runAsRoot": false,
       "workspace": "apps/bot",
-      "writablePaths": [
-        "/data/keys"
-      ]
+      "writablePaths": []
     },
     {
       "command": "/usr/local/libexec/discord-stonker-bot/migrate",
@@ -27,40 +33,51 @@
       "kind": "oneshot",
       "name": "migrate",
       "requiredForHealth": false,
-      "runAsRoot": true,
+      "runAsRoot": false,
       "workspace": "apps/bot",
-      "writablePaths": [
-        "/data/keys"
-      ]
+      "writablePaths": []
     },
     {
-      "command": "/command/s6-setuidgid postgres /usr/lib/postgresql/17/bin/postgres -D \"${POSTGRES_DATA_DIRECTORY:-/data/postgres}\" -c \"hba_file=/etc/discord-stonker-bot/pg_hba.conf\" -c \"listen_addresses=\" -c \"log_destination=stderr\" -c \"logging_collector=off\" -c \"port=5432\" -c \"unix_socket_directories=${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}\" -c \"unix_socket_permissions=0777\"",
+      "command": "/usr/lib/postgresql/17/bin/postgres -D \"${NOVA_DATABASE_DIRECTORY}\" -c \"hba_file=/etc/discord-stonker-bot/pg_hba.conf\" -c \"listen_addresses=\" -c \"log_destination=stderr\" -c \"logging_collector=off\" -c \"port=5432\" -c \"unix_socket_directories=${POSTGRES_RUNTIME_DIRECTORY:-/tmp/postgresql}\" -c \"unix_socket_permissions=0777\"",
       "critical": true,
       "dependencies": [
         "prepare-postgres"
       ],
       "environment": {},
-      "healthCommand": "/usr/lib/postgresql/17/bin/pg_isready --quiet --host=/run/postgresql --port=5432",
       "kind": "longrun",
       "name": "postgres",
       "requiredForHealth": true,
-      "runAsRoot": true,
+      "runAsRoot": false,
       "workspace": "apps/bot",
       "writablePaths": []
     },
     {
       "command": "/usr/local/libexec/discord-stonker-bot/prepare-postgres",
       "critical": false,
-      "dependencies": [],
+      "dependencies": [
+        "prepare-state"
+      ],
       "environment": {},
       "kind": "oneshot",
       "name": "prepare-postgres",
       "requiredForHealth": false,
-      "runAsRoot": true,
+      "runAsRoot": false,
       "workspace": "apps/bot",
       "writablePaths": [
-        "/data/keys"
+        "/tmp/postgresql"
       ]
+    },
+    {
+      "command": "/usr/local/libexec/discord-stonker-bot/prepare-state",
+      "critical": false,
+      "dependencies": [],
+      "environment": {},
+      "kind": "oneshot",
+      "name": "prepare-state",
+      "requiredForHealth": false,
+      "runAsRoot": false,
+      "workspace": "apps/bot",
+      "writablePaths": []
     },
     {
       "command": "node build/web.js",
@@ -69,16 +86,13 @@
         "migrate"
       ],
       "environment": {},
-      "healthCommand": "node build/healthcheck.js",
       "kind": "longrun",
       "name": "web",
       "port": 22604,
       "requiredForHealth": true,
       "runAsRoot": false,
       "workspace": "apps/bot",
-      "writablePaths": [
-        "/data/keys"
-      ]
+      "writablePaths": []
     },
     {
       "command": "node build/worker.js",
@@ -92,11 +106,10 @@
       "requiredForHealth": true,
       "runAsRoot": false,
       "workspace": "apps/bot",
-      "writablePaths": [
-        "/data/keys"
-      ]
+      "writablePaths": []
     }
   ],
+  "stateEnvironment": "DATA_DIRECTORY",
   "workspaces": [
     {
       "packageName": "discord-stonker-bot-app-bot",

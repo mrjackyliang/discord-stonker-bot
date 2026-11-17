@@ -421,17 +421,15 @@ describe('log routes', () => {
 
       expect(isDebugLogging()).toBe(false);
 
-      const lines: Tests_Routes_Logs_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes('"event":"debug_logging_'));
+      const lines: Tests_Routes_Logs_Lines = write.mock.calls.map((call) => String(call[0])).filter((line) => line.includes(': debug_logging_'));
 
       expect(lines).toHaveLength(2);
 
-      expect(lines[0]).toContain('"component":"web"');
+      expect(lines[0]).toContain('INFO web: debug_logging_on');
 
-      expect(lines[0]).toContain('"event":"debug_logging_on"');
+      expect(lines[0]).toContain('username=operator');
 
-      expect(lines[0]).toContain('"username":"operator"');
-
-      expect(lines[1]).toContain('"event":"debug_logging_off"');
+      expect(lines[1]).toContain('INFO web: debug_logging_off');
     } finally {
       setDebugLogging(false);
 

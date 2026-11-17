@@ -1,5 +1,10 @@
 # discord-stonker-bot-app-bot
 
+## 4.2.0 - 2026-11-17
+
+### UPDATED
+- App state lives at /config, with the installation key in keys/ and PostgreSQL in database/, all owned by PUID and PGID, and PostgreSQL runs as PUID instead of its own user; an existing /data install moves over on its first start with the same key, and the container uses the shared health check, shutdown timing and plain log lines of the other Docker apps.
+
 ## 4.1.0 - 2026-11-17
 
 ### UPDATED

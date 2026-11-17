@@ -46,6 +46,9 @@ export type Lib_CredentialVault_EncryptSecret_Tag = Buffer;
 
 export type Lib_CredentialVault_ReadCredentialKey_FilePath = string;
 export type Lib_CredentialVault_ReadCredentialKey_Returns = Promise<Buffer>;
+export type Lib_CredentialVault_ReadCredentialKey_FileContents = Buffer;
+export type Lib_CredentialVault_ReadCredentialKey_FileText = string;
+export type Lib_CredentialVault_ReadCredentialKey_HexadecimalKey = string;
 export type Lib_CredentialVault_ReadCredentialKey_CredentialKey = Buffer;
 
 export type Lib_CredentialVault_ValidateCredentialKey_CredentialKey = Buffer;

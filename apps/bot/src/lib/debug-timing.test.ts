@@ -20,7 +20,6 @@ import { setDebugLogging } from './logger.js';
 
 import type {
   Lib_DebugTiming_Test_Client,
-  Lib_DebugTiming_Test_Entry,
   Lib_DebugTiming_Test_FakeClient,
   Lib_DebugTiming_Test_FakePool,
   Lib_DebugTiming_Test_Output,
@@ -35,8 +34,8 @@ import type {
 /**
  * Debug Timing - Read Entries.
  *
- * Reads back the debug entries written so far, with their process, event, and
- * details. Entries at other levels are left out.
+ * Reads back the plain Debug lines written so far without their changing time.
+ * The level, process, event, and details remain exact for each assertion.
  *
  * @param {Lib_DebugTiming_Test_ReadEntries_Write} write - Write.
  *
@@ -46,13 +45,9 @@ import type {
  */
 function readEntries(write: Lib_DebugTiming_Test_ReadEntries_Write): Lib_DebugTiming_Test_ReadEntries_Returns {
   return write.mock.calls
-    .map((call) => JSON.parse(String(call[0])) as Lib_DebugTiming_Test_Entry)
-    .filter((entry) => entry['level'] === 'debug')
-    .map((entry) => ({
-      component: entry['component'],
-      context: entry['context'],
-      event: entry['event'],
-    }));
+    .map((call) => String(call[0]))
+    .filter((line) => line.includes(' DEBUG '))
+    .map((line) => line.slice(line.indexOf(' ') + 1).trimEnd());
 }
 
 /**
@@ -127,22 +122,8 @@ describe('debug timing', () => {
     expect(release).toHaveBeenCalledOnce();
 
     expect(readEntries(write)).toEqual([
-      {
-        component: 'worker',
-        context: {
-          elapsedMs: 400,
-          statement: 'UPDATE panel_users SET password_hash = $1 WHERE id = $2',
-        },
-        event: 'database_query_slow',
-      },
-      {
-        component: 'worker',
-        context: {
-          elapsedMs: 300,
-          statement: 'BEGIN',
-        },
-        event: 'database_query_slow',
-      },
+      'DEBUG worker: database_query_slow elapsedMs=400 statement=UPDATE panel_users SET password_hash = $1 WHERE id = $2',
+      'DEBUG worker: database_query_slow elapsedMs=300 statement=BEGIN',
     ]);
 
     expect(output).not.toContain('fixture-password-hash');
@@ -172,27 +153,8 @@ describe('debug timing', () => {
     await expect(timeFeatureHandler('scammer', Events.MessageUpdate, '111111111111111111', async () => Promise.reject(new Error('Missing Permissions')))).rejects.toThrow('Missing Permissions');
 
     expect(readEntries(write)).toEqual([
-      {
-        component: 'bot',
-        context: {
-          elapsedMs: 1500,
-          event: 'messageCreate',
-          guildIdentifier: '111111111111111111',
-          module: 'message',
-        },
-        event: 'feature_handler_slow',
-      },
-      {
-        component: 'bot',
-        context: {
-          elapsedMs: 20,
-          error: 'Missing Permissions',
-          event: 'messageUpdate',
-          guildIdentifier: '111111111111111111',
-          module: 'scammer',
-        },
-        event: 'feature_handler_failed',
-      },
+      'DEBUG bot: feature_handler_slow elapsedMs=1500 event=messageCreate guildIdentifier=111111111111111111 module=message',
+      'DEBUG bot: feature_handler_failed elapsedMs=20 error=Missing Permissions event=messageUpdate guildIdentifier=111111111111111111 module=scammer',
     ]);
 
     return;
@@ -241,51 +203,11 @@ describe('debug timing', () => {
     const output: Lib_DebugTiming_Test_Output = write.mock.calls.map((call) => String(call[0])).join('');
 
     expect(readEntries(write)).toEqual([
-      {
-        component: 'bot',
-        context: {
-          connectMs: 800,
-          shardId: 0,
-          unavailableGuilds: 0,
-        },
-        event: 'gateway_shard_ready',
-      },
-      {
-        component: 'bot',
-        context: {
-          code: 1006,
-          shardId: 0,
-        },
-        event: 'gateway_shard_disconnected',
-      },
-      {
-        component: 'bot',
-        context: {
-          shardId: 0,
-        },
-        event: 'gateway_shard_reconnecting',
-      },
-      {
-        component: 'bot',
-        context: {
-          downMs: 600,
-          replayedEvents: 12,
-          shardId: 0,
-        },
-        event: 'gateway_shard_resumed',
-      },
-      {
-        component: 'bot',
-        context: {
-          global: false,
-          limit: 5,
-          method: 'POST',
-          route: '/webhooks/:id/:token',
-          scope: 'shared',
-          waitMs: 1250,
-        },
-        event: 'rest_rate_limited',
-      },
+      'DEBUG bot: gateway_shard_ready connectMs=800 shardId=0 unavailableGuilds=0',
+      'DEBUG bot: gateway_shard_disconnected code=1006 shardId=0',
+      'DEBUG bot: gateway_shard_reconnecting shardId=0',
+      'DEBUG bot: gateway_shard_resumed downMs=600 replayedEvents=12 shardId=0',
+      'DEBUG bot: rest_rate_limited global=false limit=5 method=POST route=/webhooks/:id/:token scope=shared waitMs=1250',
     ]);
 
     expect(output).not.toContain('fixture-webhook-token');

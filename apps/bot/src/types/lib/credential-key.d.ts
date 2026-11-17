@@ -14,6 +14,22 @@ import type {
 import type { Tests_Support_Database_TestDatabase } from '../tests/support/database.d.ts';
 import type { Lib_NotificationTargets_CreateNotificationTarget_Returns } from './notification-targets.d.ts';
 
+export type Lib_CredentialKey_CreateCredentialKeyFile_FilePath = string;
+export type Lib_CredentialKey_CreateCredentialKeyFile_CredentialKey = Buffer;
+export type Lib_CredentialKey_CreateCredentialKeyFile_Returns = Promise<void>;
+export type Lib_CredentialKey_CreateCredentialKeyFile_KeyFile = FileHandle;
+
+export type Lib_CredentialKey_DecodeCredentialKey_Contents = Buffer;
+export type Lib_CredentialKey_DecodeCredentialKey_Returns_CredentialKey = Buffer;
+export type Lib_CredentialKey_DecodeCredentialKey_Returns_NeedsRewrite = boolean;
+export type Lib_CredentialKey_DecodeCredentialKey_Returns = {
+  credentialKey: Lib_CredentialKey_DecodeCredentialKey_Returns_CredentialKey;
+  needsRewrite: Lib_CredentialKey_DecodeCredentialKey_Returns_NeedsRewrite;
+};
+export type Lib_CredentialKey_DecodeCredentialKey_ContentsText = string;
+export type Lib_CredentialKey_DecodeCredentialKey_HexadecimalKey = string;
+export type Lib_CredentialKey_DecodeCredentialKey_CredentialKey = Buffer;
+
 export type Lib_CredentialKey_FindSealedSample_Pool = Pool;
 export type Lib_CredentialKey_FindSealedSample_Sample_Ciphertext = string;
 export type Lib_CredentialKey_FindSealedSample_Sample_Purpose = string;
@@ -54,10 +70,18 @@ export type Lib_CredentialKey_PrepareCredentialKey_Pool = Pool;
 export type Lib_CredentialKey_PrepareCredentialKey_FilePath = string;
 export type Lib_CredentialKey_PrepareCredentialKey_Returns = Promise<string[]>;
 export type Lib_CredentialKey_PrepareCredentialKey_CredentialKey = Buffer | undefined;
+export type Lib_CredentialKey_PrepareCredentialKey_NeedsRewrite = boolean;
+export type Lib_CredentialKey_PrepareCredentialKey_CredentialKeyContents = Buffer;
+export type Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey_CredentialKey = Buffer;
+export type Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey_NeedsRewrite = boolean;
+export type Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey = {
+  credentialKey: Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey_CredentialKey;
+  needsRewrite: Lib_CredentialKey_PrepareCredentialKey_DecodedCredentialKey_NeedsRewrite;
+};
+export type Lib_CredentialKey_PrepareCredentialKey_CredentialKeyDirectory = string;
 export type Lib_CredentialKey_PrepareCredentialKey_NewKey = Buffer;
 export type Lib_CredentialKey_PrepareCredentialKey_Client = PoolClient;
 export type Lib_CredentialKey_PrepareCredentialKey_RemovedSecrets = string[];
-export type Lib_CredentialKey_PrepareCredentialKey_KeyFile = FileHandle;
 
 export type Lib_CredentialKey_RemoveLockedSecrets_Client = PoolClient;
 export type Lib_CredentialKey_RemoveLockedSecrets_Returns = Promise<string[]>;
@@ -102,6 +126,14 @@ export type Lib_CredentialKey_RemoveLockedSecrets_NotificationRow = {
 export type Lib_CredentialKey_RemoveLockedSecrets_NotificationResult = QueryResult<Lib_CredentialKey_RemoveLockedSecrets_NotificationRow>;
 export type Lib_CredentialKey_RemoveLockedSecrets_MissingSecrets = string[];
 
+export type Lib_CredentialKey_RewriteCredentialKeyFile_FilePath = string;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_CredentialKey = Buffer;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_Returns = Promise<void>;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_TemporarySuffix = string;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_TemporaryPath = string;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_CanonicalContents = string;
+export type Lib_CredentialKey_RewriteCredentialKeyFile_KeyFile = FileHandle;
+
 export type Lib_CredentialKey_VerifyCredentialKey_Pool = Pool;
 export type Lib_CredentialKey_VerifyCredentialKey_CredentialKey = Buffer;
 export type Lib_CredentialKey_VerifyCredentialKey_FilePath = string;
@@ -119,9 +151,11 @@ export type Lib_CredentialKey_Test_Count = Record<string, unknown>[];
 export type Lib_CredentialKey_Test_Directory = string;
 export type Lib_CredentialKey_Test_GetTestDatabase_Returns = Tests_Support_Database_TestDatabase;
 export type Lib_CredentialKey_Test_Key = Buffer;
+export type Lib_CredentialKey_Test_KeyContents = string;
 export type Lib_CredentialKey_Test_KeyPath = string;
 export type Lib_CredentialKey_Test_Mode = string;
 export type Lib_CredentialKey_Test_Notification = Awaited<Lib_NotificationTargets_CreateNotificationTarget_Returns>;
+export type Lib_CredentialKey_Test_OtherKey = Buffer;
 export type Lib_CredentialKey_Test_Owner = Shared_AccessUser;
 export type Lib_CredentialKey_Test_OwnerId = string;
 export type Lib_CredentialKey_Test_Pool = Pool;

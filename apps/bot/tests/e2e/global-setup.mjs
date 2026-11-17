@@ -9,8 +9,8 @@ const volumeName = `${containerName}-data`;
 /**
  * Global Setup - Check Key Migration.
  *
- * Confirms the start moved the version 4.0 key to "/data/keys/installation.key"
- * unchanged, with mode 0600, and removed the emptied "/data/secrets" folder.
+ * Confirms the start moved the version 4.0 key to "/config/keys/installation.key",
+ * encoded the same bytes as canonical hexadecimal, and applied the contract modes.
  *
  * @param {string} legacyKeyDigest - Legacy key digest.
  *
@@ -19,26 +19,48 @@ const volumeName = `${containerName}-data`;
  * @since 4.1.0
  */
 function checkKeyMigration(legacyKeyDigest) {
-  const keyReport = execFileSync('docker', [
+  const keyReport = JSON.parse(execFileSync('docker', [
     'exec',
     containerName,
-    'sh',
-    '-c',
-    'sha256sum /data/keys/installation.key | cut -d " " -f 1; stat -c "%a" /data/keys/installation.key; if [ -e /data/secrets ]; then echo kept; else echo removed; fi',
+    'node',
+    '--eval',
+    [
+      'const { createHash } = require(\'node:crypto\');',
+      'const { existsSync, readFileSync, statSync } = require(\'node:fs\');',
+      'const keyFile = \'/config/keys/installation.key\';',
+      'const keyContents = readFileSync(keyFile, \'utf8\');',
+      'const keyBytes = Buffer.from(keyContents.trim(), \'hex\');',
+      'process.stdout.write(JSON.stringify({',
+      '  canonical: keyContents.endsWith(String.fromCharCode(10)) && /^[0-9a-f]{64}$/.test(keyContents.slice(0, -1)),',
+      '  digest: createHash(\'sha256\').update(keyBytes).digest(\'hex\'),',
+      '  directoryMode: (statSync(\'/config/keys\').mode & 0o777).toString(8),',
+      '  fileMode: (statSync(keyFile).mode & 0o777).toString(8),',
+      '  length: Buffer.byteLength(keyContents),',
+      '  secretsExists: existsSync(\'/config/secrets\'),',
+      '}));',
+    ].join('\n'),
   ], {
     encoding: 'utf8',
-  }).trim().split('\n');
+  }));
 
-  if (keyReport[0] !== legacyKeyDigest) {
-    throw new Error('The installation key does not match the version 4.0 credential key it was moved from.');
+  if (keyReport['digest'] !== legacyKeyDigest) {
+    throw new Error('The installation key bytes do not match the version 4.0 credential key they replaced.');
   }
 
-  if (keyReport[1] !== '600') {
-    throw new Error(`The installation key has mode ${keyReport[1]} instead of 600.`);
+  if (keyReport['canonical'] !== true || keyReport['length'] !== 65) {
+    throw new Error('The installation key is not 64 lowercase hexadecimal characters followed by a newline.');
   }
 
-  if (keyReport[2] !== 'removed') {
-    throw new Error('The emptied "/data/secrets" folder was not removed after the key moved.');
+  if (keyReport['fileMode'] !== '600') {
+    throw new Error(`The installation key has mode ${keyReport['fileMode']} instead of 600.`);
+  }
+
+  if (keyReport['directoryMode'] !== '700') {
+    throw new Error(`The keys folder has mode ${keyReport['directoryMode']} instead of 700.`);
+  }
+
+  if (keyReport['secretsExists'] !== false) {
+    throw new Error('The emptied "/config/secrets" folder was not removed after the key moved.');
   }
 
   return;
@@ -111,7 +133,7 @@ function seedDiscordServer() {
     'exec',
     containerName,
     'psql',
-    '--host=/run/postgresql',
+    '--host=/tmp/postgresql',
     '--username=stonker',
     '--dbname=stonker',
     '--no-psqlrc',
@@ -129,7 +151,7 @@ function seedDiscordServer() {
  * Global Setup - Seed Legacy Credential Key.
  *
  * Writes a key where version 4.0 kept it, in the disposable data volume, so the
- * start must move it to the keys folder instead of making a new one.
+ * start must move and convert it instead of making a new one.
  *
  * @returns {string}
  *
@@ -142,10 +164,10 @@ function seedLegacyCredentialKey() {
     '--entrypoint',
     '/bin/sh',
     '--volume',
-    `${volumeName}:/data`,
+    `${volumeName}:/config`,
     imageName,
     '-c',
-    'mkdir -p /data/secrets && head -c 32 /dev/urandom > /data/secrets/credential.key && sha256sum /data/secrets/credential.key | cut -d " " -f 1',
+    'mkdir -p /config/secrets && head -c 32 /dev/urandom > /config/secrets/credential.key && sha256sum /config/secrets/credential.key | cut -d " " -f 1',
   ], {
     encoding: 'utf8',
   }).trim();
@@ -189,8 +211,8 @@ function removeContainer() {
 /**
  * Global Setup - Setup Control Panel E2e.
  *
- * Starts the built image with no database password, a version 4.0 key to move,
- * and the same hardening as compose.yml, then checks it and waits for it.
+ * Starts the built image with no database password and a version 4.0 key to
+ * migrate, then checks the shared appliance contract and waits for it.
  *
  * @returns {Promise<void>}
  *
@@ -210,31 +232,12 @@ async function setupControlPanelE2e() {
     '--detach',
     '--name',
     containerName,
-    '--read-only',
+    '--user',
+    '0:0',
+    '--net',
+    'bridge',
     '--volume',
-    `${volumeName}:/data`,
-    '--tmpfs',
-    '/run:rw,exec,nosuid,size=64m,mode=0755',
-    '--tmpfs',
-    '/tmp:rw,noexec,nosuid,size=64m,mode=1777',
-    '--cap-drop',
-    'ALL',
-    '--cap-add',
-    'CHOWN',
-    '--cap-add',
-    'DAC_OVERRIDE',
-    '--cap-add',
-    'FOWNER',
-    '--cap-add',
-    'KILL',
-    '--cap-add',
-    'SETGID',
-    '--cap-add',
-    'SETUID',
-    '--security-opt',
-    'no-new-privileges:true',
-    '--shm-size',
-    '256m',
+    `${volumeName}:/config`,
     '--publish',
     publishedPort,
     imageName,
@@ -246,7 +249,7 @@ async function setupControlPanelE2e() {
     let ready = false;
 
     try {
-      const response = await fetch(`${controlPanelUrlValue}/ready`);
+      const response = await fetch(`${controlPanelUrlValue}/health`);
 
       ready = response.ok;
     } catch {

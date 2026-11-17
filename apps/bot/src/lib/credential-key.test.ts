@@ -36,9 +36,11 @@ import type {
   Lib_CredentialKey_Test_Directory,
   Lib_CredentialKey_Test_GetTestDatabase_Returns,
   Lib_CredentialKey_Test_Key,
+  Lib_CredentialKey_Test_KeyContents,
   Lib_CredentialKey_Test_KeyPath,
   Lib_CredentialKey_Test_Mode,
   Lib_CredentialKey_Test_Notification,
+  Lib_CredentialKey_Test_OtherKey,
   Lib_CredentialKey_Test_Owner,
   Lib_CredentialKey_Test_OwnerId,
   Lib_CredentialKey_Test_Pool,
@@ -120,8 +122,13 @@ describe('credential key', () => {
 
     expect(await prepareCredentialKey(getTestDatabase()['pool'], keyPath)).toEqual([]);
 
-    const key: Lib_CredentialKey_Test_Key = await readFile(keyPath);
+    const keyContents: Lib_CredentialKey_Test_KeyContents = await readFile(keyPath, 'utf8');
+    const key: Lib_CredentialKey_Test_Key = Buffer.from(keyContents.slice(0, -1), 'hex');
     const mode: Lib_CredentialKey_Test_Mode = ((await stat(keyPath)).mode % 512).toString(8);
+
+    expect(keyContents).toHaveLength(65);
+
+    expect(keyContents).toBe(`${key.toString('hex')}\n`);
 
     expect(key).toHaveLength(32);
 
@@ -129,7 +136,7 @@ describe('credential key', () => {
 
     expect(await prepareCredentialKey(getTestDatabase()['pool'], keyPath)).toEqual([]);
 
-    expect(await readFile(keyPath)).toEqual(key);
+    expect(await readFile(keyPath, 'utf8')).toBe(keyContents);
 
     return;
   });
@@ -140,7 +147,8 @@ describe('credential key', () => {
 
     await prepareCredentialKey(pool, keyPath);
 
-    const key: Lib_CredentialKey_Test_Key = await readFile(keyPath);
+    const keyContents: Lib_CredentialKey_Test_KeyContents = await readFile(keyPath, 'utf8');
+    const key: Lib_CredentialKey_Test_Key = Buffer.from(keyContents.slice(0, -1), 'hex');
 
     await seedServer(pool, '1197999049190674442', 'Stonker Lounge');
 
@@ -247,7 +255,7 @@ describe('credential key', () => {
       },
     ]);
 
-    expect(await readFile(keyPath)).not.toEqual(key);
+    expect(await readFile(keyPath, 'utf8')).not.toBe(keyContents);
 
     expect((await pool.query('SELECT discord_token_ciphertext FROM bot_runtime_control')).rows).toEqual([{
       discord_token_ciphertext: null,
@@ -319,18 +327,41 @@ describe('credential key', () => {
     return;
   });
 
+  it('converts a version 4 raw key without changing its bytes', async () => {
+    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'keys', 'installation.key');
+
+    await prepareCredentialKey(getTestDatabase()['pool'], keyPath);
+
+    const keyContents: Lib_CredentialKey_Test_KeyContents = await readFile(keyPath, 'utf8');
+    const key: Lib_CredentialKey_Test_Key = Buffer.from(keyContents.slice(0, -1), 'hex');
+
+    await writeFile(keyPath, key);
+
+    expect(await prepareCredentialKey(getTestDatabase()['pool'], keyPath)).toEqual([]);
+
+    expect(await readFile(keyPath, 'utf8')).toBe(keyContents);
+
+    const mode: Lib_CredentialKey_Test_Mode = ((await stat(keyPath)).mode % 512).toString(8);
+
+    expect(mode).toBe('600');
+
+    return;
+  });
+
   it('stops on a key file from another database or a damaged one', async () => {
     const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'keys', 'installation.key');
 
     await prepareCredentialKey(getTestDatabase()['pool'], keyPath);
 
-    await writeFile(keyPath, randomBytes(32));
+    const otherKey: Lib_CredentialKey_Test_OtherKey = randomBytes(32);
+
+    await writeFile(keyPath, `${otherKey.toString('hex')}\n`);
 
     await expect(prepareCredentialKey(getTestDatabase()['pool'], keyPath)).rejects.toThrow('doesn\'t belong to this database');
 
     await writeFile(keyPath, 'short');
 
-    await expect(prepareCredentialKey(getTestDatabase()['pool'], keyPath)).rejects.toThrow('exactly 32 bytes');
+    await expect(prepareCredentialKey(getTestDatabase()['pool'], keyPath)).rejects.toThrow('64 hexadecimal characters');
 
     return;
   });

@@ -1,2 +1,8 @@
 #!/command/with-contenv sh
-exec /usr/local/libexec/nova-docker/finish-critical web "$@"
+set -eu
+. /usr/local/libexec/nova-docker/log
+if [ "${1:-0}" -ne 0 ]; then
+  nova_log ERROR 'web' "Critical service exited abnormally with code ${1:-0} and signal ${2:-0}; halting the container."
+  exec /run/s6/basedir/bin/halt
+fi
+exit 0

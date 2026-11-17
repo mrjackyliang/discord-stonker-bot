@@ -34,7 +34,7 @@ The <Terminology title="The /ready endpoint; it only asks if the database is up"
 
 ## Docker Health Check
 
-Docker runs the image's health check every 30 seconds, with a 5-second timeout, a 30-second start period, and 3 retries. It checks the s6-overlay status of PostgreSQL, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, then calls `/ready` with a 4-second limit.
+Docker runs the image's health check every 30 seconds, with a 5-second timeout, a 30-second start period, and 3 retries. It checks the s6-overlay status of the bot, PostgreSQL, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, then sends `GET /health` to port 22604 with a 4-second limit. Every check must pass.
 
 ```bash
 docker ps --filter name=discord-stonker-bot
@@ -46,8 +46,10 @@ With Compose, run `docker compose ps` instead. The **STATUS** column shows the r
 
 s6-overlay starts the services in order: it prepares PostgreSQL, starts it, runs the database migrations, and then starts the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>.
 
-- **PostgreSQL, web service, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>** — If one of them exits with an error, s6 stops the whole <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology>, and Docker restarts the container because of its restart policy, `--restart always` with `docker run` or `restart: unless-stopped` in `compose.yml`.
+- **PostgreSQL, web service, and <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>** — If one of them exits with an error, s6 stops the whole <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology>, and Docker restarts the container because both `docker run` and Compose use the `always` restart policy.
 - **Bot** — If the bot exits, s6 restarts only the bot, so the control panel stays available.
+
+The image's s6 timing limits keep a normal whole-container shutdown inside Docker's 10-second stop window.
 
 ## Heartbeats in the Panel
 

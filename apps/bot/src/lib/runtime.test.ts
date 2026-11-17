@@ -24,7 +24,7 @@ import type {
  */
 describe('runtime database connection', () => {
   beforeEach(() => {
-    vi.stubEnv('CREDENTIAL_KEY_FILE', undefined);
+    vi.stubEnv('NOVA_INSTALLATION_KEY_FILE', undefined);
     vi.stubEnv('POSTGRES_DB', 'stonker');
     vi.stubEnv('POSTGRES_PASSWORD', undefined);
     vi.stubEnv('POSTGRES_PORT', undefined);
@@ -44,7 +44,7 @@ describe('runtime database connection', () => {
     const configuration: Lib_Runtime_Test_Configuration = readRuntimeConfiguration();
     const databaseUrl: Lib_Runtime_Test_DatabaseUrl = new URL(configuration['database']['connectionString']);
 
-    expect(databaseUrl.searchParams.get('host')).toBe('/run/postgresql');
+    expect(databaseUrl.searchParams.get('host')).toBe('/tmp/postgresql');
 
     expect(databaseUrl.hostname).toBe('localhost');
 
@@ -85,9 +85,11 @@ describe('runtime database connection', () => {
   });
 
   it('keeps the installation key in the keys folder', () => {
+    vi.stubEnv('NOVA_INSTALLATION_KEY_FILE', '/resolved-state/keys/installation.key');
+
     const configuration: Lib_Runtime_Test_Configuration = readRuntimeConfiguration();
 
-    expect(configuration['bot']['credentialKeyFile']).toBe('/data/keys/installation.key');
+    expect(configuration['bot']['credentialKeyFile']).toBe('/resolved-state/keys/installation.key');
 
     return;
   });
