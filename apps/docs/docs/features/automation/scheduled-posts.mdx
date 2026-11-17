@@ -109,7 +109,7 @@ A post needs content, a footer, or both. For a custom emoji reaction, it is reco
 
 ## Troubleshooting
 
-- **A post appeared several times** — A reaction failed, and each retry, 30 seconds apart, posts the whole message again, up to `JOB_ATTEMPT_LIMIT` times, 5 by default.
+- **A post's reactions are missing** — A reaction failed. The worker keeps the message it already posted, and each retry, 30 seconds apart, adds the reactions to that same message, up to `JOB_ATTEMPT_LIMIT` times, 5 by default.
 - **A post didn't appear** — The bot was stopped at that time, or every delivery try failed. The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> log then shows `job_failed` with the reason, such as "Discord delivery is paused while the bot is stopped." or "Missing Permissions".
 - **Knowing when a post gives up** — The last failed try can send a **Job gave up** alert, as described in [Notifications](/docs/control-panel/notifications/#events).
 - **Old posts arrived together** — The <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> caught up on missed times after it had been down.

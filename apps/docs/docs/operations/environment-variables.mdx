@@ -8,7 +8,7 @@ keywords:
   - dotenv
   - docker compose
   - configuration
-  - web port
+  - web host
 tags:
   - operations
   - configuration
@@ -21,31 +21,33 @@ Set the <Terminology title="One container that holds the bot, panel, worker, and
 
 ## Where Variables Are Read
 
-Docker Compose passes variables to the container from two places, and each variable works from only one of them.
+With `docker run`, pass each variable as an `-e` option. Docker Compose passes variables to the container from two places, and each variable works from only one of them.
 
-- **`apps/bot/.env`** — Compose loads this file into the container, and it is where `POSTGRES_PASSWORD` belongs.
-- **The root `.env` or your shell** — The `environment` block in `compose.yml` fills the other settings from here, and Compose gives that block priority over `apps/bot/.env`.
+- **The root `.env` or your shell** — The `environment` block in `compose.yml` fills every setting below from here.
+- **`apps/bot/.env`** — Compose loads this file into the container when it exists, but the `environment` block has priority over it, and no setting needs it.
 
-The startup scripts and the database migration check every setting before the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start. An invalid value stops the container, and `docker compose logs app` names the rejected value, either as a plain message or in a `migration_failed` line.
+The startup scripts and the database migration check every setting before the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start. An invalid value stops the container, and `docker logs discord-stonker-bot` or `docker compose logs app` names the rejected value, either as a plain message or in a `migration_failed` line.
 
-## Required
+A Basic or Optional variable set to an empty value, such as `JOB_ATTEMPT_LIMIT=""`, counts as unset and uses its default.
 
-| Variable            | Description                                                                                                                                                |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `POSTGRES_PASSWORD` | The database password, at least 16 characters, set in `apps/bot/.env`. Each start sets the database role to the current value, so you can change it later. |
+The control panel always listens on every address on port 22604, and no variable changes either. To keep it local-only, publish it on loopback with `-p 127.0.0.1:22604:22604` or `"127.0.0.1:22604:22604"` in `compose.yml`, or put it behind a reverse proxy. To open it on another host port, change the host side of the port mapping, such as `-p 8080:22604` with `docker run` or `"8080:22604"` in `compose.yml`. With `--net=host`, the port is always 22604.
+
+## Basic
+
+No variable is required. Most installs set only these three.
+
+| Variable       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PUID`, `PGID` | The user and group IDs that run the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, and that own the files in the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, from 1 to 2147483647, and 1000 by default. |
+| `TZ`           | The container's <Terminology title="The zone a schedule's times are read in; UTC by default" to="/docs/reference/terminology#schedules-and-jobs">time zone</Terminology>, an installed IANA name, `UTC` by default. It doesn't change any schedule.                                                                                                                                                                                                     |
 
 ## Optional
 
-Set these in the root `.env`, next to `compose.yml`.
+With Compose, set these in the root `.env`, next to `compose.yml`.
 
 | Variable                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 |--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `WEB_PORT`                     | The control panel's port inside the container and on the host, where Compose publishes it on every IPv4 and IPv6 address, 22604 by default.                                                                                                                                                                                                                                                                                                                                                                   |
-| `WEB_HOST`                     | The address the web service listens on inside the container. It's empty by default, which listens on every IPv6 and IPv4 address, or on IPv4 alone when the container has no IPv6. Docker's health check uses this address and changes wildcard listeners to the matching loopback address.                                                                                                                                                                                                                   |
-| `PUID`, `PGID`                 | The user and group IDs that run the bot, the web service, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology>, from 1 to 2147483647, and 1000 by default.                                                                                                                                                                                                                                         |
-| `TZ`                           | The container's <Terminology title="The zone a schedule's times are read in; UTC by default" to="/docs/reference/terminology#schedules-and-jobs">time zone</Terminology>, an installed IANA name, `UTC` by default. It doesn't change any schedule.                                                                                                                                                                                                                                                           |
 | `POSTGRES_DB`, `POSTGRES_USER` | The database and role names, `stonker` by default, starting with a lowercase letter and using only lowercase letters, digits, and underscores.                                                                                                                                                                                                                                                                                                                                                                |
-| `POSTGRES_PORT`                | PostgreSQL's port inside the container, 5432 by default.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `BOT_CONTROL_POLL_INTERVAL_MS` | How often the bot checks for lifecycle and settings changes, from 250 to 60000 milliseconds, and 1000 by default.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `WORKER_POLL_INTERVAL_MS`      | How long the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> waits when no job is queued, from 100 to 60000 milliseconds, and 1000 by default. Scheduled posts, permission toggles, and RSS checks can start up to this long late.                                                                                                                                                                    |
 | `JOB_ATTEMPT_LIMIT`            | How many times the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> runs a <Terminology title="Queued task kept in the database until it's done" to="/docs/reference/terminology#schedules-and-jobs">durable job</Terminology> before marking it failed, 30 seconds apart, from 1 to 20, and 5 by default. The last failure can send a [Job gave up](/docs/control-panel/notifications/#events) alert. |
@@ -54,14 +56,16 @@ Set these in the root `.env`, next to `compose.yml`.
 
 ## Set by the Image
 
-The image and `compose.yml` set the paths the services use, such as `CREDENTIAL_KEY_FILE` for the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>, `MIGRATIONS_DIRECTORY`, `STARTER_CONFIGURATION` for the <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology>, `POSTGRES_DATA_DIRECTORY`, and `POSTGRES_RUNTIME_DIRECTORY`.
+`compose.yml` sets, and the services default to, the paths the services use, such as `CREDENTIAL_KEY_FILE` for the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> at `/data/keys/installation.key`, `MIGRATIONS_DIRECTORY`, `STARTER_CONFIGURATION` for the <Terminology title="Sample values to start a feature you haven't set up" to="/docs/reference/terminology#running-the-bot">example settings</Terminology>, `POSTGRES_DATA_DIRECTORY`, and `POSTGRES_RUNTIME_DIRECTORY`, the folder for PostgreSQL's Unix socket.
 
-`compose.yml` sets each one to a fixed value, so a value in either `.env` file has no effect. `MIGRATIONS_DIRECTORY` and `STARTER_CONFIGURATION` point at files in the image, `CREDENTIAL_KEY_FILE` and `POSTGRES_DATA_DIRECTORY` point into the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, and `POSTGRES_RUNTIME_DIRECTORY` points into the in-memory `/run`.
+`compose.yml` sets each one to a fixed value, so a value in either `.env` file has no effect. With `docker run`, an `-e` value for one of them does take effect. `MIGRATIONS_DIRECTORY` and `STARTER_CONFIGURATION` point at files in the image, `CREDENTIAL_KEY_FILE` and `POSTGRES_DATA_DIRECTORY` point into the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, and `POSTGRES_RUNTIME_DIRECTORY` points into the in-memory `/run`.
 
 :::danger
-A `CREDENTIAL_KEY_FILE` path without the key file counts as a lost <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>, so the next start removes the saved secrets the old key encrypted, as described in [Storage and Backups](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+A `CREDENTIAL_KEY_FILE` path without the key file counts as a lost <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>, so the next start removes the saved secrets the old key encrypted, as described in [Storage and Backups](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
 :::
 
 ## Unused Variables
 
 `NODE_ENV`, `LOG_LEVEL`, and `LOG_TIME` are listed in the samples for the repository's Nova tooling, but the bot's services don't read them.
+
+`POSTGRES_PASSWORD` and `POSTGRES_PORT` are no longer used. PostgreSQL listens only on a Unix socket inside the container and accepts local connections without a password, so neither value has a purpose. A container that still sets them starts normally and logs one line for each, saying it was ignored, and you can remove them.

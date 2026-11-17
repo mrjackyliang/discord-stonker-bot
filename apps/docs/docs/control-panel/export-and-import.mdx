@@ -97,7 +97,7 @@ The same wizard converts the <Terminology title="The old v3.4.3 bot that ran fro
 
 1. Select the matching Discord server in the server menu.
 2. Open **Backup** under **Settings**, then select **Import…**.
-3. In **Source**, choose **An older config.json**, then select a file of up to 750 KB.
+3. In **Source**, choose **An older config.json**, then select a file of up to 750,000 characters.
 4. Select **Turn on features that pass checks** if valid, supported features should turn on during the import. Leave it clear to bring every recognized feature over switched off.
 5. In **Settings**, compare the connection and features. **Needs attention after import** lists features that are imported switched off until you fix them, and **Not brought over** lists the older data this import leaves out.
 6. Check **Review**, select **Import**, complete <Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">**Confirm it’s you**</Terminology>, and select **Confirm**.
@@ -151,7 +151,7 @@ An older `config.json` never contains these, and an import never changes them. *
 
 ### Is an Export File a Full Appliance Backup?
 
-No. It moves selected configuration, but it does not contain users, passwords, sign-in security, sessions, logs, or Discord runtime data. Use [Storage and Backups](/docs/operations/storage-and-backups/) for a full database and credential-key backup.
+No. It moves selected configuration, but it does not contain users, passwords, sign-in security, sessions, logs, or Discord runtime data. Use [Storage and Backups](/docs/operations/storage-and-backups/) for a full database and installation key backup.
 
 ### Can an Operator or Viewer Open Backup?
 

@@ -3,8 +3,6 @@ set -eu
 
 database_name="${POSTGRES_DB:-stonker}"
 database_user="${POSTGRES_USER:-stonker}"
-database_password="${POSTGRES_PASSWORD:-}"
-database_port="${POSTGRES_PORT:-5432}"
 runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}"
 application_user_id="${PUID:-1000}"
 application_group_id="${PGID:-1000}"
@@ -22,7 +20,7 @@ until run_as_application \
   /usr/lib/postgresql/17/bin/pg_isready \
   --dbname=postgres \
   --host="${runtime_directory}" \
-  --port="${database_port}" \
+  --port=5432 \
   --username="${database_user}" \
   --quiet
 do
@@ -42,7 +40,7 @@ database_exists="$(
     --dbname=postgres \
     --host="${runtime_directory}" \
     --no-align \
-    --port="${database_port}" \
+    --port=5432 \
     --tuples-only \
     --username="${database_user}" \
     --variable=ON_ERROR_STOP=1 \
@@ -53,20 +51,21 @@ if [ "${database_exists}" != '1' ]; then
   run_as_application \
     /usr/lib/postgresql/17/bin/createdb \
     --host="${runtime_directory}" \
-    --port="${database_port}" \
+    --port=5432 \
     --username="${database_user}" \
     "${database_name}"
 fi
 
-printf '%s\n' "ALTER ROLE CURRENT_USER WITH PASSWORD :'database_password';" \
-  | run_as_application \
-    /usr/lib/postgresql/17/bin/psql \
-    --dbname=postgres \
-    --host="${runtime_directory}" \
-    --port="${database_port}" \
-    --username="${database_user}" \
-    --variable=database_password="${database_password}" \
-    --variable=ON_ERROR_STOP=1
+# Version 4.0 set a password for TCP sign-in; the socket never asks for one, so it is cleared.
+run_as_application \
+  /usr/lib/postgresql/17/bin/psql \
+  --dbname=postgres \
+  --host="${runtime_directory}" \
+  --port=5432 \
+  --quiet \
+  --username="${database_user}" \
+  --variable=ON_ERROR_STOP=1 \
+  --command='ALTER ROLE CURRENT_USER WITH PASSWORD NULL;'
 
 cd /app/apps/bot
 

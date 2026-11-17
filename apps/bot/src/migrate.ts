@@ -170,7 +170,7 @@ async function runMigrations(): Migrate_RunMigrations_Returns {
 
     if (removedSecrets.length > 0) {
       writeLog('warn', 'migration', 'credential_key_replaced', {
-        message: `No credential key was found at ${configuration['bot']['credentialKeyFile']}, so Stonker Bot for Discord made a new one. These saved secrets were locked with the old key and were removed: ${removedSecrets.join(', ')}. Enter them again in the control panel.`,
+        message: `No installation key was found at ${configuration['bot']['credentialKeyFile']}, so Stonker Bot for Discord made a new one. These saved secrets were locked with the old key and were removed: ${removedSecrets.join(', ')}. Enter them again in the control panel.`,
       });
 
       await notifySecretsRemoved(pool, removedSecrets).catch((error) => {

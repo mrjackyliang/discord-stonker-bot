@@ -34,7 +34,7 @@ Find your way around the repository, run the console against a mock API, run the
 
 ## Workspaces and Commands
 
-The repository uses npm workspaces with Node.js 22 or 24.
+The repository uses npm workspaces with Node.js 22, 24, or 26.
 
 | Command                                                   | What it does                                                                                                                                                                                                                                                                                                                     |
 |-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -62,7 +62,7 @@ For the documentation site, run `npm run check` and `npm run build` from `apps/d
 - **Unit tests** — Vitest files named `*.test.ts` sit next to the sources in `apps/bot/src/lib`.
 - **Route tests** — Files in `apps/bot/src/routes` run the whole Express app against PGlite, an in-memory PostgreSQL, with every migration applied, through the helpers in `apps/bot/src/tests/support`.
 - **Repository tests** — `tests/` checks the Docker architecture and the project setup.
-- **End-to-end tests** — `apps/bot/tests/e2e` holds a Playwright smoke test that starts the built image, adds one Discord server straight to its database, and drives the control panel in Google Chrome without contacting Discord. It reads the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, creates the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>, signs in again with the password, opens every page except **Notifications**, saves a fixture <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> on **Connection**, and signs out.
+- **End-to-end tests** — `apps/bot/tests/e2e` holds a Playwright smoke test that starts the built image, adds one Discord server straight to its database, and drives the control panel in Google Chrome without contacting Discord. It reads the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, creates the <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>, signs in again with the password, opens every page, **Notifications** included, saves a fixture <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> on **Connection**, and signs out.
 - **Documentation tests** — `apps/docs/src/tests` checks frontmatter, links, tables, terminology, dotenv files, and type declarations.
 
 ## Legacy Reference

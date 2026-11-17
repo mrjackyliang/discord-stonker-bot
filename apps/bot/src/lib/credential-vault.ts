@@ -317,7 +317,7 @@ function validateCredentialKey(
   credentialKey: Lib_CredentialVault_ValidateCredentialKey_CredentialKey,
 ): Lib_CredentialVault_ValidateCredentialKey_Returns {
   if (credentialKey.length !== CREDENTIAL_KEY_BYTES) {
-    throw new Error('The credential encryption key must contain exactly 32 bytes.');
+    throw new Error('The installation key must contain exactly 32 bytes.');
   }
 
   return;

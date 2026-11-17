@@ -63,6 +63,8 @@ jobs:
 
       - name: "Check project"
         timeout-minutes: 45
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
           npm run check -- --workspace discord-stonker-bot-docs --workspace discord-stonker-bot-app-bot --workspace discord-stonker-bot-tool-docker
         working-directory: "${{ env.ROOT_DIR }}"
@@ -221,6 +223,8 @@ jobs:
           cache-from: "type=gha,scope=container-linux-amd64"
           cache-to: "type=gha,mode=max,scope=container-linux-amd64"
           outputs: "type=oci,dest=${{ runner.temp }}/container-oci/layout,tar=false"
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
 
       - name: "Record OCI digest"
         timeout-minutes: 45
@@ -362,6 +366,8 @@ jobs:
           cache-from: "type=gha,scope=container-linux-arm64"
           cache-to: "type=gha,mode=max,scope=container-linux-arm64"
           outputs: "type=oci,dest=${{ runner.temp }}/container-oci/layout,tar=false"
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
 
       - name: "Record OCI digest"
         timeout-minutes: 45

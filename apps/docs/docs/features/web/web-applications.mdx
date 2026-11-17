@@ -152,7 +152,7 @@ Saving checks the settings with the real secret values, and each problem shows n
 - **Missing secret** — "Enter this secret." on a key or secret without a value.
 
 :::warning
-If a problem still turns up when a request arrives, such as a secret that was removed after the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> was lost, the whole feature stops for that server. The invite page then shows "Invites are paused right now. Try again later.", webhook paths answer with 404, and the **Web** log shows `web_application_configuration_invalid`.
+If a problem still turns up when a request arrives, such as a secret that was removed after the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> was lost, the whole feature stops for that server. The invite page then shows "Invites are paused right now. Try again later.", webhook paths answer with 404, and the **Web** log shows `web_application_configuration_invalid`.
 :::
 
 ## Example

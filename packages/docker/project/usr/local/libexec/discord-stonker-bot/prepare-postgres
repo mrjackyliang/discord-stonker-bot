@@ -3,12 +3,12 @@ set -eu
 
 data_directory="${POSTGRES_DATA_DIRECTORY:-/data/postgres}"
 runtime_directory="${POSTGRES_RUNTIME_DIRECTORY:-/run/postgresql}"
-credential_key_file="${CREDENTIAL_KEY_FILE:-/data/secrets/credential.key}"
+credential_key_file="${CREDENTIAL_KEY_FILE:-/data/keys/installation.key}"
 credential_key_directory="${credential_key_file%/*}"
+legacy_key_file="/data/secrets/credential.key"
+legacy_key_directory="${legacy_key_file%/*}"
 database_name="${POSTGRES_DB:-stonker}"
 database_user="${POSTGRES_USER:-stonker}"
-database_password="${POSTGRES_PASSWORD:-}"
-database_port="${POSTGRES_PORT:-5432}"
 application_user_id="${PUID:-1000}"
 application_group_id="${PGID:-1000}"
 
@@ -22,21 +22,13 @@ if ! printf '%s\n' "${database_user}" | grep -Eq '^[a-z][a-z0-9_]*$'; then
   exit 1
 fi
 
-if [ "${#database_password}" -lt 16 ]; then
-  echo 'POSTGRES_PASSWORD must contain at least 16 characters.' >&2
-  exit 1
+# Older setups passed these, and they must keep starting, so each is noted once and ignored.
+if [ -n "${POSTGRES_PASSWORD:-}" ]; then
+  echo 'POSTGRES_PASSWORD is no longer used and is ignored. PostgreSQL accepts only local connections over its Unix socket, so you can remove it.'
 fi
 
-case "${database_port}" in
-  ''|*[!0-9]*)
-    echo 'POSTGRES_PORT must be a number.' >&2
-    exit 1
-    ;;
-esac
-
-if [ "${database_port}" -lt 1 ] || [ "${database_port}" -gt 65535 ]; then
-  echo 'POSTGRES_PORT must be between 1 and 65535.' >&2
-  exit 1
+if [ -n "${POSTGRES_PORT:-}" ]; then
+  echo 'POSTGRES_PORT is no longer used and is ignored. PostgreSQL listens only on its Unix socket, so you can remove it.'
 fi
 
 mkdir -p /data "${credential_key_directory}" "${data_directory}" "${runtime_directory}"
@@ -49,6 +41,23 @@ chmod 0755 "${runtime_directory}"
 chown "${application_user_id}:${application_group_id}" "${credential_key_directory}"
 chmod 0700 "${credential_key_directory}"
 
+# Version 4.0 kept the key at "/data/secrets/credential.key"; moving it keeps every saved secret readable.
+if [ -e "${legacy_key_file}" ] && [ "${credential_key_file}" != "${legacy_key_file}" ]; then
+  if [ -e "${credential_key_file}" ]; then
+    echo "Both ${legacy_key_file} and ${credential_key_file} exist. Stonker Bot for Discord uses ${credential_key_file} and leaves ${legacy_key_file} alone; remove it once you no longer need it." >&2
+  else
+    mv "${legacy_key_file}" "${credential_key_file}"
+
+    echo "Moved the installation key from ${legacy_key_file} to ${credential_key_file}."
+
+    legacy_directory_entry="$(find "${legacy_key_directory}" -mindepth 1 -maxdepth 1 -print -quit)"
+
+    if [ -z "${legacy_directory_entry}" ]; then
+      rmdir "${legacy_key_directory}"
+    fi
+  fi
+fi
+
 # The migrate step makes the key when it's missing, after it removes what an old key sealed.
 if [ -e "${credential_key_file}" ]; then
   chown "${application_user_id}:${application_group_id}" "${credential_key_file}"
@@ -57,11 +66,12 @@ if [ -e "${credential_key_file}" ]; then
   credential_key_bytes="$(wc -c < "${credential_key_file}")"
 
   if [ "${credential_key_bytes}" -ne 32 ]; then
-    echo 'Credential encryption key must contain exactly 32 bytes.' >&2
+    echo 'The installation key must contain exactly 32 bytes.' >&2
     exit 1
   fi
 fi
 
+# Only local socket connections are allowed, so the cluster needs no password.
 if [ ! -s "${data_directory}/PG_VERSION" ]; then
   directory_entry="$(find "${data_directory}" -mindepth 1 -maxdepth 1 -print -quit)"
 
@@ -70,21 +80,12 @@ if [ ! -s "${data_directory}/PG_VERSION" ]; then
     exit 1
   fi
 
-  password_file="${runtime_directory}/.init-password"
-
-  umask 077
-  printf '%s\n' "${database_password}" > "${password_file}"
-  chown postgres:postgres "${password_file}"
-
   /command/s6-setuidgid postgres \
     /usr/lib/postgresql/17/bin/initdb \
-    --auth-host=scram-sha-256 \
+    --auth-host=reject \
     --auth-local=trust \
     --encoding=UTF8 \
     --locale=C \
     --pgdata="${data_directory}" \
-    --pwfile="${password_file}" \
     --username="${database_user}"
-
-  rm -f "${password_file}"
 fi

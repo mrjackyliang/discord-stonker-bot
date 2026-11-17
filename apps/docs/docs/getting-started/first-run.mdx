@@ -30,6 +30,12 @@ Create the owner account with the one-time <Terminology title="One-time code fro
 While no account exists, the web service prints a <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> to the container log each time it starts. Read it on the Docker host:
 
 ```bash
+docker logs discord-stonker-bot | grep setup_code_issued
+```
+
+With Compose, read it from the `app` service instead:
+
+```bash
 docker compose logs app | grep setup_code_issued
 ```
 
@@ -43,6 +49,13 @@ docker compose logs app | grep setup_code_issued
 - **Container log only** — The code never appears on the control panel's **Logs** page.
 
 To get a fresh code, restart the container and read the log again:
+
+```bash
+docker restart discord-stonker-bot
+docker logs discord-stonker-bot | grep setup_code_issued
+```
+
+With Compose:
 
 ```bash
 docker compose restart app

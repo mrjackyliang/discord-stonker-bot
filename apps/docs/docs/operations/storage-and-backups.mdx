@@ -1,13 +1,13 @@
 ---
 id: storage-and-backups
 title: Storage and Backups
-description: Back up the Stonker Bot for Discord PostgreSQL database with pg_dump, keep its credential key, and see what the data volume stores.
+description: Back up the Stonker Bot for Discord PostgreSQL database with pg_dump, keep its installation key, and see what the data volume stores.
 keywords:
   - stonker bot for discord
   - storage
   - backups
   - pg_dump
-  - credential key
+  - installation key
   - data volume
 tags:
   - operations
@@ -21,24 +21,30 @@ import { Frame, Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 import storageAndBackupsOneLight from './_assets_/storage-and-backups-1-light.png';
 import storageAndBackupsOneDark from './_assets_/storage-and-backups-1-dark.png';
 
-Protect the bot's settings and history by backing up the database with `pg_dump` and keeping a separate copy of the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>.
+Protect the bot's settings and history by backing up the database with `pg_dump` and keeping a separate copy of the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
 
 ## The Data Volume
 
-Compose mounts one <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, `stonker-data`, at `/data` in the container, and `docker volume ls` lists it as `discord-stonker-bot_stonker-data`.
+The container keeps everything in one <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology> at `/data`. With `docker run`, it is the host folder you pass with `-v`, such as `/volume1/docker/discord-stonker-bot`. Compose mounts a volume named `stonker-data`, and `docker volume ls` lists it as `discord-stonker-bot_stonker-data`.
 
-| Path                           | What it holds                                                                                                                                                                                                                                      |
-|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/data/postgres`               | The PostgreSQL database, with every setting, account, token, <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> image, job, and log |
-| `/data/secrets/credential.key` | The <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> that encrypts stored secrets                                           |
+| Path                          | What it holds                                                                                                                                                                                                                                      |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `/data/postgres`              | The PostgreSQL database, with every setting, account, token, <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> image, job, and log |
+| `/data/keys/installation.key` | The <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> that encrypts stored secrets                                         |
 
 `docker compose down` keeps the volume, and only `docker compose down --volumes` deletes it.
 
-## The Credential Key
+## The Installation Key
 
-The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> on its first start, with permissions that only the services' user can read. It encrypts the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, every feature secret, every <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> secret, and the <Terminology title="Destination setting that's saved but never shown again" to="/docs/reference/terminology#notifications">secret fields</Terminology> of every [notification](/docs/control-panel/notifications/) <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destination</Terminology>.
+The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> on its first start, with permissions that only the services' user can read. It encrypts the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, every feature secret, every <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> secret, and the <Terminology title="Destination setting that's saved but never shown again" to="/docs/reference/terminology#notifications">secret fields</Terminology> of every [notification](/docs/control-panel/notifications/) <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destination</Terminology>.
 
 Accounts, passwords, <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkeys</Terminology>, sessions, and <Terminology title="A key that lets your scripts call the panel's API as you" to="/docs/reference/terminology#accounts-and-access">access tokens</Terminology> don't use the key, because the panel stores hashes or public keys for them. A `pg_dump` backup doesn't include the key.
+
+### Keys From Version 4.0
+
+Version 4.0 kept the key at `/data/secrets/credential.key`. On the first start of a newer version, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> moves that file to `/data/keys/installation.key`, keeps its contents and permissions, and removes the `/data/secrets` folder once it's empty. Every saved secret keeps working, and the container log shows one `Moved the installation key` line.
+
+If both files exist, the start uses `/data/keys/installation.key`, leaves `/data/secrets/credential.key` alone, and logs a warning. Remove the old file once you're sure you don't need it.
 
 ### If the Key File Is Missing
 
@@ -52,14 +58,15 @@ When the key file is gone but the database holds secrets the old key encrypted, 
 The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> writes one `credential_key_replaced` warning to the container log that names each removed secret. The line never appears on the **Logs** page.
 
 ```bash
+docker logs discord-stonker-bot | grep credential_key_replaced
 docker compose logs app | grep credential_key_replaced
 ```
 
-```json title="The credential key line"
-{"component":"migration","context":{"message":"No credential key was found at /data/secrets/credential.key, so Stonker Bot for Discord made a new one. These saved secrets were locked with the old key and were removed: the Bot Token, the <Feature> secrets for <Server>, the authenticator app for <username>, the <Name> notification. Enter them again in the control panel."},"event":"credential_key_replaced","level":"warn","timestamp":"2026-10-25T12:30:00.000Z"}
+```json title="The installation key line"
+{"component":"migration","context":{"message":"No installation key was found at /data/keys/installation.key, so Stonker Bot for Discord made a new one. These saved secrets were locked with the old key and were removed: the Bot Token, the <Feature> secrets for <Server>, the authenticator app for <username>, the <Name> notification. Enter them again in the control panel."},"event":"credential_key_replaced","level":"warn","timestamp":"2026-10-25T12:30:00.000Z"}
 ```
 
-Notification <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destinations</Terminology> that kept working, because they have no <Terminology title="Destination setting that's saved but never shown again" to="/docs/reference/terminology#notifications">secret fields</Terminology>, also get a **Saved secrets were removed** alert with the same list, as described in [Notifications](/docs/control-panel/notifications/#after-a-lost-credential-key).
+Notification <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destinations</Terminology> that kept working, because they have no <Terminology title="Destination setting that's saved but never shown again" to="/docs/reference/terminology#notifications">secret fields</Terminology>, also get a **Saved secrets were removed** alert with the same list, as described in [Notifications](/docs/control-panel/notifications/#after-a-lost-installation-key).
 
 When nothing depended on the old key, such as on a fresh install, there's no warning and no notice.
 
@@ -79,38 +86,46 @@ After a new key replaces a lost one, the control panel shows **Saved secrets wer
 Everyone sees the link for their own <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology>. The <Terminology title="The first account; it can do everything and can't be removed" to="/docs/reference/terminology#accounts-and-access">Owner</Terminology>, <Terminology title="Role that can change everything, including users" to="/docs/reference/terminology#accounts-and-access">Administrators</Terminology>, and <Terminology title="Role that runs the bot and its features, but not users" to="/docs/reference/terminology#accounts-and-access">Operators</Terminology> also see the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> link, the notification links, and the feature links for the servers they can open, while <Terminology title="Read-only role: sees everything, changes nothing" to="/docs/reference/terminology#accounts-and-access">Viewers</Terminology> see only their own.
 
 - **Entering a secret again** — Saving the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology> or the feature, turning the <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> back on, or saving the notification <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destination</Terminology> with every removed secret takes its link off the notice. Removing the <Terminology title="One place alerts go, such as a chat, topic, or inbox" to="/docs/reference/terminology#notifications">destination</Terminology> takes its link off too.
-- **Dismiss** — Hides the notice, and anything not entered again stays removed. It also hides the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, notification, and feature links from everyone else who sees them, while other users keep their own <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> link.
+- **Dismiss** — Hides the notice for your account only, and anything not entered again stays removed. Every other user keeps seeing the <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, notification, feature, and <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator app</Terminology> links they can act on until they dismiss it too.
 
 ### If the Key File Belongs to Another Database
 
 A key file that doesn't match the database, such as one from another install, stops startup instead. The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> logs `migration_failed` with this error, and the bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> don't start:
 
 ```text
-The credential key at /data/secrets/credential.key doesn't belong to this database. Put back the key file this database was created with, or delete /data/secrets/credential.key and restart to make a new key, then enter the saved secrets again.
+The installation key at /data/keys/installation.key doesn't belong to this database. Put back the key file this database was created with, or delete /data/keys/installation.key and restart to make a new key, then enter the saved secrets again.
 ```
 
 Every start stops the same way until you put back the key file this database was created with. Deleting the key file instead makes a new one on the next start, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
 
 ## Back Up the Database
 
-Run `pg_dump` inside the container and write a custom-format dump to the Docker host.
+Run `pg_dump` inside the container and write a custom-format dump to the Docker host. It connects over PostgreSQL's Unix socket, so it needs no password.
 
-```bash
-docker compose exec --no-TTY --user "${PUID:-1000}:${PGID:-1000}" app sh -c \
-  'pg_dump --host=/run/postgresql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=custom' \
+```bash title="docker run"
+sudo docker exec --user 9999:9999 discord-stonker-bot sh -c \
+  'pg_dump --host=/run/postgresql --username="${POSTGRES_USER:-stonker}" --dbname="${POSTGRES_DB:-stonker}" --format=custom' \
   > stonker.dump
 ```
 
-It is recommended to store the dump away from the Docker host, keep a copy of the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> with the same care as a password, and test a restore before you rely on it.
+```bash title="Docker Compose"
+docker compose exec --no-TTY --user "${PUID:-1000}:${PGID:-1000}" app sh -c \
+  'pg_dump --host=/run/postgresql --username="${POSTGRES_USER:-stonker}" --dbname="${POSTGRES_DB:-stonker}" --format=custom' \
+  > stonker.dump
+```
+
+With `docker run`, use your own `PUID` and `PGID` in place of `9999:9999`.
+
+It is recommended to store the dump away from the Docker host, keep a copy of the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> with the same care as a password, and test a restore before you rely on it.
 
 ## Restore From a Backup
 
-A restore needs the database dump and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology> from the same <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology>.
+A restore needs the database dump and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> from the same <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology>.
 
 A new container makes its own key on its first start, while a dump restored into it brings back the old database's key check. The next start then stops with the error in [If the Key File Belongs to Another Database](/docs/operations/storage-and-backups/#if-the-key-file-belongs-to-another-database).
 
-- **With the old key** — Copy the old install's `credential.key`, or the copy you kept with the backup, over `/data/secrets/credential.key`, then restart the container. The restored <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, feature secrets, and <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator apps</Terminology> keep working.
-- **Without the old key** — Delete `/data/secrets/credential.key` and restart. The start makes a new key and removes the restored secrets, and the notice lists them to enter again, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
+- **With the old key** — Copy the old install's `installation.key` (`credential.key` from a version 4.0 install), or the copy you kept with the backup, over `/data/keys/installation.key`, then restart the container. The restored <Terminology title="The bot's password for Discord, from the Developer Portal" to="/docs/reference/terminology#discord-basics">Bot Token</Terminology>, feature secrets, and <Terminology title="A phone app that makes six-digit sign-in codes" to="/docs/reference/terminology#sign-in-security">authenticator apps</Terminology> keep working.
+- **Without the old key** — Delete `/data/keys/installation.key` and restart. The start makes a new key and removes the restored secrets, and the notice lists them to enter again, as described in [If the Key File Is Missing](/docs/operations/storage-and-backups/#if-the-key-file-is-missing).
 
 ## Network Storage
 
@@ -123,5 +138,5 @@ The <Terminology title="One container that holds the bot, panel, worker, and dat
 ## Delete Everything
 
 :::danger
-`docker compose down --volumes` permanently deletes the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>.
+`docker compose down --volumes` permanently deletes the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
 :::

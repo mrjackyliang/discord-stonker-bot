@@ -116,7 +116,7 @@ describe('credential key', () => {
   });
 
   it('makes a key on the first start and keeps it', async () => {
-    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'secrets', 'credential.key');
+    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'keys', 'installation.key');
 
     expect(await prepareCredentialKey(getTestDatabase()['pool'], keyPath)).toEqual([]);
 
@@ -136,7 +136,7 @@ describe('credential key', () => {
 
   it('removes what a lost key sealed and lists it until it is dismissed', async () => {
     const pool: Lib_CredentialKey_Test_Pool = getTestDatabase()['pool'];
-    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'secrets', 'credential.key');
+    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'keys', 'installation.key');
 
     await prepareCredentialKey(pool, keyPath);
 
@@ -320,7 +320,7 @@ describe('credential key', () => {
   });
 
   it('stops on a key file from another database or a damaged one', async () => {
-    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'secrets', 'credential.key');
+    const keyPath: Lib_CredentialKey_Test_KeyPath = join(directory, 'keys', 'installation.key');
 
     await prepareCredentialKey(getTestDatabase()['pool'], keyPath);
 

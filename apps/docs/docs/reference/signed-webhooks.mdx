@@ -145,10 +145,6 @@ The message is the route's content, then its footer on a second line, with `%YEA
 - **<Terminology title="Signed requests must be under five minutes old" to="/docs/reference/terminology#invite-page-and-webhooks">Freshness window</Terminology>** — The timestamp has to be within 300 seconds of the server's clock, in either direction.
 - **Duplicate detection** — The bot builds a <Terminology title="Stops the same job from being queued twice" to="/docs/reference/terminology#schedules-and-jobs">deduplication key</Terminology> from the path, the timestamp, and the normalized signature value, so sending the same request again returns HTTP 200 with `"duplicate":true` even if the hexadecimal letters or optional `sha256=` prefix use different case.
 
-:::warning
-The <Terminology title="Stops the same job from being queued twice" to="/docs/reference/terminology#schedules-and-jobs">deduplication key</Terminology> uses the signature header exactly as sent, while the signature check ignores letter case and the `sha256=` prefix. Within the <Terminology title="Signed requests must be under five minutes old" to="/docs/reference/terminology#invite-page-and-webhooks">freshness window</Terminology>, a copy of a request with a changed prefix or letter case is accepted as a new message.
-:::
-
 ## Troubleshooting
 
 - **HTTP 401** — Check that the server's clock is correct, that the timestamp is in seconds, and that the body wasn't reformatted after you signed it.

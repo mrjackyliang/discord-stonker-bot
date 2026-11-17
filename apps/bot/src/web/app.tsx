@@ -835,7 +835,7 @@ export const App = (): ReactElement => {
         label: describeRemovedSecret(removedSecret)['label'],
         onOpen: (): void => openRemovedSecret(describeRemovedSecret(removedSecret)),
       }))}
-      keyName="credential key"
+      keyName="installation key"
       onDismiss={async (): Promise<void> => {
         await dismissRemovedSecrets();
         setRemovedSecrets([]);

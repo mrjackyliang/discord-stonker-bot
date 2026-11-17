@@ -47,7 +47,7 @@ The untouched v3.4.3 `config-sample.json` imports successfully. Its five incompl
 | `toggle-perms`     | The legacy `user-or-role-id` entries do not say whether their target is a member or role.                                                             |
 | `web-applications` | The reCAPTCHA values are empty, webhook signing secrets are absent, and paths such as `path.to[0].sample-text` do not match the supported dot format. |
 
-Other incomplete legacy settings behave the same way: they don't reject the whole import, but they can't run until they pass the current checks. Malformed JSON, a mismatched <Terminology title="The number Discord uses to name a server" to="/docs/reference/terminology#discord-basics">Server ID</Terminology>, and files over 750 KB still reject the source.
+Other incomplete legacy settings behave the same way: they don't reject the whole import, but they can't run until they pass the current checks. Malformed JSON, a mismatched <Terminology title="The number Discord uses to name a server" to="/docs/reference/terminology#discord-basics">Server ID</Terminology>, and files over 750,000 characters still reject the source.
 
 - **Text-only messages** — Direct messages, auto-reply responses, and scammer and impersonator alerts need `content`, and a feature with only a legacy embed stays off.
 - **Empty credentials** — Enter <Terminology title="Google's checkbox that keeps bots off the invite page" to="/docs/reference/terminology#invite-page-and-webhooks">reCAPTCHA</Terminology> keys and <Terminology title="Shared secret that proves a webhook request is yours" to="/docs/reference/terminology#invite-page-and-webhooks">signing secrets</Terminology> on the affected feature page before turning it on.
@@ -59,7 +59,7 @@ Only the <Terminology title="The first account; it can do everything and can't b
 
 1. Select the server in the server menu.
 2. Open **Backup** under **Settings**, then select **Import…**.
-3. In **Source**, choose **An older config.json**, then select your file of up to 750 KB.
+3. In **Source**, choose **An older config.json**, then select your file of up to 750,000 characters.
 4. Optionally select **Turn on features that pass checks**, so valid, supported features go on during the import. Leave it clear to review every feature first.
 5. In **Settings**, compare **In the file** with **Here**. **Needs attention after import** lists features that are imported switched off until you fix them, and **Not brought over** lists the older data this import leaves out.
 6. Check **Review**, select **Import**, and complete <Terminology title="A fresh sign-in check before an export or import" to="/docs/reference/terminology#backup-and-import">**Confirm it’s you**</Terminology> with your password and authenticator code, when enabled, or a <Terminology title="Sign in with Face ID, Touch ID, or a security key" to="/docs/reference/terminology#sign-in-security">passkey</Terminology>.

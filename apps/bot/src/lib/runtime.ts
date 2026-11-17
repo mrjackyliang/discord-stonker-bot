@@ -3,13 +3,13 @@ import { z } from 'zod';
 import { LIB_REGEX_PATTERN_DATABASE_IDENTIFIER } from './regex.js';
 
 import type {
+  Lib_Runtime_ControlPanelPort,
   Lib_Runtime_ReadRuntimeConfiguration_BotConfiguration,
   Lib_Runtime_ReadRuntimeConfiguration_DatabaseConfiguration,
   Lib_Runtime_ReadRuntimeConfiguration_DatabaseUrl,
   Lib_Runtime_ReadRuntimeConfiguration_Environment,
   Lib_Runtime_ReadRuntimeConfiguration_Returns,
   Lib_Runtime_ReadRuntimeConfiguration_WebConfiguration,
-  Lib_Runtime_ReadRuntimeConfiguration_WebHost,
   Lib_Runtime_ReadRuntimeConfiguration_WorkerConfiguration,
   Lib_Runtime_Sleep_DurationMilliseconds,
   Lib_Runtime_Sleep_Returns,
@@ -17,6 +17,16 @@ import type {
   Lib_Runtime_WaitForShutdown_Returns,
   Lib_Runtime_WaitForShutdown_Settle,
 } from '../types/lib/runtime.d.ts';
+
+/**
+ * Runtime - Control Panel Port.
+ *
+ * Fixes the port the control panel listens on inside the container.
+ * A different host port comes from the port mapping, not a setting.
+ *
+ * @since 4.1.0
+ */
+export const CONTROL_PANEL_PORT: Lib_Runtime_ControlPanelPort = 22604;
 
 /**
  * Runtime - Environment Schema.
@@ -28,15 +38,12 @@ import type {
  */
 const environmentSchema = z.object({
   BOT_CONTROL_POLL_INTERVAL_MS: z.coerce.number().int().min(250).max(60_000).default(1000),
-  CREDENTIAL_KEY_FILE: z.string().min(1).default('/data/secrets/credential.key'),
+  CREDENTIAL_KEY_FILE: z.string().min(1).default('/data/keys/installation.key'),
   DATABASE_MAX_CONNECTIONS: z.coerce.number().int().min(1).max(30).default(10),
   JOB_ATTEMPT_LIMIT: z.coerce.number().int().min(1).max(20).default(5),
   POSTGRES_DB: z.string().regex(LIB_REGEX_PATTERN_DATABASE_IDENTIFIER).default('stonker'),
-  POSTGRES_PASSWORD: z.string().min(16),
-  POSTGRES_PORT: z.coerce.number().int().min(1).max(65_535).default(5432),
+  POSTGRES_RUNTIME_DIRECTORY: z.string().min(1).default('/run/postgresql'),
   POSTGRES_USER: z.string().regex(LIB_REGEX_PATTERN_DATABASE_IDENTIFIER).default('stonker'),
-  WEB_HOST: z.string().default(''),
-  WEB_PORT: z.coerce.number().int().min(1).max(65_535).default(22604),
   WORKER_POLL_INTERVAL_MS: z.coerce.number().int().min(100).max(60_000).default(1000),
 });
 
@@ -51,14 +58,17 @@ const environmentSchema = z.object({
  * @since 4.0.0
  */
 export function readRuntimeConfiguration(): Lib_Runtime_ReadRuntimeConfiguration_Returns {
-  const environment: Lib_Runtime_ReadRuntimeConfiguration_Environment = environmentSchema.parse(process.env);
+  // A blank setting, such as a key left empty in a local .env, falls back to its default like an unset one.
+  const environment: Lib_Runtime_ReadRuntimeConfiguration_Environment = environmentSchema.parse(Object.fromEntries(Object.entries(process.env).filter((entry) => entry[1] !== '')));
 
-  const databaseUrl: Lib_Runtime_ReadRuntimeConfiguration_DatabaseUrl = new URL('postgresql://127.0.0.1');
+  const databaseUrl: Lib_Runtime_ReadRuntimeConfiguration_DatabaseUrl = new URL('postgresql://localhost');
 
   databaseUrl.username = environment['POSTGRES_USER'];
-  databaseUrl.password = environment['POSTGRES_PASSWORD'];
-  databaseUrl.port = environment['POSTGRES_PORT'].toString();
   databaseUrl.pathname = environment['POSTGRES_DB'];
+
+  // PostgreSQL listens only on its Unix socket, which trusts local clients, and the fixed port names the socket file.
+  databaseUrl.port = '5432';
+  databaseUrl.searchParams.set('host', environment['POSTGRES_RUNTIME_DIRECTORY']);
 
   const databaseConfiguration: Lib_Runtime_ReadRuntimeConfiguration_DatabaseConfiguration = {
     connectionString: databaseUrl.toString(),
@@ -70,12 +80,10 @@ export function readRuntimeConfiguration(): Lib_Runtime_ReadRuntimeConfiguration
     credentialKeyFile: environment['CREDENTIAL_KEY_FILE'],
   };
 
-  // Without a host, Node listens on IPv6 and IPv4, or on IPv4 when IPv6 is off.
-  const webHost: Lib_Runtime_ReadRuntimeConfiguration_WebHost = (environment['WEB_HOST'] === '') ? undefined : environment['WEB_HOST'];
-
+  // Without a host, Node listens on every IPv6 and IPv4 address, or on IPv4 when IPv6 is off. The port mapping or a reverse proxy decides who can reach it.
   const webConfiguration: Lib_Runtime_ReadRuntimeConfiguration_WebConfiguration = {
-    host: webHost,
-    port: environment['WEB_PORT'],
+    host: undefined,
+    port: CONTROL_PANEL_PORT,
   };
 
   const workerConfiguration: Lib_Runtime_ReadRuntimeConfiguration_WorkerConfiguration = {

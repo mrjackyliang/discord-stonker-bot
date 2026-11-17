@@ -592,22 +592,8 @@
             "reach": "local"
           },
           {
-            "defaultValue": "5432",
-            "key": "POSTGRES_PORT",
-            "reach": "local"
-          },
-          {
             "defaultValue": "stonker",
             "key": "POSTGRES_USER",
-            "reach": "local"
-          },
-          {
-            "key": "WEB_HOST",
-            "reach": "local"
-          },
-          {
-            "defaultValue": "22604",
-            "key": "WEB_PORT",
             "reach": "local"
           },
           {
@@ -618,13 +604,7 @@
         ]
       },
       "./apps/bot": {
-        "prefix": "BOT_",
-        "variables": [
-          {
-            "key": "POSTGRES_PASSWORD",
-            "reach": "local"
-          }
-        ]
+        "prefix": "BOT_"
       },
       "./apps/docs": {
         "prefix": "DOCS_"

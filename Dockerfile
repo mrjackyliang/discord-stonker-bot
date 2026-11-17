@@ -117,7 +117,7 @@ RUN --network=none chmod +x \
     /usr/local/libexec/nova-docker/services/prepare-postgres \
     /usr/local/libexec/discord-stonker-bot/migrate \
     /usr/local/libexec/discord-stonker-bot/prepare-postgres \
-  && mkdir -p /data/postgres /data/secrets /run/postgresql \
+  && mkdir -p /data/keys /data/postgres /run/postgresql \
   && chown postgres:postgres /data/postgres /run/postgresql \
   && chmod 0700 /data/postgres \
   && chmod 0755 /run/postgresql

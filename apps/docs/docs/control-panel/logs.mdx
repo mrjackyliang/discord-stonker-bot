@@ -97,11 +97,13 @@ The **Worker** log adds `notification_delivered` for each alert sent and `notifi
 
 ## Container Logs
 
-Every service also writes each event to standard output as one line of JSON. Follow them on the Docker host with Compose.
+Every service also writes each event to standard output as one line of JSON. Follow them on the Docker host.
 
 ```bash
-docker compose logs --follow app
+docker logs --follow discord-stonker-bot
 ```
+
+With Compose, run `docker compose logs --follow app` instead.
 
 ```json title="One log line"
 {"component":"bot","context":{"generation":3},"event":"gateway_stopped","level":"info","timestamp":"2026-01-01T00:00:00.000Z"}

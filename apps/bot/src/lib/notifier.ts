@@ -424,7 +424,7 @@ export async function notifySecretsRemoved(
     return;
   }
 
-  await queueNotification(pool, buildSecretsRemovedNotification(notificationApp, 'credential key', items), new Date().toISOString());
+  await queueNotification(pool, buildSecretsRemovedNotification(notificationApp, 'installation key', items), new Date().toISOString());
 
   return;
 }

@@ -1,14 +1,14 @@
 ---
 id: installation
 title: Installation
-description: Build the Stonker Bot for Discord image from source, create the two environment files, and start the appliance with Docker Compose on your own host.
+description: Start the Stonker Bot for Discord appliance with docker run from Docker Hub, or build it from source with Docker Compose, on your own host.
 keywords:
   - stonker bot for discord
   - installation
+  - docker run
   - docker compose
   - environment file
   - self-hosting
-  - postgres password
 tags:
   - getting started
   - installation
@@ -18,9 +18,31 @@ sidebar_position: 2
 
 import { Terminology } from '@cbnventures/docusaurus-preset-nova/blocks';
 
-Build the Docker image from the source code and start the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> with Docker Compose.
+Start the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> from the published image with `docker run`, or build it from the source code with Docker Compose.
 
-## Get the Source
+## Run with Docker
+
+Pick a folder on the Docker host for the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, such as `/volume1/docker/discord-stonker-bot`, then start the container.
+
+```bash
+sudo docker run -d -v /volume1/docker/discord-stonker-bot:/data -e "PGID=9999" -e "PUID=9999" -e "TZ=America/New_York" --restart always --user 0:0 --net=host --name discord-stonker-bot mrjackyliang/discord-stonker-bot:latest
+```
+
+- **`-v …:/data`** — The host folder that keeps the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
+- **`PUID` and `PGID`** — The user and group that own the files in that folder. Use the IDs of the account that owns it on your host.
+- **`TZ`** — An IANA time zone, such as `America/New_York`.
+- **`--user 0:0`** — Starts the container's service manager as root, which then runs the bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> as `PUID`.
+- **`--net=host`** — Shares the host's network. The only port the container opens is the control panel's port, `22604`, because PostgreSQL listens only on a Unix socket inside the container.
+
+There's no database password or admin account to set. You create the first account in the browser with a one-time <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology>.
+
+To update, remove the container and the old image, then run the same `docker run` command again. The host folder keeps your data.
+
+```bash
+sudo docker rm --force discord-stonker-bot && sudo docker rmi mrjackyliang/discord-stonker-bot:latest
+```
+
+## Build with Docker Compose
 
 Clone the repository and work from its root folder.
 
@@ -29,27 +51,9 @@ git clone https://github.com/mrjackyliang/discord-stonker-bot.git
 cd discord-stonker-bot
 ```
 
-## Create the Environment Files
-
-The <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> reads settings from two files, and each setting belongs in one of them.
-
-### Bot Environment File
-
-Copy the sample, then set `POSTGRES_PASSWORD` to a unique password of at least 16 characters.
-
-```bash
-cp apps/bot/.env.sample apps/bot/.env
-```
-
-```dotenv title="apps/bot/.env"
-POSTGRES_PASSWORD="use-a-unique-password-of-at-least-16-characters"
-```
-
-`POSTGRES_PASSWORD` is the only required value. There's no admin username or password to set, because you create the first account in the browser with a one-time <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology>.
-
 ### Compose Environment File
 
-Copy the root sample to `.env` next to `compose.yml`, then add any settings you want to change, such as `WEB_PORT`.
+Copy the root sample to `.env` next to `compose.yml`, then add any settings you want to change, such as `TZ`.
 
 ```bash
 cp .env.sample .env
@@ -61,13 +65,15 @@ PUID="1000"
 TZ="UTC"
 ```
 
+`PGID`, `PUID`, and `TZ` are the only settings most installs need. Compose also loads `apps/bot/.env` when it exists, but no setting is required there.
+
 :::warning
-Set `WEB_PORT`, `PUID`, `PGID`, `TZ`, and the other Compose settings in the root `.env`, not in `apps/bot/.env`. The `environment` block in `compose.yml` fills these keys from your shell or the root `.env`, and Docker Compose gives that block priority over `apps/bot/.env`.
+Set `PUID`, `PGID`, `TZ`, and the other Compose settings in the root `.env`, not in `apps/bot/.env`. The `environment` block in `compose.yml` fills these keys from your shell or the root `.env`, and Docker Compose gives that block priority over `apps/bot/.env`.
 :::
 
 See [Environment Variables](/docs/operations/environment-variables/) for every setting and its default.
 
-## Start the Appliance
+### Start the Appliance
 
 Build the image and start the container in the background, then check its status.
 
@@ -78,13 +84,7 @@ docker compose ps
 
 `npm run deploy:container` from the repository root runs the same `docker compose up --build --detach` command.
 
-On the first start, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start after these steps finish.
-
-## Open the Control Panel
-
-Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. The first visit shows **Set up your account**, which asks for the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, and [First-Run Setup](/docs/getting-started/first-run/) walks you through the rest.
-
-## Update the Appliance
+### Update the Appliance
 
 Get the newer source code, then run the same command to rebuild the image and replace the container.
 
@@ -92,9 +92,7 @@ Get the newer source code, then run the same command to rebuild the image and re
 docker compose up --build --detach
 ```
 
-The <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology> survives the rebuild, and new database migrations run automatically at start. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
-
-## Stop or Remove the Appliance
+### Stop or Remove the Appliance
 
 `docker compose down` stops and removes the container but keeps the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>.
 
@@ -103,5 +101,15 @@ docker compose down
 ```
 
 :::danger
-`docker compose down --volumes` also deletes the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, which holds the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">credential key</Terminology>.
+`docker compose down --volumes` also deletes the <Terminology title="The Docker volume where all your data lives" to="/docs/reference/terminology#appliance-and-services">data volume</Terminology>, which holds the database and the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology>.
 :::
+
+## First Start
+
+On the first start, the <Terminology title="One container that holds the bot, panel, worker, and database" to="/docs/reference/terminology#appliance-and-services">appliance</Terminology> sets up an empty PostgreSQL database, applies the database migrations, and creates the <Terminology title="The key that locks your secrets; back it up with the database" to="/docs/reference/terminology#appliance-and-services">installation key</Terminology> at `/data/keys/installation.key`. The bot, the control panel, and the <Terminology title="Background service that runs schedules and deliveries" to="/docs/reference/terminology#appliance-and-services">worker</Terminology> start after these steps finish.
+
+New database migrations run automatically on every start after an update. It is recommended to back up the database first, as described in [Storage and Backups](/docs/operations/storage-and-backups/).
+
+## Open the Control Panel
+
+Open `http://<docker-host>:22604/` in a browser, where `<docker-host>` is the name or address of the machine that runs Docker. The first visit shows **Set up your account**, which asks for the <Terminology title="One-time code from the container log that creates the Owner" to="/docs/reference/terminology#accounts-and-access">setup code</Terminology> from the container log, and [First-Run Setup](/docs/getting-started/first-run/) walks you through the rest.

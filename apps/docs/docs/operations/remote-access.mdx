@@ -22,7 +22,13 @@ Reach the control panel from other devices while keeping it private, and serve t
 
 ## Default Binding
 
-Compose publishes the control panel's port on every IPv4 and IPv6 address of the Docker host, so any device that can reach the host can open the panel. To limit it to programs on that host, change the mapping in `compose.yml` to `127.0.0.1:${WEB_PORT:-22604}:${WEB_PORT:-22604}`.
+The control panel listens on every address inside the container, and the port mapping or a reverse proxy decides who can reach it.
+
+With `docker run --net=host`, the control panel listens on every address of the Docker host, so any device that can reach the host can open the panel. To limit it to programs on that host, replace `--net=host` with `-p 127.0.0.1:22604:22604`, or put the panel behind a reverse proxy.
+
+Compose publishes the control panel's port on every IPv4 and IPv6 address of the Docker host, so any device that can reach the host can open the panel. To limit it to programs on that host, change the mapping in `compose.yml` to `"127.0.0.1:22604:22604"`, or put the panel behind a reverse proxy.
+
+The control panel always listens on port 22604 inside the container. To open it on another host port, change the host side of the mapping, such as `-p 8080:22604` with `docker run` in place of `--net=host`, or `"8080:22604"` in `compose.yml`. With `--net=host`, the port is always 22604.
 
 ## Why Keep the Panel Private
 
@@ -34,7 +40,7 @@ For remote use, it is recommended to reach the panel through a private VPN, or t
 
 ## Put HTTPS in Front
 
-Run a reverse proxy on the Docker host and point it at `127.0.0.1:22604`, or at your `WEB_PORT`. Caddy is one option, and it gets certificates and adds the forwarding headers the web service reads.
+Run a reverse proxy on the Docker host and point it at `127.0.0.1:22604`, or at the host port you mapped. Caddy is one option, and it gets certificates and adds the forwarding headers the web service reads.
 
 ```caddyfile title="Caddyfile"
 bot.example.com {
@@ -63,7 +69,7 @@ The web service reads `X-Forwarded-*` headers only from a <Terminology title="A 
 - **Public addresses** — Headers from any other address are ignored, so a visitor who reaches the port directly can't fake their address.
 
 :::warning
-Every private address counts as a <Terminology title="A nearby reverse proxy whose forwarded headers are believed" to="/docs/reference/terminology#accounts-and-access">trusted proxy</Terminology>, so a device on your network that can reach the port directly can set these headers itself. It is recommended to switch to the `127.0.0.1` binding and let only the proxy connect.
+Every private address counts as a <Terminology title="A nearby reverse proxy whose forwarded headers are believed" to="/docs/reference/terminology#accounts-and-access">trusted proxy</Terminology>, so a device on your network that can reach the port directly can set these headers itself. It is recommended to publish the port on loopback only, with `-p 127.0.0.1:22604:22604` for `docker run` or `"127.0.0.1:22604:22604"` in `compose.yml`, and let only the proxy connect.
 :::
 
 ## Passkeys and the Address
@@ -85,7 +91,7 @@ Some paths answer without signing in, so a reverse proxy can expose them while k
 | Path                       | Purpose                                                                                                                                                                                                        | Protection                                                                                                                                                                                                                                        |
 |----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `/health`                  | Liveness check, always "ok"                                                                                                                                                                                    | None                                                                                                                                                                                                                                              |
-| `/ready`                   | <Terminology title="Docker's health check; it only asks if the database is up" to="/docs/reference/terminology#appliance-and-services">Readiness check</Terminology> against the database                      | None                                                                                                                                                                                                                                              |
+| `/ready`                   | <Terminology title="The /ready endpoint; it only asks if the database is up" to="/docs/reference/terminology#appliance-and-services">Readiness check</Terminology> against the database                        | None                                                                                                                                                                                                                                              |
 | `/invite`, `/join`         | The <Terminology title="A public page that hands out short-lived Discord invites" to="/docs/reference/terminology#invite-page-and-webhooks">invite page</Terminology> and its sub-paths                        | <Terminology title="Google's checkbox that keeps bots off the invite page" to="/docs/reference/terminology#invite-page-and-webhooks">reCAPTCHA</Terminology>, and 5 join attempts per 10 minutes from one address                                 |
 | `/webhooks/`               | <Terminology title="A URL that turns signed JSON into a Discord message" to="/docs/reference/terminology#invite-page-and-webhooks">Mapped webhooks</Terminology>                                               | <Terminology title="The hash a sender adds so the webhook trusts the request" to="/docs/reference/terminology#invite-page-and-webhooks">HMAC signature</Terminology>                                                                              |
 | `/media/`                  | The invite page's logo and banner images                                                                                                                                                                       | None                                                                                                                                                                                                                                              |

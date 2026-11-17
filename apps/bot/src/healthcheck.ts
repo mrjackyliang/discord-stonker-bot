@@ -2,10 +2,9 @@ import {
   getErrorMessage,
   writeLog,
 } from './lib/logger.js';
+import { CONTROL_PANEL_PORT } from './lib/runtime.js';
 
 import type {
-  Healthcheck_Main_Host,
-  Healthcheck_Main_Port,
   Healthcheck_Main_Response,
   Healthcheck_Main_Returns,
   Healthcheck_Main_Url,
@@ -23,19 +22,8 @@ import type {
  * @since 4.0.0
  */
 async function main(): Healthcheck_Main_Returns {
-  const port: Healthcheck_Main_Port = Number.parseInt(process.env['WEB_PORT'] ?? '22604', 10);
-  const configuredHost: Healthcheck_Main_Host = process.env['WEB_HOST'] ?? '';
-  let host: Healthcheck_Main_Host = configuredHost;
-
-  if (configuredHost === '' || configuredHost === '0.0.0.0') {
-    host = '127.0.0.1';
-  } else if (configuredHost === '::' || configuredHost === '[::]') {
-    host = '[::1]';
-  } else if (configuredHost.includes(':') === true && configuredHost.startsWith('[') === false) {
-    host = `[${configuredHost}]`;
-  }
-
-  const url: Healthcheck_Main_Url = new URL(`http://${host}:${String(port)}/ready`);
+  // The control panel listens on every address, and IPv4 loopback works with or without IPv6 in the container.
+  const url: Healthcheck_Main_Url = new URL(`http://127.0.0.1:${String(CONTROL_PANEL_PORT)}/ready`);
   const response: Healthcheck_Main_Response = await fetch(url, {
     signal: AbortSignal.timeout(4_000),
   });

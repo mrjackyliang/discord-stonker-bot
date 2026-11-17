@@ -1,5 +1,17 @@
 # discord-stonker-bot-app-bot
 
+## 4.1.0 - 2026-11-17
+
+### UPDATED
+- PostgreSQL listens only on its Unix socket and needs no password, so POSTGRES_PASSWORD and POSTGRES_PORT are ignored with one log line each, no setting or apps/bot/.env is required, --net=host opens only the control panel port, and the installation key moves from /data/secrets/credential.key to /data/keys/installation.key on the next start.
+
+### FIXED
+- Settings left blank, such as a variable set to an empty value, fall back to their defaults instead of stopping the bot.
+
+### REMOVED
+- The WEB_PORT variable; the control panel always listens on 22604, and a different host port is set with the port mapping (`-p 8080:22604`) instead of host networking.
+- The WEB_HOST variable; the control panel always listens on every address in the container, and a local-only panel is published with `-p 127.0.0.1:22604:22604` or kept behind a reverse proxy.
+
 ## 4.0.1 - 2026-11-16
 
 ### FIXED

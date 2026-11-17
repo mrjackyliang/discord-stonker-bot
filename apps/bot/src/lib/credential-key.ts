@@ -179,7 +179,7 @@ export async function prepareCredentialKey(
 
   if (credentialKey !== undefined) {
     if (credentialKey.length !== 32) {
-      throw new Error('The credential encryption key must contain exactly 32 bytes.');
+      throw new Error('The installation key must contain exactly 32 bytes.');
     }
 
     await verifyCredentialKey(pool, credentialKey, filePath);
@@ -362,7 +362,7 @@ async function verifyCredentialKey(
   credentialKey: Lib_CredentialKey_VerifyCredentialKey_CredentialKey,
   filePath: Lib_CredentialKey_VerifyCredentialKey_FilePath,
 ): Lib_CredentialKey_VerifyCredentialKey_Returns {
-  const mismatch: Lib_CredentialKey_VerifyCredentialKey_Mismatch = new Error(`The credential key at ${filePath} doesn't belong to this database. Put back the key file this database was created with, or delete ${filePath} and restart to make a new key, then enter the saved secrets again.`);
+  const mismatch: Lib_CredentialKey_VerifyCredentialKey_Mismatch = new Error(`The installation key at ${filePath} doesn't belong to this database. Put back the key file this database was created with, or delete ${filePath} and restart to make a new key, then enter the saved secrets again.`);
   const checkResult: Lib_CredentialKey_VerifyCredentialKey_CheckResult = await pool.query(
     'SELECT ciphertext FROM credential_key_check WHERE singleton = TRUE',
   );

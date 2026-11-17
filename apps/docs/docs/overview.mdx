@@ -55,14 +55,14 @@ Each feature has its own settings page and its own on and off switch. Features y
 
 ## Current Status
 
-Stonker Bot for Discord is built from the source code because there is no published Docker image.
+Stonker Bot for Discord is published as a Docker image on Docker Hub and GitHub Container Registry, and can also be built from the source code.
 
 One Discord application can serve multiple servers from the same installation. Feature settings, encrypted integration secrets, event handlers, and <Terminology title="A /command members type in Discord's message box" to="/docs/reference/terminology#discord-basics">slash commands</Terminology> remain scoped to each server.
 
 ## Next Steps
 
 - **[Requirements](/docs/getting-started/requirements/)** — Check what you need before you install.
-- **[Installation](/docs/getting-started/installation/)** — Build the image and start the container.
+- **[Installation](/docs/getting-started/installation/)** — Start the container with `docker run`, or build it with Compose.
 - **[First-Run Setup](/docs/getting-started/first-run/)** — Create the owner account, connect the bot, and add your server.
 - **[Export and Import](/docs/control-panel/export-and-import/)** — Export selected configuration, import an <Terminology title="A JSON backup of your settings, secrets in plain text" to="/docs/reference/terminology#backup-and-import">export file</Terminology>, or bring in an older `config.json` from **Backup**.
 - **[Legacy Migration](/docs/migration/legacy-migration/)** — Review what the older `config.json` source replaces, keeps off, and skips.

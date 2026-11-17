@@ -137,6 +137,32 @@ describe('repository appliance', () => {
     return;
   });
 
+  it('keeps PostgreSQL on its Unix socket without a password', () => {
+    expect(readFileSync(new URL('../packages/docker/rootfs/etc/s6-overlay/s6-rc.d/postgres/run', import.meta.url), 'utf8')).toContain('-c "listen_addresses=" \\');
+
+    expect(readFileSync(new URL('../packages/docker/rootfs/etc/s6-overlay/s6-rc.d/postgres/run', import.meta.url), 'utf8')).toContain('-c "hba_file=/etc/discord-stonker-bot/pg_hba.conf" \\');
+
+    expect(readFileSync(new URL('../packages/docker/project/etc/discord-stonker-bot/pg_hba.conf', import.meta.url), 'utf8').split('\n').filter((hbaLine) => hbaLine !== '' && hbaLine.startsWith('#') === false)).toEqual(['local all all trust']);
+
+    expect(readFileSync(new URL('../packages/docker/project/usr/local/libexec/discord-stonker-bot/prepare-postgres', import.meta.url), 'utf8')).not.toContain('--pwfile');
+
+    expect(readFileSync(new URL('../packages/docker/project/usr/local/libexec/discord-stonker-bot/migrate', import.meta.url), 'utf8')).toContain('ALTER ROLE CURRENT_USER WITH PASSWORD NULL;');
+
+    expect(readFileSync(new URL('../compose.yml', import.meta.url), 'utf8')).not.toContain('POSTGRES_PORT');
+
+    return;
+  });
+
+  it('moves the version 4.0 credential key to the keys folder', () => {
+    expect(readFileSync(new URL('../compose.yml', import.meta.url), 'utf8')).toContain('CREDENTIAL_KEY_FILE: /data/keys/installation.key');
+
+    expect(readFileSync(new URL('../packages/docker/project/usr/local/libexec/discord-stonker-bot/prepare-postgres', import.meta.url), 'utf8')).toContain('legacy_key_file="/data/secrets/credential.key"');
+
+    expect(readFileSync(new URL('../packages/docker/project/usr/local/libexec/discord-stonker-bot/prepare-postgres', import.meta.url), 'utf8')).toContain('credential_key_file="$'.concat('{CREDENTIAL_KEY_FILE:-/data/keys/installation.key}"'));
+
+    return;
+  });
+
   it('publishes the root image to Docker Hub and GHCR', () => {
     expect(novaConfigJson['dockerHub']).toEqual(expect.objectContaining({
       namespace: 'mrjackyliang',
