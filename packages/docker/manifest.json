@@ -1,5 +1,47 @@
 {
+  "build": {
+    "copyNovaConfig": false
+  },
+  "compose": {
+    "environment": {
+      "BOT_CONTROL_POLL_INTERVAL_MS": "${BOT_CONTROL_POLL_INTERVAL_MS:-1000}",
+      "DATABASE_MAX_CONNECTIONS": "${DATABASE_MAX_CONNECTIONS:-10}",
+      "JOB_ATTEMPT_LIMIT": "${JOB_ATTEMPT_LIMIT:-5}",
+      "MIGRATIONS_DIRECTORY": "/app/apps/bot/migrations",
+      "NODE_ENV": "production",
+      "POSTGRES_DB": "${POSTGRES_DB:-stonker}",
+      "POSTGRES_RUNTIME_DIRECTORY": "/tmp/postgresql",
+      "POSTGRES_USER": "${POSTGRES_USER:-stonker}",
+      "STARTER_CONFIGURATION": "/app/apps/bot/examples/legacy-config.e2e.json",
+      "WORKER_POLL_INTERVAL_MS": "${WORKER_POLL_INTERVAL_MS:-1000}"
+    },
+    "environmentFiles": [
+      {
+        "path": "./apps/bot/.env",
+        "required": false
+      }
+    ],
+    "image": "${IMAGE_NAME:-discord-stonker-bot:local}",
+    "name": "discord-stonker-bot",
+    "volumes": [
+      {
+        "source": "stonker-data",
+        "target": "/config"
+      }
+    ]
+  },
+  "dockerfile": {
+    "layout": "spaced"
+  },
   "healthPath": "/health",
+  "images": {
+    "debian": {
+      "reference": "debian:trixie-20261005-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f"
+    },
+    "node": {
+      "reference": "node:24.22.0-trixie-slim@sha256:a6155384446670e9719bdc4fd0ebe4d4b29fb32a8d6aa523da3547a6cfbcf22c"
+    }
+  },
   "legacyStatePaths": [
     "database",
     "keys/installation.key",
@@ -7,7 +49,68 @@
     "secrets/credential.key"
   ],
   "networkMode": "host",
-  "schemaVersion": 1,
+  "project": {
+    "executables": [
+      {
+        "path": "/usr/local/libexec/discord-stonker-bot"
+      }
+    ]
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "POSTGRESQL_VERSION",
+        "quoted": false,
+        "value": "17.11-0+deb13u1"
+      }
+    ],
+    "copies": [
+      {
+        "destination": "./apps/bot/build",
+        "from": "build",
+        "source": "/workspace/apps/bot/build"
+      },
+      {
+        "destination": "./apps/bot/package.json",
+        "from": "build",
+        "source": "/workspace/apps/bot/package.json"
+      },
+      {
+        "destination": "./node_modules",
+        "from": "build",
+        "source": "/workspace/node_modules"
+      },
+      {
+        "destination": "./apps/bot/examples",
+        "source": "apps/bot/examples"
+      },
+      {
+        "destination": "./apps/bot/migrations",
+        "source": "apps/bot/migrations"
+      }
+    ],
+    "environment": {
+      "MIGRATIONS_DIRECTORY": "/app/apps/bot/migrations",
+      "PATH": "/command:/usr/lib/postgresql/17/bin:${PATH}",
+      "POSTGRES_RUNTIME_DIRECTORY": "/tmp/postgresql",
+      "STARTER_CONFIGURATION": "/app/apps/bot/examples/legacy-config.e2e.json"
+    },
+    "layout": "outputs",
+    "packageCommands": [
+      "if [ -d /etc/postgresql/17/main ]; then pg_dropcluster --stop 17 main; fi"
+    ],
+    "packages": [
+      {
+        "name": "postgresql-17",
+        "version": "${POSTGRESQL_VERSION}"
+      },
+      {
+        "name": "postgresql-client-17",
+        "version": "${POSTGRESQL_VERSION}"
+      }
+    ]
+  },
+  "schemaVersion": 2,
   "services": [
     {
       "command": "node build/index.js",
@@ -112,12 +215,23 @@
   "stateEnvironment": "DATA_DIRECTORY",
   "workspaces": [
     {
+      "buildNetwork": "none",
       "packageName": "discord-stonker-bot-app-bot",
       "path": "apps/bot",
       "profile": "background-service",
-      "runtimePaths": [
+      "runtimePaths": [],
+      "sources": [
+        "tsconfig.config.json",
+        "tsconfig.source.json",
+        "tsconfig.web.json",
+        [
+          "vite.config.mts",
+          "mock-api.mts",
+          "index.html",
+          "invite.html"
+        ],
         "examples",
-        "migrations"
+        "src"
       ]
     }
   ]

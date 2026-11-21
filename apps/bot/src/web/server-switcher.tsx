@@ -1,14 +1,30 @@
 import { useState } from 'react';
 
 import { Icon } from '@/web/primitives.tsx';
+import { whitespacePattern } from '@/web/regex.js';
 import { useEscapeKey } from '@/web/use-escape-key.ts';
 
-import type { ReactElement } from 'react';
-
-import type { Web_Api_Server } from '@/types/web/api.d.ts';
 import type {
-  Web_ServerSwitcher_Props,
+  Web_ServerSwitcher_Initials_Letters,
+  Web_ServerSwitcher_Initials_Name,
+  Web_ServerSwitcher_Initials_Returns,
+  Web_ServerSwitcher_Initials_Words,
+  Web_ServerSwitcher_ServerIcon_IconUrl,
+  Web_ServerSwitcher_ServerIcon_Name,
   Web_ServerSwitcher_ServerIcon_Props,
+  Web_ServerSwitcher_ServerIcon_Returns,
+  Web_ServerSwitcher_ServerIcon_Size,
+  Web_ServerSwitcher_ServerSwitcher_AddServerUrl,
+  Web_ServerSwitcher_ServerSwitcher_Current,
+  Web_ServerSwitcher_ServerSwitcher_OnChange,
+  Web_ServerSwitcher_ServerSwitcher_OnOpenConnection,
+  Web_ServerSwitcher_ServerSwitcher_Open,
+  Web_ServerSwitcher_ServerSwitcher_OpenState,
+  Web_ServerSwitcher_ServerSwitcher_Props,
+  Web_ServerSwitcher_ServerSwitcher_Returns,
+  Web_ServerSwitcher_ServerSwitcher_ServerId,
+  Web_ServerSwitcher_ServerSwitcher_Servers,
+  Web_ServerSwitcher_ServerSwitcher_SetOpen,
 } from '@/types/web/server-switcher.d.ts';
 
 /**
@@ -17,67 +33,67 @@ import type {
  * Picks up to two letters for a server that does not have an icon.
  * The fallback stays recognizable in both the switcher and its menu.
  *
- * @param {string} name - Name.
+ * @param {Web_ServerSwitcher_Initials_Name} name - Name.
  *
- * @returns {string}
+ * @returns {Web_ServerSwitcher_Initials_Returns}
  *
  * @since 4.0.0
  */
-const initials = (name: string): string => {
-  const words: string[] = name.trim().split(/\s+/u).filter((word: string): boolean => word !== '');
-  const letters: string = words.slice(0, 2).map((word: string): string => word.charAt(0)).join('');
+const initials = (name: Web_ServerSwitcher_Initials_Name): Web_ServerSwitcher_Initials_Returns => {
+  const words: Web_ServerSwitcher_Initials_Words = name.trim().split(new RegExp(whitespacePattern, 'u')).filter((word) => word !== '');
+  const letters: Web_ServerSwitcher_Initials_Letters = words.slice(0, 2).map((word) => word.charAt(0)).join('');
 
   return (letters === '') ? '?' : letters.toUpperCase();
 };
 
 /**
- * Server Switcher - Server icon.
+ * Server Switcher - Server Icon.
  *
  * Shows a Discord server icon when one exists and initials otherwise.
  * Both switcher surfaces reuse the same compact presentation.
  *
  * @param {Web_ServerSwitcher_ServerIcon_Props} props - Props.
  *
- * @returns {ReactElement}
+ * @returns {Web_ServerSwitcher_ServerIcon_Returns}
  *
  * @since 4.0.0
  */
-export const ServerIcon = ({
-  iconUrl,
-  name,
-  size = 'small',
-}: Web_ServerSwitcher_ServerIcon_Props): ReactElement => (
-  <span aria-hidden="true" className={`server-icon server-icon-${size}`}>
-    {(iconUrl === null) ? initials(name) : <img alt="" src={iconUrl} />}
-  </span>
-);
+export const ServerIcon = (props: Web_ServerSwitcher_ServerIcon_Props): Web_ServerSwitcher_ServerIcon_Returns => {
+  const iconUrl: Web_ServerSwitcher_ServerIcon_IconUrl = props['iconUrl'];
+  const name: Web_ServerSwitcher_ServerIcon_Name = props['name'];
+  const size: Web_ServerSwitcher_ServerIcon_Size = props['size'] ?? 'small';
+
+  return (
+    <span aria-hidden="true" className={`server-icon server-icon-${size}`}>
+      {(iconUrl === null) ? initials(name) : <img alt="" src={iconUrl} />}
+    </span>
+  );
+};
 
 /**
- * Server Switcher.
+ * Server Switcher - Server Switcher.
  *
  * Selects an available Discord server and exposes the app's install link.
  * The shell places this app-owned control in its desktop and phone slots.
  *
- * @param {Web_ServerSwitcher_Props} props - Props.
+ * @param {Web_ServerSwitcher_ServerSwitcher_Props} props - Props.
  *
- * @returns {ReactElement}
+ * @returns {Web_ServerSwitcher_ServerSwitcher_Returns}
  *
  * @since 4.0.0
  */
-export const ServerSwitcher = ({
-  addServerUrl,
-  onChange,
-  onOpenConnection,
-  serverId,
-  servers,
-}: Web_ServerSwitcher_Props): ReactElement => {
-  const [
-    open,
-    setOpen,
-  ] = useState<boolean>(false);
-  const current: Web_Api_Server | undefined = servers.find((server: Web_Api_Server): boolean => server['id'] === serverId);
+export const ServerSwitcher = (props: Web_ServerSwitcher_ServerSwitcher_Props): Web_ServerSwitcher_ServerSwitcher_Returns => {
+  const addServerUrl: Web_ServerSwitcher_ServerSwitcher_AddServerUrl = props['addServerUrl'];
+  const onChange: Web_ServerSwitcher_ServerSwitcher_OnChange = props['onChange'];
+  const onOpenConnection: Web_ServerSwitcher_ServerSwitcher_OnOpenConnection = props['onOpenConnection'];
+  const serverId: Web_ServerSwitcher_ServerSwitcher_ServerId = props['serverId'];
+  const servers: Web_ServerSwitcher_ServerSwitcher_Servers = props['servers'];
+  const openState: Web_ServerSwitcher_ServerSwitcher_OpenState = useState<Web_ServerSwitcher_ServerSwitcher_Open>(false);
+  const open: Web_ServerSwitcher_ServerSwitcher_Open = openState[0];
+  const setOpen: Web_ServerSwitcher_ServerSwitcher_SetOpen = openState[1];
+  const current: Web_ServerSwitcher_ServerSwitcher_Current = servers.find((server) => server['id'] === serverId);
 
-  useEscapeKey((): void => setOpen(false), open);
+  useEscapeKey(() => setOpen(false), open);
 
   return (
     <div className="server-switcher">
@@ -85,7 +101,7 @@ export const ServerSwitcher = ({
         aria-expanded={open}
         aria-haspopup="menu"
         className="server-switcher-button"
-        onClick={(): void => setOpen(!open)}
+        onClick={() => setOpen(open === false)}
         type="button"
       >
         {(current === undefined) ? (
@@ -102,40 +118,44 @@ export const ServerSwitcher = ({
         <Icon name="chevron-down" size={16} />
       </button>
 
-      {(open) ? (
+      {(open === true) ? (
         <>
           <button
             aria-label="Close menu"
             className="menu-scrim"
-            onClick={(): void => setOpen(false)}
+            onClick={() => setOpen(false)}
             type="button"
           />
           <div className="menu server-menu" role="menu">
             {(servers.length === 0) ? (
               <p className="server-menu-empty">The bot shows each Discord server here once it joins one.</p>
-            ) : servers.map((server: Web_Api_Server): ReactElement => (
+            ) : servers.map((server) => (
               <button
                 aria-checked={server['id'] === serverId}
                 key={server['id']}
-                onClick={(): void => {
+                onClick={() => {
                   setOpen(false);
                   onChange(server['id']);
+
+                  return;
                 }}
                 role="menuitemradio"
                 type="button"
               >
                 <ServerIcon iconUrl={server['iconUrl']} name={server['name']} />
                 <span className="server-menu-name">{server['name']}</span>
-                {(server['available']) ? null : <span className="tag">Bot removed</span>}
+                {(server['available'] === true) ? null : <span className="tag">Bot removed</span>}
                 {(server['id'] === serverId) ? <Icon name="check" size={16} /> : null}
               </button>
             ))}
             <hr />
             {(addServerUrl === null) ? (
               <button
-                onClick={(): void => {
+                onClick={() => {
                   setOpen(false);
                   onOpenConnection();
+
+                  return;
                 }}
                 role="menuitem"
                 type="button"

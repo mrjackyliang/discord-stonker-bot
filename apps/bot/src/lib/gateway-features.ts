@@ -1,11 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-  GuildScheduledEventEntityType,
-  GuildScheduledEventStatus,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -296,8 +294,8 @@ function createRegistration(
 ): Lib_GatewayFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
     if (runtime['bumpThreads'].length > 0) {
-      client.on(Events.ClientReady, () => {
-        void timeFeatureHandler('gateway', Events.ClientReady, guildIdentifier, () => reconcileConfiguredThreads(client, guildIdentifier, runtime['bumpThreads'])).catch((error) => {
+      client.on(chatPlatformEvents['ClientReady'], () => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['ClientReady'], guildIdentifier, () => reconcileConfiguredThreads(client, guildIdentifier, runtime['bumpThreads'])).catch((error) => {
           writeLog('error', 'bot', 'thread_startup_reconciliation_failed', {
             error: getErrorMessage(error),
             guildIdentifier,
@@ -309,8 +307,8 @@ function createRegistration(
         return;
       });
 
-      client.on(Events.ThreadUpdate, (_oldThread, newThread) => {
-        void timeFeatureHandler('gateway', Events.ThreadUpdate, guildIdentifier, () => handleThreadUpdate(newThread, guildIdentifier, runtime['bumpThreads'])).catch((error) => {
+      client.on(chatPlatformEvents['ThreadUpdate'], (_oldThread, newThread) => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['ThreadUpdate'], guildIdentifier, () => handleThreadUpdate(newThread, guildIdentifier, runtime['bumpThreads'])).catch((error) => {
           writeLog('error', 'bot', 'thread_update_reconciliation_failed', {
             error: getErrorMessage(error),
             guildIdentifier,
@@ -325,8 +323,8 @@ function createRegistration(
     }
 
     if (runtime['broadcastAlerts'].length > 0) {
-      client.on(Events.GuildScheduledEventCreate, (event) => {
-        void timeFeatureHandler('gateway', Events.GuildScheduledEventCreate, guildIdentifier, () => handleBroadcastEvent(
+      client.on(chatPlatformEvents['GuildScheduledEventCreate'], (event) => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['GuildScheduledEventCreate'], guildIdentifier, () => handleBroadcastEvent(
           client,
           event,
           guildIdentifier,
@@ -344,8 +342,8 @@ function createRegistration(
         return;
       });
 
-      client.on(Events.GuildScheduledEventUpdate, (oldEvent, newEvent) => {
-        void timeFeatureHandler('gateway', Events.GuildScheduledEventUpdate, guildIdentifier, () => handleBroadcastEvent(
+      client.on(chatPlatformEvents['GuildScheduledEventUpdate'], (oldEvent, newEvent) => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['GuildScheduledEventUpdate'], guildIdentifier, () => handleBroadcastEvent(
           client,
           newEvent,
           guildIdentifier,
@@ -363,8 +361,8 @@ function createRegistration(
         return;
       });
 
-      client.on(Events.GuildScheduledEventDelete, (event) => {
-        void timeFeatureHandler('gateway', Events.GuildScheduledEventDelete, guildIdentifier, () => handleBroadcastEvent(
+      client.on(chatPlatformEvents['GuildScheduledEventDelete'], (event) => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['GuildScheduledEventDelete'], guildIdentifier, () => handleBroadcastEvent(
           client,
           event,
           guildIdentifier,
@@ -384,8 +382,8 @@ function createRegistration(
     }
 
     if (runtime['roleMessages'].length > 0) {
-      client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
-        void timeFeatureHandler('gateway', Events.GuildMemberUpdate, guildIdentifier, () => handleRoleMessages(
+      client.on(chatPlatformEvents['GuildMemberUpdate'], (oldMember, newMember) => {
+        void timeFeatureHandler('gateway', chatPlatformEvents['GuildMemberUpdate'], guildIdentifier, () => handleRoleMessages(
           oldMember,
           newMember,
           guildIdentifier,
@@ -582,8 +580,8 @@ function getEnabledFeature(
 /**
  * Gateway Features - Get Event Entity Type.
  *
- * Maps discord.js numeric scheduled-event kinds to archived matcher labels.
- * Validation already limits rules to the three Discord event entity kinds.
+ * Reads chat-platform scheduled-event kinds as archived matcher labels.
+ * Validation already limits rules to the three supported entity kinds.
  *
  * @param {Lib_GatewayFeatures_GetEventEntityType_Event} event - Event.
  *
@@ -596,11 +594,11 @@ function getEnabledFeature(
 function getEventEntityType(
   event: Lib_GatewayFeatures_GetEventEntityType_Event,
 ): Lib_GatewayFeatures_GetEventEntityType_Returns {
-  if (event['entityType'] === GuildScheduledEventEntityType.StageInstance) {
+  if (event['entityType'] === 'STAGE_INSTANCE') {
     return 'STAGE_INSTANCE';
   }
 
-  if (event['entityType'] === GuildScheduledEventEntityType.Voice) {
+  if (event['entityType'] === 'VOICE') {
     return 'VOICE';
   }
 
@@ -610,7 +608,7 @@ function getEventEntityType(
 /**
  * Gateway Features - Get Event Status.
  *
- * Maps discord.js numeric lifecycle values to archived matcher labels.
+ * Reads chat-platform lifecycle values as archived matcher labels.
  * Same-status edits are classified separately by the update listener.
  *
  * @param {Lib_GatewayFeatures_GetEventStatus_Event} event - Event.
@@ -624,15 +622,15 @@ function getEventEntityType(
 function getEventStatus(
   event: Lib_GatewayFeatures_GetEventStatus_Event,
 ): Lib_GatewayFeatures_GetEventStatus_Returns {
-  if (event['status'] === GuildScheduledEventStatus.Active) {
+  if (event['status'] === 'ACTIVE') {
     return 'ACTIVE';
   }
 
-  if (event['status'] === GuildScheduledEventStatus.Completed) {
+  if (event['status'] === 'COMPLETED') {
     return 'COMPLETED';
   }
 
-  if (event['status'] === GuildScheduledEventStatus.Canceled) {
+  if (event['status'] === 'CANCELED') {
     return 'CANCELED';
   }
 
@@ -869,11 +867,11 @@ export function prepareGatewayFeatures(
   const intents: Lib_GatewayFeatures_PrepareGatewayFeatures_Intents = [];
 
   if (activeFeatureKeys.includes('broadcast-alerts') === true) {
-    intents.push(GatewayIntentBits.GuildScheduledEvents);
+    intents.push(chatPlatformIntents['GuildScheduledEvents']);
   }
 
   if (activeFeatureKeys.includes('role-messages') === true) {
-    intents.push(GatewayIntentBits.GuildMembers);
+    intents.push(chatPlatformIntents['GuildMembers']);
   }
 
   return {

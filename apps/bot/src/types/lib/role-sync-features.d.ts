@@ -1,15 +1,13 @@
 import type {
-  Client,
-  GatewayIntentBits,
-  GuildMember,
-  PartialGuildMember,
-  Role,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_Role,
+} from './chat-platform/index.d.ts';
 
 export type Lib_RoleSyncFeatures_RoleReference_RoleIdentifier = string;
 export type Lib_RoleSyncFeatures_RoleReference = {
@@ -67,7 +65,7 @@ export type Lib_RoleSyncFeatures_RoleChangePlan = {
   ruleNames: Lib_RoleSyncFeatures_RoleChangePlan_RuleNames;
 };
 
-export type Lib_RoleSyncFeatures_Registration_Client = Client;
+export type Lib_RoleSyncFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_RoleSyncFeatures_Registration_GuildIdentifier = string;
 export type Lib_RoleSyncFeatures_Registration = (
   client: Lib_RoleSyncFeatures_Registration_Client,
@@ -76,7 +74,7 @@ export type Lib_RoleSyncFeatures_Registration = (
 
 export type Lib_RoleSyncFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_RoleSyncFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_RoleSyncFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_RoleSyncFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_RoleSyncFeatures_Prepared_Register = Lib_RoleSyncFeatures_Registration;
 export type Lib_RoleSyncFeatures_Prepared = {
   activeFeatureKeys: Lib_RoleSyncFeatures_Prepared_ActiveFeatureKeys;
@@ -99,8 +97,8 @@ export type Lib_RoleSyncFeatures_CreateRegistration_ExistingTimer = NodeJS.Timeo
 export type Lib_RoleSyncFeatures_CreateRegistration_Returns = Lib_RoleSyncFeatures_Registration;
 export type Lib_RoleSyncFeatures_CreateRegistration_Runtime = Lib_RoleSyncFeatures_Runtime;
 
-export type Lib_RoleSyncFeatures_DidMemberRolesChange_NewMember = GuildMember;
-export type Lib_RoleSyncFeatures_DidMemberRolesChange_OldMember = GuildMember | PartialGuildMember;
+export type Lib_RoleSyncFeatures_DidMemberRolesChange_NewMember = Lib_ChatPlatform_Contracts_Member;
+export type Lib_RoleSyncFeatures_DidMemberRolesChange_OldMember = Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_Member;
 export type Lib_RoleSyncFeatures_DidMemberRolesChange_Returns = boolean;
 
 export type Lib_RoleSyncFeatures_FormatConfigurationError_Error = unknown;
@@ -148,18 +146,18 @@ export type Lib_RoleSyncFeatures_PlanRoleChanges_Rules = Lib_RoleSyncFeatures_Ru
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_ConfigurationErrors = string[];
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Feature = Lib_RoleSyncFeatures_GetEnabledFeature_Returns;
-export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Intents = GatewayIntentBits[];
+export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Returns = Lib_RoleSyncFeatures_Prepared;
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Runtime = Lib_RoleSyncFeatures_Runtime | undefined;
 export type Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Settings = Shared_JsonObject;
 
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_CurrentRoleIdentifiers = Set<string>;
-export type Lib_RoleSyncFeatures_ReconcileMemberRoles_ManagedRoles = Role[];
-export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Member = GuildMember;
+export type Lib_RoleSyncFeatures_ReconcileMemberRoles_ManagedRoles = Lib_ChatPlatform_Contracts_Role[];
+export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Plan = Lib_RoleSyncFeatures_RoleChangePlan;
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Reason = string;
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Returns = Promise<void>;
-export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Role = Role | undefined;
+export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Role = Lib_ChatPlatform_Contracts_Role | undefined;
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_Runtime = Lib_RoleSyncFeatures_Runtime;
 export type Lib_RoleSyncFeatures_ReconcileMemberRoles_TargetRoleIdentifiers = string[];
 

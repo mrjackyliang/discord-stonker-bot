@@ -1,12 +1,10 @@
-import {
-  ChannelType,
-  Client,
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
-
 import { prepareAntiRaidFeatures } from './lib/anti-raid-features.js';
 import { prepareAuditFeatures } from './lib/audit-features.js';
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+  createChatPlatformClient,
+} from './lib/chat-platform/index.js';
 import {
   listNormalizedGuildSettings,
   syncDiscordServers,
@@ -160,31 +158,27 @@ async function synchronizeDiscordRegistry(
   client: Index_SynchronizeDiscordRegistry_Client,
   pool: Index_SynchronizeDiscordRegistry_Pool,
 ): Index_SynchronizeDiscordRegistry_Returns {
-  if (client.user === null) {
+  if (client['user'] === null) {
     throw new Error('Discord registry synchronization requires a ready bot user.');
   }
 
   const applicationIdentifier: Index_SynchronizeDiscordRegistry_ApplicationIdentifier = (
-    client.application === null
-  ) ? client.user.id : client.application.id;
-  const discordServers: Index_SynchronizeDiscordRegistry_DiscordServers = client.guilds.cache.map((guild) => {
+    client['application'] === null
+  ) ? client['user']['id'] : client['application']['id'];
+  const discordServers: Index_SynchronizeDiscordRegistry_DiscordServers = client['guilds']['cache'].map((guild) => {
     return {
-      channels: guild.channels.cache.filter((channel) => (
-        channel.isTextBased()
-        || channel.type === ChannelType.GuildForum
-        || channel.type === ChannelType.GuildMedia
-      )).map((channel) => ({
-        channelIdentifier: channel.id,
-        name: channel.name,
-        type: channel.type,
+      channels: guild['channels']['cache'].filter((channel) => channel.isRegistryChannel()).map((channel) => ({
+        channelIdentifier: channel['id'],
+        name: channel['name'],
+        type: channel['type'],
       })),
-      guildIdentifier: guild.id,
-      iconHash: guild.icon ?? undefined,
-      name: guild.name,
-      roles: guild.roles.cache.filter((role) => role.id !== guild.id).map((role) => ({
-        name: role.name,
-        position: role.position,
-        roleIdentifier: role.id,
+      guildIdentifier: guild['id'],
+      iconHash: guild['icon'] ?? undefined,
+      name: guild['name'],
+      roles: guild['roles']['cache'].filter((role) => role['id'] !== guild['id']).map((role) => ({
+        name: role['name'],
+        position: role['position'],
+        roleIdentifier: role['id'],
       })),
     };
   });
@@ -220,11 +214,11 @@ async function completeGatewayConnection(
 
   await clientReadyPromise;
 
-  if (client.user === null) {
+  if (client['user'] === null) {
     throw new Error('Discord login completed without a ready bot user.');
   }
 
-  return client.user.tag;
+  return client['user']['tag'];
 }
 
 /**
@@ -252,7 +246,7 @@ async function connectGateway(
 
   const guildSettingsEntries: Index_ConnectGateway_GuildSettingsEntries = await listNormalizedGuildSettings(pool);
   const guildRuntimes: Index_ConnectGateway_GuildRuntimes = [];
-  const intents: Index_ConnectGateway_Intents = [GatewayIntentBits.Guilds];
+  const intents: Index_ConnectGateway_Intents = [chatPlatformIntents['Guilds']];
   const activeFeatureKeys: Index_ConnectGateway_ActiveFeatureKeys = [];
   const configurationErrors: Index_ConnectGateway_ConfigurationErrors = [];
 
@@ -332,7 +326,7 @@ async function connectGateway(
     });
   }
 
-  const client: Index_ConnectGateway_Client = new Client({
+  const client: Index_ConnectGateway_Client = createChatPlatformClient({
     intents: [...new Set(intents)],
     shardCount: 1,
   });
@@ -401,15 +395,15 @@ async function connectGateway(
       return;
     };
 
-    client.on(Events.ChannelCreate, synchronizeRegistry);
-    client.on(Events.ChannelDelete, synchronizeRegistry);
-    client.on(Events.ChannelUpdate, synchronizeRegistry);
-    client.on(Events.GuildCreate, synchronizeRegistry);
-    client.on(Events.GuildDelete, synchronizeRegistry);
-    client.on(Events.GuildUpdate, synchronizeRegistry);
-    client.on(Events.GuildRoleCreate, synchronizeRegistry);
-    client.on(Events.GuildRoleDelete, synchronizeRegistry);
-    client.on(Events.GuildRoleUpdate, synchronizeRegistry);
+    client.on(chatPlatformEvents['ChannelCreate'], synchronizeRegistry);
+    client.on(chatPlatformEvents['ChannelDelete'], synchronizeRegistry);
+    client.on(chatPlatformEvents['ChannelUpdate'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildCreate'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildDelete'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildUpdate'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildRoleCreate'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildRoleDelete'], synchronizeRegistry);
+    client.on(chatPlatformEvents['GuildRoleUpdate'], synchronizeRegistry);
 
     watchGatewayConnection(client, pool);
 
@@ -417,7 +411,7 @@ async function connectGateway(
       activeFeatureKeys: [...new Set(activeFeatureKeys)],
       client,
       configurationErrors,
-      guildCount: client.guilds.cache.size,
+      guildCount: client['guilds']['cache']['size'],
       userTag: readyUserTag,
     };
   } catch (error) {
@@ -821,7 +815,7 @@ async function run(): Index_Run_Returns {
  */
 function waitForClientReady(client: Index_WaitForClientReady_Client): Index_WaitForClientReady_Returns {
   return new Promise<void>((resolveReady) => {
-    client.once(Events.ClientReady, () => {
+    client.once(chatPlatformEvents['ClientReady'], () => {
       resolveReady();
 
       return;

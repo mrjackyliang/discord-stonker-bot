@@ -2,6 +2,7 @@ import { join } from 'node:path';
 
 import express from 'express';
 
+import { chatPlatformAssetContentSecurityPolicySource } from '../lib/chat-platform/index.js';
 import { sendError } from '../lib/http.js';
 
 import type {
@@ -133,7 +134,7 @@ export class Runner {
    */
   private consoleHeaders(_request: Routes_Web_Runner_ConsoleHeaders_Request, response: Routes_Web_Runner_ConsoleHeaders_Response, next: Routes_Web_Runner_ConsoleHeaders_Next): Routes_Web_Runner_ConsoleHeaders_Returns {
     response.set({
-      'Content-Security-Policy': 'default-src \'self\'; base-uri \'none\'; connect-src \'self\'; font-src \'self\'; form-action \'self\'; frame-ancestors \'none\'; img-src \'self\' data: https://cdn.discordapp.com; object-src \'none\'; script-src \'self\'; style-src \'self\'',
+      'Content-Security-Policy': `default-src 'self'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: ${chatPlatformAssetContentSecurityPolicySource}; object-src 'none'; script-src 'self'; style-src 'self'`,
       'Permissions-Policy': 'camera=(), geolocation=(), microphone=()',
       'X-Frame-Options': 'DENY',
     });

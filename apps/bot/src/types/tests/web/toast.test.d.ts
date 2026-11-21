@@ -81,11 +81,3 @@ export type Tests_Web_Toast_VisibleToast = {
 };
 
 export type Tests_Web_Toast_VisibleToasts = Tests_Web_Toast_VisibleToast[];
-
-declare global {
-  interface Document {
-    querySelectorAll<ElementType extends HTMLElement>(selectors: string): NodeListOf<ElementType>;
-  }
-
-  const document: Document;
-}

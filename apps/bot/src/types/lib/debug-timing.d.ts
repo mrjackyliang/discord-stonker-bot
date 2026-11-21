@@ -1,7 +1,11 @@
-import type { Client, REST } from 'discord.js';
 import type { Mock, MockInstance } from 'vitest';
 
 import type { Shared_LogComponent, Shared_LogContext } from '../shared.d.ts';
+import type { Tests_Support_ChatPlatform_Client } from '../tests/support/chat-platform.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Rest,
+} from './chat-platform/index.d.ts';
 
 export type Lib_DebugTiming_SlowQueryMilliseconds = number;
 export type Lib_DebugTiming_SlowHandlerMilliseconds = number;
@@ -37,7 +41,7 @@ export type Lib_DebugTiming_TimedPool_StartedAt = number;
 export type Lib_DebugTiming_TimedPool_Connected = unknown;
 export type Lib_DebugTiming_TimedPool_PendingClient = Promise<object>;
 
-export type Lib_DebugTiming_WatchDiscordDebug_Client = Client;
+export type Lib_DebugTiming_WatchDiscordDebug_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_DebugTiming_WatchDiscordDebug_Returns = void;
 export type Lib_DebugTiming_WatchDiscordDebug_AttachedAt = number;
 export type Lib_DebugTiming_WatchDiscordDebug_DownSince = Map<number, number>;
@@ -46,7 +50,7 @@ export type Lib_DebugTiming_WatchDiscordDebug_Recovered = (shardId: number) => S
 export type Lib_DebugTiming_WatchDiscordDebug_DroppedAt = number | undefined;
 export type Lib_DebugTiming_WatchDiscordDebug_Context = Shared_LogContext;
 
-export type Lib_DebugTiming_WatchRestRateLimits_Rest = REST;
+export type Lib_DebugTiming_WatchRestRateLimits_Rest = Lib_ChatPlatform_Contracts_Rest;
 export type Lib_DebugTiming_WatchRestRateLimits_Component = Shared_LogComponent;
 export type Lib_DebugTiming_WatchRestRateLimits_Returns = void;
 
@@ -67,5 +71,5 @@ export type Lib_DebugTiming_Test_FakePool = {
   connect: () => Promise<Lib_DebugTiming_Test_FakeClient>;
   query: Lib_DebugTiming_Test_Query;
 };
-export type Lib_DebugTiming_Test_Client = Client;
+export type Lib_DebugTiming_Test_Client = Tests_Support_ChatPlatform_Client;
 export type Lib_DebugTiming_Test_Output = string;

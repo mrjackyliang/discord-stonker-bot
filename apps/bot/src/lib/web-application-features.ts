@@ -2,11 +2,11 @@ import {
   createHmac,
   timingSafeEqual,
 } from 'node:crypto';
-import { isIP } from 'node:net';
 
-import { Routes } from 'discord.js';
 import { z } from 'zod';
 
+import { Runner as CaptchaVerifier } from './captcha-verifier.js';
+import { buildChatPlatformInviteUrl } from './chat-platform/index.js';
 import {
   getNormalizedGuildSettings,
   listNormalizedGuildSettings,
@@ -143,15 +143,9 @@ import type {
   Lib_WebApplicationFeatures_RenderWebhookContent_Route,
   Lib_WebApplicationFeatures_RouteCache,
   Lib_WebApplicationFeatures_VerifyRecaptcha_ExpectedHostname,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_Form,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_Parsed,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_ParsedJson,
   Lib_WebApplicationFeatures_VerifyRecaptcha_RemoteAddress,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_Response,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_ResponseText,
   Lib_WebApplicationFeatures_VerifyRecaptcha_Returns,
   Lib_WebApplicationFeatures_VerifyRecaptcha_Secret,
-  Lib_WebApplicationFeatures_VerifyRecaptcha_SolvedHostname,
   Lib_WebApplicationFeatures_VerifyRecaptcha_Token,
   Lib_WebApplicationFeatures_VerifyWebhookSignature_Body,
   Lib_WebApplicationFeatures_VerifyWebhookSignature_CurrentTime,
@@ -166,26 +160,6 @@ import type {
   Lib_WebApplicationFeatures_VerifyWebhookSignature_Timestamp,
   Lib_WebApplicationFeatures_VerifyWebhookSignature_TimestampSeconds,
 } from '../types/lib/web-application-features.d.ts';
-
-/**
- * Web Application Features - Maximum Provider Response Characters.
- *
- * Bounds the fixed reCAPTCHA response before JSON parsing.
- * Provider error bodies are never forwarded to visitors or logs.
- *
- * @since 4.0.0
- */
-const MAXIMUM_PROVIDER_RESPONSE_CHARACTERS = 65_536;
-
-/**
- * Web Application Features - Provider Timeout Milliseconds.
- *
- * Stops stalled reCAPTCHA verification without tying up the public listener.
- * Discord REST uses its centralized rate-limit and timeout behavior separately.
- *
- * @since 4.0.0
- */
-const PROVIDER_TIMEOUT_MILLISECONDS = 8_000;
 
 /**
  * Web Application Features - Webhook Freshness Milliseconds.
@@ -300,20 +274,6 @@ export const webApplicationSchema = z.object({
   ),
   'At least one invite or signed webhook route is required.',
 );
-
-/**
- * Web Application Features - Captcha Response Schema.
- *
- * Narrows the fixed Google verification response to its admission decision.
- * Error details are intentionally retained only as bounded validation data.
- *
- * @since 4.0.0
- */
-const captchaResponseSchema = z.object({
-  'error-codes': z.array(z.string().max(100)).max(20).optional(),
-  'hostname': z.string().max(253).optional(),
-  'success': z.boolean(),
-});
 
 /**
  * Web Application Features - Discord Guild Response Schema.
@@ -521,21 +481,17 @@ export async function createDiscordInvite(
   channelIdentifier: Lib_WebApplicationFeatures_CreateDiscordInvite_ChannelIdentifier,
   configuration: Lib_WebApplicationFeatures_CreateDiscordInvite_Configuration,
 ): Lib_WebApplicationFeatures_CreateDiscordInvite_Returns {
-  const response: Lib_WebApplicationFeatures_CreateDiscordInvite_Response = await rest.post(
-    Routes.channelInvites(channelIdentifier),
+  const response: Lib_WebApplicationFeatures_CreateDiscordInvite_Response = await rest.createInvite(
+    channelIdentifier,
     {
-      body: {
-        max_age: configuration['maxAgeSeconds'],
-        max_uses: configuration['maxUses'],
-        temporary: false,
-        unique: true,
-      },
-      reason: 'Visitor completed Stonker invite verification',
+      maxAgeSeconds: configuration['maxAgeSeconds'],
+      maxUses: configuration['maxUses'],
     },
+    'Visitor completed Stonker invite verification',
   );
   const parsed: Lib_WebApplicationFeatures_CreateDiscordInvite_Parsed = discordInviteResponseSchema.parse(response);
 
-  return `https://discord.gg/${encodeURIComponent(parsed['code'])}`;
+  return buildChatPlatformInviteUrl(parsed['code']);
 }
 
 /**
@@ -602,13 +558,9 @@ export async function fetchGuildMetadata(
   rest: Lib_WebApplicationFeatures_FetchGuildMetadata_Rest,
   guildIdentifier: Lib_WebApplicationFeatures_FetchGuildMetadata_GuildIdentifier,
 ): Lib_WebApplicationFeatures_FetchGuildMetadata_Returns {
-  const response: Lib_WebApplicationFeatures_FetchGuildMetadata_Response = await rest.get(
-    Routes.guild(guildIdentifier),
-    {
-      query: new URLSearchParams({
-        with_counts: 'true',
-      }),
-    },
+  const response: Lib_WebApplicationFeatures_FetchGuildMetadata_Response = await rest.getGuild(
+    guildIdentifier,
+    true,
   );
   const parsed: Lib_WebApplicationFeatures_FetchGuildMetadata_Parsed = discordGuildResponseSchema.parse(response);
   const reportedMemberCount: Lib_WebApplicationFeatures_FetchGuildMetadata_ReportedMemberCount = parsed[
@@ -1185,59 +1137,7 @@ export async function verifyRecaptcha(
   expectedHostname: Lib_WebApplicationFeatures_VerifyRecaptcha_ExpectedHostname,
   remoteAddress?: Lib_WebApplicationFeatures_VerifyRecaptcha_RemoteAddress,
 ): Lib_WebApplicationFeatures_VerifyRecaptcha_Returns {
-  if (token.trim() === '' || token.length > 4_096) {
-    return false;
-  }
-
-  const form: Lib_WebApplicationFeatures_VerifyRecaptcha_Form = new URLSearchParams({
-    response: token,
-    secret,
-  });
-
-  if (remoteAddress !== undefined && isIP(remoteAddress) !== 0) {
-    form.set('remoteip', remoteAddress);
-  }
-
-  const response: Lib_WebApplicationFeatures_VerifyRecaptcha_Response = await fetch(
-    'https://www.google.com/recaptcha/api/siteverify',
-    {
-      body: form,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      method: 'POST',
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MILLISECONDS),
-    },
-  );
-  const responseText: Lib_WebApplicationFeatures_VerifyRecaptcha_ResponseText = await response.text();
-
-  if (
-    response.ok === false
-    || responseText.length > MAXIMUM_PROVIDER_RESPONSE_CHARACTERS
-  ) {
-    return false;
-  }
-
-  let parsedJson: Lib_WebApplicationFeatures_VerifyRecaptcha_ParsedJson = undefined;
-
-  try {
-    parsedJson = JSON.parse(responseText);
-  } catch {
-    return false;
-  }
-
-  const parsed: Lib_WebApplicationFeatures_VerifyRecaptcha_Parsed = captchaResponseSchema.safeParse(parsedJson);
-
-  if (parsed['success'] === false || parsed['data']['success'] === false) {
-    return false;
-  }
-
-  const solvedHostname: Lib_WebApplicationFeatures_VerifyRecaptcha_SolvedHostname = parsed['data']['hostname'];
-
-  return (
-    solvedHostname === undefined
-    || solvedHostname.toLowerCase() === expectedHostname.toLowerCase()
-  );
+  return CaptchaVerifier.verify(token, secret, expectedHostname, remoteAddress);
 }
 
 /**

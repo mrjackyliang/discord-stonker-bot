@@ -31,7 +31,7 @@ const validDocument: Web_BackupFormatTest_Document = {
 };
 
 /**
- * Backup Format - Browser Boundaries.
+ * Backup Format - Browser Backup Format Boundaries.
  *
  * Mirrors strict server rejection for unknown keys and duplicate identities.
  * Unsafe files stop before the wizard asks the server for a preview.

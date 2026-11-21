@@ -3,6 +3,7 @@ import {
   getServerId,
   serverAccessible,
 } from '../lib/access.js';
+import { buildChatPlatformGuildIconUrl } from '../lib/chat-platform/index.js';
 import {
   countEnabledGuildFeatures,
   listDiscordResources,
@@ -46,11 +47,7 @@ import type {
  * @since 4.0.0
  */
 function createIconUrl(guildIdentifier: Routes_Servers_CreateIconUrl_GuildIdentifier, iconHash: Routes_Servers_CreateIconUrl_IconHash): Routes_Servers_CreateIconUrl_Returns {
-  if (iconHash === undefined || iconHash === '') {
-    return null;
-  }
-
-  return `https://cdn.discordapp.com/icons/${encodeURIComponent(guildIdentifier)}/${encodeURIComponent(iconHash)}.png?size=128`;
+  return buildChatPlatformGuildIconUrl(guildIdentifier, iconHash, 128);
 }
 
 /**

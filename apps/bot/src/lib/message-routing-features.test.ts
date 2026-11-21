@@ -1,14 +1,11 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
 
-import {
-  isValidDiscordWebhookUrl,
-  prepareMessageRoutingFeatures,
-} from './message-routing-features.js';
+import { chatPlatformIntents } from './chat-platform/index.js';
+import { prepareMessageRoutingFeatures } from './message-routing-features.js';
 
 import type {
   Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_Returns,
@@ -161,8 +158,8 @@ describe('message routing feature preparation', () => {
     expect(prepared['configurationErrors']).toEqual([]);
 
     expect(prepared['intents']).toEqual([
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     ]);
 
     return;
@@ -212,18 +209,34 @@ describe('message routing feature preparation', () => {
     return;
   });
 
-  it('accepts only canonical Discord webhook URLs', () => {
-    expect(isValidDiscordWebhookUrl(
-      'https://discord.com/api/webhooks/1197999215838773279/example-token',
-    )).toBe(true);
+  it('rejects a non-canonical proxy webhook URL next to its field', () => {
+    const secretValues: Lib_MessageRoutingFeatures_Test_SecretValues = {
+      'proxy-webhook': 'https://discord.com/api/webhooks/1209383231867326487/proxy-token?wait=true',
+    };
+    const prepared: Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_Returns = prepareMessageRoutingFeatures({
+      features: {
+        'message-proxies': {
+          configuration: [{
+            channel: {
+              'channel-id': '1209383231867326487',
+            },
+            name: 'Query string proxy',
+            webhook: {
+              'webhook-url': {
+                $secret: 'proxy-webhook',
+              },
+            },
+          }],
+          enabled: true,
+        },
+      },
+    }, createSecretResolver(secretValues));
 
-    expect(isValidDiscordWebhookUrl(
-      'https://discord.com.evil.example/api/webhooks/1197999215838773279/example-token',
-    )).toBe(false);
+    expect(prepared['activeFeatureKeys']).toEqual([]);
 
-    expect(isValidDiscordWebhookUrl(
-      'https://discord.com/api/webhooks/1197999215838773279/example-token?wait=true',
-    )).toBe(false);
+    expect(prepared['configurationErrors']).toHaveLength(1);
+
+    expect(prepared['configurationErrors'][0]).toContain('0.webhook.webhook-url: Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/.');
 
     return;
   });

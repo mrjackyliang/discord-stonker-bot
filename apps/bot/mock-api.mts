@@ -11,574 +11,560 @@ import {
 } from 'otpauth';
 import { toDataURL } from 'qrcode';
 
-import type {
-  IncomingMessage,
-  ServerResponse,
-} from 'node:http';
+import {
+  administratorUsernamePattern,
+  featurePathPattern,
+  hexColorPattern,
+  inviteImagesPathPattern,
+  mediaPathPattern,
+  notificationPathPattern,
+  separatorsPattern,
+  serverPathPattern,
+  tokenPathPattern,
+  totpCodePattern,
+  userPathPattern,
+} from './src/web/regex.js';
 
 import type {
-  Plugin,
-  ViteDevServer,
-} from 'vite';
-
-/**
- * Mock API - Mock role.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockRole = 'administrator' | 'operator' | 'owner' | 'viewer';
-
-/**
- * Mock API - Mock permission.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockPermission = 'bot:control' | 'configuration:write' | 'users:manage';
-
-/**
- * Mock API - Mock scope.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockScope = 'bot:control' | 'features:read' | 'features:write' | 'logs:read';
-
-/**
- * Mock API - Mock component.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockComponent = 'bot' | 'web' | 'worker';
-
-/**
- * Mock API - Mock level.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockLevel = 'debug' | 'error' | 'info' | 'warn';
-
-/**
- * Mock API - Mock issue.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockIssue = {
-  field: string
-  message: string
-  path: string[]
-};
-
-/**
- * Mock API - Mock user.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockUser = {
-  allServers: boolean
-  createdAt: string
-  enabled: boolean
-  id: string
-  lastSignInAt: string | null
-  password: string
-  recoveryCodes: string[]
-  role: MockRole
-  serverIds: string[]
-  totpEnabled: boolean
-  totpPending: boolean
-  username: string
-};
-
-/**
- * Mock API - Mock token.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockToken = {
-  createdAt: string
-  expiresAt: string | null
-  hash: string
-  id: string
-  lastUsedAt: string | null
-  name: string
-  scopes: MockScope[]
-  userId: string
-};
-
-/**
- * Mock API - Mock passkey.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockPasskey = {
-  createdAt: string
-  hostname: string | null
-  id: string
-  lastUsedAt: string | null
-  name: string
-};
-
-/**
- * Mock API - Mock principal.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockPrincipal = {
-  kind: 'session' | 'token'
-  token: MockToken | null
-  user: MockUser
-};
-
-/**
- * Mock API - Mock server.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockServer = {
-  available: boolean
-  boostTier: number
-  iconUrl: string | null
-  id: string
-  memberCount: number
-  name: string
-};
-
-/**
- * Mock API - Mock channel.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockChannel = {
-  available: boolean
-  id: string
-  name: string
-  type: number
-};
-
-/**
- * Mock API - Mock discord role.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockDiscordRole = {
-  available: boolean
-  id: string
-  name: string
-  position: number
-};
-
-/**
- * Mock API - Mock catalog entry.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockCatalogEntry = {
-  category: string
-  description: string
-  key: string
-  name: string
-};
-
-/**
- * Mock API - Mock feature state.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockFeatureState = {
-  configuration: unknown
-  enabled: boolean
-  revision: number
-  updatedAt: string | null
-};
-
-/**
- * Mock API - Mock legacy result.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockLegacyResult = {
-  discordToken?: string | undefined
-  guildIdentifier?: string | undefined
-  report: Record<string, unknown>
-  secrets: {
-    key: string
-    value: string
-  }[]
-  settings: {
-    features?: Record<string, {
-      configuration: unknown
-      enabled: boolean
-    }>
-  }
-};
-
-/**
- * Mock API - Mock modules.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockModules = {
-  blank: (value: unknown) => unknown
-  catalog: MockCatalogEntry[]
-  editorFor: (featureKey: string) => Record<string, unknown>
-  exampleFor: ((featureKey: string, starterSettings: unknown) => unknown) | null
-  importLegacy: ((text: string, enable: boolean) => MockLegacyResult) | null
-  real: boolean
-  validate: ((featureKey: string, configuration: unknown, resolve: (key: string) => string | undefined) => MockIssue[]) | null
-};
-
-/**
- * Mock API - Mock backup purpose.
- *
- * Names the sensitive operation one fresh-authentication grant can authorize.
- * A separate union prevents export and import grants from being mixed.
- *
- * @since 4.0.0
- */
-type MockBackupPurpose = 'export' | 'import';
-
-/**
- * Mock API - Mock backup feature.
- *
- * Keeps one feature's portable settings and opened secrets together.
- * The mock uses the same shape as the version-one file.
- *
- * @since 4.0.0
- */
-type MockBackupFeature = {
-  configuration: unknown
-  enabled: boolean
-  key: string
-  secrets: Record<string, string>
-};
-
-/**
- * Mock API - Mock backup server features.
- *
- * Groups portable feature state by Discord server identifier.
- * Runtime server names remain outside the export.
- *
- * @since 4.0.0
- */
-type MockBackupServerFeatures = {
-  features: MockBackupFeature[]
-  serverId: string
-  timeZone: string
-};
-
-/**
- * Mock API - Mock backup notification.
- *
- * Opens one notification target's secret fields for the temporary file.
- * All values are invented and exist only in the mock process.
- *
- * @since 4.0.0
- */
-type MockBackupNotification = {
-  events: string[]
-  id: string
-  name: string
-  secrets: Record<string, string>
-  service: MockNotificationService
-  settings: Record<string, string>
-};
-
-/**
- * Mock API - Mock backup access token.
- *
- * Carries the one-way token material that can be restored without exposing a token.
- * The raw access token never appears in an export.
- *
- * @since 4.0.0
- */
-type MockBackupAccessToken = {
-  expiresAt: string | null
-  id: string
-  name: string
-  scopes: MockScope[]
-  tokenHash: string
-};
-
-/**
- * Mock API - Mock backup document.
- *
- * Mirrors the browser and server version-one export contract.
- * Optional properties correspond to the selected export sections.
- *
- * @since 4.0.0
- */
-type MockBackupDocument = {
-  accessTokens?: MockBackupAccessToken[] | undefined
-  appVersion: string
-  connection?: {
-    botToken: string | null
-    desiredState: 'running' | 'stopped'
-  } | undefined
-  exportedAt: string
-  features?: MockBackupServerFeatures[] | undefined
-  format: 'discord-stonker-bot-export'
-  notifications?: MockBackupNotification[] | undefined
-  version: 1
-};
-
-/**
- * Mock API - Mock backup source.
- *
- * Represents either source card in the shared import wizard.
- * Legacy text continues through the established config.json mapper.
- *
- * @since 4.0.0
- */
-type MockBackupSource = {
-  document: MockBackupDocument
-  type: 'export'
-} | {
-  configuration: string
-  enableFeatures: boolean
-  serverId: string
-  type: 'legacy'
-};
-
-/**
- * Mock API - Mock backup summary.
- *
- * Holds the counts rendered by Settings and Review.
- * Apply returns the same counts after mutation.
- *
- * @since 4.0.0
- */
-type MockBackupSummary = {
-  accessTokens: {
-    added: number
-    skipped: number
-  }
-  connection: 'added' | 'replaced' | 'skipped'
-  features: {
-    features: number
-    servers: number
-  }
-  notifications: {
-    added: number
-    replaced: number
-  }
-};
-
-/**
- * Mock API - Mock backup grant record.
- *
- * Retains only the grant digest with its browser-session binding.
- * Expiry and purpose are checked before sensitive work begins.
- *
- * @since 4.0.0
- */
-type MockBackupGrantRecord = {
-  expiresAt: number
-  purpose: MockBackupPurpose
-  sessionId: string
-};
-
-/**
- * Mock API - Mock backup passkey ceremony.
- *
- * Binds the passkey prompt to the requesting session and purpose.
- * Account-management ceremonies use their own map.
- *
- * @since 4.0.0
- */
-type MockBackupPasskeyCeremony = MockBackupGrantRecord;
-
-/**
- * Mock API - Mock invite page.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockInvitePage = {
-  accentColor: string
-  bannerImageId: string | null
-  buttonLabel: string
-  description: string
-  footerText: string
-  logo: 'custom' | 'none' | 'server'
-  logoImageId: string | null
-  revision: number
-  showBoostTier: boolean
-  showMemberCount: boolean
-  theme: 'dark' | 'light' | 'system'
-  title: string
-  updatedAt: string | null
-};
-
-/**
- * Mock API - Mock image.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockImage = {
-  contentType: string
-  data: Buffer
-  serverId: string
-};
-
-/**
- * Mock API - Mock log entry.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockLogEntry = {
-  component: MockComponent
-  context: Record<string, unknown>
-  event: string
-  id: string
-  level: MockLevel
-  occurredAt: string
-};
-
-/**
- * Mock API - Mock bot.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockBot = {
-  activeFeatures: string[]
-  applicationId: string | null
-  configurationErrors: string[]
-  desiredState: 'running' | 'stopped'
-  resolution: string | null
-  status: string
-  tokenConfigured: boolean
-  userTag: string | null
-};
-
-/**
- * Mock API - Mock notification service.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockNotificationService = 'apprise' | 'discord' | 'email' | 'gotify' | 'matrix' | 'ntfy' | 'ntfy-reverse-proxy' | 'pushover' | 'slack' | 'telegram' | 'webhook';
-
-/**
- * Mock API - Mock notification.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockNotification = {
-  createdAt: string
-  events: string[]
-  id: string
-  lastAttemptAt: string | null
-  lastError: string | null
-  name: string
-  secrets: Record<string, true>
-  secretsMissing: string[]
-  service: MockNotificationService
-  settings: Record<string, string>
-  updatedAt: string
-};
-
-// MockNotificationField is one service field: [key, message when missing, secret, required].
-
-/**
- * Mock API - Mock notification field.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockNotificationField = [string, string, boolean, boolean];
-
-// MockNotificationInput is a checked create or edit body, with the optional secrets to clear.
-
-/**
- * Mock API - Mock notification input.
- *
- * Names this local contract so fixtures and handlers agree.
- * Keeping one shape prevents the surrounding workflow from drifting.
- *
- * @since 4.0.0
- */
-type MockNotificationInput = Pick<MockNotification, 'events' | 'name' | 'secrets' | 'service' | 'settings'> & {
-  clearSecrets: string[]
-};
+  MockApi_AddServerUrl_Returns,
+  MockApi_AgoIso_Minutes,
+  MockApi_AgoIso_Returns,
+  MockApi_ApplyMockBackup_Document,
+  MockApi_ApplyMockBackup_Existing,
+  MockApi_ApplyMockBackup_Feature,
+  MockApi_ApplyMockBackup_FeatureKey,
+  MockApi_ApplyMockBackup_Hashes,
+  MockApi_ApplyMockBackup_Id,
+  MockApi_ApplyMockBackup_Ids,
+  MockApi_ApplyMockBackup_ImportedSections,
+  MockApi_ApplyMockBackup_Modules,
+  MockApi_ApplyMockBackup_Names,
+  MockApi_ApplyMockBackup_Next,
+  MockApi_ApplyMockBackup_Preview,
+  MockApi_ApplyMockBackup_Result,
+  MockApi_ApplyMockBackup_Returns,
+  MockApi_ApplyMockBackup_SecretEntry,
+  MockApi_ApplyMockBackup_Secrets,
+  MockApi_ApplyMockBackup_Source,
+  MockApi_ApplyMockBackup_State,
+  MockApi_ApplyMockBackup_States,
+  MockApi_ApplyMockBackup_Summary,
+  MockApi_ApplyMockBackup_UsedIds,
+  MockApi_ApplyMockBackup_User,
+  MockApi_BackupGrants,
+  MockApi_BackupPasskeyCeremonies,
+  MockApi_BlankSecrets_Entry,
+  MockApi_BlankSecrets_Returns,
+  MockApi_BlankSecrets_Value,
+  MockApi_Bot,
+  MockApi_BotResource_Returns,
+  MockApi_BotTimer,
+  MockApi_Channels,
+  MockApi_ClubId,
+  MockApi_CollectReferences_Path,
+  MockApi_CollectReferences_Returns,
+  MockApi_CollectReferences_Value,
+  MockApi_ConsumeBackupGrant_Key,
+  MockApi_ConsumeBackupGrant_Purpose,
+  MockApi_ConsumeBackupGrant_Record,
+  MockApi_ConsumeBackupGrant_Returns,
+  MockApi_ConsumeBackupGrant_SessionId,
+  MockApi_ConsumeBackupGrant_Value,
+  MockApi_CreateMockBackupDocument_Document,
+  MockApi_CreateMockBackupDocument_Key,
+  MockApi_CreateMockBackupDocument_Returns,
+  MockApi_CreateMockBackupDocument_Secret,
+  MockApi_CreateMockBackupDocument_SecretEntry,
+  MockApi_CreateMockBackupDocument_Secrets,
+  MockApi_CreateMockBackupDocument_Sections,
+  MockApi_CreateMockBackupDocument_State,
+  MockApi_CreateMockBackupDocument_Store,
+  MockApi_CreateMockBackupDocument_User,
+  MockApi_CsrfValid_Request,
+  MockApi_CsrfValid_Returns,
+  MockApi_CsrfValid_Session,
+  MockApi_DebugLogging,
+  MockApi_DesignerResponse_Origin,
+  MockApi_DesignerResponse_Page,
+  MockApi_DesignerResponse_Path,
+  MockApi_DesignerResponse_Returns,
+  MockApi_DesignerResponse_Server,
+  MockApi_Digest_Returns,
+  MockApi_Digest_Value,
+  MockApi_EditableBy_Manager,
+  MockApi_EditableBy_Returns,
+  MockApi_EditableBy_User,
+  MockApi_EmptyBackupSummary_Returns,
+  MockApi_EnsureFeatures_Returns,
+  MockApi_EscapeHtml_Returns,
+  MockApi_EscapeHtml_Value,
+  MockApi_Examples,
+  MockApi_FallbackCatalog,
+  MockApi_FallbackConfigurations,
+  MockApi_FallbackEditors,
+  MockApi_FallbackModules_Returns,
+  MockApi_FallbackNoticeShown,
+  MockApi_FeatureDetail_Editor,
+  MockApi_FeatureDetail_Entry,
+  MockApi_FeatureDetail_Modules,
+  MockApi_FeatureDetail_Returns,
+  MockApi_FeatureDetail_Saved,
+  MockApi_FeatureDetail_ServerId,
+  MockApi_FeatureDetail_State,
+  MockApi_FeatureDetail_Store,
+  MockApi_FeatureDisplayName_Feature,
+  MockApi_FeatureDisplayName_FeatureKey,
+  MockApi_FeatureDisplayName_Modules,
+  MockApi_FeatureDisplayName_Returns,
+  MockApi_FeaturesReady,
+  MockApi_FeatureStates,
+  MockApi_FeatureSummary_Entry,
+  MockApi_FeatureSummary_Returns,
+  MockApi_FeatureSummary_ServerId,
+  MockApi_FeatureSummary_State,
+  MockApi_FieldIssue_Field,
+  MockApi_FieldIssue_Message,
+  MockApi_FieldIssue_Returns,
+  MockApi_HandlePublic_Address,
+  MockApi_HandlePublic_Available,
+  MockApi_HandlePublic_BannerUrl,
+  MockApi_HandlePublic_Body,
+  MockApi_HandlePublic_Data,
+  MockApi_HandlePublic_Description,
+  MockApi_HandlePublic_Head,
+  MockApi_HandlePublic_Html,
+  MockApi_HandlePublic_Image,
+  MockApi_HandlePublic_LogoUrl,
+  MockApi_HandlePublic_MediaMatch,
+  MockApi_HandlePublic_Method,
+  MockApi_HandlePublic_Origin,
+  MockApi_HandlePublic_Page,
+  MockApi_HandlePublic_PreviewImage,
+  MockApi_HandlePublic_Recent,
+  MockApi_HandlePublic_Request,
+  MockApi_HandlePublic_Response,
+  MockApi_HandlePublic_Returns,
+  MockApi_HandlePublic_Server,
+  MockApi_HandlePublic_StatsParts,
+  MockApi_HandlePublic_Template,
+  MockApi_HandlePublic_TwitterCard,
+  MockApi_HandlePublic_Url,
+  MockApi_HandleRequest_Access,
+  MockApi_HandleRequest_AccessInput,
+  MockApi_HandleRequest_AccessInput_AccessRole,
+  MockApi_HandleRequest_AccessInput_AllServers,
+  MockApi_HandleRequest_AccessInput_Issues,
+  MockApi_HandleRequest_AccessInput_Returns,
+  MockApi_HandleRequest_AccessInput_Role,
+  MockApi_HandleRequest_AccessInput_ServerIds,
+  MockApi_HandleRequest_Action,
+  MockApi_HandleRequest_After,
+  MockApi_HandleRequest_Allowed,
+  MockApi_HandleRequest_BannerImageId,
+  MockApi_HandleRequest_Binding,
+  MockApi_HandleRequest_Body,
+  MockApi_HandleRequest_Candidate,
+  MockApi_HandleRequest_CeremonyId,
+  MockApi_HandleRequest_CeremonyIdInput,
+  MockApi_HandleRequest_ChallengeUser,
+  MockApi_HandleRequest_CheckPassword,
+  MockApi_HandleRequest_CheckPassword_Field,
+  MockApi_HandleRequest_CheckPassword_Returns,
+  MockApi_HandleRequest_ClaimUsername,
+  MockApi_HandleRequest_ClaimUsernameIssue,
+  MockApi_HandleRequest_Code,
+  MockApi_HandleRequest_Component,
+  MockApi_HandleRequest_Configuration,
+  MockApi_HandleRequest_ContentType,
+  MockApi_HandleRequest_ContentTypeHeader,
+  MockApi_HandleRequest_Created,
+  MockApi_HandleRequest_CurrentChallenge,
+  MockApi_HandleRequest_Cursor,
+  MockApi_HandleRequest_CursorStart,
+  MockApi_HandleRequest_Document,
+  MockApi_HandleRequest_Entry,
+  MockApi_HandleRequest_FeatureMatch,
+  MockApi_HandleRequest_Field,
+  MockApi_HandleRequest_FoundNotification,
+  MockApi_HandleRequest_FoundToken,
+  MockApi_HandleRequest_FreshSecrets,
+  MockApi_HandleRequest_Image,
+  MockApi_HandleRequest_ImageChecks,
+  MockApi_HandleRequest_ImageId,
+  MockApi_HandleRequest_Index,
+  MockApi_HandleRequest_IsSession,
+  MockApi_HandleRequest_Issues,
+  MockApi_HandleRequest_IsTotpCode,
+  MockApi_HandleRequest_Items,
+  MockApi_HandleRequest_KeepAlive,
+  MockApi_HandleRequest_Key,
+  MockApi_HandleRequest_LastItem,
+  MockApi_HandleRequest_LastMatching,
+  MockApi_HandleRequest_LastMatchingId,
+  MockApi_HandleRequest_LevelParam,
+  MockApi_HandleRequest_LoginPassword,
+  MockApi_HandleRequest_LoginUser,
+  MockApi_HandleRequest_LoginUsername,
+  MockApi_HandleRequest_Logo,
+  MockApi_HandleRequest_LogoImageId,
+  MockApi_HandleRequest_Matching,
+  MockApi_HandleRequest_Message,
+  MockApi_HandleRequest_Method,
+  MockApi_HandleRequest_MinimumLevel,
+  MockApi_HandleRequest_Modules,
+  MockApi_HandleRequest_NewImageId,
+  MockApi_HandleRequest_NewToken,
+  MockApi_HandleRequest_NextUsername,
+  MockApi_HandleRequest_NextUsernameIssue,
+  MockApi_HandleRequest_Node,
+  MockApi_HandleRequest_Notification,
+  MockApi_HandleRequest_NotificationInput,
+  MockApi_HandleRequest_NotificationInput_Clearable,
+  MockApi_HandleRequest_NotificationInput_ClearSecretKeys,
+  MockApi_HandleRequest_NotificationInput_ClearSecrets,
+  MockApi_HandleRequest_NotificationInput_Events,
+  MockApi_HandleRequest_NotificationInput_Existing,
+  MockApi_HandleRequest_NotificationInput_ExistingId,
+  MockApi_HandleRequest_NotificationInput_InvalidIndex,
+  MockApi_HandleRequest_NotificationInput_Key,
+  MockApi_HandleRequest_NotificationInput_Missing,
+  MockApi_HandleRequest_NotificationInput_Name,
+  MockApi_HandleRequest_NotificationInput_Replaced,
+  MockApi_HandleRequest_NotificationInput_Required,
+  MockApi_HandleRequest_NotificationInput_Returns,
+  MockApi_HandleRequest_NotificationInput_Saved,
+  MockApi_HandleRequest_NotificationInput_Secret,
+  MockApi_HandleRequest_NotificationInput_Secrets,
+  MockApi_HandleRequest_NotificationInput_Service,
+  MockApi_HandleRequest_NotificationInput_Settings,
+  MockApi_HandleRequest_NotificationInput_Value,
+  MockApi_HandleRequest_NotificationInput_Values,
+  MockApi_HandleRequest_NotificationInputValue,
+  MockApi_HandleRequest_NotificationMatch,
+  MockApi_HandleRequest_Page,
+  MockApi_HandleRequest_PageLogo,
+  MockApi_HandleRequest_PageTheme,
+  MockApi_HandleRequest_Parsed,
+  MockApi_HandleRequest_Passkey,
+  MockApi_HandleRequest_PasskeyId,
+  MockApi_HandleRequest_PasskeyName,
+  MockApi_HandleRequest_PasswordProblem,
+  MockApi_HandleRequest_Path,
+  MockApi_HandleRequest_PendingPasskeyName,
+  MockApi_HandleRequest_Plaintext,
+  MockApi_HandleRequest_Pointer,
+  MockApi_HandleRequest_Poll,
+  MockApi_HandleRequest_Principal,
+  MockApi_HandleRequest_Problems,
+  MockApi_HandleRequest_Purpose,
+  MockApi_HandleRequest_Raw,
+  MockApi_HandleRequest_RecoveryCode,
+  MockApi_HandleRequest_Referenced,
+  MockApi_HandleRequest_Request,
+  MockApi_HandleRequest_Requested,
+  MockApi_HandleRequest_RequirePermission,
+  MockApi_HandleRequest_RequirePermission_Permission,
+  MockApi_HandleRequest_RequirePermission_Returns,
+  MockApi_HandleRequest_RequireScope,
+  MockApi_HandleRequest_RequireScope_Returns,
+  MockApi_HandleRequest_RequireScope_Scope,
+  MockApi_HandleRequest_RequireSession,
+  MockApi_HandleRequest_RequireSession_Returns,
+  MockApi_HandleRequest_Resolve,
+  MockApi_HandleRequest_Resolve_Key,
+  MockApi_HandleRequest_Resolve_Returns,
+  MockApi_HandleRequest_Response,
+  MockApi_HandleRequest_Rest,
+  MockApi_HandleRequest_Result,
+  MockApi_HandleRequest_Returns,
+  MockApi_HandleRequest_Saved,
+  MockApi_HandleRequest_Search,
+  MockApi_HandleRequest_SecretValues,
+  MockApi_HandleRequest_Selected,
+  MockApi_HandleRequest_Server,
+  MockApi_HandleRequest_ServerId,
+  MockApi_HandleRequest_ServerMatch,
+  MockApi_HandleRequest_SessionId,
+  MockApi_HandleRequest_Signature,
+  MockApi_HandleRequest_Signatures,
+  MockApi_HandleRequest_Source,
+  MockApi_HandleRequest_State,
+  MockApi_HandleRequest_Store,
+  MockApi_HandleRequest_Target,
+  MockApi_HandleRequest_Text,
+  MockApi_HandleRequest_Text_Key,
+  MockApi_HandleRequest_Text_Returns,
+  MockApi_HandleRequest_Theme,
+  MockApi_HandleRequest_Token,
+  MockApi_HandleRequest_TokenInput,
+  MockApi_HandleRequest_TokenInput_ExceptId,
+  MockApi_HandleRequest_TokenInput_Grantable,
+  MockApi_HandleRequest_TokenInput_Name,
+  MockApi_HandleRequest_TokenInput_Returns,
+  MockApi_HandleRequest_TokenInput_Scopes,
+  MockApi_HandleRequest_TokenInput_Ungrantable,
+  MockApi_HandleRequest_TokenInputValue,
+  MockApi_HandleRequest_TokenMatch,
+  MockApi_HandleRequest_TokenPlaintext,
+  MockApi_HandleRequest_TotpSecret,
+  MockApi_HandleRequest_TotpUri,
+  MockApi_HandleRequest_UnknownKeys,
+  MockApi_HandleRequest_UploadRoute,
+  MockApi_HandleRequest_Url,
+  MockApi_HandleRequest_User,
+  MockApi_HandleRequest_UserMatch,
+  MockApi_HandleRequest_Username,
+  MockApi_HandleRequest_UsernameProblem,
+  MockApi_HandleRequest_VisibleSecret,
+  MockApi_Images,
+  MockApi_InviteAttempts,
+  MockApi_InvitePageFor_Created,
+  MockApi_InvitePageFor_Existing,
+  MockApi_InvitePageFor_Returns,
+  MockApi_InvitePageFor_Server,
+  MockApi_InvitePages,
+  MockApi_InvitePathFor_Configuration,
+  MockApi_InvitePathFor_Generator,
+  MockApi_InvitePathFor_Options,
+  MockApi_InvitePathFor_Path,
+  MockApi_InvitePathFor_Returns,
+  MockApi_InvitePathFor_ServerId,
+  MockApi_IsRecord_TypeGuard,
+  MockApi_IsRecord_Value,
+  MockApi_IssueBackupGrant_ExpiresAt,
+  MockApi_IssueBackupGrant_Grant,
+  MockApi_IssueBackupGrant_Purpose,
+  MockApi_IssueBackupGrant_Returns,
+  MockApi_IssueBackupGrant_SessionId,
+  MockApi_KeyReplaced,
+  MockApi_LegacyWarningLabel_Returns,
+  MockApi_LegacyWarningLabel_Warning,
+  MockApi_LevelOrder,
+  MockApi_LiveEvents,
+  MockApi_LoadModules_BlankSecretReferences,
+  MockApi_LoadModules_Catalog,
+  MockApi_LoadModules_CatalogModule,
+  MockApi_LoadModules_Editor,
+  MockApi_LoadModules_EditorModule,
+  MockApi_LoadModules_ErrorMessage,
+  MockApi_LoadModules_GetFeatureCatalog,
+  MockApi_LoadModules_GetFeatureEditor,
+  MockApi_LoadModules_GetFeatureExample,
+  MockApi_LoadModules_ImportLegacyConfiguration,
+  MockApi_LoadModules_ImportModule,
+  MockApi_LoadModules_Issues,
+  MockApi_LoadModules_LegacyResult,
+  MockApi_LoadModules_Returns,
+  MockApi_LoadModules_SecretsModule,
+  MockApi_LoadModules_ValidateFeatureConfiguration,
+  MockApi_LoadModules_ValidationModule,
+  MockApi_Logs,
+  MockApi_LogSequence,
+  MockApi_LoungeIcon,
+  MockApi_LoungeId,
+  MockApi_MatchesLogFilters_Component,
+  MockApi_MatchesLogFilters_Entry,
+  MockApi_MatchesLogFilters_MinimumLevel,
+  MockApi_MatchesLogFilters_Needle,
+  MockApi_MatchesLogFilters_Returns,
+  MockApi_MatchesLogFilters_Search,
+  MockApi_MediaUrl_ImageId,
+  MockApi_MediaUrl_Returns,
+  MockApi_Minute,
+  MockApi_MockApi_ErrorMessage,
+  MockApi_MockApi_LiveTimer,
+  MockApi_MockApi_Next,
+  MockApi_MockApi_Request,
+  MockApi_MockApi_Response,
+  MockApi_MockApi_Returns,
+  MockApi_MockPassword,
+  MockApi_NewRecoveryCodes_Code,
+  MockApi_NewRecoveryCodes_Returns,
+  MockApi_NormalizeCode_Returns,
+  MockApi_NormalizeCode_Value,
+  MockApi_NotificationEvents,
+  MockApi_NotificationFields,
+  MockApi_Notifications,
+  MockApi_NowIso_Returns,
+  MockApi_Owner,
+  MockApi_ParseMockBackupSource_Document,
+  MockApi_ParseMockBackupSource_Returns,
+  MockApi_ParseMockBackupSource_Source,
+  MockApi_ParseMockBackupSource_Value,
+  MockApi_PasskeyCeremonies,
+  MockApi_PasskeysByUser,
+  MockApi_PasswordIssue_Returns,
+  MockApi_PasswordIssue_Value,
+  MockApi_PendingChallenge,
+  MockApi_PermissionMessages,
+  MockApi_PermissionsOf_Returns,
+  MockApi_PermissionsOf_User,
+  MockApi_PrepareFeatures_Configuration,
+  MockApi_PrepareFeatures_Example,
+  MockApi_PrepareFeatures_ExampleText,
+  MockApi_PrepareFeatures_Imported,
+  MockApi_PrepareFeatures_ImportedFeature,
+  MockApi_PrepareFeatures_ImportedFeatures,
+  MockApi_PrepareFeatures_LoungeOn,
+  MockApi_PrepareFeatures_Modules,
+  MockApi_PrepareFeatures_Returns,
+  MockApi_PreviewMockBackup_CurrentFeatures,
+  MockApi_PreviewMockBackup_Document,
+  MockApi_PreviewMockBackup_Enabled,
+  MockApi_PreviewMockBackup_FeaturesRequiringFixes,
+  MockApi_PreviewMockBackup_FileFeaturesPlural,
+  MockApi_PreviewMockBackup_FilePlural,
+  MockApi_PreviewMockBackup_FileServersPlural,
+  MockApi_PreviewMockBackup_FileState,
+  MockApi_PreviewMockBackup_FileToken,
+  MockApi_PreviewMockBackup_Hashes,
+  MockApi_PreviewMockBackup_HereFeaturesPlural,
+  MockApi_PreviewMockBackup_HerePlural,
+  MockApi_PreviewMockBackup_HereServersPlural,
+  MockApi_PreviewMockBackup_HereState,
+  MockApi_PreviewMockBackup_HereToken,
+  MockApi_PreviewMockBackup_Invalid,
+  MockApi_PreviewMockBackup_Modules,
+  MockApi_PreviewMockBackup_Names,
+  MockApi_PreviewMockBackup_OwnTokens,
+  MockApi_PreviewMockBackup_Recognized,
+  MockApi_PreviewMockBackup_RecognizedPlural,
+  MockApi_PreviewMockBackup_Result,
+  MockApi_PreviewMockBackup_Returns,
+  MockApi_PreviewMockBackup_Sections,
+  MockApi_PreviewMockBackup_Source,
+  MockApi_PreviewMockBackup_Summary,
+  MockApi_PreviewMockBackup_Unsupported,
+  MockApi_PreviewMockBackup_User,
+  MockApi_PreviewMockBackup_Warnings,
+  MockApi_PrincipalOf_Authorization,
+  MockApi_PrincipalOf_Request,
+  MockApi_PrincipalOf_Returns,
+  MockApi_PrincipalOf_Session,
+  MockApi_PrincipalOf_Token,
+  MockApi_PrincipalOf_User,
+  MockApi_ReadCookies_Entry,
+  MockApi_ReadCookies_Request,
+  MockApi_ReadCookies_Returns,
+  MockApi_ReadPointer_Current,
+  MockApi_ReadPointer_Pointer,
+  MockApi_ReadPointer_Returns,
+  MockApi_ReadPointer_Value,
+  MockApi_ReadRaw_Chunks,
+  MockApi_ReadRaw_Request,
+  MockApi_ReadRaw_Returns,
+  MockApi_RecaptchaTestSiteKey,
+  MockApi_RemovedSecrets,
+  MockApi_RolePermissions,
+  MockApi_RoleRank,
+  MockApi_Roles,
+  MockApi_ScopeOrder,
+  MockApi_SecretKeys,
+  MockApi_SecretsFor_Created,
+  MockApi_SecretsFor_Existing,
+  MockApi_SecretsFor_Returns,
+  MockApi_SecretsFor_ServerId,
+  MockApi_SecretStores,
+  MockApi_SeedAccounts_AllServers,
+  MockApi_SeedAccounts_Claimed,
+  MockApi_SeedAccounts_Enabled,
+  MockApi_SeedAccounts_LastSignIn,
+  MockApi_SeedAccounts_Returns,
+  MockApi_SeedAccounts_Role,
+  MockApi_SeedAccounts_Seeds,
+  MockApi_SeedAccounts_ServerIds,
+  MockApi_SeedAccounts_TotpEnabled,
+  MockApi_SeedAccounts_Username,
+  MockApi_SeedLogs_Entries,
+  MockApi_SeedLogs_Returns,
+  MockApi_SendEmpty_Response,
+  MockApi_SendEmpty_Returns,
+  MockApi_SendEmpty_Status,
+  MockApi_SendError_Code,
+  MockApi_SendError_Message,
+  MockApi_SendError_Response,
+  MockApi_SendError_Returns,
+  MockApi_SendError_Status,
+  MockApi_SendIssues_Code,
+  MockApi_SendIssues_FirstIssue,
+  MockApi_SendIssues_Issues,
+  MockApi_SendIssues_Response,
+  MockApi_SendIssues_Returns,
+  MockApi_SendIssues_Status,
+  MockApi_SendJson_Body,
+  MockApi_SendJson_Response,
+  MockApi_SendJson_Returns,
+  MockApi_SendJson_Status,
+  MockApi_Servers,
+  MockApi_ServerVisible_Returns,
+  MockApi_ServerVisible_ServerId,
+  MockApi_ServerVisible_User,
+  MockApi_Sessions,
+  MockApi_SetBotStatus_Delay,
+  MockApi_SetBotStatus_Next,
+  MockApi_SetBotStatus_Returns,
+  MockApi_SetBotStatus_Status,
+  MockApi_SetupCode,
+  MockApi_SignOutUser_Returns,
+  MockApi_SignOutUser_Session,
+  MockApi_SignOutUser_SessionId,
+  MockApi_SignOutUser_UserId,
+  MockApi_SnowflakeAt_Returns,
+  MockApi_SnowflakeAt_Time,
+  MockApi_StartedAt,
+  MockApi_StartSession_CsrfToken,
+  MockApi_StartSession_Response,
+  MockApi_StartSession_Returns,
+  MockApi_StartSession_SessionId,
+  MockApi_StartSession_SignedIn,
+  MockApi_StartSession_Status,
+  MockApi_StartSession_User,
+  MockApi_StateOf_Created,
+  MockApi_StateOf_Existing,
+  MockApi_StateOf_FeatureKey,
+  MockApi_StateOf_Returns,
+  MockApi_StateOf_ServerId,
+  MockApi_StateOf_States,
+  MockApi_StatesFor_Created,
+  MockApi_StatesFor_Existing,
+  MockApi_StatesFor_Returns,
+  MockApi_StatesFor_ServerId,
+  MockApi_StringList_Returns,
+  MockApi_StringList_Value,
+  MockApi_TokenResource_Returns,
+  MockApi_TokenResource_Token,
+  MockApi_Tokens,
+  MockApi_UserIdFor_Returns,
+  MockApi_UserIdFor_Sequence,
+  MockApi_UsernameIssue_Returns,
+  MockApi_UsernameIssue_Value,
+  MockApi_UserResource_Manager,
+  MockApi_UserResource_Returns,
+  MockApi_UserResource_User,
+  MockApi_Users,
+  MockApi_UserSequence,
+  MockApi_ViteServer,
+  MockApi_WriteLiveLog_Pick,
+  MockApi_WriteLiveLog_Returns,
+  MockApi_WriteLog_Component,
+  MockApi_WriteLog_Context,
+  MockApi_WriteLog_Event,
+  MockApi_WriteLog_Level,
+  MockApi_WriteLog_MinutesAgo,
+  MockApi_WriteLog_Returns,
+} from './src/types/mock-api.d.ts';
 
 // Each service's fields: [key, message when missing, secret, required].
 
 /**
- * Mock API - Notification fields.
+ * Mock API - Notification Fields.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const notificationFields: Record<MockNotificationService, [string, string, boolean, boolean][]> = {
+const notificationFields: MockApi_NotificationFields = {
   'apprise': [
     [
       'url',
@@ -756,19 +742,14 @@ const notificationFields: Record<MockNotificationService, [string, string, boole
 };
 
 /**
- * Mock API - Notification events.
+ * Mock API - Notification Events.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const notificationEvents: {
-  defaultEnabled: boolean
-  description: string
-  key: string
-  label: string
-}[] = [
+const notificationEvents: MockApi_NotificationEvents = [
   {
     defaultEnabled: true,
     description: 'The app started without its key and removed what it locked.',
@@ -808,24 +789,24 @@ const notificationEvents: {
 ];
 
 /**
- * Mock API - Setup code.
+ * Mock API - Setup Code.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const setupCode: string = 'K7Q2M-XR9TD-P4W8N';
+const setupCode: MockApi_SetupCode = 'K7Q2M-XR9TD-P4W8N';
 
 /**
- * Mock API - Mock password.
+ * Mock API - Mock Password.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const mockPassword: string = 'mock password 123';
+const mockPassword: MockApi_MockPassword = 'mock password 123';
 
 /**
  * Mock API - Minute.
@@ -835,27 +816,27 @@ const mockPassword: string = 'mock password 123';
  *
  * @since 4.0.0
  */
-const minute: number = 60 * 1000;
+const minute: MockApi_Minute = 60 * 1000;
 
 /**
- * Mock API - Started at.
+ * Mock API - Started At.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const startedAt: number = Date.now();
+const startedAt: MockApi_StartedAt = Date.now();
 
 /**
- * Mock API - Level order.
+ * Mock API - Level Order.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const levelOrder: MockLevel[] = [
+const levelOrder: MockApi_LevelOrder = [
   'debug',
   'info',
   'warn',
@@ -863,14 +844,14 @@ const levelOrder: MockLevel[] = [
 ];
 
 /**
- * Mock API - Scope order.
+ * Mock API - Scope Order.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const scopeOrder: MockScope[] = [
+const scopeOrder: MockApi_ScopeOrder = [
   'bot:control',
   'features:read',
   'features:write',
@@ -878,14 +859,14 @@ const scopeOrder: MockScope[] = [
 ];
 
 /**
- * Mock API - Role permissions.
+ * Mock API - Role Permissions.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const rolePermissions: Record<MockRole, MockPermission[]> = {
+const rolePermissions: MockApi_RolePermissions = {
   administrator: [
     'bot:control',
     'configuration:write',
@@ -904,14 +885,14 @@ const rolePermissions: Record<MockRole, MockPermission[]> = {
 };
 
 /**
- * Mock API - Permission messages.
+ * Mock API - Permission Messages.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const permissionMessages: Record<MockPermission, string> = {
+const permissionMessages: MockApi_PermissionMessages = {
   'bot:control': 'Your role can\'t start or stop the bot.',
   'configuration:write': 'Your role can\'t change settings.',
   'users:manage': 'Your role can\'t manage users.',
@@ -920,24 +901,24 @@ const permissionMessages: Record<MockPermission, string> = {
 // Google's published reCAPTCHA v2 test key: the box always passes and says it's for testing.
 
 /**
- * Mock API - Recaptcha test site key.
+ * Mock API - Recaptcha Test Site Key.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const recaptchaTestSiteKey: string = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
+const recaptchaTestSiteKey: MockApi_RecaptchaTestSiteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI';
 
 /**
- * Mock API - Lounge icon.
+ * Mock API - Lounge Icon.
  *
  * The Stonker Lounge server's icon: Lucide's sofa on the purple tile.
  * Lucide Icons v1.61.0 - ISC License, Copyright (c) 2026 Lucide Icons and Contributors.
  *
  * @since 4.0.0
  */
-const loungeIcon: string = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#6250d9"/><g transform="translate(14 14) scale(1.5)" fill="none" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/><path d="M12 4v9"/></g></svg>').toString('base64')}`;
+const loungeIcon: MockApi_LoungeIcon = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#6250d9"/><g transform="translate(14 14) scale(1.5)" fill="none" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/><path d="M12 4v9"/></g></svg>').toString('base64')}`;
 
 /**
  * Mock API - Servers.
@@ -947,7 +928,7 @@ const loungeIcon: string = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns=
  *
  * @since 4.0.0
  */
-const servers: MockServer[] = [
+const servers: MockApi_Servers = [
   {
     available: true,
     boostTier: 2,
@@ -974,7 +955,7 @@ const servers: MockServer[] = [
  *
  * @since 4.0.0
  */
-const loungeId: string = '1197999049190674442';
+const loungeId: MockApi_LoungeId = '1197999049190674442';
 
 /**
  * Mock API - Club ID.
@@ -984,7 +965,7 @@ const loungeId: string = '1197999049190674442';
  *
  * @since 4.0.0
  */
-const clubId: string = '1215553108329484288';
+const clubId: MockApi_ClubId = '1215553108329484288';
 
 /**
  * Mock API - Channels.
@@ -994,7 +975,7 @@ const clubId: string = '1215553108329484288';
  *
  * @since 4.0.0
  */
-const channels: Record<string, MockChannel[]> = {
+const channels: MockApi_Channels = {
   [clubId]: [
     {
       available: true,
@@ -1081,7 +1062,7 @@ const channels: Record<string, MockChannel[]> = {
  *
  * @since 4.0.0
  */
-const roles: Record<string, MockDiscordRole[]> = {
+const roles: MockApi_Roles = {
   [clubId]: [
     {
       available: true,
@@ -1150,17 +1131,17 @@ const roles: Record<string, MockDiscordRole[]> = {
  *
  * @since 4.0.0
  */
-let owner: MockUser | null = null;
+let owner: MockApi_Owner = null;
 
 /**
- * Mock API - User sequence.
+ * Mock API - User Sequence.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let userSequence: number = 20;
+let userSequence: MockApi_UserSequence = 20;
 
 /**
  * Mock API - Users.
@@ -1170,48 +1151,49 @@ let userSequence: number = 20;
  *
  * @since 4.0.0
  */
-const users: MockUser[] = [];
+const users: MockApi_Users = [];
+
 // Each account's saved passkeys; ones added in the mock are kept until it restarts.
 
 /**
- * Mock API - Passkeys by user.
+ * Mock API - Passkeys By User.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const passkeysByUser: Map<string, MockPasskey[]> = new Map();
+const passkeysByUser: MockApi_PasskeysByUser = new Map();
 
 /**
- * Mock API - Passkey ceremonies.
+ * Mock API - Passkey Ceremonies.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const passkeyCeremonies: Map<string, string> = new Map();
+const passkeyCeremonies: MockApi_PasskeyCeremonies = new Map();
 
 /**
- * Mock API - Backup grants.
+ * Mock API - Backup Grants.
  *
  * Stores only fresh-authentication grant digests for the mock process lifetime.
  * Raw grants are returned once and are never retained here.
  *
  * @since 4.0.0
  */
-const backupGrants: Map<string, MockBackupGrantRecord> = new Map();
+const backupGrants: MockApi_BackupGrants = new Map();
 
 /**
- * Mock API - Backup passkey ceremonies.
+ * Mock API - Backup Passkey Ceremonies.
  *
  * Keeps short-lived passkey bindings separate from account-management ceremonies.
  * Each binding expires after the same five-minute confirmation window.
  *
  * @since 4.0.0
  */
-const backupPasskeyCeremonies: Map<string, MockBackupPasskeyCeremony> = new Map();
+const backupPasskeyCeremonies: MockApi_BackupPasskeyCeremonies = new Map();
 
 /**
  * Mock API - Tokens.
@@ -1221,7 +1203,7 @@ const backupPasskeyCeremonies: Map<string, MockBackupPasskeyCeremony> = new Map(
  *
  * @since 4.0.0
  */
-const tokens: MockToken[] = [];
+const tokens: MockApi_Tokens = [];
 
 /**
  * Mock API - Sessions.
@@ -1231,36 +1213,29 @@ const tokens: MockToken[] = [];
  *
  * @since 4.0.0
  */
-const sessions: Map<string, {
-  csrfToken: string
-  userId: string
-}> = new Map();
+const sessions: MockApi_Sessions = new Map();
 
 /**
- * Mock API - Pending challenge.
+ * Mock API - Pending Challenge.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let pendingChallenge: {
-  challenge: string
-  failures: number
-  userId: string
-} | null = null;
+let pendingChallenge: MockApi_PendingChallenge = null;
 
 // MOCK_KEY_REPLACED=true starts as if the credential key had been lost, to show the notice.
 
 /**
- * Mock API - Key replaced.
+ * Mock API - Key Replaced.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const keyReplaced: boolean = process.env['MOCK_KEY_REPLACED'] === 'true';
+const keyReplaced: MockApi_KeyReplaced = process.env['MOCK_KEY_REPLACED'] === 'true';
 
 /**
  * Mock API - Bot.
@@ -1270,46 +1245,36 @@ const keyReplaced: boolean = process.env['MOCK_KEY_REPLACED'] === 'true';
  *
  * @since 4.0.0
  */
-const bot: MockBot = {
+const bot: MockApi_Bot = {
   activeFeatures: [],
   applicationId: '1205206968699592503',
   configurationErrors: [],
   desiredState: 'running',
   resolution: null,
   status: 'ready',
-  tokenConfigured: !keyReplaced,
+  tokenConfigured: keyReplaced === false,
   userTag: 'stonker-bot',
 };
 
 /**
- * Mock API - Debug logging.
+ * Mock API - Debug Logging.
  *
  * The one Debug logging switch the bot, the control panel, and the worker share.
  * It starts off, as it does in a new container.
  *
  * @since 4.0.0
  */
-let debugLogging: boolean = false;
+let debugLogging: MockApi_DebugLogging = false;
 
 /**
- * Mock API - Removed secrets.
+ * Mock API - Removed Secrets.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let removedSecrets: {
-  featureKey?: string
-  featureName?: string
-  kind: 'authenticator' | 'bot-token' | 'feature-secrets' | 'notification'
-  name?: string
-  notificationId?: string
-  removedAt: string
-  serverId?: string
-  serverName?: string
-  userId?: string
-}[] = (keyReplaced) ? [
+let removedSecrets: MockApi_RemovedSecrets = (keyReplaced === true) ? [
   {
     kind: 'bot-token',
     removedAt: new Date().toISOString(),
@@ -1325,14 +1290,14 @@ let removedSecrets: {
 ] : [];
 
 /**
- * Mock API - Bot timer.
+ * Mock API - Bot Timer.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let botTimer: NodeJS.Timeout | undefined = undefined;
+let botTimer: MockApi_BotTimer = undefined;
 
 /**
  * Mock API - Notifications.
@@ -1342,7 +1307,7 @@ let botTimer: NodeJS.Timeout | undefined = undefined;
  *
  * @since 4.0.0
  */
-const notifications: MockNotification[] = [
+const notifications: MockApi_Notifications = [
   {
     createdAt: new Date(startedAt - (45 * 24 * 60 * minute)).toISOString(),
     events: [
@@ -1401,9 +1366,9 @@ const notifications: MockNotification[] = [
 
 // A lost key removes every destination's saved secrets, as the server does, and pauses
 // those destinations until the secrets are entered again.
-if (keyReplaced) {
-  for (const notification of [...notifications].sort((left: MockNotification, right: MockNotification): number => left.name.localeCompare(right.name))) {
-    const secretKeys: string[] = Object.keys(notification.secrets).sort();
+if (keyReplaced === true) {
+  for (const notification of [...notifications].sort((left, right) => left['name'].localeCompare(right['name']))) {
+    const secretKeys: MockApi_SecretKeys = Object.keys(notification['secrets']).sort();
 
     if (secretKeys.length === 0) {
       continue;
@@ -1413,8 +1378,8 @@ if (keyReplaced) {
     notification.secretsMissing = secretKeys;
     removedSecrets.push({
       kind: 'notification',
-      name: notification.name,
-      notificationId: notification.id,
+      name: notification['name'],
+      notificationId: notification['id'],
       removedAt: new Date().toISOString(),
     });
   }
@@ -1428,37 +1393,37 @@ if (keyReplaced) {
  *
  * @since 4.0.0
  */
-const logs: MockLogEntry[] = [];
+const logs: MockApi_Logs = [];
 
 /**
- * Mock API - Log sequence.
+ * Mock API - Log Sequence.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let logSequence: number = 41_000;
+let logSequence: MockApi_LogSequence = 41_000;
 
 /**
- * Mock API - Feature states.
+ * Mock API - Feature States.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const featureStates: Map<string, Map<string, MockFeatureState>> = new Map();
+const featureStates: MockApi_FeatureStates = new Map();
 
 /**
- * Mock API - Secret stores.
+ * Mock API - Secret Stores.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const secretStores: Map<string, Map<string, string>> = new Map();
+const secretStores: MockApi_SecretStores = new Map();
 
 /**
  * Mock API - Examples.
@@ -1468,47 +1433,47 @@ const secretStores: Map<string, Map<string, string>> = new Map();
  *
  * @since 4.0.0
  */
-const examples: Map<string, unknown> = new Map();
+const examples: MockApi_Examples = new Map();
 
 /**
- * Mock API - Features ready.
+ * Mock API - Features Ready.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let featuresReady: Promise<void> | null = null;
+let featuresReady: MockApi_FeaturesReady = null;
 
 /**
- * Mock API - Vite server.
+ * Mock API - Vite Server.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let viteServer: ViteDevServer | null = null;
+let viteServer: MockApi_ViteServer = null;
 
 /**
- * Mock API - Fallback notice shown.
+ * Mock API - Fallback Notice Shown.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-let fallbackNoticeShown: boolean = false;
+let fallbackNoticeShown: MockApi_FallbackNoticeShown = false;
 
 /**
- * Mock API - Invite pages.
+ * Mock API - Invite Pages.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const invitePages: Map<string, MockInvitePage> = new Map();
+const invitePages: MockApi_InvitePages = new Map();
 
 /**
  * Mock API - Images.
@@ -1518,62 +1483,74 @@ const invitePages: Map<string, MockInvitePage> = new Map();
  *
  * @since 4.0.0
  */
-const images: Map<string, MockImage> = new Map();
+const images: MockApi_Images = new Map();
 
 /**
- * Mock API - Invite attempts.
+ * Mock API - Invite Attempts.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const inviteAttempts: Map<string, number[]> = new Map();
+const inviteAttempts: MockApi_InviteAttempts = new Map();
 
 // Small helpers.
 
 /**
- * Mock API - Now iso.
+ * Mock API - Now Iso.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_NowIso_Returns}
+ *
  * @since 4.0.0
  */
-const nowIso = (): string => new Date().toISOString();
+const nowIso = (): MockApi_NowIso_Returns => new Date().toISOString();
 
 /**
- * Mock API - Ago iso.
+ * Mock API - Ago Iso.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_AgoIso_Returns}
+ *
  * @since 4.0.0
  */
-const agoIso = (minutes: number): string => new Date(Date.now() - (minutes * minute)).toISOString();
+const agoIso = (minutes: MockApi_AgoIso_Minutes): MockApi_AgoIso_Returns => new Date(Date.now() - (minutes * minute)).toISOString();
 
 // snowflakeAt makes a Discord ID for a moment the way Discord does, milliseconds since 2015 in the
 // high bits, so message and user IDs look real and sort by time.
 
 /**
- * Mock API - Snowflake at.
+ * Mock API - Snowflake At.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SnowflakeAt_Returns}
+ *
  * @since 4.0.0
  */
-const snowflakeAt = (time: number): string => String((BigInt(time - 1_420_070_400_000) * 4_194_304n) + BigInt(Math.floor(Math.random() * 4_194_304)));
+const snowflakeAt = (time: MockApi_SnowflakeAt_Time): MockApi_SnowflakeAt_Returns => String((BigInt(time - 1_420_070_400_000) * 4_194_304n) + BigInt(Math.floor(Math.random() * 4_194_304)));
 
 /**
- * Mock API - Checks whether record.
+ * Mock API - Is Record.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_IsRecord_TypeGuard}
+ *
  * @since 4.0.0
  */
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const isRecord = (value: MockApi_IsRecord_Value): value is MockApi_IsRecord_TypeGuard => (
+  typeof value === 'object'
+  && value !== null
+  && Array.isArray(value) === false
+);
 
 /**
  * Mock API - Digest.
@@ -1581,79 +1558,93 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_Digest_Returns}
+ *
  * @since 4.0.0
  */
-const digest = (value: string): string => createHash('sha256').update(value).digest('hex');
+const digest = (value: MockApi_Digest_Value): MockApi_Digest_Returns => createHash('sha256').update(value).digest('hex');
 
 /**
- * Mock API - User ID for.
+ * Mock API - User ID For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_UserIdFor_Returns}
+ *
  * @since 4.0.0
  */
-const userIdFor = (sequence: number): string => String(sequence);
+const userIdFor = (sequence: MockApi_UserIdFor_Sequence): MockApi_UserIdFor_Returns => String(sequence);
 
 /**
- * Mock API - Permissions of.
+ * Mock API - Permissions Of.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_PermissionsOf_Returns}
+ *
  * @since 4.0.0
  */
-const permissionsOf = (user: MockUser): MockPermission[] => rolePermissions[user.role];
+const permissionsOf = (user: MockApi_PermissionsOf_User): MockApi_PermissionsOf_Returns => rolePermissions[user['role']];
 
 /**
- * Mock API - Server visible.
+ * Mock API - Server Visible.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_ServerVisible_Returns}
+ *
  * @since 4.0.0
  */
-const serverVisible = (user: MockUser, serverId: string): boolean => user.allServers || user.serverIds.includes(serverId);
+const serverVisible = (user: MockApi_ServerVisible_User, serverId: MockApi_ServerVisible_ServerId): MockApi_ServerVisible_Returns => user['allServers'] || user['serverIds'].includes(serverId);
 
 // Codes are compared like the server does: any letter case, with or without spaces and dashes.
 
 /**
- * Mock API - Normalizes code.
+ * Mock API - Normalize Code.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_NormalizeCode_Returns}
+ *
  * @since 4.0.0
  */
-const normalizeCode = (value: string): string => value.toUpperCase().replace(/[\s-]/gu, '');
+const normalizeCode = (value: MockApi_NormalizeCode_Value): MockApi_NormalizeCode_Returns => value.toUpperCase().replace(new RegExp(separatorsPattern, 'gu'), '');
 
 // Usernames follow the rule every appliance shares: 3 to 64 characters, starting with a letter or number.
 
 /**
- * Mock API - Username issue.
+ * Mock API - Username Issue.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_UsernameIssue_Returns}
+ *
  * @since 4.0.0
  */
-const usernameIssue = (value: string): string => {
+const usernameIssue = (value: MockApi_UsernameIssue_Value): MockApi_UsernameIssue_Returns => {
   if (value === '') {
     return 'Enter a username.';
   }
 
-  return (/^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$/u.test(value)) ? '' : 'Use 3 to 64 letters, numbers, periods, underscores, or hyphens, starting with a letter or number.';
+  return (new RegExp(administratorUsernamePattern, 'u').test(value) === true) ? '' : 'Use 3 to 64 letters, numbers, periods, underscores, or hyphens, starting with a letter or number.';
 };
 
 /**
- * Mock API - Password issue.
+ * Mock API - Password Issue.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_PasswordIssue_Returns}
+ *
  * @since 4.0.0
  */
-const passwordIssue = (value: unknown): string => {
+const passwordIssue = (value: MockApi_PasswordIssue_Value): MockApi_PasswordIssue_Returns => {
   if (typeof value !== 'string' || value.length < 12) {
     return 'Use at least 12 characters.';
   }
@@ -1664,40 +1655,46 @@ const passwordIssue = (value: unknown): string => {
 // newRecoveryCodes makes ten codes the way the server does: ten characters without look-alikes, split 5-5.
 
 /**
- * Mock API - New recovery codes.
+ * Mock API - New Recovery Codes.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_NewRecoveryCodes_Returns}
+ *
  * @since 4.0.0
  */
-const newRecoveryCodes = (): string[] => Array.from({ length: 10 }, (): string => {
-  const code: string = [...randomBytes(10)].map((byte: number): string => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'.charAt(byte % 32)).join('');
+const newRecoveryCodes = (): MockApi_NewRecoveryCodes_Returns => Array.from({ length: 10 }, () => {
+  const code: MockApi_NewRecoveryCodes_Code = [...randomBytes(10)].map((byte) => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'.charAt(byte % 32)).join('');
 
   return `${code.slice(0, 5)}-${code.slice(5)}`;
 });
 
 /**
- * Mock API - Adds server URL.
+ * Mock API - Add Server URL.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_AddServerUrl_Returns}
+ *
  * @since 4.0.0
  */
-const addServerUrl = (): string | null => ((bot.applicationId === null) ? null : `https://discord.com/oauth2/authorize?client_id=${bot.applicationId}&integration_type=0&scope=bot%20applications.commands`);
+const addServerUrl = (): MockApi_AddServerUrl_Returns => ((bot['applicationId'] === null) ? null : `https://discord.com/oauth2/authorize?client_id=${bot['applicationId']}&integration_type=0&scope=bot%20applications.commands`);
 
 // Logs.
 
 /**
- * Mock API - Writes log.
+ * Mock API - Write Log.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_WriteLog_Returns}
+ *
  * @since 4.0.0
  */
-const writeLog = (component: MockComponent, level: MockLevel, event: string, context: Record<string, unknown> = {}, minutesAgo: number = 0): void => {
+const writeLog = (component: MockApi_WriteLog_Component, level: MockApi_WriteLog_Level, event: MockApi_WriteLog_Event, context: MockApi_WriteLog_Context = {}, minutesAgo: MockApi_WriteLog_MinutesAgo = 0): MockApi_WriteLog_Returns => {
   logSequence += 1;
   logs.push({
     component,
@@ -1707,20 +1704,25 @@ const writeLog = (component: MockComponent, level: MockLevel, event: string, con
     level,
     occurredAt: agoIso(minutesAgo),
   });
+
   logs.splice(0, Math.max(0, logs.length - 3000));
+
+  return;
 };
 
 /**
- * Mock API - Seed logs.
+ * Mock API - Seed Logs.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SeedLogs_Returns}
+ *
  * @since 4.0.0
  */
-const seedLogs = (): void => {
+const seedLogs = (): MockApi_SeedLogs_Returns => {
   // Real events from the bot, worker, and web processes, with the fields they log.
-  const entries: [MockComponent, MockLevel, string, Record<string, unknown>, number][] = [
+  const entries: MockApi_SeedLogs_Entries = [
     [
       'web',
       'info',
@@ -1859,33 +1861,29 @@ const seedLogs = (): void => {
     ],
   ];
 
-  for (const [
-    component,
-    level,
-    event,
-    context,
-    minutesAgo,
-  ] of entries) {
-    writeLog(component, level, event, context, minutesAgo);
+  for (const entry of entries) {
+    writeLog(entry[0], entry[1], entry[2], entry[3], entry[4]);
   }
+
+  return;
 };
 
 // The live feed: the bot and worker keep writing while the console is open.
 
 /**
- * Mock API - Live events.
+ * Mock API - Live Events.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
  * @since 4.0.0
  */
-const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknown>][] = [
+const liveEvents: MockApi_LiveEvents = [
   [
     'bot',
     'info',
     'message_copier_delivered',
-    (): Record<string, unknown> => ({
+    () => ({
       destinationKind: 'webhook',
       messageIdentifier: snowflakeAt(Date.now()),
       ruleName: 'Copy reviewed announcements',
@@ -1895,7 +1893,7 @@ const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknow
     'bot',
     'info',
     'auto_reply_sent',
-    (): Record<string, unknown> => ({
+    () => ({
       messageIdentifier: snowflakeAt(Date.now()),
       ruleName: 'Help and command discovery',
     }),
@@ -1904,7 +1902,7 @@ const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknow
     'bot',
     'info',
     'configured_thread_unarchived',
-    (): Record<string, unknown> => ({
+    () => ({
       ruleName: 'Daily discussion',
       threadIdentifier: '1209383231867326495',
     }),
@@ -1913,7 +1911,7 @@ const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknow
     'worker',
     'info',
     'rss_feed_not_modified',
-    (): Record<string, unknown> => ({
+    () => ({
       feedKey: 'community-news',
       guildIdentifier: loungeId,
       name: 'Reviewed community news feed',
@@ -1923,7 +1921,7 @@ const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknow
     'bot',
     'info',
     'impersonator_alert_sent',
-    (): Record<string, unknown> => ({
+    () => ({
       ruleName: 'Protect staff names',
       userIdentifier: snowflakeAt(Date.now() - (Math.floor(Math.random() * 30) * 24 * 60 * minute)),
     }),
@@ -1931,35 +1929,41 @@ const liveEvents: [MockComponent, MockLevel, string, () => Record<string, unknow
 ];
 
 /**
- * Mock API - Writes live log.
+ * Mock API - Write Live Log.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_WriteLiveLog_Returns}
+ *
  * @since 4.0.0
  */
-const writeLiveLog = (): void => {
-  if (bot.desiredState !== 'running' || bot.status !== 'ready') {
+const writeLiveLog = (): MockApi_WriteLiveLog_Returns => {
+  if (bot['desiredState'] !== 'running' || bot['status'] !== 'ready') {
     return;
   }
 
-  const pick: [MockComponent, MockLevel, string, () => Record<string, unknown>] | undefined = liveEvents[Math.floor(Math.random() * liveEvents.length)];
+  const pick: MockApi_WriteLiveLog_Pick = liveEvents[Math.floor(Math.random() * liveEvents.length)];
 
   if (pick !== undefined) {
     writeLog(pick[0], pick[1], pick[2], pick[3]());
   }
+
+  return;
 };
 
 /**
- * Mock API - Matches log filters.
+ * Mock API - Matches Log Filters.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_MatchesLogFilters_Returns}
+ *
  * @since 4.0.0
  */
-const matchesLogFilters = (entry: MockLogEntry, component: string, minimumLevel: MockLevel, search: string): boolean => {
-  if (entry.component !== component || levelOrder.indexOf(entry.level) < levelOrder.indexOf(minimumLevel)) {
+const matchesLogFilters = (entry: MockApi_MatchesLogFilters_Entry, component: MockApi_MatchesLogFilters_Component, minimumLevel: MockApi_MatchesLogFilters_MinimumLevel, search: MockApi_MatchesLogFilters_Search): MockApi_MatchesLogFilters_Returns => {
+  if (entry['component'] !== component || levelOrder.indexOf(entry['level']) < levelOrder.indexOf(minimumLevel)) {
     return false;
   }
 
@@ -1967,23 +1971,25 @@ const matchesLogFilters = (entry: MockLogEntry, component: string, minimumLevel:
     return true;
   }
 
-  const needle: string = search.toLowerCase();
+  const needle: MockApi_MatchesLogFilters_Needle = search.toLowerCase();
 
-  return entry.event.toLowerCase().includes(needle) || JSON.stringify(entry.context).toLowerCase().includes(needle);
+  return entry['event'].toLowerCase().includes(needle) || JSON.stringify(entry['context']).toLowerCase().includes(needle);
 };
 
 // Users and tokens.
 
 /**
- * Mock API - Seed accounts.
+ * Mock API - Seed Accounts.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SeedAccounts_Returns}
+ *
  * @since 4.0.0
  */
-const seedAccounts = (claimed: MockUser): void => {
-  const seeds: [string, MockRole, boolean, string[], boolean, boolean, number | null][] = [
+const seedAccounts = (claimed: MockApi_SeedAccounts_Claimed): MockApi_SeedAccounts_Returns => {
+  const seeds: MockApi_SeedAccounts_Seeds = [
     [
       'avery',
       'administrator',
@@ -2034,7 +2040,7 @@ const seedAccounts = (claimed: MockUser): void => {
   users.push(claimed);
 
   // The owner has two saved passkeys, so the Sign-in and security page shows a realistic list.
-  passkeysByUser.set(claimed.id, [
+  passkeysByUser.set(claimed['id'], [
     {
       createdAt: agoIso(38 * 24 * 60),
       hostname: 'bot.example.com',
@@ -2051,15 +2057,15 @@ const seedAccounts = (claimed: MockUser): void => {
     },
   ]);
 
-  seeds.forEach(([
-    username,
-    role,
-    allServers,
-    serverIds,
-    enabled,
-    totpEnabled,
-    lastSignIn,
-  ], index: number): void => {
+  seeds.forEach((seed, index) => {
+    const username: MockApi_SeedAccounts_Username = seed[0];
+    const role: MockApi_SeedAccounts_Role = seed[1];
+    const allServers: MockApi_SeedAccounts_AllServers = seed[2];
+    const serverIds: MockApi_SeedAccounts_ServerIds = seed[3];
+    const enabled: MockApi_SeedAccounts_Enabled = seed[4];
+    const totpEnabled: MockApi_SeedAccounts_TotpEnabled = seed[5];
+    const lastSignIn: MockApi_SeedAccounts_LastSignIn = seed[6];
+
     users.push({
       allServers,
       createdAt: agoIso(40_000 - (index * 5_000)),
@@ -2067,13 +2073,15 @@ const seedAccounts = (claimed: MockUser): void => {
       id: userIdFor(index + 2),
       lastSignInAt: (lastSignIn === null) ? null : agoIso(lastSignIn),
       password: mockPassword,
-      recoveryCodes: (totpEnabled) ? newRecoveryCodes() : [],
+      recoveryCodes: (totpEnabled === true) ? newRecoveryCodes() : [],
       role,
       serverIds,
       totpEnabled,
       totpPending: false,
       username,
     });
+
+    return;
   });
 
   tokens.push(
@@ -2088,7 +2096,7 @@ const seedAccounts = (claimed: MockUser): void => {
         'features:read',
         'logs:read',
       ],
-      userId: claimed.id,
+      userId: claimed['id'],
     },
     {
       createdAt: agoIso(9 * 24 * 60),
@@ -2102,76 +2110,90 @@ const seedAccounts = (claimed: MockUser): void => {
         'features:read',
         'features:write',
       ],
-      userId: claimed.id,
+      userId: claimed['id'],
     },
   );
+
+  return;
 };
 
 // editableBy says whether a manager may change an account: never the owner or themself,
 // and a manager limited to some servers only reaches people inside them.
 
 /**
- * Mock API - Editable by.
+ * Mock API - Editable By.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_EditableBy_Returns}
+ *
  * @since 4.0.0
  */
-const editableBy = (manager: MockUser, user: MockUser): boolean => (
-  user.role !== 'owner'
-  && user.id !== manager.id
-  && (manager.allServers || (!user.allServers && user.serverIds.every((serverId: string): boolean => manager.serverIds.includes(serverId))))
+const editableBy = (manager: MockApi_EditableBy_Manager, user: MockApi_EditableBy_User): MockApi_EditableBy_Returns => (
+  user['role'] !== 'owner'
+  && user['id'] !== manager['id']
+  && (
+    manager['allServers'] === true
+    || (
+      user['allServers'] === false
+      && user['serverIds'].every((serverId) => manager['serverIds'].includes(serverId))
+    )
+  )
 );
 
 /**
- * Mock API - User resource.
+ * Mock API - User Resource.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_UserResource_Returns}
+ *
  * @since 4.0.0
  */
-const userResource = (user: MockUser, manager: MockUser): Record<string, unknown> => ({
-  allServers: user.allServers,
-  createdAt: user.createdAt,
+const userResource = (user: MockApi_UserResource_User, manager: MockApi_UserResource_Manager): MockApi_UserResource_Returns => ({
+  allServers: user['allServers'],
+  createdAt: user['createdAt'],
   editable: editableBy(manager, user),
-  enabled: user.enabled,
-  id: user.id,
-  lastSignInAt: user.lastSignInAt,
-  passkeys: (passkeysByUser.get(user.id) ?? []).length,
-  role: user.role,
-  serverIds: (user.allServers) ? [] : user.serverIds,
-  twoFactor: user.totpEnabled,
-  username: user.username,
+  enabled: user['enabled'],
+  id: user['id'],
+  lastSignInAt: user['lastSignInAt'],
+  passkeys: (passkeysByUser.get(user['id']) ?? []).length,
+  role: user['role'],
+  serverIds: (user['allServers'] === true) ? [] : user['serverIds'],
+  twoFactor: user['totpEnabled'],
+  username: user['username'],
 });
 
 /**
- * Mock API - Token resource.
+ * Mock API - Token Resource.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_TokenResource_Returns}
+ *
  * @since 4.0.0
  */
-const tokenResource = (token: MockToken): Record<string, unknown> => ({
-  createdAt: token.createdAt,
-  expiresAt: token.expiresAt,
-  id: token.id,
-  lastUsedAt: token.lastUsedAt,
-  name: token.name,
-  scopes: token.scopes,
+const tokenResource = (token: MockApi_TokenResource_Token): MockApi_TokenResource_Returns => ({
+  createdAt: token['createdAt'],
+  expiresAt: token['expiresAt'],
+  id: token['id'],
+  lastUsedAt: token['lastUsedAt'],
+  name: token['name'],
+  scopes: token['scopes'],
 });
 
 /**
- * Mock API - Role rank.
+ * Mock API - Role Rank.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const roleRank: Record<MockRole, number> = {
+const roleRank: MockApi_RoleRank = {
   administrator: 1,
   operator: 2,
   owner: 0,
@@ -2183,14 +2205,14 @@ const roleRank: Record<MockRole, number> = {
 // Hand-made editors for three features, used while the real editor module can't load.
 
 /**
- * Mock API - Fallback editors.
+ * Mock API - Fallback Editors.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const fallbackEditors: Record<string, Record<string, unknown>> = {
+const fallbackEditors: MockApi_FallbackEditors = {
   'bump-threads': {
     'items': {
       properties: {
@@ -2505,14 +2527,14 @@ const fallbackEditors: Record<string, Record<string, unknown>> = {
 };
 
 /**
- * Mock API - Fallback catalog.
+ * Mock API - Fallback Catalog.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const fallbackCatalog: MockCatalogEntry[] = [
+const fallbackCatalog: MockApi_FallbackCatalog = [
   [
     'anti-raid',
     'safety',
@@ -2627,28 +2649,22 @@ const fallbackCatalog: MockCatalogEntry[] = [
     'Web applications',
     'Serve the invite page and signed webhooks.',
   ],
-].map(([
-  key,
-  category,
-  name,
-  description,
-]: string[
-]): MockCatalogEntry => ({
-  category: category ?? 'automation',
-  description: description ?? '',
-  key: key ?? '',
-  name: name ?? '',
+].map((catalogEntry) => ({
+  category: catalogEntry[1] ?? 'automation',
+  description: catalogEntry[3] ?? '',
+  key: catalogEntry[0] ?? '',
+  name: catalogEntry[2] ?? '',
 }));
 
 /**
- * Mock API - Fallback configurations.
+ * Mock API - Fallback Configurations.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const fallbackConfigurations: Record<string, unknown> = {
+const fallbackConfigurations: MockApi_FallbackConfigurations = {
   'bump-threads': [{
     channel: { 'channel-id': '1197999049811439729' },
     name: 'Daily discussion',
@@ -2671,7 +2687,11 @@ const fallbackConfigurations: Record<string, unknown> = {
       },
     ],
     'include-attachments': true,
-    'message': '%MESSAGE_CONTENT%\n\nSource: %MESSAGE_URL%',
+    'message': [
+      '%MESSAGE_CONTENT%',
+      '',
+      'Source: %MESSAGE_URL%',
+    ].join('\n'),
     'name': 'Copy reviewed announcements',
     'regex': {
       flags: 'i',
@@ -2708,19 +2728,21 @@ const fallbackConfigurations: Record<string, unknown> = {
 // blankSecrets empties every secret reference, like the server's example values.
 
 /**
- * Mock API - Blank secrets.
+ * Mock API - Blank Secrets.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_BlankSecrets_Returns}
+ *
  * @since 4.0.0
  */
-const blankSecrets = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
+const blankSecrets = (value: MockApi_BlankSecrets_Value): MockApi_BlankSecrets_Returns => {
+  if (Array.isArray(value) === true) {
     return value.map(blankSecrets);
   }
 
-  if (!isRecord(value)) {
+  if (isRecord(value) === false) {
     return value;
   }
 
@@ -2728,28 +2750,26 @@ const blankSecrets = (value: unknown): unknown => {
     return { $secret: '' };
   }
 
-  return Object.fromEntries(Object.entries(value).map(([
-    key,
-    entry,
-  ]: [string, unknown,
-  ]): [string, unknown] => [
-    key,
-    blankSecrets(entry),
+  return Object.fromEntries(Object.entries(value).map((entry): MockApi_BlankSecrets_Entry => [
+    entry[0],
+    blankSecrets(entry[1]),
   ]));
 };
 
 /**
- * Mock API - Fallback modules.
+ * Mock API - Fallback Modules.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_FallbackModules_Returns}
+ *
  * @since 4.0.0
  */
-const fallbackModules = (): MockModules => ({
+const fallbackModules = (): MockApi_FallbackModules_Returns => ({
   blank: blankSecrets,
   catalog: fallbackCatalog,
-  editorFor: (featureKey: string): Record<string, unknown> => fallbackEditors[featureKey] ?? {
+  editorFor: (featureKey) => fallbackEditors[featureKey] ?? {
     description: 'The mock has no form for this feature while the real editor module can\'t load.',
   },
   exampleFor: null,
@@ -2762,53 +2782,58 @@ const fallbackModules = (): MockModules => ({
 // mock shows exactly what the server will. Server files can be mid-edit; then it falls back.
 
 /**
- * Mock API - Loads modules.
+ * Mock API - Load Modules.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_LoadModules_Returns}
+ *
  * @since 4.0.0
  */
-const loadModules = async (): Promise<MockModules> => {
+const loadModules = async (): MockApi_LoadModules_Returns => {
   if (viteServer === null) {
     return fallbackModules();
   }
 
   try {
-    const catalogModule: Record<string, unknown> = await viteServer.ssrLoadModule('/src/lib/feature-catalog.ts');
-    const editorModule: Record<string, unknown> = await viteServer.ssrLoadModule('/src/lib/feature-editor.ts');
-    const importModule: Record<string, unknown> = await viteServer.ssrLoadModule('/src/lib/legacy-import.ts');
-    const validationModule: Record<string, unknown> = await viteServer.ssrLoadModule('/src/lib/feature-configuration-validation.ts');
-    const secretsModule: Record<string, unknown> = await viteServer.ssrLoadModule('/src/lib/feature-secrets.ts');
-    const getFeatureCatalog: unknown = catalogModule['getFeatureCatalog'];
-    const getFeatureEditor: unknown = editorModule['getFeatureEditor'];
-    const getFeatureExample: unknown = editorModule['getFeatureExample'];
-    const importLegacyConfiguration: unknown = importModule['importLegacyConfiguration'];
-    const validateFeatureConfiguration: unknown = validationModule['validateFeatureConfiguration'];
-    const blankSecretReferences: unknown = secretsModule['blankSecretReferences'];
+    const catalogModule: MockApi_LoadModules_CatalogModule = await viteServer.ssrLoadModule('/src/lib/feature-catalog.ts');
+    const editorModule: MockApi_LoadModules_EditorModule = await viteServer.ssrLoadModule('/src/lib/feature-editor.ts');
+    const importModule: MockApi_LoadModules_ImportModule = await viteServer.ssrLoadModule('/src/lib/legacy-import.ts');
+    const validationModule: MockApi_LoadModules_ValidationModule = await viteServer.ssrLoadModule('/src/lib/feature-configuration-validation.ts');
+    const secretsModule: MockApi_LoadModules_SecretsModule = await viteServer.ssrLoadModule('/src/lib/feature-secrets.ts');
+    const getFeatureCatalog: MockApi_LoadModules_GetFeatureCatalog = catalogModule['getFeatureCatalog'];
+    const getFeatureEditor: MockApi_LoadModules_GetFeatureEditor = editorModule['getFeatureEditor'];
+    const getFeatureExample: MockApi_LoadModules_GetFeatureExample = editorModule['getFeatureExample'];
+    const importLegacyConfiguration: MockApi_LoadModules_ImportLegacyConfiguration = importModule['importLegacyConfiguration'];
+    const validateFeatureConfiguration: MockApi_LoadModules_ValidateFeatureConfiguration = validationModule['validateFeatureConfiguration'];
+    const blankSecretReferences: MockApi_LoadModules_BlankSecretReferences = secretsModule['blankSecretReferences'];
 
     if (typeof getFeatureCatalog !== 'function' || typeof getFeatureEditor !== 'function') {
       throw new Error('The feature catalog or editor module is missing its exports.');
     }
 
     return {
-      blank: (typeof blankSecretReferences === 'function') ? (value: unknown): unknown => blankSecretReferences(value) : blankSecrets,
-      catalog: (getFeatureCatalog() as MockCatalogEntry[]).map((entry: MockCatalogEntry): MockCatalogEntry => ({
-        category: entry.category,
-        description: entry.description,
-        key: entry.key,
-        name: entry.name,
+      blank: (typeof blankSecretReferences === 'function') ? (value) => blankSecretReferences(value) : blankSecrets,
+      catalog: (getFeatureCatalog() as MockApi_LoadModules_Catalog).map((entry) => ({
+        category: entry['category'],
+        description: entry['description'],
+        key: entry['key'],
+        name: entry['name'],
       })),
-      editorFor: (featureKey: string): Record<string, unknown> => getFeatureEditor(featureKey) as Record<string, unknown>,
-      exampleFor: (typeof getFeatureExample === 'function') ? (featureKey: string, starterSettings: unknown): unknown => getFeatureExample(featureKey, starterSettings) : null,
-      importLegacy: (typeof importLegacyConfiguration === 'function') ? (text: string, enable: boolean): MockLegacyResult => importLegacyConfiguration(text, enable) as MockLegacyResult : null,
+      editorFor: (featureKey) => getFeatureEditor(featureKey) as MockApi_LoadModules_Editor,
+      exampleFor: (typeof getFeatureExample === 'function') ? (featureKey, starterSettings) => getFeatureExample(featureKey, starterSettings) : null,
+      importLegacy: (typeof importLegacyConfiguration === 'function') ? (text, enable) => importLegacyConfiguration(text, enable) as MockApi_LoadModules_LegacyResult : null,
       real: true,
-      validate: (typeof validateFeatureConfiguration === 'function') ? (featureKey: string, configuration: unknown, resolve: (key: string) => string | undefined): MockIssue[] => validateFeatureConfiguration(featureKey, configuration, resolve) as MockIssue[] : null,
+      validate: (typeof validateFeatureConfiguration === 'function') ? (featureKey, configuration, resolve) => validateFeatureConfiguration(featureKey, configuration, resolve) as MockApi_LoadModules_Issues : null,
     };
   } catch (error) {
-    if (!fallbackNoticeShown) {
+    if (fallbackNoticeShown === false) {
       fallbackNoticeShown = true;
-      viteServer.config.logger.warn(`  Mock API: the real feature modules didn't load, so three hand-made editors stand in. (${(error instanceof Error) ? error.message : String(error)})`);
+
+      const errorMessage: MockApi_LoadModules_ErrorMessage = (error instanceof Error) ? error.message : String(error);
+
+      viteServer.config.logger.warn(`  Mock API: the real feature modules didn't load, so three hand-made editors stand in. (${errorMessage})`);
     }
 
     return fallbackModules();
@@ -2816,21 +2841,23 @@ const loadModules = async (): Promise<MockModules> => {
 };
 
 /**
- * Mock API - States for.
+ * Mock API - States For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_StatesFor_Returns}
+ *
  * @since 4.0.0
  */
-const statesFor = (serverId: string): Map<string, MockFeatureState> => {
-  const existing: Map<string, MockFeatureState> | undefined = featureStates.get(serverId);
+const statesFor = (serverId: MockApi_StatesFor_ServerId): MockApi_StatesFor_Returns => {
+  const existing: MockApi_StatesFor_Existing = featureStates.get(serverId);
 
   if (existing !== undefined) {
     return existing;
   }
 
-  const created: Map<string, MockFeatureState> = new Map();
+  const created: MockApi_StatesFor_Created = new Map();
 
   featureStates.set(serverId, created);
 
@@ -2838,21 +2865,23 @@ const statesFor = (serverId: string): Map<string, MockFeatureState> => {
 };
 
 /**
- * Mock API - Secrets for.
+ * Mock API - Secrets For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SecretsFor_Returns}
+ *
  * @since 4.0.0
  */
-const secretsFor = (serverId: string): Map<string, string> => {
-  const existing: Map<string, string> | undefined = secretStores.get(serverId);
+const secretsFor = (serverId: MockApi_SecretsFor_ServerId): MockApi_SecretsFor_Returns => {
+  const existing: MockApi_SecretsFor_Existing = secretStores.get(serverId);
 
   if (existing !== undefined) {
     return existing;
   }
 
-  const created: Map<string, string> = new Map();
+  const created: MockApi_SecretsFor_Created = new Map();
 
   secretStores.set(serverId, created);
 
@@ -2860,22 +2889,24 @@ const secretsFor = (serverId: string): Map<string, string> => {
 };
 
 /**
- * Mock API - State of.
+ * Mock API - State Of.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_StateOf_Returns}
+ *
  * @since 4.0.0
  */
-const stateOf = (serverId: string, featureKey: string): MockFeatureState => {
-  const states: Map<string, MockFeatureState> = statesFor(serverId);
-  const existing: MockFeatureState | undefined = states.get(featureKey);
+const stateOf = (serverId: MockApi_StateOf_ServerId, featureKey: MockApi_StateOf_FeatureKey): MockApi_StateOf_Returns => {
+  const states: MockApi_StateOf_States = statesFor(serverId);
+  const existing: MockApi_StateOf_Existing = states.get(featureKey);
 
   if (existing !== undefined) {
     return existing;
   }
 
-  const created: MockFeatureState = {
+  const created: MockApi_StateOf_Created = {
     configuration: null,
     enabled: false,
     revision: 0,
@@ -2890,16 +2921,18 @@ const stateOf = (serverId: string, featureKey: string): MockFeatureState => {
 // The lounge starts from the repository's example config; the club has two features set up.
 
 /**
- * Mock API - Prepare features.
+ * Mock API - Prepare Features.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_PrepareFeatures_Returns}
+ *
  * @since 4.0.0
  */
-const prepareFeatures = async (): Promise<void> => {
-  const modules: MockModules = await loadModules();
-  const loungeOn: string[] = [
+const prepareFeatures = async (): MockApi_PrepareFeatures_Returns => {
+  const modules: MockApi_PrepareFeatures_Modules = await loadModules();
+  const loungeOn: MockApi_PrepareFeatures_LoungeOn = [
     'auto-replies',
     'bump-threads',
     'detect-suspicious-words',
@@ -2908,7 +2941,7 @@ const prepareFeatures = async (): Promise<void> => {
     'rss-feeds',
     'web-applications',
   ];
-  let exampleText: string = '';
+  let exampleText: MockApi_PrepareFeatures_ExampleText = '';
 
   try {
     exampleText = readFileSync(new URL('./examples/legacy-config.e2e.json', import.meta.url), 'utf-8');
@@ -2916,9 +2949,9 @@ const prepareFeatures = async (): Promise<void> => {
     exampleText = '';
   }
 
-  let imported: MockLegacyResult | null = null;
+  let imported: MockApi_PrepareFeatures_Imported = null;
 
-  if (modules.importLegacy !== null && exampleText !== '') {
+  if (modules['importLegacy'] !== null && exampleText !== '') {
     try {
       imported = modules.importLegacy(exampleText, false);
     } catch {
@@ -2926,32 +2959,31 @@ const prepareFeatures = async (): Promise<void> => {
     }
   }
 
-  const importedFeatures: Record<string, {
-    configuration: unknown
-    enabled: boolean
-  }> = (imported === null) ? {} : (imported.settings.features ?? {});
+  const importedFeatures: MockApi_PrepareFeatures_ImportedFeatures = (imported === null) ? {} : (imported['settings']['features'] ?? {});
 
-  for (const entry of modules.catalog) {
-    const configuration: unknown = (importedFeatures[entry.key] === undefined) ? fallbackConfigurations[entry.key] : importedFeatures[entry.key]?.configuration;
+  for (const entry of modules['catalog']) {
+    const importedFeature: MockApi_PrepareFeatures_ImportedFeature = importedFeatures[entry['key']];
+    const configuration: MockApi_PrepareFeatures_Configuration = (importedFeature === undefined) ? fallbackConfigurations[entry['key']] : importedFeature['configuration'];
 
     if (configuration !== undefined && configuration !== null) {
-      examples.set(entry.key, (modules.exampleFor !== null && imported !== null) ? modules.exampleFor(entry.key, imported.settings) : modules.blank(structuredClone(configuration)));
+      examples.set(entry['key'], (modules['exampleFor'] !== null && imported !== null) ? modules.exampleFor(entry['key'], imported['settings']) : modules.blank(structuredClone(configuration)));
 
-      Object.assign(stateOf(loungeId, entry.key), {
+      Object.assign(stateOf(loungeId, entry['key']), {
         configuration: structuredClone(configuration),
-        enabled: loungeOn.includes(entry.key),
+        enabled: loungeOn.includes(entry['key']),
         revision: 2,
         updatedAt: agoIso(3 * 24 * 60),
       });
     }
   }
 
-  for (const secret of (imported === null) ? [] : imported.secrets) {
-    secretsFor(loungeId).set(secret.key, secret.value);
+  for (const secret of (imported === null) ? [] : imported['secrets']) {
+    secretsFor(loungeId).set(secret['key'], secret['value']);
   }
 
   if (imported === null) {
     secretsFor(loungeId).set('message-copiers.0.destinations.1.webhook.url', 'https://discord.com/api/webhooks/1/mock');
+
     secretsFor(loungeId).set('web-applications.invite-generator.recaptcha.secret-key', 'mock-recaptcha-secret');
   }
 
@@ -2959,7 +2991,7 @@ const prepareFeatures = async (): Promise<void> => {
     'bump-threads',
     'schedule-posts',
   ]) {
-    const example: unknown = examples.get(featureKey);
+    const example: MockApi_PrepareFeatures_Example = examples.get(featureKey);
 
     if (example !== undefined) {
       Object.assign(stateOf(clubId, featureKey), {
@@ -2972,69 +3004,76 @@ const prepareFeatures = async (): Promise<void> => {
   }
 
   bot.activeFeatures = loungeOn;
+
+  return;
 };
 
 /**
- * Mock API - Ensure features.
+ * Mock API - Ensure Features.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_EnsureFeatures_Returns}
+ *
  * @since 4.0.0
  */
-const ensureFeatures = async (): Promise<void> => {
+const ensureFeatures = async (): MockApi_EnsureFeatures_Returns => {
   if (featuresReady === null) {
     featuresReady = prepareFeatures();
   }
 
   await featuresReady;
+
+  return;
 };
 
 /**
- * Mock API - Feature summary.
+ * Mock API - Feature Summary.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_FeatureSummary_Returns}
+ *
  * @since 4.0.0
  */
-const featureSummary = (entry: MockCatalogEntry, serverId: string): Record<string, unknown> => {
-  const state: MockFeatureState = stateOf(serverId, entry.key);
+const featureSummary = (entry: MockApi_FeatureSummary_Entry, serverId: MockApi_FeatureSummary_ServerId): MockApi_FeatureSummary_Returns => {
+  const state: MockApi_FeatureSummary_State = stateOf(serverId, entry['key']);
 
   return {
-    category: entry.category,
-    configured: state.configuration !== null,
-    description: entry.description,
-    enabled: state.enabled,
-    key: entry.key,
-    name: entry.name,
-    revision: state.revision,
-    updatedAt: state.updatedAt,
+    category: entry['category'],
+    configured: state['configuration'] !== null,
+    description: entry['description'],
+    enabled: state['enabled'],
+    key: entry['key'],
+    name: entry['name'],
+    revision: state['revision'],
+    updatedAt: state['updatedAt'],
   };
 };
 
 // collectReferences finds every { "$secret": … } object with its JSON pointer and path.
 
 /**
- * Mock API - Collect references.
+ * Mock API - Collect References.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @returns {MockApi_CollectReferences_Returns}
+ *
  * @since 4.0.0
  */
-const collectReferences = (value: unknown, path: string[] = []): {
-  key: string
-  path: string[]
-}[] => {
-  if (Array.isArray(value)) {
-    return value.flatMap((entry: unknown, index: number) => collectReferences(entry, [
+const collectReferences = (value: MockApi_CollectReferences_Value, path: MockApi_CollectReferences_Path = []): MockApi_CollectReferences_Returns => {
+  if (Array.isArray(value) === true) {
+    return value.flatMap((entry, index) => collectReferences(entry, [
       ...path,
       String(index),
     ]));
   }
 
-  if (!isRecord(value)) {
+  if (isRecord(value) === false) {
     return [];
   }
 
@@ -3045,29 +3084,25 @@ const collectReferences = (value: unknown, path: string[] = []): {
     }];
   }
 
-  return Object.entries(value).flatMap(([
-    key,
-    entry,
-  ]: [string, unknown,
-  ]) => collectReferences(entry, [
+  return Object.entries(value).flatMap((entry) => collectReferences(entry[1], [
     ...path,
-    key,
+    entry[0],
   ]));
 };
 
 /**
- * Mock API - String list.
+ * Mock API - String List.
  *
  * Narrows one legacy report field to displayable strings.
  * Non-array values become an empty list.
  *
- * @param {unknown} value - Value.
+ * @param {MockApi_StringList_Value} value - Value.
  *
- * @returns {string[]}
+ * @returns {MockApi_StringList_Returns}
  *
  * @since 4.0.0
  */
-const stringList = (value: unknown): string[] => (Array.isArray(value)) ? value.map(String) : [];
+const stringList = (value: MockApi_StringList_Value): MockApi_StringList_Returns => (Array.isArray(value) === true) ? value.map(String) : [];
 
 /**
  * Mock API - Feature Display Name.
@@ -3075,17 +3110,17 @@ const stringList = (value: unknown): string[] => (Array.isArray(value)) ? value.
  * Resolves a legacy feature key through the same catalog as the Features page.
  * A missing mock entry falls back to its key so the preview remains usable.
  *
- * @param {string}      featureKey - Feature key.
- * @param {MockModules} modules    - Modules.
+ * @param {MockApi_FeatureDisplayName_FeatureKey} featureKey - Feature key.
+ * @param {MockApi_FeatureDisplayName_Modules}    modules    - Modules.
  *
- * @returns {string}
+ * @returns {MockApi_FeatureDisplayName_Returns}
  *
  * @since 4.0.0
  */
-const featureDisplayName = (featureKey: string, modules: MockModules): string => {
-  const feature: MockCatalogEntry | undefined = modules.catalog.find((candidate: MockCatalogEntry): boolean => candidate.key === featureKey);
+const featureDisplayName = (featureKey: MockApi_FeatureDisplayName_FeatureKey, modules: MockApi_FeatureDisplayName_Modules): MockApi_FeatureDisplayName_Returns => {
+  const feature: MockApi_FeatureDisplayName_Feature = modules['catalog'].find((candidate) => candidate['key'] === featureKey);
 
-  return (feature === undefined) ? featureKey : feature.name;
+  return (feature === undefined) ? featureKey : feature['name'];
 };
 
 /**
@@ -3094,38 +3129,38 @@ const featureDisplayName = (featureKey: string, modules: MockModules): string =>
  * Mirrors the production preview labels for skipped legacy values.
  * Specific names keep the mock wizard representative of the real API.
  *
- * @param {string} warning - Warning.
+ * @param {MockApi_LegacyWarningLabel_Warning} warning - Warning.
  *
- * @returns {string}
+ * @returns {MockApi_LegacyWarningLabel_Returns}
  *
  * @since 4.0.0
  */
-const legacyWarningLabel = (warning: string): string => {
-  if (warning.startsWith('Twitter/X keys ')) {
+const legacyWarningLabel = (warning: MockApi_LegacyWarningLabel_Warning): MockApi_LegacyWarningLabel_Returns => {
+  if (warning.startsWith('Twitter/X keys ') === true) {
     return 'Twitter/X keys';
   }
 
-  if (warning.startsWith('Twitter/X feeds ')) {
+  if (warning.startsWith('Twitter/X feeds ') === true) {
     return 'Twitter/X feeds';
   }
 
-  if (warning.includes('message-copier destination ')) {
+  if (warning.includes('message-copier destination ') === true) {
     return 'Message copier destination on Twitter/X';
   }
 
-  if (warning.includes('message-copier destinations ')) {
+  if (warning.includes('message-copier destinations ') === true) {
     return 'Message copier destinations on Twitter/X';
   }
 
-  if (warning.includes('message-copier rule ')) {
+  if (warning.includes('message-copier rule ') === true) {
     return 'Message copier rule on Twitter/X';
   }
 
-  if (warning.includes('message-copier rules ')) {
+  if (warning.includes('message-copier rules ') === true) {
     return 'Message copier rules on Twitter/X';
   }
 
-  if (warning.startsWith('Unrecognized legacy sections ')) {
+  if (warning.startsWith('Unrecognized legacy sections ') === true) {
     return 'Unsupported legacy sections';
   }
 
@@ -3133,16 +3168,16 @@ const legacyWarningLabel = (warning: string): string => {
 };
 
 /**
- * Mock API - Empty backup summary.
+ * Mock API - Empty Backup Summary.
  *
  * Starts a comparison result before optional sections are counted.
  * Preview and apply share this normalized shape.
  *
- * @returns {MockBackupSummary}
+ * @returns {MockApi_EmptyBackupSummary_Returns}
  *
  * @since 4.0.0
  */
-const emptyBackupSummary = (): MockBackupSummary => ({
+const emptyBackupSummary = (): MockApi_EmptyBackupSummary_Returns => ({
   accessTokens: {
     added: 0,
     skipped: 0,
@@ -3159,29 +3194,28 @@ const emptyBackupSummary = (): MockBackupSummary => ({
 });
 
 /**
- * Mock API - Issues backup grant.
+ * Mock API - Issue Backup Grant.
  *
  * Returns one opaque grant while retaining only its digest in memory.
  * The binding expires after five minutes.
  *
- * @param {string}            sessionId - Session id.
- * @param {MockBackupPurpose} purpose   - Purpose.
+ * @param {MockApi_IssueBackupGrant_SessionId} sessionId - Session id.
+ * @param {MockApi_IssueBackupGrant_Purpose}   purpose   - Purpose.
  *
- * @returns {{ expiresAt: string; grant: string }}
+ * @returns {MockApi_IssueBackupGrant_Returns}
  *
  * @since 4.0.0
  */
-const issueBackupGrant = (sessionId: string, purpose: MockBackupPurpose): {
-  expiresAt: string
-  grant: string
-} => {
-  const grant: string = `bkg_${randomBytes(32).toString('base64url')}`;
-  const expiresAt: number = Date.now() + (5 * minute);
+const issueBackupGrant = (sessionId: MockApi_IssueBackupGrant_SessionId, purpose: MockApi_IssueBackupGrant_Purpose): MockApi_IssueBackupGrant_Returns => {
+  const grant: MockApi_IssueBackupGrant_Grant = `bkg_${randomBytes(32).toString('base64url')}`;
+  const expiresAt: MockApi_IssueBackupGrant_ExpiresAt = Date.now() + (5 * minute);
+
   backupGrants.set(digest(grant), {
     expiresAt,
     purpose,
     sessionId: digest(sessionId),
   });
+
   return {
     expiresAt: new Date(expiresAt).toISOString(),
     grant,
@@ -3189,30 +3223,30 @@ const issueBackupGrant = (sessionId: string, purpose: MockBackupPurpose): {
 };
 
 /**
- * Mock API - Consumes backup grant.
+ * Mock API - Consume Backup Grant.
  *
  * Accepts a matching, unexpired, session- and purpose-bound grant once.
  * Mismatched grants remain unusable by the caller.
  *
- * @param {unknown}           value     - Value.
- * @param {string}            sessionId - Session id.
- * @param {MockBackupPurpose} purpose   - Purpose.
+ * @param {MockApi_ConsumeBackupGrant_Value}     value     - Value.
+ * @param {MockApi_ConsumeBackupGrant_SessionId} sessionId - Session id.
+ * @param {MockApi_ConsumeBackupGrant_Purpose}   purpose   - Purpose.
  *
- * @returns {boolean}
+ * @returns {MockApi_ConsumeBackupGrant_Returns}
  *
  * @since 4.0.0
  */
-const consumeBackupGrant = (value: unknown, sessionId: string, purpose: MockBackupPurpose): boolean => {
+const consumeBackupGrant = (value: MockApi_ConsumeBackupGrant_Value, sessionId: MockApi_ConsumeBackupGrant_SessionId, purpose: MockApi_ConsumeBackupGrant_Purpose): MockApi_ConsumeBackupGrant_Returns => {
   if (typeof value !== 'string') {
     return false;
   }
-  const key: string = digest(value);
-  const record: MockBackupGrantRecord | undefined = backupGrants.get(key);
-  if (record === undefined || record.expiresAt <= Date.now()) {
+  const key: MockApi_ConsumeBackupGrant_Key = digest(value);
+  const record: MockApi_ConsumeBackupGrant_Record = backupGrants.get(key);
+  if (record === undefined || record['expiresAt'] <= Date.now()) {
     backupGrants.delete(key);
     return false;
   }
-  if (record.sessionId !== digest(sessionId) || record.purpose !== purpose) {
+  if (record['sessionId'] !== digest(sessionId) || record['purpose'] !== purpose) {
     return false;
   }
   backupGrants.delete(key);
@@ -3220,25 +3254,25 @@ const consumeBackupGrant = (value: unknown, sessionId: string, purpose: MockBack
 };
 
 /**
- * Mock API - Parses backup source.
+ * Mock API - Parse Mock Backup Source.
  *
  * Checks the discriminator and fixed envelope before the mock reads a wizard source.
  * The real browser and server perform the complete strict schema validation.
  *
- * @param {unknown} value - Value.
+ * @param {MockApi_ParseMockBackupSource_Value} value - Value.
  *
- * @returns {MockBackupSource | null}
+ * @returns {MockApi_ParseMockBackupSource_Returns}
  *
  * @since 4.0.0
  */
-const parseMockBackupSource = (value: unknown): MockBackupSource | null => {
-  if (!isRecord(value)) {
+const parseMockBackupSource = (value: MockApi_ParseMockBackupSource_Value): MockApi_ParseMockBackupSource_Returns => {
+  if (isRecord(value) === false) {
     return null;
   }
-  if (value['type'] === 'export' && isRecord(value['document'])) {
-    const document: Record<string, unknown> = value['document'];
+  if (value['type'] === 'export' && isRecord(value['document']) === true) {
+    const document: MockApi_ParseMockBackupSource_Document = value['document'];
     if (document['format'] === 'discord-stonker-bot-export' && document['version'] === 1) {
-      return value as MockBackupSource;
+      return value as MockApi_ParseMockBackupSource_Source;
     }
     return null;
   }
@@ -3248,26 +3282,26 @@ const parseMockBackupSource = (value: unknown): MockBackupSource | null => {
     && typeof value['enableFeatures'] === 'boolean'
     && typeof value['serverId'] === 'string'
   ) {
-    return value as MockBackupSource;
+    return value as MockApi_ParseMockBackupSource_Source;
   }
   return null;
 };
 
 /**
- * Mock API - Creates backup document.
+ * Mock API - Create Mock Backup Document.
  *
  * Builds the same portable sections as the real export route with invented secrets.
  * Runtime-only user and Discord data never enter the document.
  *
- * @param {Record<string, unknown>} sections - Sections.
- * @param {MockUser}                user     - User.
+ * @param {MockApi_CreateMockBackupDocument_Sections} sections - Sections.
+ * @param {MockApi_CreateMockBackupDocument_User}     user     - User.
  *
- * @returns {MockBackupDocument}
+ * @returns {MockApi_CreateMockBackupDocument_Returns}
  *
  * @since 4.0.0
  */
-const createMockBackupDocument = (sections: Record<string, unknown>, user: MockUser): MockBackupDocument => {
-  const document: MockBackupDocument = {
+const createMockBackupDocument = (sections: MockApi_CreateMockBackupDocument_Sections, user: MockApi_CreateMockBackupDocument_User): MockApi_CreateMockBackupDocument_Returns => {
+  const document: MockApi_CreateMockBackupDocument_Document = {
     appVersion: '4.0.0',
     exportedAt: nowIso(),
     format: 'discord-stonker-bot-export',
@@ -3275,102 +3309,103 @@ const createMockBackupDocument = (sections: Record<string, unknown>, user: MockU
   };
   if (sections['connection'] === true) {
     document.connection = {
-      botToken: (bot.tokenConfigured) ? 'mock-discord-bot-token-northwind' : null,
-      desiredState: bot.desiredState,
+      botToken: (bot['tokenConfigured'] === true) ? 'mock-discord-bot-token-northwind' : null,
+      desiredState: bot['desiredState'],
     };
   }
   if (sections['features'] === true) {
-    document.features = servers.map((server: MockServer): MockBackupServerFeatures => ({
-      features: [...statesFor(server.id)].map(([
-        key,
-        state]: [string, MockFeatureState,
-      ]): MockBackupFeature => {
-        const store: Map<string, string> = secretsFor(server.id);
-        const secrets: Record<string, string> = {};
-        for (const reference of collectReferences(state.configuration)) {
-          const secret: string | undefined = store.get(reference.key);
+    document.features = servers.map((server) => ({
+      features: [...statesFor(server['id'])].map((stateEntry) => {
+        const key: MockApi_CreateMockBackupDocument_Key = stateEntry[0];
+        const state: MockApi_CreateMockBackupDocument_State = stateEntry[1];
+        const store: MockApi_CreateMockBackupDocument_Store = secretsFor(server['id']);
+        const secrets: MockApi_CreateMockBackupDocument_Secrets = {};
+
+        for (const reference of collectReferences(state['configuration'])) {
+          const secret: MockApi_CreateMockBackupDocument_Secret = store.get(reference['key']);
           if (secret !== undefined) {
-            secrets[reference.key] = secret;
+            Reflect.set(secrets, reference['key'], secret);
           }
         }
         return {
-          configuration: structuredClone(state.configuration),
-          enabled: state.enabled,
+          configuration: structuredClone(state['configuration']),
+          enabled: state['enabled'],
           key,
           secrets,
         };
       }),
-      serverId: server.id,
+      serverId: server['id'],
       timeZone: 'America/New_York',
     }));
   }
   if (sections['notifications'] === true) {
-    document.notifications = notifications.map((notification: MockNotification): MockBackupNotification => ({
-      events: [...notification.events],
-      id: notification.id,
-      name: notification.name,
-      secrets: Object.fromEntries(Object.keys(notification.secrets).map((key: string): [string, string] => [
+    document.notifications = notifications.map((notification) => ({
+      events: [...notification['events']],
+      id: notification['id'],
+      name: notification['name'],
+      secrets: Object.fromEntries(Object.keys(notification['secrets']).map((key): MockApi_CreateMockBackupDocument_SecretEntry => [
         key,
-        `mock-${notification.service}-${key}-secret`,
+        `mock-${notification['service']}-${key}-secret`,
       ])),
-      service: notification.service,
-      settings: { ...notification.settings },
+      service: notification['service'],
+      settings: { ...notification['settings'] },
     }));
   }
   if (sections['accessTokens'] === true) {
-    document.accessTokens = tokens.filter((token: MockToken): boolean => token.userId === user.id).map((token: MockToken): MockBackupAccessToken => ({
-      expiresAt: token.expiresAt,
-      id: token.id,
-      name: token.name,
-      scopes: [...token.scopes],
-      tokenHash: token.hash,
+    document.accessTokens = tokens.filter((token) => token['userId'] === user['id']).map((token) => ({
+      expiresAt: token['expiresAt'],
+      id: token['id'],
+      name: token['name'],
+      scopes: [...token['scopes']],
+      tokenHash: token['hash'],
     }));
   }
   return document;
 };
 
 /**
- * Mock API - Previews backup source.
+ * Mock API - Preview Mock Backup.
  *
  * Produces the authoritative comparison for either wizard source without mutation.
  * Human-readable values mirror the real server response.
  *
- * @param {MockBackupSource} source  - Source.
- * @param {MockUser}         user    - User.
- * @param {MockModules}      modules - Modules.
+ * @param {MockApi_PreviewMockBackup_Source}  source  - Source.
+ * @param {MockApi_PreviewMockBackup_User}    user    - User.
+ * @param {MockApi_PreviewMockBackup_Modules} modules - Modules.
  *
- * @returns {Record<string, unknown>}
+ * @returns {MockApi_PreviewMockBackup_Returns}
  *
  * @since 4.0.0
  */
-const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: MockModules): Record<string, unknown> => {
-  const summary: MockBackupSummary = emptyBackupSummary();
-  if (source.type === 'legacy') {
-    if (modules.importLegacy === null) {
+const previewMockBackup = (source: MockApi_PreviewMockBackup_Source, user: MockApi_PreviewMockBackup_User, modules: MockApi_PreviewMockBackup_Modules): MockApi_PreviewMockBackup_Returns => {
+  const summary: MockApi_PreviewMockBackup_Summary = emptyBackupSummary();
+  if (source['type'] === 'legacy') {
+    if (modules['importLegacy'] === null) {
       throw new Error('The older config.json importer is unavailable.');
     }
-    const result: MockLegacyResult = modules.importLegacy(source.configuration, source.enableFeatures);
-    if (result.guildIdentifier !== undefined && result.guildIdentifier !== source.serverId) {
+    const result: MockApi_PreviewMockBackup_Result = modules.importLegacy(source['configuration'], source['enableFeatures']);
+    if (result['guildIdentifier'] !== undefined && result['guildIdentifier'] !== source['serverId']) {
       throw new Error('This config.json belongs to another Discord server. Switch to that server first.');
     }
-    const recognized: string[] = stringList(result.report['recognizedFeatureKeys']);
-    const enabled: string[] = stringList(result.report['enabledFeatureKeys']);
-    const invalid: string[] = stringList(result.report['invalidFeatureKeys']);
-    const unsupported: string[] = stringList(result.report['unknownSections']);
-    const warnings: string[] = stringList(result.report['warnings']);
-    summary.connection = (result.discordToken === undefined) ? 'skipped' : 'replaced';
+    const recognized: MockApi_PreviewMockBackup_Recognized = stringList(result['report']['recognizedFeatureKeys']);
+    const enabled: MockApi_PreviewMockBackup_Enabled = stringList(result['report']['enabledFeatureKeys']);
+    const invalid: MockApi_PreviewMockBackup_Invalid = stringList(result['report']['invalidFeatureKeys']);
+    const unsupported: MockApi_PreviewMockBackup_Unsupported = stringList(result['report']['unknownSections']);
+    const warnings: MockApi_PreviewMockBackup_Warnings = stringList(result['report']['warnings']);
+    summary.connection = (result['discordToken'] === undefined) ? 'skipped' : 'replaced';
     summary.features = {
       features: recognized.length,
       servers: 1,
     };
-    const sections: Record<string, unknown>[] = [{
-      file: `${String(recognized.length)} feature${(recognized.length === 1) ? '' : 's'} for 1 server`,
+    const recognizedPlural: MockApi_PreviewMockBackup_RecognizedPlural = (recognized.length === 1) ? '' : 's';
+    const sections: MockApi_PreviewMockBackup_Sections = [{
+      file: `${String(recognized.length)} feature${recognizedPlural} for 1 server`,
       here: 'Current settings for this server',
       id: 'features',
       label: 'Features',
       willImport: true,
     }];
-    if (result.discordToken !== undefined) {
+    if (result['discordToken'] !== undefined) {
       sections.unshift({
         file: 'Bot Token set',
         here: 'Current connection',
@@ -3379,7 +3414,7 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
         willImport: true,
       });
     }
-    const featuresRequiringFixes: Record<string, string>[] = invalid.map((key: string): Record<string, string> => ({
+    const featuresRequiringFixes: MockApi_PreviewMockBackup_FeaturesRequiringFixes = invalid.map((key) => ({
       id: `needs-attention-${key}`,
       label: featureDisplayName(key, modules),
       reason: 'Imported switched off. Fix its settings on the Features page before turning it on.',
@@ -3387,12 +3422,12 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
     return {
       appVersion: null,
       excluded: [
-        ...unsupported.map((key: string): Record<string, string> => ({
+        ...unsupported.map((key) => ({
           id: `unsupported-${key}`,
           label: key,
           reason: 'This older section is not supported.',
         })),
-        ...warnings.map((warning: string, index: number): Record<string, string> => ({
+        ...warnings.map((warning, index) => ({
           id: `warning-${String(index)}`,
           label: legacyWarningLabel(warning),
           reason: warning,
@@ -3408,9 +3443,9 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
       summary,
     };
   }
-  const document: MockBackupDocument = source.document;
-  const sections: Record<string, unknown>[] = [];
-  if (document.connection === undefined) {
+  const document: MockApi_PreviewMockBackup_Document = source['document'];
+  const sections: MockApi_PreviewMockBackup_Sections = [];
+  if (document['connection'] === undefined) {
     sections.push({
       file: 'Not included',
       here: 'Kept as it is',
@@ -3420,16 +3455,22 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
       willImport: false,
     });
   } else {
-    summary.connection = (bot.tokenConfigured) ? 'replaced' : 'added';
+    summary.connection = (bot['tokenConfigured'] === true) ? 'replaced' : 'added';
+
+    const fileState: MockApi_PreviewMockBackup_FileState = (document['connection']['desiredState'] === 'running') ? 'Running' : 'Stopped';
+    const fileToken: MockApi_PreviewMockBackup_FileToken = (document['connection']['botToken'] === null) ? 'no Bot Token' : 'Bot Token set';
+    const hereState: MockApi_PreviewMockBackup_HereState = (bot['desiredState'] === 'running') ? 'Running' : 'Stopped';
+    const hereToken: MockApi_PreviewMockBackup_HereToken = (bot['tokenConfigured'] === true) ? 'Bot Token set' : 'no Bot Token';
+
     sections.push({
-      file: `${(document.connection.desiredState === 'running') ? 'Running' : 'Stopped'}, ${(document.connection.botToken === null) ? 'no Bot Token' : 'Bot Token set'}`,
-      here: `${(bot.desiredState === 'running') ? 'Running' : 'Stopped'}, ${(bot.tokenConfigured) ? 'Bot Token set' : 'no Bot Token'}`,
+      file: `${fileState}, ${fileToken}`,
+      here: `${hereState}, ${hereToken}`,
       id: 'connection',
       label: 'Connection',
       willImport: true,
     });
   }
-  if (document.features === undefined) {
+  if (document['features'] === undefined) {
     sections.push({
       file: 'Not included',
       here: 'Kept as they are',
@@ -3440,19 +3481,24 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
     });
   } else {
     summary.features = {
-      features: document.features.reduce((count: number, server: MockBackupServerFeatures): number => count + server.features.length, 0),
-      servers: document.features.length,
+      features: document['features'].reduce((count, server) => count + server['features'].length, 0),
+      servers: document['features'].length,
     };
-    const currentFeatures: number = [...featureStates.values()].reduce((count: number, states: Map<string, MockFeatureState>): number => count + states.size, 0);
+    const currentFeatures: MockApi_PreviewMockBackup_CurrentFeatures = [...featureStates.values()].reduce((count, states) => count + states.size, 0);
+    const fileFeaturesPlural: MockApi_PreviewMockBackup_FileFeaturesPlural = (summary['features']['features'] === 1) ? '' : 's';
+    const fileServersPlural: MockApi_PreviewMockBackup_FileServersPlural = (summary['features']['servers'] === 1) ? '' : 's';
+    const hereFeaturesPlural: MockApi_PreviewMockBackup_HereFeaturesPlural = (currentFeatures === 1) ? '' : 's';
+    const hereServersPlural: MockApi_PreviewMockBackup_HereServersPlural = (featureStates.size === 1) ? '' : 's';
+
     sections.push({
-      file: `${String(summary.features.features)} feature${(summary.features.features === 1) ? '' : 's'} for ${String(summary.features.servers)} server${(summary.features.servers === 1) ? '' : 's'}`,
-      here: `${String(currentFeatures)} feature${(currentFeatures === 1) ? '' : 's'} for ${String(featureStates.size)} server${(featureStates.size === 1) ? '' : 's'}`,
+      file: `${String(summary['features']['features'])} feature${fileFeaturesPlural} for ${String(summary['features']['servers'])} server${fileServersPlural}`,
+      here: `${String(currentFeatures)} feature${hereFeaturesPlural} for ${String(featureStates.size)} server${hereServersPlural}`,
       id: 'features',
       label: 'Features',
       willImport: true,
     });
   }
-  if (document.notifications === undefined) {
+  if (document['notifications'] === undefined) {
     sections.push({
       file: 'Not included',
       here: 'Kept as they are',
@@ -3462,19 +3508,23 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
       willImport: false,
     });
   } else {
-    const names: Set<string> = new Set(notifications.map((notification: MockNotification): string => notification.name.toLocaleLowerCase()));
-    summary.notifications.replaced = document.notifications.filter((notification: MockBackupNotification): boolean => names.has(notification.name.toLocaleLowerCase())).length;
-    summary.notifications.added = document.notifications.length - summary.notifications.replaced;
+    const names: MockApi_PreviewMockBackup_Names = new Set(notifications.map((notification) => notification['name'].toLocaleLowerCase()));
+    summary['notifications'].replaced = document['notifications'].filter((notification) => names.has(notification['name'].toLocaleLowerCase())).length;
+    summary['notifications'].added = document['notifications'].length - summary['notifications']['replaced'];
+
+    const filePlural: MockApi_PreviewMockBackup_FilePlural = (document['notifications'].length === 1) ? '' : 's';
+    const herePlural: MockApi_PreviewMockBackup_HerePlural = (notifications.length === 1) ? '' : 's';
+
     sections.push({
-      file: `${String(document.notifications.length)} notification${(document.notifications.length === 1) ? '' : 's'}`,
-      here: `${String(notifications.length)} notification${(notifications.length === 1) ? '' : 's'}`,
+      file: `${String(document['notifications'].length)} notification${filePlural}`,
+      here: `${String(notifications.length)} notification${herePlural}`,
       id: 'notifications',
       label: 'Notifications',
       willImport: true,
     });
   }
-  const ownTokens: MockToken[] = tokens.filter((token: MockToken): boolean => token.userId === user.id);
-  if (document.accessTokens === undefined) {
+  const ownTokens: MockApi_PreviewMockBackup_OwnTokens = tokens.filter((token) => token['userId'] === user['id']);
+  if (document['accessTokens'] === undefined) {
     sections.push({
       file: 'Not included',
       here: 'Kept as they are',
@@ -3484,22 +3534,26 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
       willImport: false,
     });
   } else {
-    const names: Set<string> = new Set(ownTokens.map((token: MockToken): string => token.name.toLocaleLowerCase()));
-    const hashes: Set<string> = new Set(ownTokens.map((token: MockToken): string => token.hash));
-    summary.accessTokens.skipped = document.accessTokens.filter((token: MockBackupAccessToken): boolean => names.has(token.name.toLocaleLowerCase()) || hashes.has(token.tokenHash)).length;
-    summary.accessTokens.added = document.accessTokens.length - summary.accessTokens.skipped;
+    const names: MockApi_PreviewMockBackup_Names = new Set(ownTokens.map((token) => token['name'].toLocaleLowerCase()));
+    const hashes: MockApi_PreviewMockBackup_Hashes = new Set(ownTokens.map((token) => token['hash']));
+    summary['accessTokens'].skipped = document['accessTokens'].filter((token) => names.has(token['name'].toLocaleLowerCase()) || hashes.has(token['tokenHash'])).length;
+    summary['accessTokens'].added = document['accessTokens'].length - summary['accessTokens']['skipped'];
+
+    const filePlural: MockApi_PreviewMockBackup_FilePlural = (document['accessTokens'].length === 1) ? '' : 's';
+    const herePlural: MockApi_PreviewMockBackup_HerePlural = (ownTokens.length === 1) ? '' : 's';
+
     sections.push({
-      file: `${String(document.accessTokens.length)} access token${(document.accessTokens.length === 1) ? '' : 's'}`,
-      here: `${String(ownTokens.length)} access token${(ownTokens.length === 1) ? '' : 's'}`,
+      file: `${String(document['accessTokens'].length)} access token${filePlural}`,
+      here: `${String(ownTokens.length)} access token${herePlural}`,
       id: 'accessTokens',
       label: 'Access tokens',
       willImport: true,
     });
   }
   return {
-    appVersion: document.appVersion,
+    appVersion: document['appVersion'],
     excluded: [],
-    exportedAt: document.exportedAt,
+    exportedAt: document['exportedAt'],
     sections,
     source: 'export',
     summary,
@@ -3507,42 +3561,42 @@ const previewMockBackup = (source: MockBackupSource, user: MockUser, modules: Mo
 };
 
 /**
- * Mock API - Applies backup source.
+ * Mock API - Apply Mock Backup.
  *
  * Mutates the in-memory console state after review and fresh authentication.
  * The returned summary contains no secret values.
  *
- * @param {MockBackupSource} source  - Source.
- * @param {MockUser}         user    - User.
- * @param {MockModules}      modules - Modules.
+ * @param {MockApi_ApplyMockBackup_Source}  source  - Source.
+ * @param {MockApi_ApplyMockBackup_User}    user    - User.
+ * @param {MockApi_ApplyMockBackup_Modules} modules - Modules.
  *
- * @returns {Record<string, unknown>}
+ * @returns {MockApi_ApplyMockBackup_Returns}
  *
  * @since 4.0.0
  */
-const applyMockBackup = (source: MockBackupSource, user: MockUser, modules: MockModules): Record<string, unknown> => {
-  const preview: Record<string, unknown> = previewMockBackup(source, user, modules);
-  const summary: MockBackupSummary = preview['summary'] as MockBackupSummary;
-  const importedSections: string[] = [];
-  if (source.type === 'legacy') {
-    if (modules.importLegacy === null) {
+const applyMockBackup = (source: MockApi_ApplyMockBackup_Source, user: MockApi_ApplyMockBackup_User, modules: MockApi_ApplyMockBackup_Modules): MockApi_ApplyMockBackup_Returns => {
+  const preview: MockApi_ApplyMockBackup_Preview = previewMockBackup(source, user, modules);
+  const summary: MockApi_ApplyMockBackup_Summary = preview['summary'] as MockApi_ApplyMockBackup_Summary;
+  const importedSections: MockApi_ApplyMockBackup_ImportedSections = [];
+  if (source['type'] === 'legacy') {
+    if (modules['importLegacy'] === null) {
       throw new Error('The older config.json importer is unavailable.');
     }
-    const result: MockLegacyResult = modules.importLegacy(source.configuration, source.enableFeatures);
-    for (const [
-      featureKey,
-      feature,
-    ] of Object.entries(result.settings.features ?? {})) {
-      const state: MockFeatureState = stateOf(source.serverId, featureKey);
-      state.configuration = structuredClone(feature.configuration);
-      state.enabled = feature.enabled;
+    const result: MockApi_ApplyMockBackup_Result = modules.importLegacy(source['configuration'], source['enableFeatures']);
+
+    for (const featureEntry of Object.entries(result['settings']['features'] ?? {})) {
+      const featureKey: MockApi_ApplyMockBackup_FeatureKey = featureEntry[0];
+      const feature: MockApi_ApplyMockBackup_Feature = featureEntry[1];
+      const state: MockApi_ApplyMockBackup_State = stateOf(source['serverId'], featureKey);
+      state.configuration = structuredClone(feature['configuration']);
+      state.enabled = feature['enabled'];
       state.revision += 1;
       state.updatedAt = nowIso();
     }
-    for (const secret of result.secrets) {
-      secretsFor(source.serverId).set(secret.key, secret.value);
+    for (const secret of result['secrets']) {
+      secretsFor(source['serverId']).set(secret['key'], secret['value']);
     }
-    if (result.discordToken !== undefined) {
+    if (result['discordToken'] !== undefined) {
       bot.tokenConfigured = true;
       importedSections.push('connection');
     }
@@ -3552,58 +3606,60 @@ const applyMockBackup = (source: MockBackupSource, user: MockUser, modules: Mock
       importedSections,
     };
   }
-  const document: MockBackupDocument = source.document;
-  if (document.connection !== undefined) {
-    bot.desiredState = document.connection.desiredState;
-    bot.tokenConfigured = document.connection.botToken !== null;
+  const document: MockApi_ApplyMockBackup_Document = source['document'];
+  if (document['connection'] !== undefined) {
+    bot.desiredState = document['connection']['desiredState'];
+    bot.tokenConfigured = document['connection']['botToken'] !== null;
     importedSections.push('connection');
   }
-  if (document.features !== undefined) {
-    for (const server of document.features) {
-      const states: Map<string, MockFeatureState> = statesFor(server.serverId);
-      const secrets: Map<string, string> = secretsFor(server.serverId);
+  if (document['features'] !== undefined) {
+    for (const server of document['features']) {
+      const states: MockApi_ApplyMockBackup_States = statesFor(server['serverId']);
+      const secrets: MockApi_ApplyMockBackup_Secrets = secretsFor(server['serverId']);
+
       states.clear();
+
       secrets.clear();
-      for (const feature of server.features) {
-        states.set(feature.key, {
-          configuration: structuredClone(feature.configuration),
-          enabled: feature.enabled,
+
+      for (const feature of server['features']) {
+        states.set(feature['key'], {
+          configuration: structuredClone(feature['configuration']),
+          enabled: feature['enabled'],
           revision: 1,
           updatedAt: nowIso(),
         });
-        for (const [
-          key,
-          value,
-        ] of Object.entries(feature.secrets)) {
-          secrets.set(key, value);
+
+        for (const secretEntry of Object.entries(feature['secrets'])) {
+          secrets.set(secretEntry[0], secretEntry[1]);
         }
       }
     }
-    bot.activeFeatures = [...statesFor(loungeId)].filter((entry: [string, MockFeatureState]): boolean => entry[1].enabled).map((entry: [string, MockFeatureState]): string => entry[0]);
+    bot.activeFeatures = [...statesFor(loungeId)].filter((entry) => entry[1]['enabled']).map((entry) => entry[0]);
     importedSections.push('features');
   }
-  if (document.notifications !== undefined) {
-    const usedIds: Set<string> = new Set(notifications.map((notification: MockNotification): string => notification.id));
-    for (const portable of document.notifications) {
-      const existing: MockNotification | undefined = notifications.find((notification: MockNotification): boolean => notification.name.toLocaleLowerCase() === portable.name.toLocaleLowerCase());
-      let id: string = existing?.id ?? portable.id;
-      if (existing === undefined && usedIds.has(id)) {
+  if (document['notifications'] !== undefined) {
+    const usedIds: MockApi_ApplyMockBackup_UsedIds = new Set(notifications.map((notification) => notification['id']));
+
+    for (const portable of document['notifications']) {
+      const existing: MockApi_ApplyMockBackup_Existing = notifications.find((notification) => notification['name'].toLocaleLowerCase() === portable['name'].toLocaleLowerCase());
+      let id: MockApi_ApplyMockBackup_Id = (existing !== undefined) ? existing['id'] : portable['id'];
+      if (existing === undefined && usedIds.has(id) === true) {
         id = `ntf-${randomBytes(8).toString('hex')}`;
       }
-      const next: MockNotification = {
-        createdAt: existing?.createdAt ?? nowIso(),
-        events: [...portable.events],
+      const next: MockApi_ApplyMockBackup_Next = {
+        createdAt: (existing !== undefined) ? existing['createdAt'] : nowIso(),
+        events: [...portable['events']],
         id,
-        lastAttemptAt: existing?.lastAttemptAt ?? null,
+        lastAttemptAt: (existing !== undefined) ? existing['lastAttemptAt'] : null,
         lastError: null,
-        name: portable.name,
-        secrets: Object.fromEntries(Object.keys(portable.secrets).map((key: string): [string, true] => [
+        name: portable['name'],
+        secrets: Object.fromEntries(Object.keys(portable['secrets']).map((key): MockApi_ApplyMockBackup_SecretEntry => [
           key,
           true,
         ])),
         secretsMissing: [],
-        service: portable.service,
-        settings: { ...portable.settings },
+        service: portable['service'],
+        settings: { ...portable['settings'] },
         updatedAt: nowIso(),
       };
       if (existing === undefined) {
@@ -3615,30 +3671,34 @@ const applyMockBackup = (source: MockBackupSource, user: MockUser, modules: Mock
     }
     importedSections.push('notifications');
   }
-  if (document.accessTokens !== undefined) {
-    const names: Set<string> = new Set(tokens.filter((token: MockToken): boolean => token.userId === user.id).map((token: MockToken): string => token.name.toLocaleLowerCase()));
-    const hashes: Set<string> = new Set(tokens.map((token: MockToken): string => token.hash));
-    const ids: Set<string> = new Set(tokens.map((token: MockToken): string => token.id));
-    for (const portable of document.accessTokens) {
-      if (names.has(portable.name.toLocaleLowerCase()) || hashes.has(portable.tokenHash)) {
+  if (document['accessTokens'] !== undefined) {
+    const names: MockApi_ApplyMockBackup_Names = new Set(tokens.filter((token) => token['userId'] === user['id']).map((token) => token['name'].toLocaleLowerCase()));
+    const hashes: MockApi_ApplyMockBackup_Hashes = new Set(tokens.map((token) => token['hash']));
+    const ids: MockApi_ApplyMockBackup_Ids = new Set(tokens.map((token) => token['id']));
+
+    for (const portable of document['accessTokens']) {
+      if (names.has(portable['name'].toLocaleLowerCase()) === true || hashes.has(portable['tokenHash']) === true) {
         continue;
       }
-      let id: string = portable.id;
-      if (ids.has(id)) {
+      let id: MockApi_ApplyMockBackup_Id = portable['id'];
+      if (ids.has(id) === true) {
         id = `tok-${randomBytes(8).toString('hex')}`;
       }
       tokens.push({
         createdAt: nowIso(),
-        expiresAt: portable.expiresAt,
-        hash: portable.tokenHash,
+        expiresAt: portable['expiresAt'],
+        hash: portable['tokenHash'],
         id,
         lastUsedAt: null,
-        name: portable.name,
-        scopes: [...portable.scopes],
-        userId: user.id,
+        name: portable['name'],
+        scopes: [...portable['scopes']],
+        userId: user['id'],
       });
-      names.add(portable.name.toLocaleLowerCase());
-      hashes.add(portable.tokenHash);
+
+      names.add(portable['name'].toLocaleLowerCase());
+
+      hashes.add(portable['tokenHash']);
+
       ids.add(id);
     }
     importedSections.push('accessTokens');
@@ -3650,20 +3710,22 @@ const applyMockBackup = (source: MockBackupSource, user: MockUser, modules: Mock
 };
 
 /**
- * Mock API - Reads pointer.
+ * Mock API - Read Pointer.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_ReadPointer_Returns}
+ *
  * @since 4.0.0
  */
-const readPointer = (value: unknown, pointer: string): unknown => {
-  let current: unknown = value;
+const readPointer = (value: MockApi_ReadPointer_Value, pointer: MockApi_ReadPointer_Pointer): MockApi_ReadPointer_Returns => {
+  let current: MockApi_ReadPointer_Current = value;
 
-  for (const segment of pointer.split('/').slice(1).map((part: string): string => part.replaceAll('~1', '/').replaceAll('~0', '~'))) {
-    if (Array.isArray(current)) {
+  for (const segment of pointer.split('/').slice(1).map((part) => part.replaceAll('~1', '/').replaceAll('~0', '~'))) {
+    if (Array.isArray(current) === true) {
       current = current[Number(segment)];
-    } else if (isRecord(current)) {
+    } else if (isRecord(current) === true) {
       current = current[segment];
     } else {
       return undefined;
@@ -3674,38 +3736,40 @@ const readPointer = (value: unknown, pointer: string): unknown => {
 };
 
 /**
- * Mock API - Feature detail.
+ * Mock API - Feature Detail.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_FeatureDetail_Returns}
+ *
  * @since 4.0.0
  */
-const featureDetail = async (entry: MockCatalogEntry, serverId: string): Promise<Record<string, unknown>> => {
-  const modules: MockModules = await loadModules();
-  const state: MockFeatureState = stateOf(serverId, entry.key);
-  const store: Map<string, string> = secretsFor(serverId);
-  const saved: Record<string, boolean> = {};
+const featureDetail = async (entry: MockApi_FeatureDetail_Entry, serverId: MockApi_FeatureDetail_ServerId): MockApi_FeatureDetail_Returns => {
+  const modules: MockApi_FeatureDetail_Modules = await loadModules();
+  const state: MockApi_FeatureDetail_State = stateOf(serverId, entry['key']);
+  const store: MockApi_FeatureDetail_Store = secretsFor(serverId);
+  const saved: MockApi_FeatureDetail_Saved = {};
 
-  for (const reference of collectReferences(state.configuration)) {
-    if (store.has(reference.key)) {
-      saved[reference.key] = true;
+  for (const reference of collectReferences(state['configuration'])) {
+    if (store.has(reference['key']) === true) {
+      Reflect.set(saved, reference['key'], true);
     }
   }
 
-  let editor: Record<string, unknown> = {};
+  let editor: MockApi_FeatureDetail_Editor = {};
 
   try {
-    editor = modules.editorFor(entry.key);
+    editor = modules.editorFor(entry['key']);
   } catch {
-    editor = fallbackModules().editorFor(entry.key);
+    editor = fallbackModules().editorFor(entry['key']);
   }
 
   return {
     ...featureSummary(entry, serverId),
-    configuration: state.configuration,
+    configuration: state['configuration'],
     editor,
-    example: examples.get(entry.key) ?? null,
+    example: examples.get(entry['key']) ?? null,
     secrets: saved,
   };
 };
@@ -3713,26 +3777,31 @@ const featureDetail = async (entry: MockCatalogEntry, serverId: string): Promise
 // Invite pages.
 
 /**
- * Mock API - Invite page for.
+ * Mock API - Invite Page For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_InvitePageFor_Returns}
+ *
  * @since 4.0.0
  */
-const invitePageFor = (server: MockServer): MockInvitePage => {
-  const existing: MockInvitePage | undefined = invitePages.get(server.id);
+const invitePageFor = (server: MockApi_InvitePageFor_Server): MockApi_InvitePageFor_Returns => {
+  const existing: MockApi_InvitePageFor_Existing = invitePages.get(server['id']);
 
   if (existing !== undefined) {
     return existing;
   }
 
-  const created: MockInvitePage = (server.id === loungeId) ? {
+  const created: MockApi_InvitePageFor_Created = (server['id'] === loungeId) ? {
     accentColor: '#6250d9',
     bannerImageId: null,
     buttonLabel: 'Join the server',
     description: 'Daily chat, weekly events, and a friendly crowd to hang out with.',
-    footerText: 'By joining you agree to the [server rules](https://example.com/rules).\nQuestions? https://example.com/help',
+    footerText: [
+      'By joining you agree to the [server rules](https://example.com/rules).',
+      'Questions? https://example.com/help',
+    ].join('\n'),
     logo: 'server',
     logoImageId: null,
     revision: 3,
@@ -3753,11 +3822,11 @@ const invitePageFor = (server: MockServer): MockInvitePage => {
     showBoostTier: false,
     showMemberCount: true,
     theme: 'system',
-    title: server.name,
+    title: server['name'],
     updatedAt: null,
   };
 
-  invitePages.set(server.id, created);
+  invitePages.set(server['id'], created);
 
   return created;
 };
@@ -3765,20 +3834,22 @@ const invitePageFor = (server: MockServer): MockInvitePage => {
 // invitePathFor reads the invite path from the server's Web applications settings.
 
 /**
- * Mock API - Invite path for.
+ * Mock API - Invite Path For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_InvitePathFor_Returns}
+ *
  * @since 4.0.0
  */
-const invitePathFor = (serverId: string): string | null => {
-  const configuration: unknown = stateOf(serverId, 'web-applications').configuration;
-  const generator: unknown = (isRecord(configuration)) ? configuration['invite-generator'] : undefined;
-  const options: unknown = (isRecord(generator)) ? generator['options'] : undefined;
-  const path: unknown = (isRecord(options)) ? options['path'] : undefined;
+const invitePathFor = (serverId: MockApi_InvitePathFor_ServerId): MockApi_InvitePathFor_Returns => {
+  const configuration: MockApi_InvitePathFor_Configuration = stateOf(serverId, 'web-applications')['configuration'];
+  const generator: MockApi_InvitePathFor_Generator = (isRecord(configuration) === true) ? configuration['invite-generator'] : undefined;
+  const options: MockApi_InvitePathFor_Options = (isRecord(generator) === true) ? generator['options'] : undefined;
+  const path: MockApi_InvitePathFor_Path = (isRecord(options) === true) ? options['path'] : undefined;
 
-  return (typeof path === 'string' && path.startsWith('/')) ? path : null;
+  return (typeof path === 'string' && path.startsWith('/') === true) ? path : null;
 };
 
 /**
@@ -3787,33 +3858,37 @@ const invitePathFor = (serverId: string): string | null => {
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_MediaUrl_Returns}
+ *
  * @since 4.0.0
  */
-const mediaUrl = (imageId: string | null): string | null => ((imageId === null) ? null : `/media/${imageId}`);
+const mediaUrl = (imageId: MockApi_MediaUrl_ImageId): MockApi_MediaUrl_Returns => ((imageId === null) ? null : `/media/${imageId}`);
 
 /**
- * Mock API - Designer response.
+ * Mock API - Designer Response.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_DesignerResponse_Returns}
+ *
  * @since 4.0.0
  */
-const designerResponse = (server: MockServer, origin: string): Record<string, unknown> => {
-  const page: MockInvitePage = invitePageFor(server);
-  const path: string | null = invitePathFor(server.id);
+const designerResponse = (server: MockApi_DesignerResponse_Server, origin: MockApi_DesignerResponse_Origin): MockApi_DesignerResponse_Returns => {
+  const page: MockApi_DesignerResponse_Page = invitePageFor(server);
+  const path: MockApi_DesignerResponse_Path = invitePathFor(server['id']);
 
   return {
-    enabled: stateOf(server.id, 'web-applications').enabled && path !== null,
+    enabled: stateOf(server['id'], 'web-applications')['enabled'] && path !== null,
     page: {
       ...page,
-      bannerImageUrl: mediaUrl(page.bannerImageId),
-      logoImageUrl: mediaUrl(page.logoImageId),
+      bannerImageUrl: mediaUrl(page['bannerImageId']),
+      logoImageUrl: mediaUrl(page['logoImageId']),
     },
     publicUrl: (path === null) ? null : `${origin}${path}`,
     server: {
-      iconUrl: server.iconUrl,
-      name: server.name,
+      iconUrl: server['iconUrl'],
+      name: server['name'],
     },
   };
 };
@@ -3824,103 +3899,129 @@ const designerResponse = (server: MockServer, origin: string): Record<string, un
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_EscapeHtml_Returns}
+ *
  * @since 4.0.0
  */
-const escapeHtml = (value: string): string => value
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;')
-  .replaceAll('\'', '&#39;');
+const escapeHtml = (value: MockApi_EscapeHtml_Value): MockApi_EscapeHtml_Returns => {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('\'', '&#39;');
+};
 
 // HTTP helpers.
 
 /**
- * Mock API - Sends JSON.
+ * Mock API - Send JSON.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SendJson_Returns}
+ *
  * @since 4.0.0
  */
-const sendJSON = (response: ServerResponse, status: number, body: unknown): void => {
+const sendJSON = (response: MockApi_SendJson_Response, status: MockApi_SendJson_Status, body: MockApi_SendJson_Body): MockApi_SendJson_Returns => {
   response.writeHead(status, {
     'Cache-Control': 'no-store',
     'Content-Type': 'application/json',
   }).end(JSON.stringify(body));
+
+  return;
 };
 
 /**
- * Mock API - Sends empty.
+ * Mock API - Send Empty.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SendEmpty_Returns}
+ *
  * @since 4.0.0
  */
-const sendEmpty = (response: ServerResponse, status: number = 204): void => {
+const sendEmpty = (response: MockApi_SendEmpty_Response, status: MockApi_SendEmpty_Status = 204): MockApi_SendEmpty_Returns => {
   response.writeHead(status).end();
+
+  return;
 };
 
 /**
- * Mock API - Sends error.
+ * Mock API - Send Error.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SendError_Returns}
+ *
  * @since 4.0.0
  */
-const sendError = (response: ServerResponse, status: number, code: string, message: string): void => {
+const sendError = (response: MockApi_SendError_Response, status: MockApi_SendError_Status, code: MockApi_SendError_Code, message: MockApi_SendError_Message): MockApi_SendError_Returns => {
   sendJSON(response, status, {
     error: {
       code,
       message,
     },
   });
+
+  return;
 };
 
 /**
- * Mock API - Sends issues.
+ * Mock API - Send Issues.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SendIssues_Returns}
+ *
  * @since 4.0.0
  */
-const sendIssues = (response: ServerResponse, status: number, code: string, issues: MockIssue[]): void => {
+const sendIssues = (response: MockApi_SendIssues_Response, status: MockApi_SendIssues_Status, code: MockApi_SendIssues_Code, issues: MockApi_SendIssues_Issues): MockApi_SendIssues_Returns => {
+  const firstIssue: MockApi_SendIssues_FirstIssue = issues[0];
+
   sendJSON(response, status, {
     error: {
       code,
       issues,
-      message: issues[0]?.message ?? 'Check the highlighted fields.',
+      message: (firstIssue !== undefined) ? firstIssue['message'] : 'Check the highlighted fields.',
     },
   });
+
+  return;
 };
 
 /**
- * Mock API - Field issue.
+ * Mock API - Field Issue.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_FieldIssue_Returns}
+ *
  * @since 4.0.0
  */
-const fieldIssue = (field: string, message: string): MockIssue => ({
+const fieldIssue = (field: MockApi_FieldIssue_Field, message: MockApi_FieldIssue_Message): MockApi_FieldIssue_Returns => ({
   field,
   message,
   path: field.split('.'),
 });
 
 /**
- * Mock API - Reads raw.
+ * Mock API - Read Raw.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_ReadRaw_Returns}
+ *
  * @since 4.0.0
  */
-const readRaw = async (request: IncomingMessage): Promise<Buffer> => {
-  const chunks: Buffer[] = [];
+const readRaw = async (request: MockApi_ReadRaw_Request): MockApi_ReadRaw_Returns => {
+  const chunks: MockApi_ReadRaw_Chunks = [];
 
   for await (const chunk of request) {
     chunks.push(Buffer.from(chunk));
@@ -3930,41 +4031,47 @@ const readRaw = async (request: IncomingMessage): Promise<Buffer> => {
 };
 
 /**
- * Mock API - Reads cookies.
+ * Mock API - Read Cookies.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_ReadCookies_Returns}
+ *
  * @since 4.0.0
  */
-const readCookies = (request: IncomingMessage): Record<string, string> => Object.fromEntries((request.headers.cookie ?? '')
-  .split(';')
-  .map((part: string): string[] => part.trim().split('='))
-  .filter((parts: string[]): boolean => parts.length >= 2 && parts[0] !== '')
-  .map((parts: string[]): [string, string] => [
-    parts[0] ?? '',
-    decodeURIComponent(parts.slice(1).join('=')),
-  ]));
+const readCookies = (request: MockApi_ReadCookies_Request): MockApi_ReadCookies_Returns => {
+  return Object.fromEntries((request.headers.cookie ?? '')
+    .split(';')
+    .map((part) => part.trim().split('='))
+    .filter((parts) => parts.length >= 2 && parts[0] !== '')
+    .map((parts): MockApi_ReadCookies_Entry => [
+      parts[0] ?? '',
+      decodeURIComponent(parts.slice(1).join('=')),
+    ]));
+};
 
 // startSession signs a user in and answers like the real session response.
 
 /**
- * Mock API - Starts session.
+ * Mock API - Start Session.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_StartSession_Returns}
+ *
  * @since 4.0.0
  */
-const startSession = (response: ServerResponse, user: MockUser, status: number = 200): void => {
-  const sessionId: string = randomBytes(24).toString('base64url');
-  const csrfToken: string = randomBytes(24).toString('base64url');
+const startSession = (response: MockApi_StartSession_Response, user: MockApi_StartSession_User, status: MockApi_StartSession_Status = 200): MockApi_StartSession_Returns => {
+  const sessionId: MockApi_StartSession_SessionId = randomBytes(24).toString('base64url');
+  const csrfToken: MockApi_StartSession_CsrfToken = randomBytes(24).toString('base64url');
 
-  const signedIn: MockUser | undefined = users.find((candidate: MockUser): boolean => candidate.id === user.id);
+  const signedIn: MockApi_StartSession_SignedIn = users.find((candidate) => candidate['id'] === user['id']);
 
   sessions.set(sessionId, {
     csrfToken,
-    userId: user.id,
+    userId: user['id'],
   });
 
   if (signedIn !== undefined) {
@@ -3972,43 +4079,57 @@ const startSession = (response: ServerResponse, user: MockUser, status: number =
   }
 
   writeLog('web', 'info', 'sign_in_succeeded', {
-    userId: user.id,
-    username: user.username,
+    userId: user['id'],
+    username: user['username'],
   });
+
   response.setHeader('Set-Cookie', [
     `dsb_session=${sessionId}; Path=/; HttpOnly; SameSite=Strict`,
     `dsb_csrf=${csrfToken}; Path=/; SameSite=Strict`,
   ]);
+
   sendJSON(response, status, {
     csrfToken,
     expiresAt: new Date(Date.now() + (24 * 60 * minute)).toISOString(),
     status: 'authenticated',
     user: {
-      id: user.id,
-      role: user.role,
-      username: user.username,
+      id: user['id'],
+      role: user['role'],
+      username: user['username'],
     },
   });
+
+  return;
 };
 
 // principalOf finds who is calling: a browser session or a personal access token.
 
 /**
- * Mock API - Principal of.
+ * Mock API - Principal Of.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_PrincipalOf_Returns}
+ *
  * @since 4.0.0
  */
-const principalOf = (request: IncomingMessage): MockPrincipal | null => {
-  const authorization: string = request.headers.authorization ?? '';
+const principalOf = (request: MockApi_PrincipalOf_Request): MockApi_PrincipalOf_Returns => {
+  const authorization: MockApi_PrincipalOf_Authorization = request.headers.authorization ?? '';
 
-  if (authorization.startsWith('Bearer ')) {
-    const token: MockToken | undefined = tokens.find((candidate: MockToken): boolean => candidate.hash === digest(authorization.slice(7).trim()));
-    const user: MockUser | undefined = (token === undefined) ? undefined : users.find((candidate: MockUser): boolean => candidate.id === token.userId);
+  if (authorization.startsWith('Bearer ') === true) {
+    const token: MockApi_PrincipalOf_Token = tokens.find((candidate) => candidate['hash'] === digest(authorization.slice(7).trim()));
+    const user: MockApi_PrincipalOf_User = (token === undefined) ? undefined : users.find((candidate) => candidate['id'] === token['userId']);
 
-    if (token === undefined || user === undefined || !user.enabled || (token.expiresAt !== null && Date.parse(token.expiresAt) <= Date.now())) {
+    if (
+      token === undefined
+      || user === undefined
+      || user['enabled'] === false
+      || (
+        token['expiresAt'] !== null
+        && Date.parse(token['expiresAt']) <= Date.now()
+      )
+    ) {
       return null;
     }
 
@@ -4021,13 +4142,10 @@ const principalOf = (request: IncomingMessage): MockPrincipal | null => {
     };
   }
 
-  const session: {
-    csrfToken: string
-    userId: string
-  } | undefined = sessions.get(readCookies(request)['dsb_session'] ?? '');
-  const user: MockUser | undefined = (session === undefined) ? undefined : users.find((candidate: MockUser): boolean => candidate.id === session.userId);
+  const session: MockApi_PrincipalOf_Session = sessions.get(readCookies(request)['dsb_session'] ?? '');
+  const user: MockApi_PrincipalOf_User = (session === undefined) ? undefined : users.find((candidate) => candidate['id'] === session['userId']);
 
-  if (user === undefined || !user.enabled) {
+  if (user === undefined || user['enabled'] === false) {
     return null;
   }
 
@@ -4039,52 +4157,57 @@ const principalOf = (request: IncomingMessage): MockPrincipal | null => {
 };
 
 /**
- * Mock API - Csrf valid.
+ * Mock API - Csrf Valid.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_CsrfValid_Returns}
+ *
  * @since 4.0.0
  */
-const csrfValid = (request: IncomingMessage): boolean => {
-  const session: {
-    csrfToken: string
-    userId: string
-  } | undefined = sessions.get(readCookies(request)['dsb_session'] ?? '');
+const csrfValid = (request: MockApi_CsrfValid_Request): MockApi_CsrfValid_Returns => {
+  const session: MockApi_CsrfValid_Session = sessions.get(readCookies(request)['dsb_session'] ?? '');
 
-  return session !== undefined && request.headers['x-csrf-token'] === session.csrfToken;
+  return session !== undefined && request.headers['x-csrf-token'] === session['csrfToken'];
 };
 
 /**
- * Mock API - Sign out user.
+ * Mock API - Sign Out User.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SignOutUser_Returns}
+ *
  * @since 4.0.0
  */
-const signOutUser = (userId: string): void => {
-  for (const [
-    sessionId,
-    session,
-  ] of sessions) {
-    if (session.userId === userId) {
+const signOutUser = (userId: MockApi_SignOutUser_UserId): MockApi_SignOutUser_Returns => {
+  for (const sessionEntry of sessions) {
+    const sessionId: MockApi_SignOutUser_SessionId = sessionEntry[0];
+    const session: MockApi_SignOutUser_Session = sessionEntry[1];
+
+    if (session['userId'] === userId) {
       sessions.delete(sessionId);
     }
   }
+
+  return;
 };
 
 // Bot state.
 
 /**
- * Mock API - Set bot status.
+ * Mock API - Set Bot Status.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_SetBotStatus_Returns}
+ *
  * @since 4.0.0
  */
-const setBotStatus = (status: string, delay: number, next: string | null): void => {
+const setBotStatus = (status: MockApi_SetBotStatus_Status, delay: MockApi_SetBotStatus_Delay, next: MockApi_SetBotStatus_Next): MockApi_SetBotStatus_Returns => {
   bot.status = status;
 
   if (botTimer !== undefined) {
@@ -4092,39 +4215,45 @@ const setBotStatus = (status: string, delay: number, next: string | null): void 
   }
 
   if (next !== null) {
-    botTimer = setTimeout((): void => {
+    botTimer = setTimeout(() => {
       bot.status = next;
 
       if (next === 'ready') {
         writeLog('bot', 'info', 'gateway_ready', {
           guildCount: servers.length,
-          userTag: bot.userTag,
+          userTag: bot['userTag'],
         });
       }
+
+      return;
     }, delay);
   }
+
+  return;
 };
 
 /**
- * Mock API - Bot resource.
+ * Mock API - Bot Resource.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_BotResource_Returns}
+ *
  * @since 4.0.0
  */
-const botResource = (): Record<string, unknown> => ({
-  activeFeatures: bot.activeFeatures,
+const botResource = (): MockApi_BotResource_Returns => ({
+  activeFeatures: bot['activeFeatures'],
   addServerUrl: addServerUrl(),
-  applicationId: bot.applicationId,
-  configurationErrors: bot.configurationErrors,
-  desiredState: bot.desiredState,
-  guildCount: (bot.status === 'ready') ? servers.length : null,
-  resolution: bot.resolution,
+  applicationId: bot['applicationId'],
+  configurationErrors: bot['configurationErrors'],
+  desiredState: bot['desiredState'],
+  guildCount: (bot['status'] === 'ready') ? servers.length : null,
+  resolution: bot['resolution'],
   services: [
     {
       component: 'bot',
-      status: bot.status,
+      status: bot['status'],
       updatedAt: agoIso(0.2),
     },
     {
@@ -4138,9 +4267,9 @@ const botResource = (): Record<string, unknown> => ({
       updatedAt: agoIso(0.7),
     },
   ],
-  status: bot.status,
-  tokenConfigured: bot.tokenConfigured,
-  userTag: (bot.status === 'ready') ? bot.userTag : null,
+  status: bot['status'],
+  tokenConfigured: bot['tokenConfigured'],
+  userTag: (bot['status'] === 'ready') ? bot['userTag'] : null,
 });
 
 // Routes.
@@ -4148,19 +4277,21 @@ const botResource = (): Record<string, unknown> => ({
 // handlePublic answers the public invite page and uploaded images, like the web process does.
 
 /**
- * Mock API - Handles public.
+ * Mock API - Handle Public.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_HandlePublic_Returns}
+ *
  * @since 4.0.0
  */
-const handlePublic = async (request: IncomingMessage, response: ServerResponse, url: URL): Promise<boolean> => {
-  const method: string = request.method ?? 'GET';
-  const mediaMatch: RegExpMatchArray | null = url.pathname.match(/^\/media\/([0-9a-f-]{36})$/u);
+const handlePublic = async (request: MockApi_HandlePublic_Request, response: MockApi_HandlePublic_Response, url: MockApi_HandlePublic_Url): MockApi_HandlePublic_Returns => {
+  const method: MockApi_HandlePublic_Method = request.method ?? 'GET';
+  const mediaMatch: MockApi_HandlePublic_MediaMatch = url.pathname.match(new RegExp(mediaPathPattern, 'u'));
 
   if (method === 'GET' && mediaMatch !== null) {
-    const image: MockImage | undefined = images.get(mediaMatch[1] ?? '');
+    const image: MockApi_HandlePublic_Image = images.get(mediaMatch[1] ?? '');
 
     if (image === undefined) {
       response.writeHead(404, { 'Content-Type': 'text/plain' }).end('Not found.');
@@ -4170,27 +4301,31 @@ const handlePublic = async (request: IncomingMessage, response: ServerResponse, 
 
     response.writeHead(200, {
       'Cache-Control': 'public, max-age=31536000, immutable',
-      'Content-Type': image.contentType,
-    }).end(image.data);
+      'Content-Type': image['contentType'],
+    }).end(image['data']);
 
     return true;
   }
 
   await ensureFeatures();
 
-  const server: MockServer | undefined = servers.find((candidate: MockServer): boolean => invitePathFor(candidate.id) === url.pathname);
+  const server: MockApi_HandlePublic_Server = servers.find((candidate) => invitePathFor(candidate['id']) === url.pathname);
 
   if (server === undefined || viteServer === null) {
     return false;
   }
 
-  const page: MockInvitePage = invitePageFor(server);
-  const available: boolean = bot.desiredState === 'running' && bot.status === 'ready' && stateOf(server.id, 'web-applications').enabled;
+  const page: MockApi_HandlePublic_Page = invitePageFor(server);
+  const available: MockApi_HandlePublic_Available = (
+    bot['desiredState'] === 'running'
+    && bot['status'] === 'ready'
+    && stateOf(server['id'], 'web-applications')['enabled']
+  );
 
   if (method === 'POST') {
-    const address: string = request.socket.remoteAddress ?? 'local';
-    const recent: number[] = (inviteAttempts.get(address) ?? []).filter((time: number): boolean => time > Date.now() - (10 * minute));
-    let body: unknown = undefined;
+    const address: MockApi_HandlePublic_Address = request.socket.remoteAddress ?? 'local';
+    const recent: MockApi_HandlePublic_Recent = (inviteAttempts.get(address) ?? []).filter((time) => time > Date.now() - (10 * minute));
+    let body: MockApi_HandlePublic_Body = undefined;
 
     try {
       body = JSON.parse((await readRaw(request)).toString('utf-8'));
@@ -4202,18 +4337,23 @@ const handlePublic = async (request: IncomingMessage, response: ServerResponse, 
 
     if (recent.length >= 5) {
       response.setHeader('Retry-After', '600');
+
       sendError(response, 429, 'rate_limited', 'Too many invites from this network. Try again in 10 minutes.');
 
       return true;
     }
 
-    if (!isRecord(body) || typeof body['recaptchaToken'] !== 'string' || body['recaptchaToken'].trim() === '') {
+    if (
+      isRecord(body) === false
+      || typeof body['recaptchaToken'] !== 'string'
+      || body['recaptchaToken'].trim() === ''
+    ) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('recaptchaToken', 'Complete the reCAPTCHA check.')]);
 
       return true;
     }
 
-    if (!available) {
+    if (available === false) {
       sendError(response, 503, 'invite_unavailable', 'Invites are paused right now. Try again later.');
 
       return true;
@@ -4223,8 +4363,9 @@ const handlePublic = async (request: IncomingMessage, response: ServerResponse, 
       ...recent,
       Date.now(),
     ]);
+
     writeLog('web', 'info', 'public_invite_created', {
-      guildIdentifier: server.id,
+      guildIdentifier: server['id'],
       maxAgeSeconds: 300,
       maxUses: 1,
       path: url.pathname,
@@ -4238,66 +4379,67 @@ const handlePublic = async (request: IncomingMessage, response: ServerResponse, 
     return false;
   }
 
-  const origin: string = `http://${request.headers.host ?? 'localhost:5175'}`;
-  const bannerUrl: string | null = mediaUrl(page.bannerImageId);
-  let logoUrl: string | null = null;
+  const origin: MockApi_HandlePublic_Origin = `http://${request.headers.host ?? 'localhost:5175'}`;
+  const bannerUrl: MockApi_HandlePublic_BannerUrl = mediaUrl(page['bannerImageId']);
+  let logoUrl: MockApi_HandlePublic_LogoUrl = null;
 
-  if (page.logo === 'server') {
-    logoUrl = server.iconUrl;
-  } else if (page.logo === 'custom') {
-    logoUrl = mediaUrl(page.logoImageId);
+  if (page['logo'] === 'server') {
+    logoUrl = server['iconUrl'];
+  } else if (page['logo'] === 'custom') {
+    logoUrl = mediaUrl(page['logoImageId']);
   }
 
-  const statsParts: string[] = [];
+  const statsParts: MockApi_HandlePublic_StatsParts = [];
 
-  if (page.showMemberCount) {
-    statsParts.push(`${server.memberCount.toLocaleString('en-US')} members`);
+  if (page['showMemberCount'] === true) {
+    statsParts.push(`${server['memberCount'].toLocaleString('en-US')} members`);
   }
 
-  if (page.showBoostTier && server.boostTier > 0) {
-    statsParts.push(`Boost level ${server.boostTier}`);
+  if (page['showBoostTier'] === true && server['boostTier'] > 0) {
+    statsParts.push(`Boost level ${server['boostTier']}`);
   }
 
-  const description: string = [
-    page.description,
+  const description: MockApi_HandlePublic_Description = [
+    page['description'],
     statsParts.join(' · '),
-  ].filter((part: string): boolean => part !== '').join(' — ');
-  const previewImage: string | null = bannerUrl ?? ((logoUrl !== null && logoUrl.startsWith('/')) ? logoUrl : null);
-  const head: string = [
-    `<title>${escapeHtml(page.title)}</title>`,
+  ].filter((part) => part !== '').join(' — ');
+  const previewImage: MockApi_HandlePublic_PreviewImage = bannerUrl ?? ((logoUrl !== null && logoUrl.startsWith('/') === true) ? logoUrl : null);
+  const twitterCard: MockApi_HandlePublic_TwitterCard = (bannerUrl === null) ? 'summary' : 'summary_large_image';
+  const head: MockApi_HandlePublic_Head = [
+    `<title>${escapeHtml(page['title'])}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
-    `<meta name="theme-color" content="${escapeHtml(page.accentColor)}" />`,
-    `<meta property="og:title" content="${escapeHtml(page.title)}" />`,
+    `<meta name="theme-color" content="${escapeHtml(page['accentColor'])}" />`,
+    `<meta property="og:title" content="${escapeHtml(page['title'])}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     `<meta property="og:url" content="${escapeHtml(`${origin}${url.pathname}`)}" />`,
     ...((previewImage === null) ? [] : [`<meta property="og:image" content="${escapeHtml(`${origin}${previewImage}`)}" />`]),
-    `<meta name="twitter:card" content="${(bannerUrl === null) ? 'summary' : 'summary_large_image'}" />`,
+    `<meta name="twitter:card" content="${twitterCard}" />`,
   ].join('\n    ');
-  const data: string = JSON.stringify({
+  const data: MockApi_HandlePublic_Data = JSON.stringify({
     available,
     page: {
-      accentColor: page.accentColor,
+      accentColor: page['accentColor'],
       bannerUrl,
-      buttonLabel: page.buttonLabel,
-      description: page.description,
-      footerText: page.footerText,
+      buttonLabel: page['buttonLabel'],
+      description: page['description'],
+      footerText: page['footerText'],
       logoUrl,
-      showBoostTier: page.showBoostTier,
-      showMemberCount: page.showMemberCount,
-      theme: page.theme,
-      title: page.title,
+      showBoostTier: page['showBoostTier'],
+      showMemberCount: page['showMemberCount'],
+      theme: page['theme'],
+      title: page['title'],
     },
-    recaptchaSiteKey: (available) ? recaptchaTestSiteKey : null,
+    recaptchaSiteKey: (available === true) ? recaptchaTestSiteKey : null,
     server: {
-      boostTier: server.boostTier,
-      iconUrl: server.iconUrl,
-      memberCount: server.memberCount,
-      name: server.name,
+      boostTier: server['boostTier'],
+      iconUrl: server['iconUrl'],
+      memberCount: server['memberCount'],
+      name: server['name'],
     },
     submitPath: url.pathname,
   }).replaceAll('<', '\\u003c');
-  const template: string = readFileSync(new URL('./invite.html', import.meta.url), 'utf-8');
-  const html: string = await viteServer.transformIndexHtml(url.pathname, template
+  const template: MockApi_HandlePublic_Template = readFileSync(new URL('./invite.html', import.meta.url), 'utf-8');
+  const html: MockApi_HandlePublic_Html = await viteServer.transformIndexHtml(url.pathname, template
     .replace('<!-- invite-head -->', head)
     .replace('<!-- invite-data -->', `<script type="application/json" id="invite-data">${data}</script>`));
 
@@ -4312,37 +4454,39 @@ const handlePublic = async (request: IncomingMessage, response: ServerResponse, 
 // Answers one console API call, or returns false so Vite serves the page.
 
 /**
- * Mock API - Handles request.
+ * Mock API - Handle Request.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {MockApi_HandleRequest_Returns}
+ *
  * @since 4.0.0
  */
-const handleRequest = async (request: IncomingMessage, response: ServerResponse): Promise<boolean> => {
+const handleRequest = async (request: MockApi_HandleRequest_Request, response: MockApi_HandleRequest_Response): MockApi_HandleRequest_Returns => {
   // The Host header gives the address the page was opened at, like the real server sees it.
-  const url: URL = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`);
-  const path: string = url.pathname;
-  const method: string = request.method ?? 'GET';
+  const url: MockApi_HandleRequest_Url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`);
+  const path: MockApi_HandleRequest_Path = url.pathname;
+  const method: MockApi_HandleRequest_Method = request.method ?? 'GET';
 
-  if (!path.startsWith('/api/v1/')) {
+  if (path.startsWith('/api/v1/') === false) {
     return handlePublic(request, response, url);
   }
 
   await ensureFeatures();
 
-  const uploadRoute: boolean = method === 'POST' && /^\/api\/v1\/servers\/[^/]+\/invite-page\/images$/u.test(path);
-  let raw: Buffer = Buffer.alloc(0);
-  let body: Record<string, unknown> = {};
+  const uploadRoute: MockApi_HandleRequest_UploadRoute = method === 'POST' && new RegExp(inviteImagesPathPattern, 'u').test(path);
+  let raw: MockApi_HandleRequest_Raw = Buffer.alloc(0);
+  let body: MockApi_HandleRequest_Body = {};
 
   if (method !== 'GET' && method !== 'HEAD') {
     raw = await readRaw(request);
 
-    if (!uploadRoute && raw.length > 0) {
+    if (uploadRoute === false && raw.length > 0) {
       try {
-        const parsed: unknown = JSON.parse(raw.toString('utf-8'));
+        const parsed: MockApi_HandleRequest_Parsed = JSON.parse(raw.toString('utf-8'));
 
-        body = (isRecord(parsed)) ? parsed : {};
+        body = (isRecord(parsed) === true) ? parsed : {};
       } catch {
         sendError(response, 400, 'invalid_json', 'The request body is not valid JSON.');
 
@@ -4379,8 +4523,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    const claimUsername: string = String(body['username'] ?? '').trim();
-    const claimUsernameIssue: string = usernameIssue(claimUsername);
+    const claimUsername: MockApi_HandleRequest_ClaimUsername = String(body['username'] ?? '').trim();
+    const claimUsernameIssue: MockApi_HandleRequest_ClaimUsernameIssue = usernameIssue(claimUsername);
 
     if (claimUsernameIssue !== '') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('username', claimUsernameIssue)]);
@@ -4410,8 +4554,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     };
     seedAccounts(owner);
     writeLog('web', 'info', 'setup_completed', {
-      userId: owner.id,
-      username: owner.username,
+      userId: owner['id'],
+      username: owner['username'],
     });
     startSession(response, owner, 201);
 
@@ -4419,8 +4563,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/login') {
-    const loginUsername: string = String(body['username'] ?? '').trim();
-    const loginPassword: unknown = body['password'];
+    const loginUsername: MockApi_HandleRequest_LoginUsername = String(body['username'] ?? '').trim();
+    const loginPassword: MockApi_HandleRequest_LoginPassword = body['password'];
 
     if (loginUsername === '') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('username', 'Enter your username.')]);
@@ -4434,23 +4578,27 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    const user: MockUser | undefined = users.find((candidate: MockUser): boolean => candidate.username.toLowerCase() === loginUsername.toLowerCase());
+    const loginUser: MockApi_HandleRequest_LoginUser = users.find((candidate) => candidate['username'].toLowerCase() === loginUsername.toLowerCase());
 
-    if (user === undefined || !user.enabled || user.password !== loginPassword) {
+    if (
+      loginUser === undefined
+      || loginUser['enabled'] === false
+      || loginUser['password'] !== loginPassword
+    ) {
       writeLog('web', 'warn', 'sign_in_failed', { username: loginUsername });
       sendError(response, 401, 'credentials_invalid', 'The username or password is incorrect.');
 
       return true;
     }
 
-    if (user.totpEnabled) {
+    if (loginUser['totpEnabled'] === true) {
       pendingChallenge = {
         challenge: randomBytes(24).toString('base64url'),
         failures: 0,
-        userId: user.id,
+        userId: loginUser['id'],
       };
       sendJSON(response, 200, {
-        challenge: pendingChallenge.challenge,
+        challenge: pendingChallenge['challenge'],
         expiresAt: new Date(Date.now() + (5 * minute)).toISOString(),
         status: 'second_factor_required',
       });
@@ -4458,16 +4606,21 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    startSession(response, user);
+    startSession(response, loginUser);
 
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/auth/login/second-factor') {
-    const code: string = String(body['code'] ?? '').trim();
-    const challengeUser: MockUser | undefined = (pendingChallenge === null) ? undefined : users.find((candidate: MockUser): boolean => candidate.id === pendingChallenge?.userId);
+    const code: MockApi_HandleRequest_Code = String(body['code'] ?? '').trim();
+    const currentChallenge: MockApi_HandleRequest_CurrentChallenge = pendingChallenge;
+    const challengeUser: MockApi_HandleRequest_ChallengeUser = (currentChallenge === null) ? undefined : users.find((candidate) => candidate['id'] === currentChallenge['userId']);
 
-    if (pendingChallenge === null || body['challenge'] !== pendingChallenge.challenge || challengeUser === undefined) {
+    if (
+      pendingChallenge === null
+      || body['challenge'] !== pendingChallenge['challenge']
+      || challengeUser === undefined
+    ) {
       sendError(response, 401, 'challenge_expired', 'Your sign-in timed out. Enter your password again.');
 
       return true;
@@ -4479,13 +4632,22 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    const isTotpCode: boolean = /^[0-9]{6}$/u.test(code);
-    const recoveryCode: string | undefined = (isTotpCode) ? undefined : challengeUser.recoveryCodes.find((candidate: string): boolean => normalizeCode(candidate) === normalizeCode(code));
+    const isTotpCode: MockApi_HandleRequest_IsTotpCode = new RegExp(totpCodePattern, 'u').test(code);
+    const recoveryCode: MockApi_HandleRequest_RecoveryCode = (isTotpCode === true) ? undefined : challengeUser['recoveryCodes'].find((candidate) => normalizeCode(candidate) === normalizeCode(code));
 
-    if ((isTotpCode && code !== '123456') || (!isTotpCode && recoveryCode === undefined)) {
+    if (
+      (
+        isTotpCode === true
+        && code !== '123456'
+      )
+      || (
+        isTotpCode === false
+        && recoveryCode === undefined
+      )
+    ) {
       pendingChallenge.failures += 1;
 
-      if (pendingChallenge.failures >= 5) {
+      if (pendingChallenge['failures'] >= 5) {
         pendingChallenge = null;
         sendError(response, 401, 'challenge_expired', 'Too many wrong codes. Enter your password again.');
 
@@ -4497,7 +4659,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    challengeUser.recoveryCodes = challengeUser.recoveryCodes.filter((candidate: string): boolean => candidate !== recoveryCode);
+    challengeUser.recoveryCodes = challengeUser['recoveryCodes'].filter((candidate) => candidate !== recoveryCode);
     pendingChallenge = null;
     startSession(response, challengeUser);
 
@@ -4533,7 +4695,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     return true;
   }
 
-  const principal: MockPrincipal | null = principalOf(request);
+  const principal: MockApi_HandleRequest_Principal = principalOf(request);
 
   if (principal === null) {
     sendError(response, 401, 'authentication_required', 'Sign in to continue.');
@@ -4541,10 +4703,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     return true;
   }
 
-  const user: MockUser = principal.user;
-  const isSession: boolean = principal.kind === 'session';
+  const user: MockApi_HandleRequest_User = principal['user'];
+  const isSession: MockApi_HandleRequest_IsSession = principal['kind'] === 'session';
 
-  if (isSession && method !== 'GET' && !csrfValid(request)) {
+  if (
+    isSession === true
+    && method !== 'GET'
+    && csrfValid(request) === false
+  ) {
     sendError(response, 403, 'csrf_invalid', 'The request CSRF token is missing or invalid.');
 
     return true;
@@ -4553,15 +4719,17 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   // requireScope lets a token through only with the scope; sessions pass.
 
   /**
-   * Mock API - Requires scope.
+   * Mock API - Require Scope.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {MockApi_HandleRequest_RequireScope_Returns}
+   *
    * @since 4.0.0
    */
-  const requireScope = (scope: MockScope): boolean => {
-    if (principal.token !== null && !principal.token.scopes.includes(scope)) {
+  const requireScope: MockApi_HandleRequest_RequireScope = (scope: MockApi_HandleRequest_RequireScope_Scope): MockApi_HandleRequest_RequireScope_Returns => {
+    if (principal['token'] !== null && principal['token']['scopes'].includes(scope) === false) {
       sendError(response, 403, 'scope_required', `This token doesn't have the ${scope} scope.`);
 
       return false;
@@ -4571,15 +4739,17 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   };
 
   /**
-   * Mock API - Requires session.
+   * Mock API - Require Session.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {MockApi_HandleRequest_RequireSession_Returns}
+   *
    * @since 4.0.0
    */
-  const requireSession = (): boolean => {
-    if (!isSession) {
+  const requireSession: MockApi_HandleRequest_RequireSession = (): MockApi_HandleRequest_RequireSession_Returns => {
+    if (isSession === false) {
       sendError(response, 403, 'session_required', 'A signed-in browser session is required.');
 
       return false;
@@ -4589,15 +4759,17 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   };
 
   /**
-   * Mock API - Requires permission.
+   * Mock API - Require Permission.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {MockApi_HandleRequest_RequirePermission_Returns}
+   *
    * @since 4.0.0
    */
-  const requirePermission = (permission: MockPermission): boolean => {
-    if (!permissionsOf(user).includes(permission)) {
+  const requirePermission: MockApi_HandleRequest_RequirePermission = (permission: MockApi_HandleRequest_RequirePermission_Permission): MockApi_HandleRequest_RequirePermission_Returns => {
+    if (permissionsOf(user).includes(permission) === false) {
       sendError(response, 403, 'permission_required', permissionMessages[permission]);
 
       return false;
@@ -4607,21 +4779,23 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   };
 
   /**
-   * Mock API - Checks password.
+   * Mock API - Check Password.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {MockApi_HandleRequest_CheckPassword_Returns}
+   *
    * @since 4.0.0
    */
-  const checkPassword = (field: string = 'password'): boolean => {
+  const checkPassword: MockApi_HandleRequest_CheckPassword = (field: MockApi_HandleRequest_CheckPassword_Field = 'password'): MockApi_HandleRequest_CheckPassword_Returns => {
     if (typeof body[field] !== 'string' || body[field] === '') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue(field, (field === 'currentPassword') ? 'Enter your current password.' : 'Enter your password.')]);
 
       return false;
     }
 
-    if (body[field] !== user.password) {
+    if (body[field] !== user['password']) {
       sendIssues(response, 422, 'password_incorrect', [fieldIssue(field, 'That password is incorrect.')]);
 
       return false;
@@ -4631,67 +4805,76 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   };
 
   if (method === 'GET' && path === '/api/v1/auth/me') {
-    sendJSON(response, 200, (principal.token === null) ? {
-      allServers: user.allServers,
+    sendJSON(response, 200, (principal['token'] === null) ? {
+      allServers: user['allServers'],
       authenticationType: 'session',
-      id: user.id,
+      id: user['id'],
       permissions: permissionsOf(user),
-      removedSecrets: removedSecrets.filter((removedSecret): boolean => (removedSecret.kind === 'authenticator') ? removedSecret.userId === user.id : permissionsOf(user).includes('configuration:write')).map(({ userId: _userId, ...removedSecret }) => removedSecret),
-      role: user.role,
-      serverIds: (user.allServers) ? [] : user.serverIds,
-      username: user.username,
+      removedSecrets: removedSecrets.filter((removedSecret) => ((removedSecret['kind'] === 'authenticator') ? removedSecret['userId'] === user['id'] : permissionsOf(user).includes('configuration:write'))).map((removedSecret) => {
+        const visibleSecret: MockApi_HandleRequest_VisibleSecret = { ...removedSecret };
+
+        Reflect.deleteProperty(visibleSecret, 'userId');
+
+        return visibleSecret;
+      }),
+      role: user['role'],
+      serverIds: (user['allServers'] === true) ? [] : user['serverIds'],
+      username: user['username'],
     } : {
       authenticationType: 'token',
-      id: principal.token.id,
-      name: principal.token.name,
-      scopes: principal.token.scopes,
-      username: user.username,
+      id: principal['token']['id'],
+      name: principal['token']['name'],
+      scopes: principal['token']['scopes'],
+      username: user['username'],
     });
 
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/backup/confirmation') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const purpose: unknown = body['purpose'];
+    const purpose: MockApi_HandleRequest_Purpose = body['purpose'];
     if (purpose !== 'export' && purpose !== 'import') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('purpose', 'Choose what you are confirming.')]);
       return true;
     }
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
-    if (user.totpEnabled && body['code'] !== '123456') {
+    if (user['totpEnabled'] === true && body['code'] !== '123456') {
       sendIssues(response, 422, 'identity_not_confirmed', [fieldIssue('code', 'That authenticator code is incorrect. Use 123456 in the mock.')]);
       return true;
     }
-    const sessionId: string = readCookies(request)['dsb_session'] ?? '';
+    const sessionId: MockApi_HandleRequest_SessionId = readCookies(request)['dsb_session'] ?? '';
+
     sendJSON(response, 200, issueBackupGrant(sessionId, purpose));
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/backup/confirmation/passkey/options') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const purpose: unknown = body['purpose'];
+    const purpose: MockApi_HandleRequest_Purpose = body['purpose'];
     if (purpose !== 'export' && purpose !== 'import') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('purpose', 'Choose what you are confirming.')]);
       return true;
     }
-    if ((passkeysByUser.get(user.id) ?? []).length === 0) {
+    if ((passkeysByUser.get(user['id']) ?? []).length === 0) {
       sendError(response, 409, 'passkeys_unavailable', 'Add a passkey first, or use your password.');
       return true;
     }
-    const ceremonyId: string = randomBytes(16).toString('base64url');
-    const sessionId: string = readCookies(request)['dsb_session'] ?? '';
+    const ceremonyId: MockApi_HandleRequest_CeremonyId = randomBytes(16).toString('base64url');
+    const sessionId: MockApi_HandleRequest_SessionId = readCookies(request)['dsb_session'] ?? '';
+
     backupPasskeyCeremonies.set(ceremonyId, {
       expiresAt: Date.now() + (5 * minute),
       purpose,
       sessionId: digest(sessionId),
     });
+
     sendJSON(response, 200, {
       ceremonyId,
       options: {
@@ -4706,61 +4889,66 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/backup/confirmation/passkey/verify') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const ceremonyId: unknown = body['ceremonyId'];
-    const purpose: unknown = body['purpose'];
-    const sessionId: string = readCookies(request)['dsb_session'] ?? '';
-    const binding: MockBackupPasskeyCeremony | undefined = (typeof ceremonyId === 'string') ? backupPasskeyCeremonies.get(ceremonyId) : undefined;
+    const ceremonyId: MockApi_HandleRequest_CeremonyIdInput = body['ceremonyId'];
+    const purpose: MockApi_HandleRequest_Purpose = body['purpose'];
+    const sessionId: MockApi_HandleRequest_SessionId = readCookies(request)['dsb_session'] ?? '';
+    const binding: MockApi_HandleRequest_Binding = (typeof ceremonyId === 'string') ? backupPasskeyCeremonies.get(ceremonyId) : undefined;
     if (
       binding === undefined
-      || binding.expiresAt <= Date.now()
-      || binding.sessionId !== digest(sessionId)
-      || binding.purpose !== purpose
-      || !isRecord(body['credential'])
+      || binding['expiresAt'] <= Date.now()
+      || binding['sessionId'] !== digest(sessionId)
+      || binding['purpose'] !== purpose
+      || isRecord(body['credential']) === false
     ) {
       sendError(response, 409, 'passkey_ceremony_invalid', 'That passkey request expired. Try again.');
       return true;
     }
-    backupPasskeyCeremonies.delete(ceremonyId as string);
-    sendJSON(response, 200, issueBackupGrant(sessionId, binding.purpose));
+    backupPasskeyCeremonies.delete(ceremonyId as MockApi_HandleRequest_CeremonyId);
+
+    sendJSON(response, 200, issueBackupGrant(sessionId, binding['purpose']));
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/backup/export') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const selected: unknown = body['sections'];
-    if (!isRecord(selected) || ![
-      'connection',
-      'features',
-      'notifications',
-      'accessTokens',
-    ].some((key: string): boolean => selected[key] === true)) {
+    const selected: MockApi_HandleRequest_Selected = body['sections'];
+    if (
+      isRecord(selected) === false
+      || [
+        'connection',
+        'features',
+        'notifications',
+        'accessTokens',
+      ].some((key) => selected[key] === true) === false
+    ) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('sections', 'Choose at least one section.')]);
       return true;
     }
-    const sessionId: string = readCookies(request)['dsb_session'] ?? '';
-    if (!consumeBackupGrant(body['grant'], sessionId, 'export')) {
+    const sessionId: MockApi_HandleRequest_SessionId = readCookies(request)['dsb_session'] ?? '';
+    if (consumeBackupGrant(body['grant'], sessionId, 'export') === false) {
       sendError(response, 401, 'backup_confirmation_expired', 'Confirm it\'s you again.');
       return true;
     }
-    const document: MockBackupDocument = createMockBackupDocument(selected, user);
+    const document: MockApi_HandleRequest_Document = createMockBackupDocument(selected, user);
+
     response.writeHead(200, {
       'Cache-Control': 'no-store',
-      'Content-Disposition': `attachment; filename="discord-stonker-bot-export-${document.exportedAt.slice(0, 10)}.json"`,
+      'Content-Disposition': `attachment; filename="discord-stonker-bot-export-${document['exportedAt'].slice(0, 10)}.json"`,
       'Content-Type': 'application/json',
     }).end(JSON.stringify(document));
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/backup/imports/preview') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const source: MockBackupSource | null = parseMockBackupSource(body['source']);
+    const source: MockApi_HandleRequest_Source = parseMockBackupSource(body['source']);
     if (source === null) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('source', 'Choose a valid backup file.')]);
       return true;
@@ -4768,48 +4956,51 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     try {
       sendJSON(response, 200, previewMockBackup(source, user, await loadModules()));
     } catch (error) {
-      const message: string = (error instanceof Error) ? error.message : 'This file is not a supported config.json.';
-      sendError(response, (message.includes('another Discord server')) ? 409 : 422, 'backup_source_invalid', message);
+      const message: MockApi_HandleRequest_Message = (error instanceof Error) ? error.message : 'This file is not a supported config.json.';
+
+      sendError(response, (message.includes('another Discord server') === true) ? 409 : 422, 'backup_source_invalid', message);
     }
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/backup/imports') {
-    if (!requireSession() || !requirePermission('users:manage')) {
+    if (requireSession() === false || requirePermission('users:manage') === false) {
       return true;
     }
-    const source: MockBackupSource | null = parseMockBackupSource(body['source']);
+    const source: MockApi_HandleRequest_Source = parseMockBackupSource(body['source']);
     if (source === null) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('source', 'Choose a valid backup file.')]);
       return true;
     }
-    const sessionId: string = readCookies(request)['dsb_session'] ?? '';
-    if (!consumeBackupGrant(body['grant'], sessionId, 'import')) {
+    const sessionId: MockApi_HandleRequest_SessionId = readCookies(request)['dsb_session'] ?? '';
+    if (consumeBackupGrant(body['grant'], sessionId, 'import') === false) {
       sendError(response, 401, 'backup_confirmation_expired', 'Confirm it\'s you again.');
       return true;
     }
     try {
-      const result: Record<string, unknown> = applyMockBackup(source, user, await loadModules());
+      const result: MockApi_HandleRequest_Result = applyMockBackup(source, user, await loadModules());
+
       writeLog('web', 'info', 'backup_imported', {
         importedSections: result['importedSections'],
-        source: source.type,
-        userId: user.id,
-        username: user.username,
+        source: source['type'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 200, result);
     } catch (error) {
-      const message: string = (error instanceof Error) ? error.message : 'This file could not be imported.';
-      sendError(response, (message.includes('another Discord server')) ? 409 : 422, 'backup_source_invalid', message);
+      const message: MockApi_HandleRequest_Message = (error instanceof Error) ? error.message : 'This file could not be imported.';
+
+      sendError(response, (message.includes('another Discord server') === true) ? 409 : 422, 'backup_source_invalid', message);
     }
     return true;
   }
 
   if (method === 'DELETE' && path === '/api/v1/auth/removed-secrets') {
-    if (!requireSession()) {
+    if (requireSession() === false) {
       return true;
     }
 
-    removedSecrets = removedSecrets.filter((removedSecret): boolean => (removedSecret.kind === 'authenticator') ? removedSecret.userId !== user.id : !permissionsOf(user).includes('configuration:write'));
+    removedSecrets = removedSecrets.filter((removedSecret) => ((removedSecret['kind'] === 'authenticator') ? removedSecret['userId'] !== user['id'] : permissionsOf(user).includes('configuration:write') === false));
     sendEmpty(response);
 
     return true;
@@ -4817,9 +5008,10 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
   if (method === 'POST' && path === '/api/v1/auth/logout') {
     sessions.delete(readCookies(request)['dsb_session'] ?? '');
+
     writeLog('web', 'info', 'sign_out', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
     sendEmpty(response);
 
@@ -4827,22 +5019,22 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   // Bot, servers, features, logs, and the invite page accept tokens with the right scope.
-  const serverMatch: RegExpMatchArray | null = path.match(/^\/api\/v1\/servers\/([^/]+)(\/.*)?$/u);
+  const serverMatch: MockApi_HandleRequest_ServerMatch = path.match(new RegExp(serverPathPattern, 'u'));
 
   if (method === 'GET' && path === '/api/v1/servers') {
-    if (!requireScope('features:read')) {
+    if (requireScope('features:read') === false) {
       return true;
     }
 
     sendJSON(response, 200, {
       items: servers
-        .filter((server: MockServer): boolean => serverVisible(user, server.id))
-        .map((server: MockServer): Record<string, unknown> => ({
-          available: server.available,
-          enabledFeatures: [...statesFor(server.id).values()].filter((state: MockFeatureState): boolean => state.enabled).length,
-          iconUrl: server.iconUrl,
-          id: server.id,
-          name: server.name,
+        .filter((server) => serverVisible(user, server['id']))
+        .map((server) => ({
+          available: server['available'],
+          enabledFeatures: [...statesFor(server['id']).values()].filter((state) => state['enabled']).length,
+          iconUrl: server['iconUrl'],
+          id: server['id'],
+          name: server['name'],
         })),
     });
 
@@ -4850,20 +5042,20 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (serverMatch !== null) {
-    const serverId: string = decodeURIComponent(serverMatch[1] ?? '');
-    const rest: string = serverMatch[2] ?? '';
-    const server: MockServer | undefined = servers.find((candidate: MockServer): boolean => candidate.id === serverId);
+    const serverId: MockApi_HandleRequest_ServerId = decodeURIComponent(serverMatch[1] ?? '');
+    const rest: MockApi_HandleRequest_Rest = serverMatch[2] ?? '';
+    const server: MockApi_HandleRequest_Server = servers.find((candidate) => candidate['id'] === serverId);
 
-    if (server === undefined || !serverVisible(user, serverId)) {
+    if (server === undefined || serverVisible(user, serverId) === false) {
       sendError(response, 404, 'server_not_found', 'That Discord server isn\'t available.');
 
       return true;
     }
 
-    const modules: MockModules = await loadModules();
+    const modules: MockApi_HandleRequest_Modules = await loadModules();
 
     if (method === 'GET' && rest === '/resources') {
-      if (!requireScope('features:read')) {
+      if (requireScope('features:read') === false) {
         return true;
       }
 
@@ -4876,19 +5068,19 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'GET' && rest === '/features') {
-      if (!requireScope('features:read')) {
+      if (requireScope('features:read') === false) {
         return true;
       }
 
-      sendJSON(response, 200, { items: modules.catalog.map((entry: MockCatalogEntry): Record<string, unknown> => featureSummary(entry, serverId)) });
+      sendJSON(response, 200, { items: modules['catalog'].map((entry) => featureSummary(entry, serverId)) });
 
       return true;
     }
 
-    const featureMatch: RegExpMatchArray | null = rest.match(/^\/features\/([^/]+)(\/enabled)?$/u);
+    const featureMatch: MockApi_HandleRequest_FeatureMatch = rest.match(new RegExp(featurePathPattern, 'u'));
 
     if (featureMatch !== null) {
-      const entry: MockCatalogEntry | undefined = modules.catalog.find((candidate: MockCatalogEntry): boolean => candidate.key === decodeURIComponent(featureMatch[1] ?? ''));
+      const entry: MockApi_HandleRequest_Entry = modules['catalog'].find((candidate) => candidate['key'] === decodeURIComponent(featureMatch[1] ?? ''));
 
       if (entry === undefined) {
         sendError(response, 404, 'feature_not_found', 'That feature doesn\'t exist.');
@@ -4896,8 +5088,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         return true;
       }
 
-      const state: MockFeatureState = stateOf(serverId, entry.key);
-      const store: Map<string, string> = secretsFor(serverId);
+      const state: MockApi_HandleRequest_State = stateOf(serverId, entry['key']);
+      const store: MockApi_HandleRequest_Store = secretsFor(serverId);
 
       /**
        * Mock API - Resolve.
@@ -4905,12 +5097,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
        * Centralizes this operation for the surrounding workflow.
        * Callers reuse one implementation instead of repeating the behavior.
        *
+       * @returns {MockApi_HandleRequest_Resolve_Returns}
+       *
        * @since 4.0.0
        */
-      const resolve = (key: string): string | undefined => store.get(key);
+      const resolve: MockApi_HandleRequest_Resolve = (key: MockApi_HandleRequest_Resolve_Key): MockApi_HandleRequest_Resolve_Returns => store.get(key);
 
       if (method === 'GET' && featureMatch[2] === undefined) {
-        if (!requireScope('features:read')) {
+        if (requireScope('features:read') === false) {
           return true;
         }
 
@@ -4920,7 +5114,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       }
 
       if (method === 'PUT' && featureMatch[2] === '/enabled') {
-        if (!requireScope('features:write') || !requirePermission('configuration:write')) {
+        if (requireScope('features:write') === false || requirePermission('configuration:write') === false) {
           return true;
         }
 
@@ -4930,14 +5124,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
           return true;
         }
 
-        if (body['enabled'] && state.configuration === null) {
+        if (body['enabled'] === true && state['configuration'] === null) {
           sendError(response, 409, 'feature_not_configured', 'Set up this feature before turning it on.');
 
           return true;
         }
 
-        if (body['enabled'] && modules.validate !== null) {
-          const issues: MockIssue[] = modules.validate(entry.key, state.configuration, resolve);
+        if (body['enabled'] === true && modules['validate'] !== null) {
+          const issues: MockApi_HandleRequest_Issues = modules.validate(entry['key'], state['configuration'], resolve);
 
           if (issues.length > 0) {
             sendJSON(response, 422, {
@@ -4952,13 +5146,13 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
           }
         }
 
-        if (state.enabled !== body['enabled']) {
+        if (state['enabled'] !== body['enabled']) {
           state.enabled = body['enabled'];
-          writeLog('web', 'info', (state.enabled) ? 'feature_enabled' : 'feature_disabled', {
-            featureKey: entry.key,
+          writeLog('web', 'info', (state['enabled'] === true) ? 'feature_enabled' : 'feature_disabled', {
+            featureKey: entry['key'],
             guildIdentifier: serverId,
-            userId: user.id,
-            username: user.username,
+            userId: user['id'],
+            username: user['username'],
           });
           writeLog('bot', 'info', 'features_reloaded', { guildIdentifier: serverId }, 0);
         }
@@ -4969,45 +5163,48 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       }
 
       if (method === 'PUT' && featureMatch[2] === undefined) {
-        if (!requireScope('features:write') || !requirePermission('configuration:write')) {
+        if (requireScope('features:write') === false || requirePermission('configuration:write') === false) {
           return true;
         }
 
-        const unknownKeys: string[] = Object.keys(body).filter((key: string): boolean => ![
+        const unknownKeys: MockApi_HandleRequest_UnknownKeys = Object.keys(body).filter((key) => [
           'configuration',
           'expectedRevision',
           'secrets',
-        ].includes(key));
+        ].includes(key) === false);
 
         if (unknownKeys.length > 0) {
-          sendIssues(response, 422, 'invalid_request', unknownKeys.map((key: string): MockIssue => fieldIssue(key, 'This field isn\'t accepted.')));
+          sendIssues(response, 422, 'invalid_request', unknownKeys.map((key) => fieldIssue(key, 'This field isn\'t accepted.')));
 
           return true;
         }
 
-        if (body['expectedRevision'] !== state.revision) {
+        if (body['expectedRevision'] !== state['revision']) {
           sendError(response, 409, 'revision_conflict', 'This feature changed since you opened it. Reload to see the latest version.');
 
           return true;
         }
 
-        const configuration: unknown = structuredClone(body['configuration']);
-        const secretValues: Record<string, unknown> = (isRecord(body['secrets'])) ? body['secrets'] : {};
-        const freshSecrets: Map<string, string> = new Map();
-        const issues: MockIssue[] = [];
+        const configuration: MockApi_HandleRequest_Configuration = structuredClone(body['configuration']);
+        const secretValues: MockApi_HandleRequest_SecretValues = (isRecord(body['secrets']) === true) ? body['secrets'] : {};
+        const freshSecrets: MockApi_HandleRequest_FreshSecrets = new Map();
+        const issues: MockApi_HandleRequest_Issues = [];
 
-        for (const [
-          pointer,
-          plaintext,
-        ] of Object.entries(secretValues)) {
-          const node: unknown = readPointer(configuration, pointer);
+        for (const secretValue of Object.entries(secretValues)) {
+          const pointer: MockApi_HandleRequest_Pointer = secretValue[0];
+          const plaintext: MockApi_HandleRequest_Plaintext = secretValue[1];
+          const node: MockApi_HandleRequest_Node = readPointer(configuration, pointer);
 
           // An empty value keeps the secret that is already saved.
           if (plaintext === '') {
             continue;
           }
 
-          if (!isRecord(node) || typeof node['$secret'] !== 'string' || typeof plaintext !== 'string') {
+          if (
+            isRecord(node) === false
+            || typeof node['$secret'] !== 'string'
+            || typeof plaintext !== 'string'
+          ) {
             issues.push({
               field: `secrets.${pointer}`,
               message: 'This isn\'t a secret field.',
@@ -5021,33 +5218,40 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
           }
 
           // A new value always gets a fresh key, so copies never share a secret by accident.
-          const key: string = `${entry.key}.${randomBytes(6).toString('hex')}`;
+          const key: MockApi_HandleRequest_Key = `${entry['key']}.${randomBytes(6).toString('hex')}`;
 
-          node['$secret'] = key;
+          Reflect.set(node, '$secret', key);
+
           freshSecrets.set(key, plaintext);
         }
 
         for (const reference of collectReferences(configuration)) {
-          if (!freshSecrets.has(reference.key) && !store.has(reference.key)) {
+          if (freshSecrets.has(reference['key']) === false && store.has(reference['key']) === false) {
             issues.push({
               field: [
                 'configuration',
-                ...reference.path,
+                ...reference['path'],
               ].join('.'),
               message: 'Enter this secret.',
               path: [
                 'configuration',
-                ...reference.path,
+                ...reference['path'],
               ],
             });
           }
         }
 
-        if (issues.length === 0 && modules.validate !== null) {
-          issues.push(...modules.validate(entry.key, configuration, (key: string): string | undefined => freshSecrets.get(key) ?? store.get(key)));
+        if (issues.length === 0 && modules['validate'] !== null) {
+          issues.push(...modules.validate(entry['key'], configuration, (key) => freshSecrets.get(key) ?? store.get(key)));
         }
 
-        if (issues.length === 0 && (configuration === null || configuration === undefined)) {
+        if (
+          issues.length === 0
+          && (
+            configuration === null
+            || configuration === undefined
+          )
+        ) {
           issues.push(fieldIssue('configuration', 'Add the settings this feature needs.'));
         }
 
@@ -5057,11 +5261,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
           return true;
         }
 
-        for (const [
-          key,
-          value,
-        ] of freshSecrets) {
-          store.set(key, value);
+        for (const freshSecret of freshSecrets) {
+          store.set(freshSecret[0], freshSecret[1]);
         }
 
         state.configuration = configuration;
@@ -5069,27 +5270,28 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         state.updatedAt = nowIso();
 
         // Secrets no feature of this server points at any more are deleted.
-        const referenced: Set<string> = new Set([...statesFor(serverId).values()].flatMap((candidate: MockFeatureState) => collectReferences(candidate.configuration).map((reference: {
-          key: string
-          path: string[]
-        }): string => reference.key)));
+        const referenced: MockApi_HandleRequest_Referenced = new Set([...statesFor(serverId).values()].flatMap((candidate) => collectReferences(candidate['configuration']).map((reference) => reference['key'])));
 
         for (const key of [...store.keys()]) {
-          if (!referenced.has(key)) {
+          if (referenced.has(key) === false) {
             store.delete(key);
           }
         }
 
-        removedSecrets = removedSecrets.filter((removedSecret): boolean => removedSecret.kind !== 'feature-secrets' || removedSecret.serverId !== serverId || removedSecret.featureKey !== entry.key);
+        removedSecrets = removedSecrets.filter((removedSecret) => (
+          removedSecret['kind'] !== 'feature-secrets'
+          || removedSecret['serverId'] !== serverId
+          || removedSecret['featureKey'] !== entry['key']
+        ));
         writeLog('web', 'info', 'feature_saved', {
-          featureKey: entry.key,
+          featureKey: entry['key'],
           guildIdentifier: serverId,
-          revision: state.revision,
-          userId: user.id,
-          username: user.username,
+          revision: state['revision'],
+          userId: user['id'],
+          username: user['username'],
         });
 
-        if (state.enabled) {
+        if (state['enabled'] === true) {
           writeLog('bot', 'info', 'features_reloaded', { guildIdentifier: serverId });
         }
 
@@ -5100,7 +5302,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'GET' && rest === '/invite-page') {
-      if (!requireScope('features:read')) {
+      if (requireScope('features:read') === false) {
         return true;
       }
 
@@ -5110,12 +5312,12 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'PUT' && rest === '/invite-page') {
-      if (!requireScope('features:write') || !requirePermission('configuration:write')) {
+      if (requireScope('features:write') === false || requirePermission('configuration:write') === false) {
         return true;
       }
 
-      const page: MockInvitePage = invitePageFor(server);
-      const issues: MockIssue[] = [];
+      const page: MockApi_HandleRequest_Page = invitePageFor(server);
+      const issues: MockApi_HandleRequest_Issues = [];
 
       /**
        * Mock API - Text.
@@ -5123,10 +5325,12 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
        * Centralizes this operation for the surrounding workflow.
        * Callers reuse one implementation instead of repeating the behavior.
        *
+       * @returns {MockApi_HandleRequest_Text_Returns}
+       *
        * @since 4.0.0
        */
-      const text = (key: string): string => ((typeof body[key] === 'string') ? String(body[key]).trim() : '');
-      const allowed: string[] = [
+      const text: MockApi_HandleRequest_Text = (key: MockApi_HandleRequest_Text_Key): MockApi_HandleRequest_Text_Returns => ((typeof body[key] === 'string') ? String(body[key]).trim() : '');
+      const allowed: MockApi_HandleRequest_Allowed = [
         'accentColor',
         'bannerImageId',
         'buttonLabel',
@@ -5141,11 +5345,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         'title',
       ];
 
-      for (const key of Object.keys(body).filter((candidate: string): boolean => !allowed.includes(candidate))) {
+      for (const key of Object.keys(body).filter((candidate) => allowed.includes(candidate) === false)) {
         issues.push(fieldIssue(key, 'This field isn\'t accepted.'));
       }
 
-      if (!/^#[0-9a-f]{6}$/iu.test(text('accentColor'))) {
+      if (new RegExp(hexColorPattern, 'iu').test(text('accentColor')) === false) {
         issues.push(fieldIssue('accentColor', 'Use a hex color like #6250d9.'));
       }
 
@@ -5169,16 +5373,24 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         issues.push(fieldIssue('footerText', 'Use 500 characters or fewer.'));
       }
 
-      const logo: unknown = body['logo'];
-      const theme: unknown = body['theme'];
-      const logoImageId: string | null = (typeof body['logoImageId'] === 'string') ? body['logoImageId'] : null;
-      const bannerImageId: string | null = (typeof body['bannerImageId'] === 'string') ? body['bannerImageId'] : null;
+      const logo: MockApi_HandleRequest_Logo = body['logo'];
+      const theme: MockApi_HandleRequest_Theme = body['theme'];
+      const logoImageId: MockApi_HandleRequest_LogoImageId = (typeof body['logoImageId'] === 'string') ? body['logoImageId'] : null;
+      const bannerImageId: MockApi_HandleRequest_BannerImageId = (typeof body['bannerImageId'] === 'string') ? body['bannerImageId'] : null;
 
-      if (logo !== 'custom' && logo !== 'none' && logo !== 'server') {
+      if (
+        logo !== 'custom'
+        && logo !== 'none'
+        && logo !== 'server'
+      ) {
         issues.push(fieldIssue('logo', 'Choose the server icon, an uploaded logo, or no logo.'));
       }
 
-      if (theme !== 'dark' && theme !== 'light' && theme !== 'system') {
+      if (
+        theme !== 'dark'
+        && theme !== 'light'
+        && theme !== 'system'
+      ) {
         issues.push(fieldIssue('theme', 'Choose System, Light, or Dark.'));
       }
 
@@ -5186,21 +5398,25 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         issues.push(fieldIssue('logoImageId', 'Upload a logo, or choose another logo option.'));
       }
 
-      for (const [
-        field,
-        imageId,
-      ] of [
-          [
-            'logoImageId',
-            (logo === 'custom') ? logoImageId : null,
-          ],
-          [
-            'bannerImageId',
-            bannerImageId,
-          ],
-        ] as [string, string | null][]) {
-        if (imageId !== null && images.get(imageId)?.serverId !== serverId) {
-          issues.push(fieldIssue(field, 'That image isn\'t available. Upload it again.'));
+      for (const imageCheck of [
+        [
+          'logoImageId',
+          (logo === 'custom') ? logoImageId : null,
+        ],
+        [
+          'bannerImageId',
+          bannerImageId,
+        ],
+      ] as MockApi_HandleRequest_ImageChecks) {
+        const field: MockApi_HandleRequest_Field = imageCheck[0];
+        const imageId: MockApi_HandleRequest_ImageId = imageCheck[1];
+
+        if (imageId !== null) {
+          const image: MockApi_HandleRequest_Image = images.get(imageId);
+
+          if (image === undefined || image['serverId'] !== serverId) {
+            issues.push(fieldIssue(field, 'That image isn\'t available. Upload it again.'));
+          }
         }
       }
 
@@ -5218,7 +5434,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         return true;
       }
 
-      if (body['expectedRevision'] !== page.revision) {
+      if (body['expectedRevision'] !== page['revision']) {
         sendError(response, 409, 'revision_conflict', 'The invite page changed since you opened it. Reload to see the latest version.');
 
         return true;
@@ -5230,19 +5446,20 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         buttonLabel: text('buttonLabel'),
         description: text('description'),
         footerText: text('footerText'),
-        logo: logo as MockInvitePage['logo'],
+        logo: logo as MockApi_HandleRequest_PageLogo,
         logoImageId: (logo === 'custom') ? logoImageId : null,
-        revision: page.revision + 1,
+        revision: page['revision'] + 1,
         showBoostTier: body['showBoostTier'] === true,
         showMemberCount: body['showMemberCount'] === true,
-        theme: theme as MockInvitePage['theme'],
+        theme: theme as MockApi_HandleRequest_PageTheme,
         title: text('title'),
         updatedAt: nowIso(),
       });
+
       writeLog('web', 'info', 'invite_page_saved', {
         guildIdentifier: serverId,
-        userId: user.id,
-        username: user.username,
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 200, designerResponse(server, `http://${request.headers.host ?? 'localhost:5175'}`));
 
@@ -5250,18 +5467,19 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'POST' && rest === '/invite-page/images') {
-      if (!requireScope('features:write') || !requirePermission('configuration:write')) {
+      if (requireScope('features:write') === false || requirePermission('configuration:write') === false) {
         return true;
       }
 
-      const contentType: string = String(request.headers['content-type'] ?? '').split(';')[0]?.trim().toLowerCase() ?? '';
-      const signatures: Record<string, (data: Buffer) => boolean> = {
-        'image/gif': (data: Buffer): boolean => data.subarray(0, 4).toString('latin1') === 'GIF8',
-        'image/jpeg': (data: Buffer): boolean => data.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex')),
-        'image/png': (data: Buffer): boolean => data.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
-        'image/webp': (data: Buffer): boolean => data.subarray(0, 4).toString('latin1') === 'RIFF' && data.subarray(8, 12).toString('latin1') === 'WEBP',
+      const contentTypeHeader: MockApi_HandleRequest_ContentTypeHeader = String(request.headers['content-type'] ?? '').split(';')[0];
+      const contentType: MockApi_HandleRequest_ContentType = (contentTypeHeader !== undefined) ? contentTypeHeader.trim().toLowerCase() : '';
+      const signatures: MockApi_HandleRequest_Signatures = {
+        'image/gif': (data) => data.subarray(0, 4).toString('latin1') === 'GIF8',
+        'image/jpeg': (data) => data.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex')),
+        'image/png': (data) => data.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
+        'image/webp': (data) => data.subarray(0, 4).toString('latin1') === 'RIFF' && data.subarray(8, 12).toString('latin1') === 'WEBP',
       };
-      const signature: ((data: Buffer) => boolean) | undefined = signatures[contentType];
+      const signature: MockApi_HandleRequest_Signature = signatures[contentType];
 
       if (raw.length > 2 * 1024 * 1024) {
         sendError(response, 413, 'payload_too_large', 'Upload an image of 2 MB or less.');
@@ -5269,19 +5487,24 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         return true;
       }
 
-      if (signature === undefined || raw.length === 0 || !signature(raw)) {
+      if (
+        signature === undefined
+        || raw.length === 0
+        || signature(raw) === false
+      ) {
         sendError(response, 415, 'unsupported_image', 'Upload a PNG, JPEG, WebP, or GIF image.');
 
         return true;
       }
 
-      const imageId: string = randomUUID();
+      const imageId: MockApi_HandleRequest_NewImageId = randomUUID();
 
       images.set(imageId, {
         contentType,
         data: raw,
         serverId,
       });
+
       sendJSON(response, 201, {
         id: imageId,
         url: `/media/${imageId}`,
@@ -5296,7 +5519,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'GET' && path === '/api/v1/bot') {
-    if (!requireScope('bot:control')) {
+    if (requireScope('bot:control') === false) {
       return true;
     }
 
@@ -5306,19 +5529,23 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/bot/actions') {
-    if (!requireScope('bot:control') || !requirePermission('bot:control')) {
+    if (requireScope('bot:control') === false || requirePermission('bot:control') === false) {
       return true;
     }
 
-    const action: unknown = body['action'];
+    const action: MockApi_HandleRequest_Action = body['action'];
 
-    if (action !== 'restart' && action !== 'start' && action !== 'stop') {
+    if (
+      action !== 'restart'
+      && action !== 'start'
+      && action !== 'stop'
+    ) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('action', 'Choose start, stop, or restart.')]);
 
       return true;
     }
 
-    if (action !== 'stop' && !bot.tokenConfigured) {
+    if (action !== 'stop' && bot['tokenConfigured'] === false) {
       sendError(response, 409, 'bot_token_required', 'Add the Discord bot token before starting the bot.');
 
       return true;
@@ -5326,8 +5553,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     writeLog('web', 'info', 'bot_action_requested', {
       action,
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
 
     if (action === 'stop') {
@@ -5340,17 +5567,17 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       writeLog('bot', 'info', 'gateway_connecting', { shard: 0 });
     }
 
-    sendJSON(response, 202, { desiredState: bot.desiredState });
+    sendJSON(response, 202, { desiredState: bot['desiredState'] });
 
     return true;
   }
 
   if (method === 'PUT' && path === '/api/v1/bot/token') {
-    if (!requireSession() || !requirePermission('configuration:write')) {
+    if (requireSession() === false || requirePermission('configuration:write') === false) {
       return true;
     }
 
-    const token: string = (typeof body['token'] === 'string') ? body['token'].trim() : '';
+    const token: MockApi_HandleRequest_Token = (typeof body['token'] === 'string') ? body['token'].trim() : '';
 
     if (token === '') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('token', 'Enter the bot token.')]);
@@ -5366,67 +5593,94 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     bot.tokenConfigured = true;
     bot.resolution = null;
-    removedSecrets = removedSecrets.filter((removedSecret): boolean => removedSecret.kind !== 'bot-token');
+    removedSecrets = removedSecrets.filter((removedSecret) => removedSecret['kind'] !== 'bot-token');
     writeLog('web', 'info', 'bot_token_saved', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
     sendEmpty(response);
 
     return true;
   }
 
-  if (method === 'GET' && (path === '/api/v1/logs' || path === '/api/v1/logs/stream')) {
-    if (!requireScope('logs:read')) {
+  if (
+    method === 'GET'
+    && (
+      path === '/api/v1/logs'
+      || path === '/api/v1/logs/stream'
+    )
+  ) {
+    if (requireScope('logs:read') === false) {
       return true;
     }
 
-    const component: string = url.searchParams.get('component') ?? 'bot';
-    const minimumLevel: MockLevel = (levelOrder.includes(url.searchParams.get('level') as MockLevel)) ? url.searchParams.get('level') as MockLevel : 'debug';
-    const search: string = (url.searchParams.get('q') ?? '').trim();
-    const after: string | null = url.searchParams.get('after');
-    const matching: MockLogEntry[] = logs.filter((entry: MockLogEntry): boolean => matchesLogFilters(entry, component, minimumLevel, search));
+    const component: MockApi_HandleRequest_Component = url.searchParams.get('component') ?? 'bot';
+    const minimumLevel: MockApi_HandleRequest_MinimumLevel = (levelOrder.includes(url.searchParams.get('level') as MockApi_HandleRequest_LevelParam) === true) ? url.searchParams.get('level') as MockApi_HandleRequest_LevelParam : 'debug';
+    const search: MockApi_HandleRequest_Search = (url.searchParams.get('q') ?? '').trim();
+    const after: MockApi_HandleRequest_After = url.searchParams.get('after');
+    const matching: MockApi_HandleRequest_Matching = logs.filter((entry) => matchesLogFilters(entry, component, minimumLevel, search));
 
     if (path === '/api/v1/logs') {
-      const items: MockLogEntry[] = (after === null) ? matching.slice(-200) : matching.filter((entry: MockLogEntry): boolean => Number(entry.id) > Number(after)).slice(0, 200);
+      const items: MockApi_HandleRequest_Items = (after === null) ? matching.slice(-200) : matching.filter((entry) => Number(entry['id']) > Number(after)).slice(0, 200);
+      const lastItem: MockApi_HandleRequest_LastItem = items.at(-1);
 
       sendJSON(response, 200, {
-        cursor: items.at(-1)?.id ?? after,
+        cursor: (lastItem !== undefined) ? lastItem['id'] : after,
         items,
       });
 
       return true;
     }
 
-    let cursor: number = Number(request.headers['last-event-id'] ?? after ?? (matching.at(-1)?.id ?? '0'));
+    const lastMatching: MockApi_HandleRequest_LastMatching = matching.at(-1);
+    const lastMatchingId: MockApi_HandleRequest_LastMatchingId = (lastMatching !== undefined) ? lastMatching['id'] : '0';
+    const cursorStart: MockApi_HandleRequest_CursorStart = (
+      request.headers['last-event-id']
+      ?? after
+      ?? lastMatchingId
+    );
+    let cursor: MockApi_HandleRequest_Cursor = Number(cursorStart);
 
     response.writeHead(200, {
       'Cache-Control': 'no-store',
       'Connection': 'keep-alive',
       'Content-Type': 'text/event-stream; charset=utf-8',
     });
+
     response.write('retry: 3000\n\n');
 
-    const poll: NodeJS.Timeout = setInterval((): void => {
-      for (const entry of logs.filter((candidate: MockLogEntry): boolean => Number(candidate.id) > cursor && matchesLogFilters(candidate, component, minimumLevel, search))) {
-        response.write(`id: ${entry.id}\nevent: log\ndata: ${JSON.stringify(entry)}\n\n`);
-        cursor = Number(entry.id);
+    const poll: MockApi_HandleRequest_Poll = setInterval(() => {
+      for (const entry of logs.filter((candidate) => Number(candidate['id']) > cursor && matchesLogFilters(candidate, component, minimumLevel, search))) {
+        response.write([
+          `id: ${entry['id']}`,
+          'event: log',
+          `data: ${JSON.stringify(entry)}`,
+          '',
+          '',
+        ].join('\n'));
+        cursor = Number(entry['id']);
       }
+
+      return;
     }, 1_000);
-    const keepAlive: NodeJS.Timeout = setInterval((): void => {
+    const keepAlive: MockApi_HandleRequest_KeepAlive = setInterval(() => {
       response.write(': keep-alive\n\n');
+
+      return;
     }, 15_000);
 
-    request.on('close', (): void => {
+    request.on('close', () => {
       clearInterval(poll);
       clearInterval(keepAlive);
+
+      return;
     });
 
     return true;
   }
 
   if (method === 'GET' && path === '/api/v1/diagnostics') {
-    if (!requireScope('logs:read')) {
+    if (requireScope('logs:read') === false) {
       return true;
     }
 
@@ -5436,11 +5690,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'PUT' && path === '/api/v1/diagnostics') {
-    if (!requireSession() || !requirePermission('bot:control')) {
+    if (requireSession() === false || requirePermission('bot:control') === false) {
       return true;
     }
 
-    const requested: unknown = body['debugLogging'];
+    const requested: MockApi_HandleRequest_Requested = body['debugLogging'];
 
     if (typeof requested !== 'boolean' || Object.keys(body).length !== 1) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('debugLogging', 'Choose on or off.')]);
@@ -5452,12 +5706,12 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       debugLogging = requested;
 
       // The control panel changes at once, and the bot and the worker follow on their next check.
-      writeLog('web', 'info', (requested) ? 'debug_logging_on' : 'debug_logging_off', {
-        userId: user.id,
-        username: user.username,
+      writeLog('web', 'info', (requested === true) ? 'debug_logging_on' : 'debug_logging_off', {
+        userId: user['id'],
+        username: user['username'],
       });
-      writeLog('bot', 'info', (requested) ? 'debug_logging_on' : 'debug_logging_off');
-      writeLog('worker', 'info', (requested) ? 'debug_logging_on' : 'debug_logging_off');
+      writeLog('bot', 'info', (requested === true) ? 'debug_logging_on' : 'debug_logging_off');
+      writeLog('worker', 'info', (requested === true) ? 'debug_logging_on' : 'debug_logging_off');
     }
 
     sendJSON(response, 200, { debugLogging });
@@ -5466,26 +5720,26 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   // Everything below works only from a signed-in browser.
-  if (!requireSession()) {
+  if (requireSession() === false) {
     return true;
   }
 
   if (method === 'GET' && path === '/api/v1/auth/security') {
     sendJSON(response, 200, {
       hostname: url.hostname,
-      passkeys: passkeysByUser.get(user.id) ?? [],
+      passkeys: passkeysByUser.get(user['id']) ?? [],
       passkeysAvailable: true,
-      recoveryCodesRemaining: user.recoveryCodes.length,
-      role: user.role,
-      totpEnabled: user.totpEnabled,
-      username: user.username,
+      recoveryCodesRemaining: user['recoveryCodes'].length,
+      role: user['role'],
+      totpEnabled: user['totpEnabled'],
+      username: user['username'],
     });
 
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/auth/password') {
-    if (!checkPassword('currentPassword')) {
+    if (checkPassword('currentPassword') === false) {
       return true;
     }
 
@@ -5497,8 +5751,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     user.password = String(body['newPassword']);
     writeLog('web', 'info', 'password_changed', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
     sendEmpty(response);
 
@@ -5506,8 +5760,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/username') {
-    const nextUsername: string = String(body['username'] ?? '').trim();
-    const nextUsernameIssue: string = usernameIssue(nextUsername);
+    const nextUsername: MockApi_HandleRequest_NextUsername = String(body['username'] ?? '').trim();
+    const nextUsernameIssue: MockApi_HandleRequest_NextUsernameIssue = usernameIssue(nextUsername);
 
     if (nextUsernameIssue !== '') {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('username', nextUsernameIssue)]);
@@ -5515,11 +5769,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    if (users.some((candidate: MockUser): boolean => candidate.id !== user.id && candidate.username.toLowerCase() === nextUsername.toLowerCase())) {
+    if (users.some((candidate) => candidate['id'] !== user['id'] && candidate['username'].toLowerCase() === nextUsername.toLowerCase()) === true) {
       sendIssues(response, 409, 'username_taken', [fieldIssue('username', 'That username is already in use.')]);
 
       return true;
@@ -5527,14 +5781,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     user.username = nextUsername;
     writeLog('web', 'info', 'username_changed', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
     sendJSON(response, 200, {
       user: {
-        id: user.id,
-        role: user.role,
-        username: user.username,
+        id: user['id'],
+        role: user['role'],
+        username: user['username'],
       },
     });
 
@@ -5542,11 +5796,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/totp/setup') {
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    if (user.totpEnabled) {
+    if (user['totpEnabled'] === true) {
       sendError(response, 409, 'totp_enabled', 'The authenticator app is already on.');
 
       return true;
@@ -5554,12 +5808,12 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     // A new random secret with the same URI and QR code options as the real server, so the code
     // scans. The mock still accepts 123456 as the code.
-    const totpSecret: Secret = new Secret({ size: 20 });
-    const totpUri: string = new TOTP({
+    const totpSecret: MockApi_HandleRequest_TotpSecret = new Secret({ size: 20 });
+    const totpUri: MockApi_HandleRequest_TotpUri = new TOTP({
       algorithm: 'SHA1',
       digits: 6,
       issuer: 'Stonker Bot for Discord',
-      label: user.username,
+      label: user['username'],
       period: 30,
       secret: totpSecret,
     }).toString();
@@ -5580,7 +5834,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/totp/enable') {
-    if (!user.totpPending) {
+    if (user['totpPending'] === false) {
       sendError(response, 409, 'totp_setup_expired', 'Authenticator setup expired. Start again.');
 
       return true;
@@ -5595,22 +5849,22 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     user.totpEnabled = true;
     user.totpPending = false;
     user.recoveryCodes = newRecoveryCodes();
-    removedSecrets = removedSecrets.filter((removedSecret): boolean => removedSecret.kind !== 'authenticator' || removedSecret.userId !== user.id);
+    removedSecrets = removedSecrets.filter((removedSecret) => removedSecret['kind'] !== 'authenticator' || removedSecret['userId'] !== user['id']);
     writeLog('web', 'info', 'totp_enabled', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
-    sendJSON(response, 200, { recoveryCodes: user.recoveryCodes });
+    sendJSON(response, 200, { recoveryCodes: user['recoveryCodes'] });
 
     return true;
   }
 
   if (method === 'POST' && path === '/api/v1/auth/totp/disable') {
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    if (!user.totpEnabled) {
+    if (user['totpEnabled'] === false) {
       sendError(response, 409, 'totp_disabled', 'The authenticator app is already off.');
 
       return true;
@@ -5619,8 +5873,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     user.totpEnabled = false;
     user.recoveryCodes = [];
     writeLog('web', 'info', 'totp_disabled', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
     sendEmpty(response);
 
@@ -5628,11 +5882,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/recovery-codes') {
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    if (!user.totpEnabled) {
+    if (user['totpEnabled'] === false) {
       sendError(response, 409, 'totp_disabled', 'Turn on the authenticator app first.');
 
       return true;
@@ -5640,17 +5894,17 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     user.recoveryCodes = newRecoveryCodes();
     writeLog('web', 'info', 'recovery_codes_replaced', {
-      userId: user.id,
-      username: user.username,
+      userId: user['id'],
+      username: user['username'],
     });
-    sendJSON(response, 200, { recoveryCodes: user.recoveryCodes });
+    sendJSON(response, 200, { recoveryCodes: user['recoveryCodes'] });
 
     return true;
   }
 
   // Adding a passkey runs the browser's real prompt; the mock saves whatever answer comes back.
   if (method === 'POST' && path === '/api/v1/auth/passkeys/register/options') {
-    const passkeyName: string = (typeof body['name'] === 'string') ? body['name'].trim() : '';
+    const passkeyName: MockApi_HandleRequest_PasskeyName = (typeof body['name'] === 'string') ? body['name'].trim() : '';
 
     if (passkeyName === '' || [...passkeyName].length > 80) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('name', (passkeyName === '') ? 'Name this passkey.' : 'Use 80 characters or fewer.')]);
@@ -5658,13 +5912,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    const ceremonyId: string = randomBytes(16).toString('base64url');
+    const ceremonyId: MockApi_HandleRequest_CeremonyId = randomBytes(16).toString('base64url');
 
     passkeyCeremonies.set(ceremonyId, passkeyName);
+
     sendJSON(response, 200, {
       ceremonyId,
       options: {
@@ -5691,9 +5946,9 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         },
         timeout: 300000,
         user: {
-          displayName: user.username,
-          id: Buffer.from(user.id).toString('base64url'),
-          name: user.username,
+          displayName: user['username'],
+          id: Buffer.from(user['id']).toString('base64url'),
+          name: user['username'],
         },
       },
     });
@@ -5702,8 +5957,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'POST' && path === '/api/v1/auth/passkeys/register/verify') {
-    const ceremonyId: string = (typeof body['ceremonyId'] === 'string') ? body['ceremonyId'] : '';
-    const passkeyName: string | undefined = passkeyCeremonies.get(ceremonyId);
+    const ceremonyId: MockApi_HandleRequest_CeremonyId = (typeof body['ceremonyId'] === 'string') ? body['ceremonyId'] : '';
+    const passkeyName: MockApi_HandleRequest_PendingPasskeyName = passkeyCeremonies.get(ceremonyId);
 
     if (passkeyName === undefined) {
       sendError(response, 409, 'passkey_ceremony_invalid', 'That passkey request expired. Try again.');
@@ -5711,7 +5966,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    const passkey: MockPasskey = {
+    const passkey: MockApi_HandleRequest_Passkey = {
       createdAt: new Date().toISOString(),
       hostname: url.hostname,
       id: `pk-${randomBytes(12).toString('base64url')}`,
@@ -5720,37 +5975,40 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     };
 
     passkeyCeremonies.delete(ceremonyId);
-    passkeysByUser.set(user.id, [
-      ...(passkeysByUser.get(user.id) ?? []),
+
+    passkeysByUser.set(user['id'], [
+      ...(passkeysByUser.get(user['id']) ?? []),
       passkey,
     ]);
+
     sendJSON(response, 201, passkey);
 
     return true;
   }
 
-  if (method === 'DELETE' && path.startsWith('/api/v1/auth/passkeys/')) {
-    const passkeyId: string = decodeURIComponent(path.slice('/api/v1/auth/passkeys/'.length));
-    const saved: MockPasskey[] = passkeysByUser.get(user.id) ?? [];
+  if (method === 'DELETE' && path.startsWith('/api/v1/auth/passkeys/') === true) {
+    const passkeyId: MockApi_HandleRequest_PasskeyId = decodeURIComponent(path.slice('/api/v1/auth/passkeys/'.length));
+    const saved: MockApi_HandleRequest_Saved = passkeysByUser.get(user['id']) ?? [];
 
-    if (!saved.some((passkey: MockPasskey): boolean => passkey.id === passkeyId)) {
+    if (saved.some((passkey) => passkey['id'] === passkeyId) === false) {
       sendError(response, 404, 'passkey_not_found', 'That passkey no longer exists.');
 
       return true;
     }
 
-    if (!checkPassword()) {
+    if (checkPassword() === false) {
       return true;
     }
 
-    passkeysByUser.set(user.id, saved.filter((passkey: MockPasskey): boolean => passkey.id !== passkeyId));
+    passkeysByUser.set(user['id'], saved.filter((passkey) => passkey['id'] !== passkeyId));
+
     sendEmpty(response);
 
     return true;
   }
 
   if (method === 'GET' && path === '/api/v1/notifications/events') {
-    if (!requireSession() || !requirePermission('configuration:write')) {
+    if (requireSession() === false || requirePermission('configuration:write') === false) {
       return true;
     }
 
@@ -5760,11 +6018,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   }
 
   if (method === 'GET' && path === '/api/v1/notifications') {
-    if (!requireSession() || !requirePermission('configuration:write')) {
+    if (requireSession() === false || requirePermission('configuration:write') === false) {
       return true;
     }
 
-    sendJSON(response, 200, { items: [...notifications].sort((left: MockNotification, right: MockNotification): number => right.createdAt.localeCompare(left.createdAt)) });
+    sendJSON(response, 200, { items: [...notifications].sort((left, right) => right['createdAt'].localeCompare(left['createdAt'])) });
 
     return true;
   }
@@ -5772,18 +6030,20 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   // notificationInput checks a create or edit body like the server, sending the first problem.
 
   /**
-   * Mock API - Notification input.
+   * Mock API - Notification Input.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {MockApi_HandleRequest_NotificationInput_Returns}
+   *
    * @since 4.0.0
    */
-  const notificationInput = (existing: MockNotification | null): MockNotificationInput | null => {
-    const service: MockNotificationService = existing?.service ?? body['service'] as MockNotificationService;
-    const name: string = (typeof body['name'] === 'string') ? body['name'].trim() : '';
-    const events: string[] = (Array.isArray(body['events'])) ? body['events'] as string[] : [];
-    const values: Record<string, unknown> = (typeof body['settings'] === 'object' && body['settings'] !== null) ? body['settings'] as Record<string, unknown> : {};
+  const notificationInput: MockApi_HandleRequest_NotificationInput = (existing: MockApi_HandleRequest_NotificationInput_Existing): MockApi_HandleRequest_NotificationInput_Returns => {
+    const service: MockApi_HandleRequest_NotificationInput_Service = (existing !== null) ? existing['service'] : body['service'] as MockApi_HandleRequest_NotificationInput_Service;
+    const name: MockApi_HandleRequest_NotificationInput_Name = (typeof body['name'] === 'string') ? body['name'].trim() : '';
+    const events: MockApi_HandleRequest_NotificationInput_Events = (Array.isArray(body['events']) === true) ? body['events'] as MockApi_HandleRequest_NotificationInput_Events : [];
+    const values: MockApi_HandleRequest_NotificationInput_Values = (typeof body['settings'] === 'object' && body['settings'] !== null) ? body['settings'] as MockApi_HandleRequest_NotificationInput_Values : {};
 
     if (notificationFields[service] === undefined) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('service', 'Choose a service.')]);
@@ -5803,39 +6063,54 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return null;
     }
 
-    const settings: Record<string, string> = {};
-    const secrets: Record<string, true> = { ...(existing?.secrets ?? {}) };
+    const settings: MockApi_HandleRequest_NotificationInput_Settings = {};
+    const secrets: MockApi_HandleRequest_NotificationInput_Secrets = { ...((existing !== null) ? existing['secrets'] : {}) };
 
-    for (const [
-      key,
-      missing,
-      secret,
-      required,
-    ] of notificationFields[service]) {
-      const value: string = (typeof values[key] === 'string') ? (values[key]).trim() : '';
-      const saved: boolean = secret && existing !== null && existing.secrets[key] === true;
+    for (const notificationField of notificationFields[service]) {
+      const key: MockApi_HandleRequest_NotificationInput_Key = notificationField[0];
+      const missing: MockApi_HandleRequest_NotificationInput_Missing = notificationField[1];
+      const secret: MockApi_HandleRequest_NotificationInput_Secret = notificationField[2];
+      const required: MockApi_HandleRequest_NotificationInput_Required = notificationField[3];
+      const value: MockApi_HandleRequest_NotificationInput_Value = (typeof values[key] === 'string') ? (values[key]).trim() : '';
+      const saved: MockApi_HandleRequest_NotificationInput_Saved = (
+        secret === true
+        && existing !== null
+        && existing['secrets'][key] === true
+      );
 
-      if (value === '' && required && !saved) {
+      if (
+        value === ''
+        && required === true
+        && saved === false
+      ) {
         sendIssues(response, 422, 'invalid_request', [fieldIssue(`settings.${key}`, missing)]);
 
         return null;
       }
 
-      if (value !== '' && secret) {
-        secrets[key] = true;
+      if (value !== '' && secret === true) {
+        Reflect.set(secrets, key, true);
       } else if (value !== '') {
-        settings[key] = value;
+        Reflect.set(settings, key, value);
       }
     }
 
     // Optional secrets that are saved, or missing after a lost key, can be cleared once each, never alongside a new value.
-    const clearable: string[] = notificationFields[service]
-      .filter((field: MockNotificationField): boolean => field[2] && !field[3] && existing !== null && (existing.secrets[field[0]] === true || existing.secretsMissing.includes(field[0])))
-      .map((field: MockNotificationField): string => field[0]);
-    const clearSecrets: unknown[] = (Array.isArray(body['clearSecrets'])) ? body['clearSecrets'] : [];
-    const invalidIndex: number = clearSecrets.findIndex((key: unknown): boolean => typeof key !== 'string' || !clearable.includes(key));
+    const clearable: MockApi_HandleRequest_NotificationInput_Clearable = notificationFields[service]
+      .filter((field) => (
+        field[2] === true
+        && field[3] === false
+        && existing !== null
+        && (
+          existing['secrets'][field[0]] === true
+          || existing['secretsMissing'].includes(field[0])
+        )
+      ))
+      .map((field) => field[0]);
+    const clearSecrets: MockApi_HandleRequest_NotificationInput_ClearSecrets = (Array.isArray(body['clearSecrets']) === true) ? body['clearSecrets'] : [];
+    const invalidIndex: MockApi_HandleRequest_NotificationInput_InvalidIndex = clearSecrets.findIndex((key) => typeof key !== 'string' || clearable.includes(key) === false);
 
-    if (body['clearSecrets'] !== undefined && !Array.isArray(body['clearSecrets'])) {
+    if (body['clearSecrets'] !== undefined && Array.isArray(body['clearSecrets']) === false) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('clearSecrets', 'Choose an optional saved secret.')]);
 
       return null;
@@ -5853,7 +6128,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return null;
     }
 
-    const replaced: string | undefined = (clearSecrets as string[]).find((key: string): boolean => typeof values[key] === 'string' && (values[key]).trim() !== '');
+    const replaced: MockApi_HandleRequest_NotificationInput_Replaced = (clearSecrets as MockApi_HandleRequest_NotificationInput_ClearSecretKeys).find((key) => typeof values[key] === 'string' && (values[key]).trim() !== '');
 
     if (replaced !== undefined) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue(`settings.${replaced}`, 'Enter a new value or clear this field, not both.')]);
@@ -5861,18 +6136,20 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return null;
     }
 
-    for (const key of clearSecrets as string[]) {
+    for (const key of clearSecrets as MockApi_HandleRequest_NotificationInput_ClearSecretKeys) {
       Reflect.deleteProperty(secrets, key);
     }
 
-    if (notifications.some((notification: MockNotification): boolean => notification.id !== existing?.id && notification.name.toLowerCase() === name.toLowerCase())) {
+    const existingId: MockApi_HandleRequest_NotificationInput_ExistingId = (existing !== null) ? existing['id'] : undefined;
+
+    if (notifications.some((notification) => notification['id'] !== existingId && notification['name'].toLowerCase() === name.toLowerCase()) === true) {
       sendIssues(response, 409, 'notification_exists', [fieldIssue('name', 'A notification with this name already exists.')]);
 
       return null;
     }
 
     return {
-      clearSecrets: clearSecrets as string[],
+      clearSecrets: clearSecrets as MockApi_HandleRequest_NotificationInput_ClearSecretKeys,
       events,
       name,
       secrets,
@@ -5882,22 +6159,22 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   };
 
   if (method === 'POST' && path === '/api/v1/notifications') {
-    if (!requireSession() || !requirePermission('configuration:write')) {
+    if (requireSession() === false || requirePermission('configuration:write') === false) {
       return true;
     }
 
-    const input: MockNotificationInput | null = notificationInput(null);
+    const input: MockApi_HandleRequest_NotificationInputValue = notificationInput(null);
 
     if (input === null) {
       return true;
     }
 
-    const notification: MockNotification = {
-      events: input.events,
-      name: input.name,
-      secrets: input.secrets,
-      service: input.service,
-      settings: input.settings,
+    const notification: MockApi_HandleRequest_Notification = {
+      events: input['events'],
+      name: input['name'],
+      secrets: input['secrets'],
+      service: input['service'],
+      settings: input['settings'],
       createdAt: new Date().toISOString(),
       id: `ntf-${randomBytes(8).toString('hex')}`,
       lastAttemptAt: null,
@@ -5907,27 +6184,28 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     };
 
     notifications.push(notification);
+
     writeLog('web', 'info', 'notification_created', {
-      notificationId: notification.id,
-      notificationName: notification.name,
-      service: notification.service,
-      userId: user.id,
-      username: user.username,
+      notificationId: notification['id'],
+      notificationName: notification['name'],
+      service: notification['service'],
+      userId: user['id'],
+      username: user['username'],
     });
     sendJSON(response, 201, notification);
 
     return true;
   }
 
-  const notificationMatch: RegExpMatchArray | null = path.match(/^\/api\/v1\/notifications\/(ntf-[0-9a-f]{16})(\/test)?$/u);
+  const notificationMatch: MockApi_HandleRequest_NotificationMatch = path.match(new RegExp(notificationPathPattern, 'u'));
 
   if (notificationMatch !== null) {
-    if (!requireSession() || !requirePermission('configuration:write')) {
+    if (requireSession() === false || requirePermission('configuration:write') === false) {
       return true;
     }
 
-    const index: number = notifications.findIndex((notification: MockNotification): boolean => notification.id === notificationMatch[1]);
-    const notification: MockNotification | undefined = notifications[index];
+    const index: MockApi_HandleRequest_Index = notifications.findIndex((notification) => notification['id'] === notificationMatch[1]);
+    const notification: MockApi_HandleRequest_FoundNotification = notifications[index];
 
     if (notification === undefined) {
       sendError(response, 404, 'notification_not_found', 'That notification no longer exists.');
@@ -5936,7 +6214,7 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'POST' && notificationMatch[2] === '/test') {
-      if (notification.secretsMissing.length > 0) {
+      if (notification['secretsMissing'].length > 0) {
         sendJSON(response, 200, {
           delivered: false,
           message: 'Enter the removed secrets again first.',
@@ -5954,12 +6232,12 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     if (method === 'DELETE') {
       notifications.splice(index, 1);
-      removedSecrets = removedSecrets.filter((removedSecret): boolean => removedSecret.notificationId !== notification.id);
+      removedSecrets = removedSecrets.filter((removedSecret) => removedSecret['notificationId'] !== notification['id']);
       writeLog('web', 'info', 'notification_removed', {
-        notificationId: notification.id,
-        notificationName: notification.name,
-        userId: user.id,
-        username: user.username,
+        notificationId: notification['id'],
+        notificationName: notification['name'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendEmpty(response);
 
@@ -5967,29 +6245,30 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'PUT') {
-      const input: MockNotificationInput | null = notificationInput(notification);
+      const input: MockApi_HandleRequest_NotificationInputValue = notificationInput(notification);
 
       if (input === null) {
         return true;
       }
 
-      notification.events = input.events;
-      notification.name = input.name;
-      notification.secrets = input.secrets;
+      notification.events = input['events'];
+      notification.name = input['name'];
+      notification.secrets = input['secrets'];
+
       // A missing secret is settled by entering it again or, when optional, by clearing it.
-      notification.secretsMissing = notification.secretsMissing.filter((key: string): boolean => input.secrets[key] !== true && !input.clearSecrets.includes(key));
-      notification.settings = input.settings;
+      notification.secretsMissing = notification['secretsMissing'].filter((key) => input['secrets'][key] !== true && input['clearSecrets'].includes(key) === false);
+      notification.settings = input['settings'];
       notification.updatedAt = new Date().toISOString();
 
-      if (notification.secretsMissing.length === 0) {
-        removedSecrets = removedSecrets.filter((removedSecret): boolean => removedSecret.notificationId !== notification.id);
+      if (notification['secretsMissing'].length === 0) {
+        removedSecrets = removedSecrets.filter((removedSecret) => removedSecret['notificationId'] !== notification['id']);
       }
 
       writeLog('web', 'info', 'notification_updated', {
-        notificationId: notification.id,
-        notificationName: notification.name,
-        userId: user.id,
-        username: user.username,
+        notificationId: notification['id'],
+        notificationName: notification['name'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 200, notification);
 
@@ -6000,8 +6279,8 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   if (method === 'GET' && path === '/api/v1/auth/tokens') {
     sendJSON(response, 200, {
       items: tokens
-        .filter((token: MockToken): boolean => token.userId === user.id)
-        .sort((left: MockToken, right: MockToken): number => right.createdAt.localeCompare(left.createdAt))
+        .filter((token) => token['userId'] === user['id'])
+        .sort((left, right) => right['createdAt'].localeCompare(left['createdAt']))
         .map(tokenResource),
     });
 
@@ -6011,20 +6290,19 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
   // tokenInput reads and checks a create or edit body, sending the first problem it finds.
 
   /**
-   * Mock API - Token input.
+   * Mock API - Token Input.
    *
    * Stores this module-level value in one named location.
    * Related code reuses it instead of duplicating the definition.
    *
+   * @returns {MockApi_HandleRequest_TokenInput_Returns}
+   *
    * @since 4.0.0
    */
-  const tokenInput = (exceptId: string): {
-    name: string
-    scopes: MockScope[]
-  } | null => {
-    const name: string = (typeof body['name'] === 'string') ? body['name'].trim() : '';
-    const scopes: MockScope[] = (Array.isArray(body['scopes'])) ? body['scopes'] as MockScope[] : [];
-    const grantable: MockScope[] = (user.role === 'viewer') ? [
+  const tokenInput: MockApi_HandleRequest_TokenInput = (exceptId: MockApi_HandleRequest_TokenInput_ExceptId): MockApi_HandleRequest_TokenInput_Returns => {
+    const name: MockApi_HandleRequest_TokenInput_Name = (typeof body['name'] === 'string') ? body['name'].trim() : '';
+    const scopes: MockApi_HandleRequest_TokenInput_Scopes = (Array.isArray(body['scopes']) === true) ? body['scopes'] as MockApi_HandleRequest_TokenInput_Scopes : [];
+    const grantable: MockApi_HandleRequest_TokenInput_Grantable = (user['role'] === 'viewer') ? [
       'features:read',
       'logs:read',
     ] : scopeOrder;
@@ -6047,13 +6325,13 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return null;
     }
 
-    if (scopes.some((scope: MockScope): boolean => !scopeOrder.includes(scope))) {
+    if (scopes.some((scope) => scopeOrder.includes(scope) === false) === true) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('scopes', `Choose from: ${scopeOrder.join(', ')}.`)]);
 
       return null;
     }
 
-    const ungrantable: MockScope | undefined = scopes.find((scope: MockScope): boolean => !grantable.includes(scope));
+    const ungrantable: MockApi_HandleRequest_TokenInput_Ungrantable = scopes.find((scope) => grantable.includes(scope) === false);
 
     if (ungrantable !== undefined) {
       sendIssues(response, 422, 'invalid_request', [fieldIssue('scopes', `Your role can't grant ${ungrantable}.`)]);
@@ -6061,7 +6339,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return null;
     }
 
-    if (tokens.some((token: MockToken): boolean => token.userId === user.id && token.id !== exceptId && token.name.toLowerCase() === name.toLowerCase())) {
+    if (tokens.some((token) => (
+      token['userId'] === user['id']
+      && token['id'] !== exceptId
+      && token['name'].toLowerCase() === name.toLowerCase()
+    )) === true) {
       sendIssues(response, 409, 'token_exists', [fieldIssue('name', 'A token with this name already exists.')]);
 
       return null;
@@ -6069,37 +6351,35 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     return {
       name,
-      scopes: scopeOrder.filter((scope: MockScope): boolean => scopes.includes(scope)),
+      scopes: scopeOrder.filter((scope) => scopes.includes(scope)),
     };
   };
 
   if (method === 'POST' && path === '/api/v1/auth/tokens') {
-    const input: {
-      name: string
-      scopes: MockScope[]
-    } | null = tokenInput('');
+    const input: MockApi_HandleRequest_TokenInputValue = tokenInput('');
 
     if (input === null) {
       return true;
     }
 
-    const plaintext: string = `dsb_${randomBytes(32).toString('base64url')}`;
-    const token: MockToken = {
+    const plaintext: MockApi_HandleRequest_TokenPlaintext = `dsb_${randomBytes(32).toString('base64url')}`;
+    const token: MockApi_HandleRequest_NewToken = {
       createdAt: nowIso(),
       expiresAt: (typeof body['expiresAt'] === 'string') ? body['expiresAt'] : null,
       hash: digest(plaintext),
       id: `tok-${randomBytes(8).toString('hex')}`,
       lastUsedAt: null,
-      name: input.name,
-      scopes: input.scopes,
-      userId: user.id,
+      name: input['name'],
+      scopes: input['scopes'],
+      userId: user['id'],
     };
 
     tokens.push(token);
+
     writeLog('web', 'info', 'token_created', {
-      name: token.name,
-      userId: user.id,
-      username: user.username,
+      name: token['name'],
+      userId: user['id'],
+      username: user['username'],
     });
     sendJSON(response, 201, {
       plaintext,
@@ -6109,11 +6389,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     return true;
   }
 
-  const tokenMatch: RegExpMatchArray | null = path.match(/^\/api\/v1\/auth\/tokens\/([a-z0-9-]+)$/u);
+  const tokenMatch: MockApi_HandleRequest_TokenMatch = path.match(new RegExp(tokenPathPattern, 'u'));
 
   if (tokenMatch !== null) {
-    const index: number = tokens.findIndex((token: MockToken): boolean => token.id === tokenMatch[1] && token.userId === user.id);
-    const token: MockToken | undefined = tokens[index];
+    const index: MockApi_HandleRequest_Index = tokens.findIndex((token) => token['id'] === tokenMatch[1] && token['userId'] === user['id']);
+    const token: MockApi_HandleRequest_FoundToken = tokens[index];
 
     if (token === undefined) {
       sendError(response, 404, 'token_not_found', 'That token no longer exists.');
@@ -6123,10 +6403,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     if (method === 'DELETE') {
       tokens.splice(index, 1);
+
       writeLog('web', 'info', 'token_revoked', {
-        name: token.name,
-        userId: user.id,
-        username: user.username,
+        name: token['name'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendEmpty(response);
 
@@ -6134,26 +6415,23 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
 
     if (method === 'PUT') {
-      const input: {
-        name: string
-        scopes: MockScope[]
-      } | null = tokenInput(token.id);
+      const input: MockApi_HandleRequest_TokenInputValue = tokenInput(token['id']);
 
       if (input === null) {
         return true;
       }
 
-      token.name = input.name;
-      token.scopes = input.scopes;
+      token.name = input['name'];
+      token.scopes = input['scopes'];
 
       if (body['expiresAt'] !== undefined) {
         token.expiresAt = (typeof body['expiresAt'] === 'string') ? body['expiresAt'] : null;
       }
 
       writeLog('web', 'info', 'token_updated', {
-        name: token.name,
-        userId: user.id,
-        username: user.username,
+        name: token['name'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 200, tokenResource(token));
 
@@ -6161,44 +6439,50 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
     }
   }
 
-  if (path === '/api/v1/users' || path.startsWith('/api/v1/users/')) {
-    if (!requirePermission('users:manage')) {
+  if (path === '/api/v1/users' || path.startsWith('/api/v1/users/') === true) {
+    if (requirePermission('users:manage') === false) {
       return true;
     }
 
     // accessInput checks the role and server access a create or edit gives.
 
     /**
-     * Mock API - Access input.
+     * Mock API - Access Input.
      *
      * Stores this module-level value in one named location.
      * Related code reuses it instead of duplicating the definition.
      *
+     * @returns {MockApi_HandleRequest_AccessInput_Returns}
+     *
      * @since 4.0.0
      */
-    const accessInput = (): {
-      allServers: boolean
-      role: MockRole
-      serverIds: string[]
-    } | null => {
-      const role: unknown = body['role'];
-      const allServers: boolean = body['allServers'] === true;
-      const serverIds: string[] = (Array.isArray(body['serverIds'])) ? body['serverIds'].map(String) : [];
-      const issues: MockIssue[] = [];
+    const accessInput: MockApi_HandleRequest_AccessInput = (): MockApi_HandleRequest_AccessInput_Returns => {
+      const role: MockApi_HandleRequest_AccessInput_Role = body['role'];
+      const allServers: MockApi_HandleRequest_AccessInput_AllServers = body['allServers'] === true;
+      const serverIds: MockApi_HandleRequest_AccessInput_ServerIds = (Array.isArray(body['serverIds']) === true) ? body['serverIds'].map(String) : [];
+      const issues: MockApi_HandleRequest_AccessInput_Issues = [];
 
-      if (role !== 'administrator' && role !== 'operator' && role !== 'viewer') {
+      if (
+        role !== 'administrator'
+        && role !== 'operator'
+        && role !== 'viewer'
+      ) {
         issues.push(fieldIssue('role', 'Choose administrator, operator, or viewer.'));
       }
 
-      if (allServers && !user.allServers) {
+      if (allServers === true && user['allServers'] === false) {
         issues.push(fieldIssue('allServers', 'You can only give access to servers you can see.'));
       }
 
-      if (!allServers && serverIds.length === 0) {
+      if (allServers === false && serverIds.length === 0) {
         issues.push(fieldIssue('serverIds', 'Choose at least one server.'));
       }
 
-      if (!allServers && !user.allServers && serverIds.some((serverId: string): boolean => !user.serverIds.includes(serverId))) {
+      if (
+        allServers === false
+        && user['allServers'] === false
+        && serverIds.some((serverId) => user['serverIds'].includes(serverId) === false) === true
+      ) {
         issues.push(fieldIssue('serverIds', 'You can only give access to servers you can see.'));
       }
 
@@ -6210,26 +6494,26 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
       return {
         allServers,
-        role: role as MockRole,
-        serverIds: (allServers) ? [] : [...new Set(serverIds)],
+        role: role as MockApi_HandleRequest_AccessInput_AccessRole,
+        serverIds: (allServers === true) ? [] : [...new Set(serverIds)],
       };
     };
 
     if (method === 'GET' && path === '/api/v1/users') {
       sendJSON(response, 200, {
         items: [...users]
-          .sort((left: MockUser, right: MockUser): number => (roleRank[left.role] - roleRank[right.role]) || left.username.localeCompare(right.username))
-          .map((candidate: MockUser): Record<string, unknown> => userResource(candidate, user)),
+          .sort((left, right) => (roleRank[left['role']] - roleRank[right['role']]) || left['username'].localeCompare(right['username']))
+          .map((candidate) => userResource(candidate, user)),
       });
 
       return true;
     }
 
     if (method === 'POST' && path === '/api/v1/users') {
-      const username: string = String(body['username'] ?? '').trim();
-      const usernameProblem: string = usernameIssue(username);
-      const passwordProblem: string = passwordIssue(body['password']);
-      const problems: MockIssue[] = [];
+      const username: MockApi_HandleRequest_Username = String(body['username'] ?? '').trim();
+      const usernameProblem: MockApi_HandleRequest_UsernameProblem = usernameIssue(username);
+      const passwordProblem: MockApi_HandleRequest_PasswordProblem = passwordIssue(body['password']);
+      const problems: MockApi_HandleRequest_Problems = [];
 
       // Like the server, every field with a problem is reported at once.
       if (usernameProblem !== '') {
@@ -6246,23 +6530,19 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
         return true;
       }
 
-      const access: {
-        allServers: boolean
-        role: MockRole
-        serverIds: string[]
-      } | null = accessInput();
+      const access: MockApi_HandleRequest_Access = accessInput();
 
       if (access === null) {
         return true;
       }
 
-      if (users.some((candidate: MockUser): boolean => candidate.username.toLowerCase() === username.toLowerCase())) {
+      if (users.some((candidate) => candidate['username'].toLowerCase() === username.toLowerCase()) === true) {
         sendIssues(response, 409, 'username_taken', [fieldIssue('username', 'That username is already in use.')]);
 
         return true;
       }
 
-      const created: MockUser = {
+      const created: MockApi_HandleRequest_Created = {
         ...access,
         createdAt: nowIso(),
         enabled: true,
@@ -6277,18 +6557,19 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
       userSequence += 1;
       users.push(created);
+
       writeLog('web', 'info', 'user_created', {
-        targetUserId: created.id,
-        userId: user.id,
-        username: user.username,
+        targetUserId: created['id'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 201, userResource(created, user));
 
       return true;
     }
 
-    const userMatch: RegExpMatchArray | null = path.match(/^\/api\/v1\/users\/([^/]+)(\/password|\/two-factor\/reset)?$/u);
-    const target: MockUser | undefined = (userMatch === null) ? undefined : users.find((candidate: MockUser): boolean => candidate.id === userMatch[1]);
+    const userMatch: MockApi_HandleRequest_UserMatch = path.match(new RegExp(userPathPattern, 'u'));
+    const target: MockApi_HandleRequest_Target = (userMatch === null) ? undefined : users.find((candidate) => candidate['id'] === userMatch[1]);
 
     if (userMatch === null || target === undefined) {
       sendError(response, 404, 'user_not_found', 'That user no longer exists.');
@@ -6296,18 +6577,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       return true;
     }
 
-    if (!editableBy(user, target)) {
+    if (editableBy(user, target) === false) {
       sendError(response, 403, 'user_protected', 'You can\'t change this account here.');
 
       return true;
     }
 
     if (method === 'PUT' && userMatch[2] === undefined) {
-      const access: {
-        allServers: boolean
-        role: MockRole
-        serverIds: string[]
-      } | null = accessInput();
+      const access: MockApi_HandleRequest_Access = accessInput();
 
       if (access === null) {
         return true;
@@ -6321,14 +6598,14 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
       Object.assign(target, access, { enabled: body['enabled'] });
 
-      if (!target.enabled) {
-        signOutUser(target.id);
+      if (target['enabled'] === false) {
+        signOutUser(target['id']);
       }
 
       writeLog('web', 'info', 'user_updated', {
-        targetUserId: target.id,
-        userId: user.id,
-        username: user.username,
+        targetUserId: target['id'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendJSON(response, 200, userResource(target, user));
 
@@ -6343,11 +6620,11 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       }
 
       target.password = String(body['password']);
-      signOutUser(target.id);
+      signOutUser(target['id']);
       writeLog('web', 'info', 'user_password_reset', {
-        targetUserId: target.id,
-        userId: user.id,
-        username: user.username,
+        targetUserId: target['id'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendEmpty(response);
 
@@ -6358,9 +6635,9 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
       target.totpEnabled = false;
       target.recoveryCodes = [];
       writeLog('web', 'info', 'user_two_factor_reset', {
-        targetUserId: target.id,
-        userId: user.id,
-        username: user.username,
+        targetUserId: target['id'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendEmpty(response);
 
@@ -6369,18 +6646,21 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 
     if (method === 'DELETE' && userMatch[2] === undefined) {
       users.splice(users.indexOf(target), 1);
-      signOutUser(target.id);
+
+      signOutUser(target['id']);
 
       for (let index = tokens.length - 1; index >= 0; index -= 1) {
-        if (tokens[index]?.userId === target.id) {
+        const candidate: MockApi_HandleRequest_Candidate = tokens[index];
+
+        if (candidate !== undefined && candidate['userId'] === target['id']) {
           tokens.splice(index, 1);
         }
       }
 
       writeLog('web', 'info', 'user_deleted', {
-        targetUserId: target.id,
-        userId: user.id,
-        username: user.username,
+        targetUserId: target['id'],
+        userId: user['id'],
+        username: user['username'],
       });
       sendEmpty(response);
 
@@ -6394,40 +6674,53 @@ const handleRequest = async (request: IncomingMessage, response: ServerResponse)
 };
 
 /**
- * Mock API.
+ * Mock API - Mock API.
  *
  * Answers the control panel's API from memory, so it runs without Discord or Postgres.
  * The setup code prints at start; other accounts use "mock password 123", codes 123456.
  * Feature editors, examples, import, and checks come from the real server modules.
  *
- * @returns {Plugin}
+ * @returns {MockApi_MockApi_Returns}
  *
  * @since 4.0.0
  */
-export const mockApi = (): Plugin => ({
+export const mockApi = (): MockApi_MockApi_Returns => ({
   name: 'discord-stonker-bot-mock-api',
-  configureServer: (server: ViteDevServer): void => {
+  configureServer: (server) => {
     viteServer = server;
     seedLogs();
+
     server.config.logger.info(`  Mock setup code: ${setupCode}`);
     server.config.logger.info(`  Mock accounts after setup: avery, riley, jordan, sam, casey (password "${mockPassword}")`);
 
-    const liveTimer: NodeJS.Timeout = setInterval(writeLiveLog, 4_000);
+    const liveTimer: MockApi_MockApi_LiveTimer = setInterval(writeLiveLog, 4_000);
 
-    server.httpServer?.on('close', (): void => clearInterval(liveTimer));
+    if (server.httpServer !== null) {
+      server.httpServer.on('close', () => clearInterval(liveTimer));
+    }
 
-    server.middlewares.use((request: IncomingMessage, response: ServerResponse, next: () => void): void => {
-      void handleRequest(request, response).then((handled: boolean): void => {
-        if (!handled) {
+    server.middlewares.use((request: MockApi_MockApi_Request, response: MockApi_MockApi_Response, next: MockApi_MockApi_Next) => {
+      void handleRequest(request, response).then((handled) => {
+        if (handled === false) {
           next();
         }
-      }).catch((error: unknown): void => {
-        server.config.logger.error(`  Mock API error: ${(error instanceof Error) ? error.stack ?? error.message : String(error)}`);
 
-        if (!response.headersSent) {
+        return;
+      }).catch((error) => {
+        const errorMessage: MockApi_MockApi_ErrorMessage = (error instanceof Error) ? error.stack ?? error.message : String(error);
+
+        server.config.logger.error(`  Mock API error: ${errorMessage}`);
+
+        if (response.headersSent === false) {
           sendError(response, 500, 'internal_error', 'Something went wrong. Try again.');
         }
+
+        return;
       });
+
+      return;
     });
+
+    return;
   },
 });

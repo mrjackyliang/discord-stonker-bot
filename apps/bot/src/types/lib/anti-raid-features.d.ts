@@ -1,16 +1,15 @@
 import type {
-  Client,
-  GatewayIntentBits,
-  GuildBasedChannel,
-  GuildMember,
-  PartialGuildMember,
-  Role,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type { Tests_Support_ChatPlatform_Client } from '../tests/support/chat-platform.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_Role,
+} from './chat-platform/index.d.ts';
 
 export type Lib_AntiRaidFeatures_Configuration_AutoBan_Avatar_Avatar = string;
 export type Lib_AntiRaidFeatures_Configuration_AutoBan_Avatar = {
@@ -65,11 +64,11 @@ export type Lib_AntiRaidFeatures_Runtime = {
   usernames: Lib_AntiRaidFeatures_Runtime_Usernames;
 };
 
-export type Lib_AntiRaidFeatures_Registration = (client: Client, guildIdentifier: string) => void;
+export type Lib_AntiRaidFeatures_Registration = (client: Lib_ChatPlatform_Contracts_Client, guildIdentifier: string) => void;
 export type Lib_AntiRaidFeatures_Prepared = {
   activeFeatureKeys: Shared_FeatureKey[];
   configurationErrors: string[];
-  intents: GatewayIntentBits[];
+  intents: Lib_ChatPlatform_Contracts_Intent[];
   register: Lib_AntiRaidFeatures_Registration;
 };
 
@@ -99,7 +98,7 @@ export type Lib_AntiRaidFeatures_FormatConfigurationError_Error = unknown;
 export type Lib_AntiRaidFeatures_FormatConfigurationError_Returns = string;
 export type Lib_AntiRaidFeatures_FormatConfigurationError_Messages = string[];
 
-export type Lib_AntiRaidFeatures_FormatMembershipGateMessage_Member = GuildMember;
+export type Lib_AntiRaidFeatures_FormatMembershipGateMessage_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_AntiRaidFeatures_FormatMembershipGateMessage_Content = string;
 export type Lib_AntiRaidFeatures_FormatMembershipGateMessage_Returns = string;
 export type Lib_AntiRaidFeatures_FormatMembershipGateMessage_CurrentYear = string;
@@ -112,16 +111,16 @@ export type Lib_AntiRaidFeatures_GetEnabledFeature_EnabledFeature = {
   configuration: unknown;
 };
 
-export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Member = GuildMember;
+export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_GuildIdentifier = string;
 export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Runtime = Lib_AntiRaidFeatures_Runtime;
 export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Returns = Promise<void>;
 export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Signals = string[];
-export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Channel = GuildBasedChannel | null;
+export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 export type Lib_AntiRaidFeatures_HandleGuildMemberAdd_BanError = string | undefined;
 
-export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_OldMember = GuildMember | PartialGuildMember;
-export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_NewMember = GuildMember;
+export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_OldMember = Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_Member;
+export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_NewMember = Lib_ChatPlatform_Contracts_Member;
 export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_GuildIdentifier = string;
 export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_Runtime = Lib_AntiRaidFeatures_Runtime;
 export type Lib_AntiRaidFeatures_HandleGuildMemberUpdate_Returns = Promise<void>;
@@ -138,19 +137,19 @@ export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_Runtime = Lib_AntiRaidF
 export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_ConfigurationErrors = string[];
 export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_Feature = Lib_AntiRaidFeatures_GetEnabledFeature_Returns;
-export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_Intents = GatewayIntentBits[];
+export type Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 
-export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Member = GuildMember;
+export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_AntiRaidFeatures_ReconcileMembershipGate_MembershipGate = Lib_AntiRaidFeatures_MembershipGate;
 export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Returns = Promise<void>;
-export type Lib_AntiRaidFeatures_ReconcileMembershipGate_BotMember = GuildMember | null;
-export type Lib_AntiRaidFeatures_ReconcileMembershipGate_RolesToAdd = Role[];
-export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Role = Role | null;
-export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Channel = GuildBasedChannel | null;
+export type Lib_AntiRaidFeatures_ReconcileMembershipGate_BotMember = Lib_ChatPlatform_Contracts_Member | null;
+export type Lib_AntiRaidFeatures_ReconcileMembershipGate_RolesToAdd = Lib_ChatPlatform_Contracts_Role[];
+export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Role = Lib_ChatPlatform_Contracts_Role | null;
+export type Lib_AntiRaidFeatures_ReconcileMembershipGate_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 
 export type Lib_AntiRaidFeatures_RecordConfigurationError_Error = unknown;
 export type Lib_AntiRaidFeatures_RecordConfigurationError_ConfigurationErrors = string[];
 export type Lib_AntiRaidFeatures_RecordConfigurationError_Returns = void;
 export type Lib_AntiRaidFeatures_RecordConfigurationError_Message = string;
 
-export type Lib_AntiRaidFeatures_Test_Client = Client;
+export type Lib_AntiRaidFeatures_Test_Client = Tests_Support_ChatPlatform_Client;

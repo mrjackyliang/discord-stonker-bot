@@ -1,11 +1,11 @@
-import type {
-  Client,
-  GatewayIntentBits,
-} from 'discord.js';
 import type { Pool } from 'pg';
 
 import type { Lib_AntiRaidFeatures_Prepared } from './lib/anti-raid-features.d.ts';
 import type { Lib_AuditFeatures_Prepared } from './lib/audit-features.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Intent,
+} from './lib/chat-platform/index.d.ts';
 import type {
   Lib_ConfigurationDatabase_ListNormalizedGuildSettings_Entry,
   Lib_ConfigurationDatabase_SyncDiscordServers_Server,
@@ -30,7 +30,7 @@ import type {
   Shared_RuntimeHeartbeat_Status,
 } from './shared.d.ts';
 
-export type Index_CompleteGatewayConnection_Client = Client;
+export type Index_CompleteGatewayConnection_Client = Lib_ChatPlatform_Contracts_Client;
 export type Index_CompleteGatewayConnection_DiscordToken = string;
 export type Index_CompleteGatewayConnection_Returns = Promise<string>;
 export type Index_CompleteGatewayConnection_ClientReadyPromise = Promise<void>;
@@ -50,10 +50,10 @@ export type Index_ConnectGateway_MessageRoutingFeatures = Lib_MessageRoutingFeat
 export type Index_ConnectGateway_RoleSyncFeatures = Lib_RoleSyncFeatures_Prepared;
 export type Index_ConnectGateway_ScammerFeatures = Lib_ScammerFeatures_Prepared;
 export type Index_ConnectGateway_ServerToolFeatures = Lib_ServerToolFeatures_Prepared;
-export type Index_ConnectGateway_Intents = GatewayIntentBits[];
+export type Index_ConnectGateway_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Index_ConnectGateway_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Index_ConnectGateway_ConfigurationErrors = string[];
-export type Index_ConnectGateway_Client = Client;
+export type Index_ConnectGateway_Client = Lib_ChatPlatform_Contracts_Client;
 export type Index_ConnectGateway_DiscordToken = string;
 export type Index_ConnectGateway_SynchronizeRegistry = () => void;
 export type Index_ConnectGateway_TimeoutTimer = NodeJS.Timeout | undefined;
@@ -75,7 +75,7 @@ export type Index_ConnectGateway_GuildRuntime = {
   serverToolFeatures: Lib_ServerToolFeatures_Prepared;
 };
 export type Index_ConnectGateway_DiscordServers = Lib_ConfigurationDatabase_SyncDiscordServers_Server[];
-export type Index_ConnectGateway_Connection_Client = Client;
+export type Index_ConnectGateway_Connection_Client = Lib_ChatPlatform_Contracts_Client;
 export type Index_ConnectGateway_Connection_UserTag = string;
 export type Index_ConnectGateway_Connection_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Index_ConnectGateway_Connection_ConfigurationErrors = string[];
@@ -96,10 +96,10 @@ export type Index_CreateGuildSecretResolver_GuildIdentifier = string;
 export type Index_CreateGuildSecretResolver_Purpose = string;
 export type Index_CreateGuildSecretResolver_Returns = Lib_MessageRoutingFeatures_SecretResolver;
 
-export type Index_DisconnectGateway_Client = Client | undefined;
+export type Index_DisconnectGateway_Client = Lib_ChatPlatform_Contracts_Client | undefined;
 export type Index_DisconnectGateway_Returns = void;
 
-export type Index_Lifecycle_Client = Client | undefined;
+export type Index_Lifecycle_Client = Lib_ChatPlatform_Contracts_Client | undefined;
 export type Index_Lifecycle_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Index_Lifecycle_AppliedGeneration = number | undefined;
 export type Index_Lifecycle_AttemptedGeneration = number | undefined;
@@ -147,7 +147,7 @@ export type Index_ReconcileGateway_Configured = boolean;
 export type Index_ReconcileGateway_NextLifecycle = Index_Lifecycle;
 export type Index_ReconcileGateway_Connection = Index_ConnectGateway_Connection;
 
-export type Index_SynchronizeDiscordRegistry_Client = Client;
+export type Index_SynchronizeDiscordRegistry_Client = Lib_ChatPlatform_Contracts_Client;
 export type Index_SynchronizeDiscordRegistry_Pool = Pool;
 export type Index_SynchronizeDiscordRegistry_Returns = Promise<void>;
 export type Index_SynchronizeDiscordRegistry_ApplicationIdentifier = string;
@@ -155,5 +155,5 @@ export type Index_SynchronizeDiscordRegistry_DiscordServers = Lib_ConfigurationD
 
 export type Index_Run_Returns = Promise<void>;
 
-export type Index_WaitForClientReady_Client = Client;
+export type Index_WaitForClientReady_Client = Lib_ChatPlatform_Contracts_Client;
 export type Index_WaitForClientReady_Returns = Promise<void>;

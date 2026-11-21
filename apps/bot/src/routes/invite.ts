@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { REST } from 'discord.js';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
@@ -10,6 +9,11 @@ import {
   getPrincipal,
   getServerId,
 } from '../lib/access.js';
+import { Runner as CaptchaVerifier } from '../lib/captcha-verifier.js';
+import {
+  chatPlatformAssetContentSecurityPolicySource,
+  createChatPlatformRest,
+} from '../lib/chat-platform/index.js';
 import { decryptDiscordToken } from '../lib/credential-vault.js';
 import { getBotRuntimeControl } from '../lib/database.js';
 import {
@@ -137,6 +141,8 @@ import type {
   Routes_Invite_Runner_RouteSave_Returns,
   Routes_Invite_Runner_RouteSave_Server,
   Routes_Invite_Runner_RouteSave_ServerId,
+  Routes_Invite_Runner_SetPageHeaders_CaptchaSources,
+  Routes_Invite_Runner_SetPageHeaders_ContentSecurityPolicy,
   Routes_Invite_Runner_SetPageHeaders_Response,
   Routes_Invite_Runner_SetPageHeaders_Returns,
   Routes_Invite_Runner_SetPublicHeaders_Response,
@@ -444,9 +450,9 @@ export class Runner {
     try {
       const discordToken: Routes_Invite_Runner_GetGuildMetadata_DiscordToken = decryptDiscordToken(tokenCiphertext, this.#context['credentialKey']);
 
-      metadata = await fetchGuildMetadata(new REST({
-        version: '10',
-      }).setToken(discordToken), guildIdentifier);
+      metadata = await fetchGuildMetadata(createChatPlatformRest({
+        token: discordToken,
+      }), guildIdentifier);
     } catch (error) {
       writeLog('warn', 'web', 'public_invite_metadata_failed', {
         error: getErrorMessage(error),
@@ -736,9 +742,9 @@ export class Runner {
     try {
       const discordToken: Routes_Invite_Runner_RoutePublicInvite_DiscordToken = decryptDiscordToken(control['discordTokenCiphertext'], this.#context['credentialKey']);
 
-      inviteUrl = await createDiscordInvite(new REST({
-        version: '10',
-      }).setToken(discordToken), metadata['rulesChannelIdentifier'], invite);
+      inviteUrl = await createDiscordInvite(createChatPlatformRest({
+        token: discordToken,
+      }), metadata['rulesChannelIdentifier'], invite);
     } catch (error) {
       writeLog('error', 'web', 'public_invite_failed', {
         error: getErrorMessage(error),
@@ -942,9 +948,13 @@ export class Runner {
    * @since 4.0.0
    */
   private setPageHeaders(response: Routes_Invite_Runner_SetPageHeaders_Response): Routes_Invite_Runner_SetPageHeaders_Returns {
+    const captchaSources: Routes_Invite_Runner_SetPageHeaders_CaptchaSources = CaptchaVerifier
+      .getContentSecurityPolicySources();
+    const contentSecurityPolicy: Routes_Invite_Runner_SetPageHeaders_ContentSecurityPolicy = `default-src 'self'; base-uri 'none'; connect-src 'self' ${captchaSources['connect'].join(' ')}; font-src 'self'; form-action 'self'; frame-ancestors 'none'; frame-src ${captchaSources['frame'].join(' ')}; img-src 'self' data: ${chatPlatformAssetContentSecurityPolicySource}; object-src 'none'; script-src 'self' ${captchaSources['script'].join(' ')}; style-src 'self' 'unsafe-inline'`;
+
     response.set({
       'Cache-Control': 'no-store',
-      'Content-Security-Policy': 'default-src \'self\'; base-uri \'none\'; connect-src \'self\' https://www.google.com/recaptcha/; font-src \'self\'; form-action \'self\'; frame-ancestors \'none\'; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; img-src \'self\' data: https://cdn.discordapp.com; object-src \'none\'; script-src \'self\' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src \'self\' \'unsafe-inline\'',
+      'Content-Security-Policy': contentSecurityPolicy,
       'Permissions-Policy': 'camera=(), geolocation=(), microphone=()',
       'X-Frame-Options': 'DENY',
     });

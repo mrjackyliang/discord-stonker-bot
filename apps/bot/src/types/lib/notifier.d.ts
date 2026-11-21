@@ -1,4 +1,3 @@
-import type { Client } from 'discord.js';
 import type { Pool } from 'pg';
 import type { Mock } from 'vitest';
 import type { ZodType } from 'zod';
@@ -7,7 +6,9 @@ import type {
   Shared_Job,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type { Tests_Support_ChatPlatform_Client } from '../tests/support/chat-platform.d.ts';
 import type { Tests_Support_Database_TestDatabase } from '../tests/support/database.d.ts';
+import type { Lib_ChatPlatform_Contracts_Client } from './chat-platform/index.d.ts';
 import type {
   Lib_NotificationTargets_CreateNotificationTarget_Returns,
   Lib_NotificationTargets_OpenNotificationTarget_Returns,
@@ -29,7 +30,7 @@ export type Lib_Notifier_JobPayload = {
 };
 export type Lib_Notifier_JobPayloadSchema = ZodType<Lib_Notifier_JobPayload>;
 export type Lib_Notifier_Send = (app: Lib_Notifications_App, target: Lib_Notifications_Target, notification: Lib_Notifications_Notification) => Promise<Lib_Notifications_Result>;
-export type Lib_Notifier_GatewayWatchers = WeakMap<Client, () => void>;
+export type Lib_Notifier_GatewayWatchers = WeakMap<Lib_ChatPlatform_Contracts_Client, () => void>;
 export type Lib_Notifier_Milliseconds = number;
 export type Lib_Notifier_JobType = string;
 
@@ -98,11 +99,11 @@ export type Lib_Notifier_SendTestNotification_Returns = Promise<Lib_Notification
 export type Lib_Notifier_SendTestNotification_Delivery = Awaited<Lib_NotificationTargets_OpenNotificationTarget_Returns>;
 export type Lib_Notifier_SendTestNotification_Result = Lib_Notifications_Result;
 
-export type Lib_Notifier_StopGatewayWatch_Client = Client;
+export type Lib_Notifier_StopGatewayWatch_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_Notifier_StopGatewayWatch_Returns = void;
 export type Lib_Notifier_StopGatewayWatch_Stop = (() => void) | undefined;
 
-export type Lib_Notifier_WatchGatewayConnection_Client = Client;
+export type Lib_Notifier_WatchGatewayConnection_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_Notifier_WatchGatewayConnection_Pool = Pool;
 export type Lib_Notifier_WatchGatewayConnection_GraceMilliseconds = number;
 export type Lib_Notifier_WatchGatewayConnection_Returns = void;
@@ -115,7 +116,7 @@ export type Lib_Notifier_WatchGatewayConnection_MarkDown = () => void;
 export type Lib_Notifier_WatchGatewayConnection_MarkUp = () => void;
 export type Lib_Notifier_WatchGatewayConnection_Stop = () => void;
 
-export type Lib_Notifier_Test_Client = Client;
+export type Lib_Notifier_Test_Client = Tests_Support_ChatPlatform_Client;
 export type Lib_Notifier_Test_Created = Awaited<Lib_NotificationTargets_CreateNotificationTarget_Returns>;
 export type Lib_Notifier_Test_GetTestDatabase_Returns = Tests_Support_Database_TestDatabase;
 export type Lib_Notifier_Test_Key = Buffer;

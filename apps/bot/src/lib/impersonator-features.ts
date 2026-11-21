@@ -1,9 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -195,8 +195,8 @@ function createRegistration(
   runtime: Lib_ImpersonatorFeatures_CreateRegistration_Runtime,
 ): Lib_ImpersonatorFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.GuildMemberAdd, (member) => {
-      void timeFeatureHandler('impersonator', Events.GuildMemberAdd, guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberAdd'], (member) => {
+      void timeFeatureHandler('impersonator', chatPlatformEvents['GuildMemberAdd'], guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'impersonator_join_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -208,8 +208,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
-      void timeFeatureHandler('impersonator', Events.GuildMemberUpdate, guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberUpdate'], (oldMember, newMember) => {
+      void timeFeatureHandler('impersonator', chatPlatformEvents['GuildMemberUpdate'], guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'impersonator_member_update_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -221,8 +221,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.UserUpdate, (oldUser, newUser) => {
-      void timeFeatureHandler('impersonator', Events.UserUpdate, guildIdentifier, () => handleUserUpdate(client, oldUser, newUser, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['UserUpdate'], (oldUser, newUser) => {
+      void timeFeatureHandler('impersonator', chatPlatformEvents['UserUpdate'], guildIdentifier, () => handleUserUpdate(client, oldUser, newUser, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'impersonator_user_update_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -707,7 +707,7 @@ export function prepareImpersonatorFeatures(
   const intents: Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Intents = [];
 
   if (runtime !== undefined) {
-    intents.push(GatewayIntentBits.GuildMembers);
+    intents.push(chatPlatformIntents['GuildMembers']);
   }
 
   return {

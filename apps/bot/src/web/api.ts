@@ -4,74 +4,230 @@ import {
   createPasskey,
   getPasskey,
 } from '@/web/passkeys.ts';
+import { contentDispositionFilenamePattern } from '@/web/regex.js';
 
 import type {
-  Web_Api_AccountSecurity,
-  Web_Api_AuthenticationResponse,
-  Web_Api_Bot,
+  Web_Api_AccountSecuritySchema,
+  Web_Api_AddPasskey_Credential,
+  Web_Api_AddPasskey_Name,
+  Web_Api_AddPasskey_Password,
+  Web_Api_AddPasskey_Returns,
+  Web_Api_ApiError_Code,
+  Web_Api_ApiError_Constructor_Code,
+  Web_Api_ApiError_Constructor_Issues,
+  Web_Api_ApiError_Constructor_Message,
+  Web_Api_ApiError_Constructor_Status,
+  Web_Api_ApiError_Issues,
+  Web_Api_ApiError_Status,
+  Web_Api_ApplyBackupImport_Grant,
+  Web_Api_ApplyBackupImport_Returns,
+  Web_Api_AuthenticationResponseSchema,
+  Web_Api_BackupGrantSchema,
+  Web_Api_BackupImportPreviewSchema,
+  Web_Api_BackupImportResultSchema,
   Web_Api_BotAction,
+  Web_Api_BotSchema,
+  Web_Api_BuildRequest_Body,
+  Web_Api_BuildRequest_CsrfToken,
+  Web_Api_BuildRequest_Method,
+  Web_Api_BuildRequest_Returns,
+  Web_Api_ChangePassword_CurrentPassword,
+  Web_Api_ChangePassword_NewPassword,
+  Web_Api_ChangePassword_Returns,
+  Web_Api_ChangeUsername_Password,
+  Web_Api_ChangeUsername_Returns,
+  Web_Api_ChangeUsername_Username,
   Web_Api_ClaimInput,
-  Web_Api_CreatedToken,
+  Web_Api_ClaimInstallation_Returns,
+  Web_Api_ConfirmBackupOperation_Code,
+  Web_Api_ConfirmBackupOperation_Password,
+  Web_Api_ConfirmBackupOperation_Returns,
+  Web_Api_ConfirmBackupOperationWithPasskey_Credential,
+  Web_Api_ConfirmBackupOperationWithPasskey_Returns,
+  Web_Api_CreatedTokenSchema,
+  Web_Api_CreateNotification_Returns,
+  Web_Api_CreateToken_Returns,
   Web_Api_CreateTokenInput,
+  Web_Api_CreateUser_Returns,
   Web_Api_CreateUserInput,
+  Web_Api_DeleteUser_Returns,
+  Web_Api_DeleteUser_UserId,
   Web_Api_Diagnostics,
-  Web_Api_ErrorEnvelope,
-  Web_Api_ErrorIssue,
-  Web_Api_FeatureDetail,
+  Web_Api_DiagnosticsSchema,
+  Web_Api_DisableTotp_Password,
+  Web_Api_DisableTotp_Returns,
+  Web_Api_DismissRemovedSecrets_Returns,
+  Web_Api_DownloadBackupExport_ContentDisposition,
+  Web_Api_DownloadBackupExport_Filename,
+  Web_Api_DownloadBackupExport_FilenameMatch,
+  Web_Api_DownloadBackupExport_Grant,
+  Web_Api_DownloadBackupExport_MatchedFilename,
+  Web_Api_DownloadBackupExport_ObjectUrl,
+  Web_Api_DownloadBackupExport_Returns,
+  Web_Api_EditorSchema,
+  Web_Api_EnableTotp_Code,
+  Web_Api_EnableTotp_Returns,
+  Web_Api_ErrorEnvelopeSchema,
+  Web_Api_ErrorMessage_CaughtError,
+  Web_Api_ErrorMessage_Fallback,
+  Web_Api_ErrorMessage_Returns,
+  Web_Api_FeatureDetailSchema,
   Web_Api_FeatureSaveInput,
-  Web_Api_FeatureSummary,
-  Web_Api_InvitePage,
+  Web_Api_FeatureSummarySchema,
+  Web_Api_GetAccountSecurity_Returns,
+  Web_Api_GetBot_Returns,
+  Web_Api_GetCurrentPrincipal_ResponseValue,
+  Web_Api_GetCurrentPrincipal_Returns,
+  Web_Api_GetDiagnostics_Returns,
+  Web_Api_GetFeature_FeatureKey,
+  Web_Api_GetFeature_Returns,
+  Web_Api_GetFeature_ServerId,
+  Web_Api_GetFeatures_Response,
+  Web_Api_GetFeatures_Returns,
+  Web_Api_GetFeatures_ServerId,
+  Web_Api_GetInvitePage_Returns,
+  Web_Api_GetInvitePage_ServerId,
+  Web_Api_GetLogs_Returns,
+  Web_Api_GetNotificationEvents_Response,
+  Web_Api_GetNotificationEvents_Returns,
+  Web_Api_GetNotifications_Response,
+  Web_Api_GetNotifications_Returns,
+  Web_Api_GetResources_Returns,
+  Web_Api_GetResources_ServerId,
+  Web_Api_GetServers_Response,
+  Web_Api_GetServers_Returns,
+  Web_Api_GetSetupStatus_Returns,
+  Web_Api_GetTokens_Response,
+  Web_Api_GetTokens_Returns,
+  Web_Api_GetUsers_Response,
+  Web_Api_GetUsers_Returns,
   Web_Api_InvitePageInput,
-  Web_Api_InvitePageResponse,
-  Web_Api_LogEntry,
+  Web_Api_InvitePageResponseSchema,
+  Web_Api_InvitePageSchema,
+  Web_Api_IssueFor_CaughtError,
+  Web_Api_IssueFor_Field,
+  Web_Api_IssueFor_Issue,
+  Web_Api_IssueFor_Returns,
+  Web_Api_LogEntrySchema,
+  Web_Api_Login_Returns,
   Web_Api_LoginInput,
-  Web_Api_LoginResult,
-  Web_Api_LogPage,
+  Web_Api_LoginResultSchema,
+  Web_Api_Logout_Returns,
+  Web_Api_LogPageSchema,
   Web_Api_LogQuery,
-  Web_Api_Passkey,
+  Web_Api_LogQuery_Returns,
+  Web_Api_LogStreamPath_Returns,
+  Web_Api_NotificationTargetSchema,
+  Web_Api_NotificationTestSchema,
+  Web_Api_ParseLogEntry_Parsed,
+  Web_Api_ParseLogEntry_Returns,
+  Web_Api_ParseLogEntry_Value,
   Web_Api_PasskeyCeremony,
+  Web_Api_PasskeyCeremonySchema,
+  Web_Api_PasskeySchema,
   Web_Api_Permission,
-  Web_Api_Principal,
-  Web_Api_RecoveryCodes,
-  Web_Api_RemovedSecret,
+  Web_Api_PreviewBackupImport_Returns,
+  Web_Api_PrincipalSchema,
+  Web_Api_ReadCookie_MatchingPart,
+  Web_Api_ReadCookie_Name,
+  Web_Api_ReadCookie_Parts,
+  Web_Api_ReadCookie_Prefix,
+  Web_Api_ReadCookie_Returns,
+  Web_Api_RecoveryCodesSchema,
+  Web_Api_RegenerateRecoveryCodes_Password,
+  Web_Api_RegenerateRecoveryCodes_Returns,
+  Web_Api_RemovedSecretSchema,
+  Web_Api_RemoveNotification_NotificationId,
+  Web_Api_RemoveNotification_Returns,
+  Web_Api_RemovePasskey_PasskeyId,
+  Web_Api_RemovePasskey_Password,
+  Web_Api_RemovePasskey_Returns,
   Web_Api_Request_Options,
-  Web_Api_Resources,
+  Web_Api_RequestBotAction_Returns,
+  Web_Api_RequestJson_Path,
+  Web_Api_RequestJson_ResponseValue,
+  Web_Api_RequestVoid_Path,
+  Web_Api_RequestVoid_Returns,
+  Web_Api_ResetUserPassword_Password,
+  Web_Api_ResetUserPassword_Returns,
+  Web_Api_ResetUserPassword_UserId,
+  Web_Api_ResetUserTwoFactor_Returns,
+  Web_Api_ResetUserTwoFactor_UserId,
+  Web_Api_ResourcesSchema,
+  Web_Api_ResponseError_ParsedError,
+  Web_Api_ResponseError_ResponseValue,
+  Web_Api_ResponseError_Returns,
+  Web_Api_RevokeToken_Returns,
+  Web_Api_RevokeToken_TokenId,
+  Web_Api_SaveBotToken_Returns,
+  Web_Api_SaveBotToken_Token,
+  Web_Api_SaveFeature_FeatureKey,
+  Web_Api_SaveFeature_Returns,
+  Web_Api_SaveFeature_ServerId,
+  Web_Api_SaveInvitePage_Response,
+  Web_Api_SaveInvitePage_Returns,
+  Web_Api_SaveInvitePage_ServerId,
+  Web_Api_SaveInvitePage_Wrapped,
   Web_Api_Schema,
-  Web_Api_Server,
-  Web_Api_SetupStatus,
-  Web_Api_Token,
-  Web_Api_TotpSetup,
+  Web_Api_ServerPath_Returns,
+  Web_Api_ServerPath_ServerId,
+  Web_Api_ServerPath_Suffix,
+  Web_Api_ServerSchema,
+  Web_Api_SetFeatureEnabled_Enabled,
+  Web_Api_SetFeatureEnabled_FeatureKey,
+  Web_Api_SetFeatureEnabled_Returns,
+  Web_Api_SetFeatureEnabled_ServerId,
+  Web_Api_SetupStatusSchema,
+  Web_Api_SignInWithPasskey_Credential,
+  Web_Api_SignInWithPasskey_Returns,
+  Web_Api_StartTotpSetup_Password,
+  Web_Api_StartTotpSetup_Returns,
+  Web_Api_SubmitSecondFactor_Challenge,
+  Web_Api_SubmitSecondFactor_Code,
+  Web_Api_SubmitSecondFactor_Returns,
+  Web_Api_SummaryFor_CaughtError,
+  Web_Api_SummaryFor_Fallback,
+  Web_Api_SummaryFor_Returns,
+  Web_Api_SummaryFor_ShownFields,
+  Web_Api_TestNotification_NotificationId,
+  Web_Api_TestNotification_Returns,
+  Web_Api_TokenSchema,
+  Web_Api_TotpSetupSchema,
+  Web_Api_UpdateDiagnostics_Returns,
+  Web_Api_UpdateNotification_NotificationId,
+  Web_Api_UpdateNotification_Returns,
+  Web_Api_UpdateToken_Returns,
+  Web_Api_UpdateToken_TokenId,
   Web_Api_UpdateTokenInput,
+  Web_Api_UpdateUser_Returns,
+  Web_Api_UpdateUser_UserId,
   Web_Api_UpdateUserInput,
-  Web_Api_UploadedImage,
-  Web_Api_User,
+  Web_Api_UploadedImageSchema,
+  Web_Api_UploadInviteImage_Returns,
+  Web_Api_UploadInviteImage_ServerId,
+  Web_Api_UserSchema,
 } from '@/types/web/api.d.ts';
 import type {
   Web_Backup_ExportSections,
   Web_Backup_Grant,
-  Web_Backup_ImportPreview,
-  Web_Backup_ImportResult,
   Web_Backup_ImportSource,
   Web_Backup_Purpose,
 } from '@/types/web/backup.d.ts';
 import type {
   Web_Notifications_CreateInput,
-  Web_Notifications_Event,
-  Web_Notifications_Target,
-  Web_Notifications_TestResult,
   Web_Notifications_UpdateInput,
 } from '@/types/web/notifications.d.ts';
 import type { Web_Schema_Node } from '@/types/web/schema.d.ts';
 
 /**
- * API - Error envelope schema.
+ * API - Error Envelope Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const errorEnvelopeSchema: Web_Api_Schema<Web_Api_ErrorEnvelope> = z.object({
+const errorEnvelopeSchema: Web_Api_ErrorEnvelopeSchema = z.object({
   error: z.object({
     code: z.string(),
     issues: z.array(z.object({
@@ -84,20 +240,20 @@ const errorEnvelopeSchema: Web_Api_Schema<Web_Api_ErrorEnvelope> = z.object({
 });
 
 /**
- * API - Setup status schema.
+ * API - Setup Status Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const setupStatusSchema: Web_Api_Schema<Web_Api_SetupStatus> = z.object({
+const setupStatusSchema: Web_Api_SetupStatusSchema = z.object({
   claimExpiresAt: z.string().optional(),
   claimRequired: z.boolean(),
 });
 
 /**
- * API - Role schema.
+ * API - Role Schema.
  *
  * Encapsulates the related behavior behind one reusable interface.
  * Callers share the same lifecycle and state management.
@@ -112,7 +268,7 @@ const roleSchema = z.enum([
 ]);
 
 /**
- * API - Permission schema.
+ * API - Permission Schema.
  *
  * Encapsulates the related behavior behind one reusable interface.
  * Callers share the same lifecycle and state management.
@@ -126,7 +282,7 @@ const permissionSchema = z.enum([
 ]);
 
 /**
- * API - Scope schema.
+ * API - Scope Schema.
  *
  * Encapsulates the related behavior behind one reusable interface.
  * Callers share the same lifecycle and state management.
@@ -141,14 +297,14 @@ const scopeSchema = z.enum([
 ]);
 
 /**
- * API - Removed secret schema.
+ * API - Removed Secret Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const removedSecretSchema: Web_Api_Schema<Web_Api_RemovedSecret> = z.object({
+const removedSecretSchema: Web_Api_RemovedSecretSchema = z.object({
   featureKey: z.string().optional(),
   featureName: z.string().optional(),
   kind: z.enum([
@@ -165,14 +321,14 @@ const removedSecretSchema: Web_Api_Schema<Web_Api_RemovedSecret> = z.object({
 });
 
 /**
- * API - Notification target schema.
+ * API - Notification Target Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const notificationTargetSchema: Web_Api_Schema<Web_Notifications_Target> = z.object({
+const notificationTargetSchema: Web_Api_NotificationTargetSchema = z.object({
   createdAt: z.string(),
   events: z.array(z.string()),
   id: z.string(),
@@ -199,7 +355,7 @@ const notificationTargetSchema: Web_Api_Schema<Web_Notifications_Target> = z.obj
 });
 
 /**
- * API - Notification targets response schema.
+ * API - Notification Targets Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -211,7 +367,7 @@ const notificationTargetsResponseSchema = z.object({
 });
 
 /**
- * API - Notification events response schema.
+ * API - Notification Events Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -228,27 +384,27 @@ const notificationEventsResponseSchema = z.object({
 });
 
 /**
- * API - Notification test schema.
+ * API - Notification Test Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const notificationTestSchema: Web_Api_Schema<Web_Notifications_TestResult> = z.object({
+const notificationTestSchema: Web_Api_NotificationTestSchema = z.object({
   delivered: z.boolean(),
   message: z.string().optional(),
 });
 
 /**
- * API - Principal schema.
+ * API - Principal Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const principalSchema: Web_Api_Schema<Web_Api_Principal> = z.object({
+const principalSchema: Web_Api_PrincipalSchema = z.object({
   allServers: z.boolean().optional(),
   authenticationType: z.enum([
     'session',
@@ -256,7 +412,7 @@ const principalSchema: Web_Api_Schema<Web_Api_Principal> = z.object({
   ]),
   id: z.coerce.string(),
   name: z.string().optional(),
-  permissions: z.array(z.string()).transform((values: string[]): Web_Api_Permission[] => values.filter((value: string): value is Web_Api_Permission => permissionSchema.safeParse(value).success)).optional(),
+  permissions: z.array(z.string()).transform((values) => values.filter((value): value is Web_Api_Permission => permissionSchema.safeParse(value).success)).optional(),
   removedSecrets: z.array(removedSecretSchema).optional(),
   role: roleSchema.optional(),
   scopes: z.array(z.string()).optional(),
@@ -265,14 +421,14 @@ const principalSchema: Web_Api_Schema<Web_Api_Principal> = z.object({
 });
 
 /**
- * API - Authentication response schema.
+ * API - Authentication Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const authenticationResponseSchema: Web_Api_Schema<Web_Api_AuthenticationResponse> = z.object({
+const authenticationResponseSchema: Web_Api_AuthenticationResponseSchema = z.object({
   csrfToken: z.string(),
   expiresAt: z.string(),
   status: z.literal('authenticated'),
@@ -284,14 +440,14 @@ const authenticationResponseSchema: Web_Api_Schema<Web_Api_AuthenticationRespons
 });
 
 /**
- * API - Login result schema.
+ * API - Login Result Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const loginResultSchema: Web_Api_Schema<Web_Api_LoginResult> = z.union([
+const loginResultSchema: Web_Api_LoginResultSchema = z.union([
   authenticationResponseSchema,
   z.object({
     challenge: z.string(),
@@ -301,14 +457,14 @@ const loginResultSchema: Web_Api_Schema<Web_Api_LoginResult> = z.union([
 ]);
 
 /**
- * API - Passkey schema.
+ * API - Passkey Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const passkeySchema: Web_Api_Schema<Web_Api_Passkey> = z.object({
+const passkeySchema: Web_Api_PasskeySchema = z.object({
   createdAt: z.string(),
   hostname: z.string().nullable(),
   id: z.string(),
@@ -317,14 +473,14 @@ const passkeySchema: Web_Api_Schema<Web_Api_Passkey> = z.object({
 });
 
 /**
- * API - Account security schema.
+ * API - Account Security Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const accountSecuritySchema: Web_Api_Schema<Web_Api_AccountSecurity> = z.object({
+const accountSecuritySchema: Web_Api_AccountSecuritySchema = z.object({
   hostname: z.string(),
   passkeys: z.array(passkeySchema),
   passkeysAvailable: z.boolean(),
@@ -335,20 +491,20 @@ const accountSecuritySchema: Web_Api_Schema<Web_Api_AccountSecurity> = z.object(
 });
 
 /**
- * API - Backup grant schema.
+ * API - Backup Grant Schema.
  *
  * Validates the short-lived credential returned by fresh authentication.
  * The raw value is held only long enough for one sensitive request.
  *
  * @since 4.0.0
  */
-const backupGrantSchema: Web_Api_Schema<Web_Backup_Grant> = z.object({
+const backupGrantSchema: Web_Api_BackupGrantSchema = z.object({
   expiresAt: z.string(),
   grant: z.string(),
 }).strict();
 
 /**
- * API - Backup import summary schema.
+ * API - Backup Import Summary Schema.
  *
  * Validates change counts shared by preview and apply answers.
  * Secret-bearing values never appear in this response shape.
@@ -376,14 +532,14 @@ const backupImportSummarySchema = z.object({
 }).strict();
 
 /**
- * API - Backup import preview schema.
+ * API - Backup Import Preview Schema.
  *
  * Validates the comparison plan rendered by the import wizard.
  * Every fixed object boundary remains strict.
  *
  * @since 4.0.0
  */
-const backupImportPreviewSchema: Web_Api_Schema<Web_Backup_ImportPreview> = z.object({
+const backupImportPreviewSchema: Web_Api_BackupImportPreviewSchema = z.object({
   appVersion: z.string().nullable(),
   excluded: z.array(z.object({
     id: z.string(),
@@ -420,14 +576,14 @@ const backupImportPreviewSchema: Web_Api_Schema<Web_Backup_ImportPreview> = z.ob
 }).strict();
 
 /**
- * API - Backup import result schema.
+ * API - Backup Import Result Schema.
  *
  * Adds the committed section list to the reviewed summary.
  * The console uses it to complete the progress presentation.
  *
  * @since 4.0.0
  */
-const backupImportResultSchema: Web_Api_Schema<Web_Backup_ImportResult> = backupImportSummarySchema.extend({
+const backupImportResultSchema: Web_Api_BackupImportResultSchema = backupImportSummarySchema.extend({
   importedSections: z.array(z.enum([
     'connection',
     'features',
@@ -437,14 +593,14 @@ const backupImportResultSchema: Web_Api_Schema<Web_Backup_ImportResult> = backup
 }).strict();
 
 /**
- * API - TOTP setup schema.
+ * API - Totp Setup Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const totpSetupSchema: Web_Api_Schema<Web_Api_TotpSetup> = z.object({
+const totpSetupSchema: Web_Api_TotpSetupSchema = z.object({
   expiresAt: z.string(),
   qrCode: z.string(),
   secret: z.string(),
@@ -452,39 +608,39 @@ const totpSetupSchema: Web_Api_Schema<Web_Api_TotpSetup> = z.object({
 });
 
 /**
- * API - Recovery codes schema.
+ * API - Recovery Codes Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const recoveryCodesSchema: Web_Api_Schema<Web_Api_RecoveryCodes> = z.object({
+const recoveryCodesSchema: Web_Api_RecoveryCodesSchema = z.object({
   recoveryCodes: z.array(z.string()),
 });
 
 /**
- * API - Passkey ceremony schema.
+ * API - Passkey Ceremony Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const passkeyCeremonySchema: Web_Api_Schema<Web_Api_PasskeyCeremony> = z.object({
+const passkeyCeremonySchema: Web_Api_PasskeyCeremonySchema = z.object({
   ceremonyId: z.string(),
   options: z.record(z.string(), z.unknown()),
 });
 
 /**
- * API - Token schema.
+ * API - Token Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const tokenSchema: Web_Api_Schema<Web_Api_Token> = z.object({
+const tokenSchema: Web_Api_TokenSchema = z.object({
   createdAt: z.string(),
   expiresAt: z.string().nullable(),
   id: z.string(),
@@ -494,7 +650,7 @@ const tokenSchema: Web_Api_Schema<Web_Api_Token> = z.object({
 });
 
 /**
- * API - Tokens response schema.
+ * API - Tokens Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -506,27 +662,27 @@ const tokensResponseSchema = z.object({
 });
 
 /**
- * API - Created token schema.
+ * API - Created Token Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const createdTokenSchema: Web_Api_Schema<Web_Api_CreatedToken> = z.object({
+const createdTokenSchema: Web_Api_CreatedTokenSchema = z.object({
   plaintext: z.string(),
   token: tokenSchema,
 });
 
 /**
- * API - Server schema.
+ * API - Server Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const serverSchema: Web_Api_Schema<Web_Api_Server> = z.object({
+const serverSchema: Web_Api_ServerSchema = z.object({
   available: z.boolean(),
   enabledFeatures: z.number(),
   iconUrl: z.string().nullable(),
@@ -535,7 +691,7 @@ const serverSchema: Web_Api_Schema<Web_Api_Server> = z.object({
 });
 
 /**
- * API - Servers response schema.
+ * API - Servers Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -547,14 +703,14 @@ const serversResponseSchema = z.object({
 });
 
 /**
- * API - Resources schema.
+ * API - Resources Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const resourcesSchema: Web_Api_Schema<Web_Api_Resources> = z.object({
+const resourcesSchema: Web_Api_ResourcesSchema = z.object({
   channels: z.array(z.object({
     available: z.boolean().default(true),
     id: z.coerce.string(),
@@ -573,7 +729,7 @@ const resourcesSchema: Web_Api_Schema<Web_Api_Resources> = z.object({
 });
 
 /**
- * API - Feature category schema.
+ * API - Feature Category Schema.
  *
  * Encapsulates the related behavior behind one reusable interface.
  * Callers share the same lifecycle and state management.
@@ -590,7 +746,7 @@ const featureCategorySchema = z.enum([
 ]);
 
 /**
- * API - Feature summary shape.
+ * API - Feature Summary Shape.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -609,17 +765,17 @@ const featureSummaryShape = {
 };
 
 /**
- * API - Feature summary schema.
+ * API - Feature Summary Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const featureSummarySchema: Web_Api_Schema<Web_Api_FeatureSummary> = z.object(featureSummaryShape);
+const featureSummarySchema: Web_Api_FeatureSummarySchema = z.object(featureSummaryShape);
 
 /**
- * API - Features response schema.
+ * API - Features Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -631,27 +787,31 @@ const featuresResponseSchema = z.object({
 });
 
 /**
- * API - Editor schema.
+ * API - Editor Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const editorSchema: Web_Api_Schema<Web_Schema_Node> = z.custom<Web_Schema_Node>(
-  (value: unknown): boolean => typeof value === 'object' && value !== null && !Array.isArray(value),
+const editorSchema: Web_Api_EditorSchema = z.custom<Web_Schema_Node>(
+  (value) => (
+    typeof value === 'object'
+    && value !== null
+    && Array.isArray(value) === false
+  ),
   { message: 'The feature editor description is missing.' },
 );
 
 /**
- * API - Feature detail schema.
+ * API - Feature Detail Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const featureDetailSchema: Web_Api_Schema<Web_Api_FeatureDetail> = z.object({
+const featureDetailSchema: Web_Api_FeatureDetailSchema = z.object({
   ...featureSummaryShape,
   configuration: z.unknown(),
   editor: editorSchema,
@@ -660,7 +820,7 @@ const featureDetailSchema: Web_Api_Schema<Web_Api_FeatureDetail> = z.object({
 });
 
 /**
- * API - Service schema.
+ * API - Service Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -678,14 +838,14 @@ const serviceSchema = z.object({
 });
 
 /**
- * API - Bot schema.
+ * API - Bot Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const botSchema: Web_Api_Schema<Web_Api_Bot> = z.object({
+const botSchema: Web_Api_BotSchema = z.object({
   activeFeatures: z.array(z.string()).default([]),
   addServerUrl: z.string().nullable(),
   applicationId: z.string().nullable(),
@@ -703,14 +863,14 @@ const botSchema: Web_Api_Schema<Web_Api_Bot> = z.object({
 });
 
 /**
- * API - Log entry schema.
+ * API - Log Entry Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const logEntrySchema: Web_Api_Schema<Web_Api_LogEntry> = z.object({
+const logEntrySchema: Web_Api_LogEntrySchema = z.object({
   component: z.enum([
     'bot',
     'web',
@@ -729,39 +889,39 @@ const logEntrySchema: Web_Api_Schema<Web_Api_LogEntry> = z.object({
 });
 
 /**
- * API - Log page schema.
+ * API - Log Page Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const logPageSchema: Web_Api_Schema<Web_Api_LogPage> = z.object({
+const logPageSchema: Web_Api_LogPageSchema = z.object({
   cursor: z.coerce.string().nullable().default(null),
   items: z.array(logEntrySchema),
 });
 
 /**
- * API - Diagnostics schema.
+ * API - Diagnostics Schema.
  *
  * Reads whether Debug logging is on.
  * The bot, the control panel, and the worker share this one switch.
  *
  * @since 4.0.0
  */
-const diagnosticsSchema: Web_Api_Schema<Web_Api_Diagnostics> = z.object({
+const diagnosticsSchema: Web_Api_DiagnosticsSchema = z.object({
   debugLogging: z.boolean(),
 });
 
 /**
- * API - User schema.
+ * API - User Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const userSchema: Web_Api_Schema<Web_Api_User> = z.object({
+const userSchema: Web_Api_UserSchema = z.object({
   allServers: z.boolean(),
   createdAt: z.string(),
   editable: z.boolean().default(false),
@@ -776,7 +936,7 @@ const userSchema: Web_Api_Schema<Web_Api_User> = z.object({
 });
 
 /**
- * API - Users response schema.
+ * API - Users Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
@@ -788,14 +948,14 @@ const usersResponseSchema = z.object({
 });
 
 /**
- * API - Invite page schema.
+ * API - Invite Page Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const invitePageSchema: Web_Api_Schema<Web_Api_InvitePage> = z.object({
+const invitePageSchema: Web_Api_InvitePageSchema = z.object({
   accentColor: z.string(),
   bannerImageId: z.string().nullable().default(null),
   bannerImageUrl: z.string().nullable(),
@@ -822,14 +982,14 @@ const invitePageSchema: Web_Api_Schema<Web_Api_InvitePage> = z.object({
 });
 
 /**
- * API - Invite page response schema.
+ * API - Invite Page Response Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const invitePageResponseSchema: Web_Api_Schema<Web_Api_InvitePageResponse> = z.object({
+const invitePageResponseSchema: Web_Api_InvitePageResponseSchema = z.object({
   enabled: z.boolean(),
   page: invitePageSchema,
   publicUrl: z.string().nullable(),
@@ -840,14 +1000,14 @@ const invitePageResponseSchema: Web_Api_Schema<Web_Api_InvitePageResponse> = z.o
 });
 
 /**
- * API - Uploaded image schema.
+ * API - Uploaded Image Schema.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const uploadedImageSchema: Web_Api_Schema<Web_Api_UploadedImage> = z.object({
+const uploadedImageSchema: Web_Api_UploadedImageSchema = z.object({
   id: z.coerce.string(),
   url: z.string(),
 });
@@ -869,7 +1029,7 @@ export class ApiError extends Error {
    *
    * @since 4.0.0
    */
-  public readonly code: string;
+  public readonly code: Web_Api_ApiError_Code;
 
   /**
    * API - Status.
@@ -879,7 +1039,7 @@ export class ApiError extends Error {
    *
    * @since 4.0.0
    */
-  public readonly status: number;
+  public readonly status: Web_Api_ApiError_Status;
 
   /**
    * API - Issues.
@@ -889,7 +1049,7 @@ export class ApiError extends Error {
    *
    * @since 4.0.0
    */
-  public readonly issues: Web_Api_ErrorIssue[];
+  public readonly issues: Web_Api_ApiError_Issues;
 
   /**
    * API - Constructor.
@@ -899,32 +1059,39 @@ export class ApiError extends Error {
    *
    * @since 4.0.0
    */
-  public constructor(message: string, code: string, status: number, issues: Web_Api_ErrorIssue[]) {
+  public constructor(message: Web_Api_ApiError_Constructor_Message, code: Web_Api_ApiError_Constructor_Code, status: Web_Api_ApiError_Constructor_Status, issues: Web_Api_ApiError_Constructor_Issues) {
     super(message);
     this.name = 'ApiError';
     this.code = code;
     this.status = status;
     this.issues = issues;
+
+    return;
   }
 }
 
 // issueFor returns the message the API attached to one form field, if any.
 
 /**
- * API - Issue for.
+ * API - Issue For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_IssueFor_CaughtError} caughtError - Caught error.
+ * @param {Web_Api_IssueFor_Field}       field       - Field.
+ *
+ * @returns {Web_Api_IssueFor_Returns}
+ *
  * @since 4.0.0
  */
-export const issueFor = (caughtError: unknown, field: string): string => {
+export const issueFor = (caughtError: Web_Api_IssueFor_CaughtError, field: Web_Api_IssueFor_Field): Web_Api_IssueFor_Returns => {
   if (!(caughtError instanceof ApiError)) {
     return '';
   }
 
-  const issue: Web_Api_ErrorIssue | undefined = caughtError.issues.find(
-    (candidate: Web_Api_ErrorIssue): boolean => candidate['field'] === field,
+  const issue: Web_Api_IssueFor_Issue = caughtError.issues.find(
+    (candidate) => candidate['field'] === field,
   );
 
   return (issue === undefined) ? '' : issue['message'];
@@ -933,21 +1100,30 @@ export const issueFor = (caughtError: unknown, field: string): string => {
 // summaryFor returns the banner text for an error, or nothing when a shown field already carries it.
 
 /**
- * API - Summary for.
+ * API - Summary For.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_SummaryFor_CaughtError} caughtError - Caught error.
+ * @param {Web_Api_SummaryFor_ShownFields} shownFields - Shown fields.
+ * @param {Web_Api_SummaryFor_Fallback}    fallback    - Fallback.
+ *
+ * @returns {Web_Api_SummaryFor_Returns}
+ *
  * @since 4.0.0
  */
-export const summaryFor = (caughtError: unknown, shownFields: string[], fallback: string): string => {
+export const summaryFor = (caughtError: Web_Api_SummaryFor_CaughtError, shownFields: Web_Api_SummaryFor_ShownFields, fallback: Web_Api_SummaryFor_Fallback): Web_Api_SummaryFor_Returns => {
   if (caughtError === null || caughtError === undefined) {
     return '';
   }
 
-  if (caughtError instanceof ApiError && caughtError.issues.some(
-    (issue: Web_Api_ErrorIssue): boolean => shownFields.includes(issue['field']),
-  )) {
+  if (
+    caughtError instanceof ApiError
+    && caughtError.issues.some(
+      (issue) => shownFields.includes(issue['field']),
+    ) === true
+  ) {
     return '';
   }
 
@@ -965,31 +1141,40 @@ export const summaryFor = (caughtError: unknown, shownFields: string[], fallback
 // errorMessage turns any failure into one sentence for a banner.
 
 /**
- * API - Error message.
+ * API - Error Message.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ErrorMessage_CaughtError} caughtError - Caught error.
+ * @param {Web_Api_ErrorMessage_Fallback}    fallback    - Fallback.
+ *
+ * @returns {Web_Api_ErrorMessage_Returns}
+ *
  * @since 4.0.0
  */
-export const errorMessage = (caughtError: unknown, fallback: string): string => (
+export const errorMessage = (caughtError: Web_Api_ErrorMessage_CaughtError, fallback: Web_Api_ErrorMessage_Fallback): Web_Api_ErrorMessage_Returns => (
   (caughtError instanceof Error && caughtError.message !== '') ? caughtError.message : fallback
 );
 
 // responseError converts the stable API error envelope into an ApiError.
 
 /**
- * API - Response error.
+ * API - Response Error.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Response} response - Response.
+ *
+ * @returns {Web_Api_ResponseError_Returns}
+ *
  * @since 4.0.0
  */
-const responseError = async (response: Response): Promise<ApiError> => {
-  const responseValue: unknown = await response.json().catch(() => undefined);
-  const parsedError = errorEnvelopeSchema.safeParse(responseValue);
-  if (parsedError.success) {
+const responseError = async (response: Response): Web_Api_ResponseError_Returns => {
+  const responseValue: Web_Api_ResponseError_ResponseValue = await response.json().catch(() => undefined);
+  const parsedError: Web_Api_ResponseError_ParsedError = errorEnvelopeSchema.safeParse(responseValue);
+  if (parsedError.success === true) {
     return new ApiError(
       parsedError.data['error']['message'],
       parsedError.data['error']['code'],
@@ -1004,19 +1189,23 @@ const responseError = async (response: Response): Promise<ApiError> => {
 // readCookie returns one non-HTTP-only same-origin cookie.
 
 /**
- * API - Reads cookie.
+ * API - Read Cookie.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ReadCookie_Name} name - Name.
+ *
+ * @returns {Web_Api_ReadCookie_Returns}
+ *
  * @since 4.0.0
  */
-const readCookie = (name: string): string | undefined => {
-  const prefix: string = `${name}=`;
-  const parts: string[] = document.cookie.split(';');
-  const matchingPart: string | undefined = parts
-    .map((part: string): string => part.trim())
-    .find((part: string): boolean => part.startsWith(prefix));
+const readCookie = (name: Web_Api_ReadCookie_Name): Web_Api_ReadCookie_Returns => {
+  const prefix: Web_Api_ReadCookie_Prefix = `${name}=`;
+  const parts: Web_Api_ReadCookie_Parts = document.cookie.split(';');
+  const matchingPart: Web_Api_ReadCookie_MatchingPart = parts
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
 
   return (matchingPart === undefined) ? undefined : decodeURIComponent(matchingPart.slice(prefix.length));
 };
@@ -1024,28 +1213,32 @@ const readCookie = (name: string): string | undefined => {
 // buildRequest adds the JSON or file body, the CSRF header for mutations, and same-origin cookies.
 
 /**
- * API - Builds request.
+ * API - Build Request.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_Request_Options} options - Options.
+ *
+ * @returns {Web_Api_BuildRequest_Returns}
+ *
  * @since 4.0.0
  */
-const buildRequest = (options: Web_Api_Request_Options): RequestInit => {
-  const headers: Headers = new Headers(options.headers);
-  const method: string = options.method ?? 'GET';
-  let body: BodyInit | undefined = undefined;
+const buildRequest = (options: Web_Api_Request_Options): Web_Api_BuildRequest_Returns => {
+  const headers: Headers = new Headers(options['headers']);
+  const method: Web_Api_BuildRequest_Method = options['method'] ?? 'GET';
+  let body: Web_Api_BuildRequest_Body = undefined;
 
-  if (options.file !== undefined) {
-    headers.set('Content-Type', (options.file.type === '') ? 'application/octet-stream' : options.file.type);
-    body = options.file;
-  } else if (options.body !== undefined) {
+  if (options['file'] !== undefined) {
+    headers.set('Content-Type', (options['file'].type === '') ? 'application/octet-stream' : options['file'].type);
+    body = options['file'];
+  } else if (options['body'] !== undefined) {
     headers.set('Content-Type', 'application/json');
-    body = JSON.stringify(options.body);
+    body = JSON.stringify(options['body']);
   }
 
   if (method !== 'GET') {
-    const csrfToken: string | undefined = readCookie('dsb_csrf');
+    const csrfToken: Web_Api_BuildRequest_CsrfToken = readCookie('dsb_csrf');
     if (csrfToken !== undefined) {
       headers.set('X-CSRF-Token', csrfToken);
     }
@@ -1067,19 +1260,25 @@ const buildRequest = (options: Web_Api_Request_Options): RequestInit => {
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_RequestJson_Path}      path      - Path.
+ * @param {Web_Api_Schema<ResponseValue>} schema    - Schema.
+ * @param {Web_Api_Request_Options}       [options] - Options.
+ *
+ * @returns {Promise<ResponseValue>}
+ *
  * @since 4.0.0
  */
 const requestJSON = async <ResponseValue>(
-  path: string,
+  path: Web_Api_RequestJson_Path,
   schema: Web_Api_Schema<ResponseValue>,
   options: Web_Api_Request_Options = {},
 ): Promise<ResponseValue> => {
   const response: Response = await fetch(path, buildRequest(options));
-  if (!response.ok) {
+  if (response.ok === false) {
     throw await responseError(response);
   }
 
-  const responseValue: unknown = await response.json();
+  const responseValue: Web_Api_RequestJson_ResponseValue = await response.json();
 
   return schema.parse(responseValue);
 };
@@ -1087,83 +1286,103 @@ const requestJSON = async <ResponseValue>(
 // requestVoid performs one mutation whose successful response body is not needed.
 
 /**
- * API - Request void.
+ * API - Request Void.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_RequestVoid_Path} path    - Path.
+ * @param {Web_Api_Request_Options}  options - Options.
+ *
+ * @returns {Web_Api_RequestVoid_Returns}
+ *
  * @since 4.0.0
  */
 const requestVoid = async (
-  path: string,
+  path: Web_Api_RequestVoid_Path,
   options: Web_Api_Request_Options,
-): Promise<void> => {
+): Web_Api_RequestVoid_Returns => {
   const response: Response = await fetch(path, buildRequest(options));
-  if (!response.ok) {
+  if (response.ok === false) {
     throw await responseError(response);
   }
+
+  return;
 };
 
 // serverPath builds a path under one Discord server.
 
 /**
- * API - Server path.
+ * API - Server Path.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ServerPath_ServerId} serverId - Server id.
+ * @param {Web_Api_ServerPath_Suffix}   suffix   - Suffix.
+ *
+ * @returns {Web_Api_ServerPath_Returns}
+ *
  * @since 4.0.0
  */
-const serverPath = (serverId: string, suffix: string): string => `/api/v1/servers/${encodeURIComponent(serverId)}${suffix}`;
+const serverPath = (serverId: Web_Api_ServerPath_ServerId, suffix: Web_Api_ServerPath_Suffix): Web_Api_ServerPath_Returns => `/api/v1/servers/${encodeURIComponent(serverId)}${suffix}`;
 
 /**
- * API - Gets setup status.
+ * API - Get Setup Status.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetSetupStatus_Returns}
+ *
  * @since 4.0.0
  */
-export const getSetupStatus = async (): Promise<Web_Api_SetupStatus> => requestJSON(
+export const getSetupStatus = async (): Web_Api_GetSetupStatus_Returns => requestJSON(
   '/api/v1/setup/status',
   setupStatusSchema,
 );
 
 /**
- * API - Gets current principal.
+ * API - Get Current Principal.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetCurrentPrincipal_Returns}
+ *
  * @since 4.0.0
  */
-export const getCurrentPrincipal = async (): Promise<Web_Api_Principal | null> => {
+export const getCurrentPrincipal = async (): Web_Api_GetCurrentPrincipal_Returns => {
   const response: Response = await fetch('/api/v1/auth/me', {
     credentials: 'same-origin',
   });
   if (response.status === 401) {
     return null;
   }
-  if (!response.ok) {
+  if (response.ok === false) {
     throw await responseError(response);
   }
 
-  const responseValue: unknown = await response.json();
+  const responseValue: Web_Api_GetCurrentPrincipal_ResponseValue = await response.json();
 
   return principalSchema.parse(responseValue);
 };
 
 /**
- * API - Claim installation.
+ * API - Claim Installation.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
+ *
+ * @param {Web_Api_ClaimInput} input - Input.
+ *
+ * @returns {Web_Api_ClaimInstallation_Returns}
  *
  * @since 4.0.0
  */
 export const claimInstallation = async (
   input: Web_Api_ClaimInput,
-): Promise<Web_Api_AuthenticationResponse> => requestJSON(
+): Web_Api_ClaimInstallation_Returns => requestJSON(
   '/api/v1/setup/claim',
   authenticationResponseSchema,
   {
@@ -1182,11 +1401,15 @@ export const claimInstallation = async (
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_LoginInput} input - Input.
+ *
+ * @returns {Web_Api_Login_Returns}
+ *
  * @since 4.0.0
  */
 export const login = async (
   input: Web_Api_LoginInput,
-): Promise<Web_Api_LoginResult> => requestJSON(
+): Web_Api_Login_Returns => requestJSON(
   '/api/v1/auth/login',
   loginResultSchema,
   {
@@ -1199,17 +1422,22 @@ export const login = async (
 );
 
 /**
- * API - Submit second factor.
+ * API - Submit Second Factor.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_SubmitSecondFactor_Challenge} challenge - Challenge.
+ * @param {Web_Api_SubmitSecondFactor_Code}      code      - Code.
+ *
+ * @returns {Web_Api_SubmitSecondFactor_Returns}
+ *
  * @since 4.0.0
  */
 export const submitSecondFactor = async (
-  challenge: string,
-  code: string,
-): Promise<Web_Api_AuthenticationResponse> => requestJSON(
+  challenge: Web_Api_SubmitSecondFactor_Challenge,
+  code: Web_Api_SubmitSecondFactor_Code,
+): Web_Api_SubmitSecondFactor_Returns => requestJSON(
   '/api/v1/auth/login/second-factor',
   authenticationResponseSchema,
   {
@@ -1222,20 +1450,22 @@ export const submitSecondFactor = async (
 );
 
 /**
- * API - Sign in with passkey.
+ * API - Sign In With Passkey.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_SignInWithPasskey_Returns}
+ *
  * @since 4.0.0
  */
-export const signInWithPasskey = async (): Promise<Web_Api_AuthenticationResponse> => {
+export const signInWithPasskey = async (): Web_Api_SignInWithPasskey_Returns => {
   const ceremony: Web_Api_PasskeyCeremony = await requestJSON(
     '/api/v1/auth/passkeys/login/options',
     passkeyCeremonySchema,
     { method: 'POST' },
   );
-  const credential: Record<string, unknown> = await getPasskey(ceremony['options']);
+  const credential: Web_Api_SignInWithPasskey_Credential = await getPasskey(ceremony['options']);
 
   return requestJSON(
     '/api/v1/auth/passkeys/login/verify',
@@ -1256,51 +1486,62 @@ export const signInWithPasskey = async (): Promise<Web_Api_AuthenticationRespons
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_Logout_Returns}
+ *
  * @since 4.0.0
  */
-export const logout = async (): Promise<void> => requestVoid(
+export const logout = async (): Web_Api_Logout_Returns => requestVoid(
   '/api/v1/auth/logout',
   { method: 'POST' },
 );
 
 /**
- * API - Dismiss removed secrets.
+ * API - Dismiss Removed Secrets.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_DismissRemovedSecrets_Returns}
+ *
  * @since 4.0.0
  */
-export const dismissRemovedSecrets = async (): Promise<void> => requestVoid(
+export const dismissRemovedSecrets = async (): Web_Api_DismissRemovedSecrets_Returns => requestVoid(
   '/api/v1/auth/removed-secrets',
   { method: 'DELETE' },
 );
 
 /**
- * API - Gets account security.
+ * API - Get Account Security.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetAccountSecurity_Returns}
+ *
  * @since 4.0.0
  */
-export const getAccountSecurity = async (): Promise<Web_Api_AccountSecurity> => requestJSON(
+export const getAccountSecurity = async (): Web_Api_GetAccountSecurity_Returns => requestJSON(
   '/api/v1/auth/security',
   accountSecuritySchema,
 );
 
 /**
- * API - Change password.
+ * API - Change Password.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_ChangePassword_CurrentPassword} currentPassword - Current password.
+ * @param {Web_Api_ChangePassword_NewPassword}     newPassword     - New password.
+ *
+ * @returns {Web_Api_ChangePassword_Returns}
+ *
  * @since 4.0.0
  */
 export const changePassword = async (
-  currentPassword: string,
-  newPassword: string,
-): Promise<void> => requestVoid(
+  currentPassword: Web_Api_ChangePassword_CurrentPassword,
+  newPassword: Web_Api_ChangePassword_NewPassword,
+): Web_Api_ChangePassword_Returns => requestVoid(
   '/api/v1/auth/password',
   {
     body: {
@@ -1312,17 +1553,22 @@ export const changePassword = async (
 );
 
 /**
- * API - Change username.
+ * API - Change Username.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_ChangeUsername_Username} username - Username.
+ * @param {Web_Api_ChangeUsername_Password} password - Password.
+ *
+ * @returns {Web_Api_ChangeUsername_Returns}
+ *
  * @since 4.0.0
  */
 export const changeUsername = async (
-  username: string,
-  password: string,
-): Promise<void> => requestVoid(
+  username: Web_Api_ChangeUsername_Username,
+  password: Web_Api_ChangeUsername_Password,
+): Web_Api_ChangeUsername_Returns => requestVoid(
   '/api/v1/auth/username',
   {
     body: {
@@ -1334,14 +1580,18 @@ export const changeUsername = async (
 );
 
 /**
- * API - Starts TOTP setup.
+ * API - Start Totp Setup.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_StartTotpSetup_Password} password - Password.
+ *
+ * @returns {Web_Api_StartTotpSetup_Returns}
+ *
  * @since 4.0.0
  */
-export const startTotpSetup = async (password: string): Promise<Web_Api_TotpSetup> => requestJSON(
+export const startTotpSetup = async (password: Web_Api_StartTotpSetup_Password): Web_Api_StartTotpSetup_Returns => requestJSON(
   '/api/v1/auth/totp/setup',
   totpSetupSchema,
   {
@@ -1351,14 +1601,18 @@ export const startTotpSetup = async (password: string): Promise<Web_Api_TotpSetu
 );
 
 /**
- * API - Enable TOTP.
+ * API - Enable Totp.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_EnableTotp_Code} code - Code.
+ *
+ * @returns {Web_Api_EnableTotp_Returns}
+ *
  * @since 4.0.0
  */
-export const enableTotp = async (code: string): Promise<Web_Api_RecoveryCodes> => requestJSON(
+export const enableTotp = async (code: Web_Api_EnableTotp_Code): Web_Api_EnableTotp_Returns => requestJSON(
   '/api/v1/auth/totp/enable',
   recoveryCodesSchema,
   {
@@ -1368,14 +1622,18 @@ export const enableTotp = async (code: string): Promise<Web_Api_RecoveryCodes> =
 );
 
 /**
- * API - Disable TOTP.
+ * API - Disable Totp.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_DisableTotp_Password} password - Password.
+ *
+ * @returns {Web_Api_DisableTotp_Returns}
+ *
  * @since 4.0.0
  */
-export const disableTotp = async (password: string): Promise<void> => requestVoid(
+export const disableTotp = async (password: Web_Api_DisableTotp_Password): Web_Api_DisableTotp_Returns => requestVoid(
   '/api/v1/auth/totp/disable',
   {
     body: { password },
@@ -1384,14 +1642,18 @@ export const disableTotp = async (password: string): Promise<void> => requestVoi
 );
 
 /**
- * API - Regenerate recovery codes.
+ * API - Regenerate Recovery Codes.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_RegenerateRecoveryCodes_Password} password - Password.
+ *
+ * @returns {Web_Api_RegenerateRecoveryCodes_Returns}
+ *
  * @since 4.0.0
  */
-export const regenerateRecoveryCodes = async (password: string): Promise<Web_Api_RecoveryCodes> => requestJSON(
+export const regenerateRecoveryCodes = async (password: Web_Api_RegenerateRecoveryCodes_Password): Web_Api_RegenerateRecoveryCodes_Returns => requestJSON(
   '/api/v1/auth/recovery-codes',
   recoveryCodesSchema,
   {
@@ -1401,14 +1663,19 @@ export const regenerateRecoveryCodes = async (password: string): Promise<Web_Api
 );
 
 /**
- * API - Adds passkey.
+ * API - Add Passkey.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_AddPasskey_Name}     name     - Name.
+ * @param {Web_Api_AddPasskey_Password} password - Password.
+ *
+ * @returns {Web_Api_AddPasskey_Returns}
+ *
  * @since 4.0.0
  */
-export const addPasskey = async (name: string, password: string): Promise<Web_Api_Passkey> => {
+export const addPasskey = async (name: Web_Api_AddPasskey_Name, password: Web_Api_AddPasskey_Password): Web_Api_AddPasskey_Returns => {
   const ceremony: Web_Api_PasskeyCeremony = await requestJSON(
     '/api/v1/auth/passkeys/register/options',
     passkeyCeremonySchema,
@@ -1420,7 +1687,7 @@ export const addPasskey = async (name: string, password: string): Promise<Web_Ap
       method: 'POST',
     },
   );
-  const credential: Record<string, unknown> = await createPasskey(ceremony['options']);
+  const credential: Web_Api_AddPasskey_Credential = await createPasskey(ceremony['options']);
 
   return requestJSON(
     '/api/v1/auth/passkeys/register/verify',
@@ -1436,14 +1703,19 @@ export const addPasskey = async (name: string, password: string): Promise<Web_Ap
 };
 
 /**
- * API - Removes passkey.
+ * API - Remove Passkey.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_RemovePasskey_PasskeyId} passkeyId - Passkey id.
+ * @param {Web_Api_RemovePasskey_Password}  password  - Password.
+ *
+ * @returns {Web_Api_RemovePasskey_Returns}
+ *
  * @since 4.0.0
  */
-export const removePasskey = async (passkeyId: string, password: string): Promise<void> => requestVoid(
+export const removePasskey = async (passkeyId: Web_Api_RemovePasskey_PasskeyId, password: Web_Api_RemovePasskey_Password): Web_Api_RemovePasskey_Returns => requestVoid(
   `/api/v1/auth/passkeys/${encodeURIComponent(passkeyId)}`,
   {
     body: { password },
@@ -1452,30 +1724,36 @@ export const removePasskey = async (passkeyId: string, password: string): Promis
 );
 
 /**
- * API - Gets tokens.
+ * API - Get Tokens.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetTokens_Returns}
+ *
  * @since 4.0.0
  */
-export const getTokens = async (): Promise<Web_Api_Token[]> => {
-  const response = await requestJSON('/api/v1/auth/tokens', tokensResponseSchema);
+export const getTokens = async (): Web_Api_GetTokens_Returns => {
+  const response: Web_Api_GetTokens_Response = await requestJSON('/api/v1/auth/tokens', tokensResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Create token.
+ * API - Create Token.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
+ *
+ * @param {Web_Api_CreateTokenInput} input - Input.
+ *
+ * @returns {Web_Api_CreateToken_Returns}
  *
  * @since 4.0.0
  */
 export const createToken = async (
   input: Web_Api_CreateTokenInput,
-): Promise<Web_Api_CreatedToken> => requestJSON(
+): Web_Api_CreateToken_Returns => requestJSON(
   '/api/v1/auth/tokens',
   createdTokenSchema,
   {
@@ -1489,17 +1767,22 @@ export const createToken = async (
 );
 
 /**
- * API - Update token.
+ * API - Update Token.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_UpdateToken_TokenId} tokenId - Token id.
+ * @param {Web_Api_UpdateTokenInput}    input   - Input.
+ *
+ * @returns {Web_Api_UpdateToken_Returns}
+ *
  * @since 4.0.0
  */
 export const updateToken = async (
-  tokenId: string,
+  tokenId: Web_Api_UpdateToken_TokenId,
   input: Web_Api_UpdateTokenInput,
-): Promise<Web_Api_Token> => requestJSON(
+): Web_Api_UpdateToken_Returns => requestJSON(
   `/api/v1/auth/tokens/${encodeURIComponent(tokenId)}`,
   tokenSchema,
   {
@@ -1513,57 +1796,69 @@ export const updateToken = async (
 );
 
 /**
- * API - Revoke token.
+ * API - Revoke Token.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_RevokeToken_TokenId} tokenId - Token id.
+ *
+ * @returns {Web_Api_RevokeToken_Returns}
+ *
  * @since 4.0.0
  */
-export const revokeToken = async (tokenId: string): Promise<void> => requestVoid(
+export const revokeToken = async (tokenId: Web_Api_RevokeToken_TokenId): Web_Api_RevokeToken_Returns => requestVoid(
   `/api/v1/auth/tokens/${encodeURIComponent(tokenId)}`,
   { method: 'DELETE' },
 );
 
 /**
- * API - Gets notifications.
+ * API - Get Notifications.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetNotifications_Returns}
+ *
  * @since 4.0.0
  */
-export const getNotifications = async (): Promise<Web_Notifications_Target[]> => {
-  const response = await requestJSON('/api/v1/notifications', notificationTargetsResponseSchema);
+export const getNotifications = async (): Web_Api_GetNotifications_Returns => {
+  const response: Web_Api_GetNotifications_Response = await requestJSON('/api/v1/notifications', notificationTargetsResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Gets notification events.
+ * API - Get Notification Events.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetNotificationEvents_Returns}
+ *
  * @since 4.0.0
  */
-export const getNotificationEvents = async (): Promise<Web_Notifications_Event[]> => {
-  const response = await requestJSON('/api/v1/notifications/events', notificationEventsResponseSchema);
+export const getNotificationEvents = async (): Web_Api_GetNotificationEvents_Returns => {
+  const response: Web_Api_GetNotificationEvents_Response = await requestJSON('/api/v1/notifications/events', notificationEventsResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Create notification.
+ * API - Create Notification.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
+ *
+ * @param {Web_Notifications_CreateInput} input - Input.
+ *
+ * @returns {Web_Api_CreateNotification_Returns}
  *
  * @since 4.0.0
  */
 export const createNotification = async (
   input: Web_Notifications_CreateInput,
-): Promise<Web_Notifications_Target> => requestJSON(
+): Web_Api_CreateNotification_Returns => requestJSON(
   '/api/v1/notifications',
   notificationTargetSchema,
   {
@@ -1578,17 +1873,22 @@ export const createNotification = async (
 );
 
 /**
- * API - Update notification.
+ * API - Update Notification.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_UpdateNotification_NotificationId} notificationId - Notification id.
+ * @param {Web_Notifications_UpdateInput}             input          - Input.
+ *
+ * @returns {Web_Api_UpdateNotification_Returns}
+ *
  * @since 4.0.0
  */
 export const updateNotification = async (
-  notificationId: string,
+  notificationId: Web_Api_UpdateNotification_NotificationId,
   input: Web_Notifications_UpdateInput,
-): Promise<Web_Notifications_Target> => requestJSON(
+): Web_Api_UpdateNotification_Returns => requestJSON(
   `/api/v1/notifications/${encodeURIComponent(notificationId)}`,
   notificationTargetSchema,
   {
@@ -1603,99 +1903,128 @@ export const updateNotification = async (
 );
 
 /**
- * API - Removes notification.
+ * API - Remove Notification.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_RemoveNotification_NotificationId} notificationId - Notification id.
+ *
+ * @returns {Web_Api_RemoveNotification_Returns}
+ *
  * @since 4.0.0
  */
-export const removeNotification = async (notificationId: string): Promise<void> => requestVoid(
+export const removeNotification = async (notificationId: Web_Api_RemoveNotification_NotificationId): Web_Api_RemoveNotification_Returns => requestVoid(
   `/api/v1/notifications/${encodeURIComponent(notificationId)}`,
   { method: 'DELETE' },
 );
 
 /**
- * API - Test notification.
+ * API - Test Notification.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_TestNotification_NotificationId} notificationId - Notification id.
+ *
+ * @returns {Web_Api_TestNotification_Returns}
+ *
  * @since 4.0.0
  */
-export const testNotification = async (notificationId: string): Promise<Web_Notifications_TestResult> => requestJSON(
+export const testNotification = async (notificationId: Web_Api_TestNotification_NotificationId): Web_Api_TestNotification_Returns => requestJSON(
   `/api/v1/notifications/${encodeURIComponent(notificationId)}/test`,
   notificationTestSchema,
   { method: 'POST' },
 );
 
 /**
- * API - Gets servers.
+ * API - Get Servers.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetServers_Returns}
+ *
  * @since 4.0.0
  */
-export const getServers = async (): Promise<Web_Api_Server[]> => {
-  const response = await requestJSON('/api/v1/servers', serversResponseSchema);
+export const getServers = async (): Web_Api_GetServers_Returns => {
+  const response: Web_Api_GetServers_Response = await requestJSON('/api/v1/servers', serversResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Gets resources.
+ * API - Get Resources.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_GetResources_ServerId} serverId - Server id.
+ *
+ * @returns {Web_Api_GetResources_Returns}
+ *
  * @since 4.0.0
  */
-export const getResources = async (serverId: string): Promise<Web_Api_Resources> => requestJSON(
+export const getResources = async (serverId: Web_Api_GetResources_ServerId): Web_Api_GetResources_Returns => requestJSON(
   serverPath(serverId, '/resources'),
   resourcesSchema,
 );
 
 /**
- * API - Gets features.
+ * API - Get Features.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_GetFeatures_ServerId} serverId - Server id.
+ *
+ * @returns {Web_Api_GetFeatures_Returns}
+ *
  * @since 4.0.0
  */
-export const getFeatures = async (serverId: string): Promise<Web_Api_FeatureSummary[]> => {
-  const response = await requestJSON(serverPath(serverId, '/features'), featuresResponseSchema);
+export const getFeatures = async (serverId: Web_Api_GetFeatures_ServerId): Web_Api_GetFeatures_Returns => {
+  const response: Web_Api_GetFeatures_Response = await requestJSON(serverPath(serverId, '/features'), featuresResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Gets feature.
+ * API - Get Feature.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_GetFeature_ServerId}   serverId   - Server id.
+ * @param {Web_Api_GetFeature_FeatureKey} featureKey - Feature key.
+ *
+ * @returns {Web_Api_GetFeature_Returns}
+ *
  * @since 4.0.0
  */
-export const getFeature = async (serverId: string, featureKey: string): Promise<Web_Api_FeatureDetail> => requestJSON(
+export const getFeature = async (serverId: Web_Api_GetFeature_ServerId, featureKey: Web_Api_GetFeature_FeatureKey): Web_Api_GetFeature_Returns => requestJSON(
   serverPath(serverId, `/features/${encodeURIComponent(featureKey)}`),
   featureDetailSchema,
 );
 
 /**
- * API - Save feature.
+ * API - Save Feature.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_SaveFeature_ServerId}   serverId   - Server id.
+ * @param {Web_Api_SaveFeature_FeatureKey} featureKey - Feature key.
+ * @param {Web_Api_FeatureSaveInput}       input      - Input.
+ *
+ * @returns {Web_Api_SaveFeature_Returns}
+ *
  * @since 4.0.0
  */
 export const saveFeature = async (
-  serverId: string,
-  featureKey: string,
+  serverId: Web_Api_SaveFeature_ServerId,
+  featureKey: Web_Api_SaveFeature_FeatureKey,
   input: Web_Api_FeatureSaveInput,
-): Promise<Web_Api_FeatureDetail> => requestJSON(
+): Web_Api_SaveFeature_Returns => requestJSON(
   serverPath(serverId, `/features/${encodeURIComponent(featureKey)}`),
   featureDetailSchema,
   {
@@ -1709,18 +2038,24 @@ export const saveFeature = async (
 );
 
 /**
- * API - Set feature enabled.
+ * API - Set Feature Enabled.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_Api_SetFeatureEnabled_ServerId}   serverId   - Server id.
+ * @param {Web_Api_SetFeatureEnabled_FeatureKey} featureKey - Feature key.
+ * @param {Web_Api_SetFeatureEnabled_Enabled}    enabled    - Enabled.
+ *
+ * @returns {Web_Api_SetFeatureEnabled_Returns}
+ *
  * @since 4.0.0
  */
 export const setFeatureEnabled = async (
-  serverId: string,
-  featureKey: string,
-  enabled: boolean,
-): Promise<Web_Api_FeatureSummary> => requestJSON(
+  serverId: Web_Api_SetFeatureEnabled_ServerId,
+  featureKey: Web_Api_SetFeatureEnabled_FeatureKey,
+  enabled: Web_Api_SetFeatureEnabled_Enabled,
+): Web_Api_SetFeatureEnabled_Returns => requestJSON(
   serverPath(serverId, `/features/${encodeURIComponent(featureKey)}/enabled`),
   featureSummarySchema,
   {
@@ -1730,27 +2065,33 @@ export const setFeatureEnabled = async (
 );
 
 /**
- * API - Gets bot.
+ * API - Get Bot.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetBot_Returns}
+ *
  * @since 4.0.0
  */
-export const getBot = async (): Promise<Web_Api_Bot> => requestJSON(
+export const getBot = async (): Web_Api_GetBot_Returns => requestJSON(
   '/api/v1/bot',
   botSchema,
 );
 
 /**
- * API - Request bot action.
+ * API - Request Bot Action.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_BotAction} action - Action.
+ *
+ * @returns {Web_Api_RequestBotAction_Returns}
+ *
  * @since 4.0.0
  */
-export const requestBotAction = async (action: Web_Api_BotAction): Promise<void> => requestVoid(
+export const requestBotAction = async (action: Web_Api_BotAction): Web_Api_RequestBotAction_Returns => requestVoid(
   '/api/v1/bot/actions',
   {
     body: { action },
@@ -1759,14 +2100,18 @@ export const requestBotAction = async (action: Web_Api_BotAction): Promise<void>
 );
 
 /**
- * API - Save bot token.
+ * API - Save Bot Token.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_SaveBotToken_Token} token - Token.
+ *
+ * @returns {Web_Api_SaveBotToken_Returns}
+ *
  * @since 4.0.0
  */
-export const saveBotToken = async (token: string): Promise<void> => requestVoid(
+export const saveBotToken = async (token: Web_Api_SaveBotToken_Token): Web_Api_SaveBotToken_Returns => requestVoid(
   '/api/v1/bot/token',
   {
     body: { token: token.trim() },
@@ -1777,14 +2122,18 @@ export const saveBotToken = async (token: string): Promise<void> => requestVoid(
 // logQuery builds the query string for a log request, leaving out empty filters.
 
 /**
- * API - Log query.
+ * API - Log Query.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_LogQuery} query - Query.
+ *
+ * @returns {Web_Api_LogQuery_Returns}
+ *
  * @since 4.0.0
  */
-const logQuery = (query: Web_Api_LogQuery): string => {
+const logQuery = (query: Web_Api_LogQuery): Web_Api_LogQuery_Returns => {
   const parameters: URLSearchParams = new URLSearchParams({ component: query['component'] });
 
   if (query['after'] !== undefined && query['after'] !== '') {
@@ -1803,50 +2152,64 @@ const logQuery = (query: Web_Api_LogQuery): string => {
 };
 
 /**
- * API - Gets logs.
+ * API - Get Logs.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_LogQuery} query - Query.
+ *
+ * @returns {Web_Api_GetLogs_Returns}
+ *
  * @since 4.0.0
  */
-export const getLogs = async (query: Web_Api_LogQuery): Promise<Web_Api_LogPage> => requestJSON(
+export const getLogs = async (query: Web_Api_LogQuery): Web_Api_GetLogs_Returns => requestJSON(
   `/api/v1/logs?${logQuery(query)}`,
   logPageSchema,
 );
 
 /**
- * API - Log stream path.
+ * API - Log Stream Path.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_LogQuery} query - Query.
+ *
+ * @returns {Web_Api_LogStreamPath_Returns}
+ *
  * @since 4.0.0
  */
-export const logStreamPath = (query: Web_Api_LogQuery): string => `/api/v1/logs/stream?${logQuery(query)}`;
+export const logStreamPath = (query: Web_Api_LogQuery): Web_Api_LogStreamPath_Returns => `/api/v1/logs/stream?${logQuery(query)}`;
 
 /**
- * API - Gets diagnostics.
+ * API - Get Diagnostics.
  *
  * Reads whether Debug logging is on.
  * Anyone who can read the logs can see it.
  *
+ * @returns {Web_Api_GetDiagnostics_Returns}
+ *
  * @since 4.0.0
  */
-export const getDiagnostics = async (): Promise<Web_Api_Diagnostics> => requestJSON(
+export const getDiagnostics = async (): Web_Api_GetDiagnostics_Returns => requestJSON(
   '/api/v1/diagnostics',
   diagnosticsSchema,
 );
 
 /**
- * API - Update diagnostics.
+ * API - Update Diagnostics.
  *
  * Turns Debug logging on or off and answers with the saved setting.
  * The bot and the worker follow within a few seconds.
  *
+ * @param {Web_Api_Diagnostics} input - Input.
+ *
+ * @returns {Web_Api_UpdateDiagnostics_Returns}
+ *
  * @since 4.0.0
  */
-export const updateDiagnostics = async (input: Web_Api_Diagnostics): Promise<Web_Api_Diagnostics> => requestJSON(
+export const updateDiagnostics = async (input: Web_Api_Diagnostics): Web_Api_UpdateDiagnostics_Returns => requestJSON(
   '/api/v1/diagnostics',
   diagnosticsSchema,
   {
@@ -1856,34 +2219,38 @@ export const updateDiagnostics = async (input: Web_Api_Diagnostics): Promise<Web
 );
 
 /**
- * API - Parses log entry.
+ * API - Parse Log Entry.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ParseLogEntry_Value} value - Value.
+ *
+ * @returns {Web_Api_ParseLogEntry_Returns}
+ *
  * @since 4.0.0
  */
-export const parseLogEntry = (value: unknown): Web_Api_LogEntry | null => {
-  const parsed = logEntrySchema.safeParse(value);
+export const parseLogEntry = (value: Web_Api_ParseLogEntry_Value): Web_Api_ParseLogEntry_Returns => {
+  const parsed: Web_Api_ParseLogEntry_Parsed = logEntrySchema.safeParse(value);
 
-  return (parsed.success) ? parsed.data : null;
+  return (parsed.success === true) ? parsed.data : null;
 };
 
 /**
- * API - Confirm backup operation.
+ * API - Confirm Backup Operation.
  *
  * Exchanges fresh password and authenticator proof for one scoped grant.
  * The server binds the result to this browser session and purpose.
  *
- * @param {Web_Backup_Purpose} purpose  - Purpose.
- * @param {string}             password - Password.
- * @param {string}             code     - Code.
+ * @param {Web_Backup_Purpose}                      purpose  - Purpose.
+ * @param {Web_Api_ConfirmBackupOperation_Password} password - Password.
+ * @param {Web_Api_ConfirmBackupOperation_Code}     code     - Code.
  *
- * @returns {Promise<string>}
+ * @returns {Web_Api_ConfirmBackupOperation_Returns}
  *
  * @since 4.0.0
  */
-export const confirmBackupOperation = async (purpose: Web_Backup_Purpose, password: string, code: string): Promise<string> => {
+export const confirmBackupOperation = async (purpose: Web_Backup_Purpose, password: Web_Api_ConfirmBackupOperation_Password, code: Web_Api_ConfirmBackupOperation_Code): Web_Api_ConfirmBackupOperation_Returns => {
   const result: Web_Backup_Grant = await requestJSON('/api/v1/backup/confirmation', backupGrantSchema, {
     body: {
       ...((code === '') ? {} : { code }),
@@ -1897,23 +2264,23 @@ export const confirmBackupOperation = async (purpose: Web_Backup_Purpose, passwo
 };
 
 /**
- * API - Confirm backup operation with passkey.
+ * API - Confirm Backup Operation With Passkey.
  *
  * Runs a session- and purpose-bound WebAuthn ceremony for one scoped grant.
  * Successful verification produces the same one-use credential as a password.
  *
  * @param {Web_Backup_Purpose} purpose - Purpose.
  *
- * @returns {Promise<string>}
+ * @returns {Web_Api_ConfirmBackupOperationWithPasskey_Returns}
  *
  * @since 4.0.0
  */
-export const confirmBackupOperationWithPasskey = async (purpose: Web_Backup_Purpose): Promise<string> => {
+export const confirmBackupOperationWithPasskey = async (purpose: Web_Backup_Purpose): Web_Api_ConfirmBackupOperationWithPasskey_Returns => {
   const ceremony: Web_Api_PasskeyCeremony = await requestJSON('/api/v1/backup/confirmation/passkey/options', passkeyCeremonySchema, {
     body: { purpose },
     method: 'POST',
   });
-  const credential: Record<string, unknown> = await getPasskey(ceremony['options']);
+  const credential: Web_Api_ConfirmBackupOperationWithPasskey_Credential = await getPasskey(ceremony['options']);
   const result: Web_Backup_Grant = await requestJSON('/api/v1/backup/confirmation/passkey/verify', backupGrantSchema, {
     body: {
       ceremonyId: ceremony['ceremonyId'],
@@ -1927,19 +2294,19 @@ export const confirmBackupOperationWithPasskey = async (purpose: Web_Backup_Purp
 };
 
 /**
- * API - Download backup export.
+ * API - Download Backup Export.
  *
  * Sends the secret-bearing answer directly to a temporary browser download.
  * The response is never placed in application state or browser cache.
  *
- * @param {Web_Backup_ExportSections} sections - Sections.
- * @param {string}                    grant    - Grant.
+ * @param {Web_Backup_ExportSections}          sections - Sections.
+ * @param {Web_Api_DownloadBackupExport_Grant} grant    - Grant.
  *
- * @returns {Promise<void>}
+ * @returns {Web_Api_DownloadBackupExport_Returns}
  *
  * @since 4.0.0
  */
-export const downloadBackupExport = async (sections: Web_Backup_ExportSections, grant: string): Promise<void> => {
+export const downloadBackupExport = async (sections: Web_Backup_ExportSections, grant: Web_Api_DownloadBackupExport_Grant): Web_Api_DownloadBackupExport_Returns => {
   const response: Response = await fetch('/api/v1/backup/export', {
     ...buildRequest({
       body: {
@@ -1953,10 +2320,11 @@ export const downloadBackupExport = async (sections: Web_Backup_ExportSections, 
   if (response.ok === false) {
     throw await responseError(response);
   }
-  const contentDisposition: string = response.headers.get('Content-Disposition') ?? '';
-  const filenameMatch: RegExpMatchArray | null = contentDisposition.match(/filename="([^"]+)"/u);
-  const filename: string = filenameMatch?.[1] ?? `discord-stonker-bot-export-${new Date().toISOString().slice(0, 10)}.json`;
-  const objectUrl: string = URL.createObjectURL(await response.blob());
+  const contentDisposition: Web_Api_DownloadBackupExport_ContentDisposition = response.headers.get('Content-Disposition') ?? '';
+  const filenameMatch: Web_Api_DownloadBackupExport_FilenameMatch = contentDisposition.match(new RegExp(contentDispositionFilenamePattern, 'u'));
+  const matchedFilename: Web_Api_DownloadBackupExport_MatchedFilename = (filenameMatch !== null) ? filenameMatch[1] : undefined;
+  const filename: Web_Api_DownloadBackupExport_Filename = matchedFilename ?? `discord-stonker-bot-export-${new Date().toISOString().slice(0, 10)}.json`;
+  const objectUrl: Web_Api_DownloadBackupExport_ObjectUrl = URL.createObjectURL(await response.blob());
   const link: HTMLAnchorElement = document.createElement('a');
   try {
     link.href = objectUrl;
@@ -1965,39 +2333,41 @@ export const downloadBackupExport = async (sections: Web_Backup_ExportSections, 
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
+
+  return;
 };
 
 /**
- * API - Preview backup import.
+ * API - Preview Backup Import.
  *
  * Requests a read-only comparison for either wizard source.
  * Legacy parsing remains authoritative on the server.
  *
  * @param {Web_Backup_ImportSource} source - Source.
  *
- * @returns {Promise<Web_Backup_ImportPreview>}
+ * @returns {Web_Api_PreviewBackupImport_Returns}
  *
  * @since 4.0.0
  */
-export const previewBackupImport = async (source: Web_Backup_ImportSource): Promise<Web_Backup_ImportPreview> => requestJSON('/api/v1/backup/imports/preview', backupImportPreviewSchema, {
+export const previewBackupImport = async (source: Web_Backup_ImportSource): Web_Api_PreviewBackupImport_Returns => requestJSON('/api/v1/backup/imports/preview', backupImportPreviewSchema, {
   body: { source },
   method: 'POST',
 });
 
 /**
- * API - Apply backup import.
+ * API - Apply Backup Import.
  *
  * Applies the reviewed source with a freshly confirmed import grant.
  * The server repeats strict validation immediately before its transaction.
  *
- * @param {Web_Backup_ImportSource} source - Source.
- * @param {string}                  grant  - Grant.
+ * @param {Web_Backup_ImportSource}         source - Source.
+ * @param {Web_Api_ApplyBackupImport_Grant} grant  - Grant.
  *
- * @returns {Promise<Web_Backup_ImportResult>}
+ * @returns {Web_Api_ApplyBackupImport_Returns}
  *
  * @since 4.0.0
  */
-export const applyBackupImport = async (source: Web_Backup_ImportSource, grant: string): Promise<Web_Backup_ImportResult> => requestJSON('/api/v1/backup/imports', backupImportResultSchema, {
+export const applyBackupImport = async (source: Web_Backup_ImportSource, grant: Web_Api_ApplyBackupImport_Grant): Web_Api_ApplyBackupImport_Returns => requestJSON('/api/v1/backup/imports', backupImportResultSchema, {
   body: {
     grant,
     source,
@@ -2006,28 +2376,34 @@ export const applyBackupImport = async (source: Web_Backup_ImportSource, grant: 
 });
 
 /**
- * API - Gets users.
+ * API - Get Users.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_Api_GetUsers_Returns}
+ *
  * @since 4.0.0
  */
-export const getUsers = async (): Promise<Web_Api_User[]> => {
-  const response = await requestJSON('/api/v1/users', usersResponseSchema);
+export const getUsers = async (): Web_Api_GetUsers_Returns => {
+  const response: Web_Api_GetUsers_Response = await requestJSON('/api/v1/users', usersResponseSchema);
 
   return response['items'];
 };
 
 /**
- * API - Creates user.
+ * API - Create User.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_CreateUserInput} input - Input.
+ *
+ * @returns {Web_Api_CreateUser_Returns}
+ *
  * @since 4.0.0
  */
-export const createUser = async (input: Web_Api_CreateUserInput): Promise<Web_Api_User> => requestJSON(
+export const createUser = async (input: Web_Api_CreateUserInput): Web_Api_CreateUser_Returns => requestJSON(
   '/api/v1/users',
   userSchema,
   {
@@ -2035,7 +2411,7 @@ export const createUser = async (input: Web_Api_CreateUserInput): Promise<Web_Ap
       allServers: input['allServers'],
       password: input['password'],
       role: input['role'],
-      serverIds: (input['allServers']) ? [] : input['serverIds'],
+      serverIds: (input['allServers'] === true) ? [] : input['serverIds'],
       username: input['username'].trim(),
     },
     method: 'POST',
@@ -2043,14 +2419,19 @@ export const createUser = async (input: Web_Api_CreateUserInput): Promise<Web_Ap
 );
 
 /**
- * API - Updates user.
+ * API - Update User.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_UpdateUser_UserId} userId - User id.
+ * @param {Web_Api_UpdateUserInput}   input  - Input.
+ *
+ * @returns {Web_Api_UpdateUser_Returns}
+ *
  * @since 4.0.0
  */
-export const updateUser = async (userId: string, input: Web_Api_UpdateUserInput): Promise<Web_Api_User> => requestJSON(
+export const updateUser = async (userId: Web_Api_UpdateUser_UserId, input: Web_Api_UpdateUserInput): Web_Api_UpdateUser_Returns => requestJSON(
   `/api/v1/users/${encodeURIComponent(userId)}`,
   userSchema,
   {
@@ -2058,21 +2439,26 @@ export const updateUser = async (userId: string, input: Web_Api_UpdateUserInput)
       allServers: input['allServers'],
       enabled: input['enabled'],
       role: input['role'],
-      serverIds: (input['allServers']) ? [] : input['serverIds'],
+      serverIds: (input['allServers'] === true) ? [] : input['serverIds'],
     },
     method: 'PUT',
   },
 );
 
 /**
- * API - Reset user password.
+ * API - Reset User Password.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ResetUserPassword_UserId}   userId   - User id.
+ * @param {Web_Api_ResetUserPassword_Password} password - Password.
+ *
+ * @returns {Web_Api_ResetUserPassword_Returns}
+ *
  * @since 4.0.0
  */
-export const resetUserPassword = async (userId: string, password: string): Promise<void> => requestVoid(
+export const resetUserPassword = async (userId: Web_Api_ResetUserPassword_UserId, password: Web_Api_ResetUserPassword_Password): Web_Api_ResetUserPassword_Returns => requestVoid(
   `/api/v1/users/${encodeURIComponent(userId)}/password`,
   {
     body: { password },
@@ -2081,54 +2467,71 @@ export const resetUserPassword = async (userId: string, password: string): Promi
 );
 
 /**
- * API - Reset user two factor.
+ * API - Reset User Two Factor.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_ResetUserTwoFactor_UserId} userId - User id.
+ *
+ * @returns {Web_Api_ResetUserTwoFactor_Returns}
+ *
  * @since 4.0.0
  */
-export const resetUserTwoFactor = async (userId: string): Promise<void> => requestVoid(
+export const resetUserTwoFactor = async (userId: Web_Api_ResetUserTwoFactor_UserId): Web_Api_ResetUserTwoFactor_Returns => requestVoid(
   `/api/v1/users/${encodeURIComponent(userId)}/two-factor/reset`,
   { method: 'POST' },
 );
 
 /**
- * API - Deletes user.
+ * API - Delete User.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_DeleteUser_UserId} userId - User id.
+ *
+ * @returns {Web_Api_DeleteUser_Returns}
+ *
  * @since 4.0.0
  */
-export const deleteUser = async (userId: string): Promise<void> => requestVoid(
+export const deleteUser = async (userId: Web_Api_DeleteUser_UserId): Web_Api_DeleteUser_Returns => requestVoid(
   `/api/v1/users/${encodeURIComponent(userId)}`,
   { method: 'DELETE' },
 );
 
 /**
- * API - Gets invite page.
+ * API - Get Invite Page.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_GetInvitePage_ServerId} serverId - Server id.
+ *
+ * @returns {Web_Api_GetInvitePage_Returns}
+ *
  * @since 4.0.0
  */
-export const getInvitePage = async (serverId: string): Promise<Web_Api_InvitePageResponse> => requestJSON(
+export const getInvitePage = async (serverId: Web_Api_GetInvitePage_ServerId): Web_Api_GetInvitePage_Returns => requestJSON(
   serverPath(serverId, '/invite-page'),
   invitePageResponseSchema,
 );
 
 /**
- * API - Save invite page.
+ * API - Save Invite Page.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_SaveInvitePage_ServerId} serverId - Server id.
+ * @param {Web_Api_InvitePageInput}         input    - Input.
+ *
+ * @returns {Web_Api_SaveInvitePage_Returns}
+ *
  * @since 4.0.0
  */
-export const saveInvitePage = async (serverId: string, input: Web_Api_InvitePageInput): Promise<Web_Api_InvitePage> => {
-  const response: unknown = await requestJSON(
+export const saveInvitePage = async (serverId: Web_Api_SaveInvitePage_ServerId, input: Web_Api_InvitePageInput): Web_Api_SaveInvitePage_Returns => {
+  const response: Web_Api_SaveInvitePage_Response = await requestJSON(
     serverPath(serverId, '/invite-page'),
     z.unknown(),
     {
@@ -2136,20 +2539,25 @@ export const saveInvitePage = async (serverId: string, input: Web_Api_InvitePage
       method: 'PUT',
     },
   );
-  const wrapped = invitePageResponseSchema.safeParse(response);
+  const wrapped: Web_Api_SaveInvitePage_Wrapped = invitePageResponseSchema.safeParse(response);
 
-  return (wrapped.success) ? wrapped.data['page'] : invitePageSchema.parse(response);
+  return (wrapped.success === true) ? wrapped.data['page'] : invitePageSchema.parse(response);
 };
 
 /**
- * API - Upload invite image.
+ * API - Upload Invite Image.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_Api_UploadInviteImage_ServerId} serverId - Server id.
+ * @param {File}                               file     - File.
+ *
+ * @returns {Web_Api_UploadInviteImage_Returns}
+ *
  * @since 4.0.0
  */
-export const uploadInviteImage = async (serverId: string, file: File): Promise<Web_Api_UploadedImage> => requestJSON(
+export const uploadInviteImage = async (serverId: Web_Api_UploadInviteImage_ServerId, file: File): Web_Api_UploadInviteImage_Returns => requestJSON(
   serverPath(serverId, '/invite-page/images'),
   uploadedImageSchema,
   {

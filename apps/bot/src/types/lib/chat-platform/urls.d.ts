@@ -1,0 +1,10 @@
+export type Lib_ChatPlatform_Urls_WebhookUrlPrefix = string;
+export type Lib_ChatPlatform_Urls_WebhookHostnames = string[];
+export type Lib_ChatPlatform_Urls_BuildAddBotUrl_ApplicationIdentifier = string;
+export type Lib_ChatPlatform_Urls_BuildAddBotUrl_Returns = string;
+export type Lib_ChatPlatform_Urls_BuildInviteUrl_Code = string;
+export type Lib_ChatPlatform_Urls_BuildInviteUrl_Returns = string;
+export type Lib_ChatPlatform_Urls_IsWebhookUrl_ParsedUrl = URL;
+export type Lib_ChatPlatform_Urls_IsWebhookUrl_PathPattern = RegExp;
+export type Lib_ChatPlatform_Urls_IsWebhookUrl_Returns = boolean;
+export type Lib_ChatPlatform_Urls_IsWebhookUrl_Value = string;

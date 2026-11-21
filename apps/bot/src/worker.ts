@@ -1,8 +1,4 @@
-import {
-  REST,
-  Routes,
-} from 'discord.js';
-
+import { createChatPlatformRest } from './lib/chat-platform/index.js';
 import {
   decryptDiscordToken,
   readCredentialKey,
@@ -300,24 +296,22 @@ async function processDiscordMessageJob(
     runtimeControl['discordTokenCiphertext'],
     credentialKey,
   );
-  const rest: Worker_ProcessDiscordMessageJob_Rest = new REST({
-    version: '10',
-  }).setToken(discordToken);
+  const rest: Worker_ProcessDiscordMessageJob_Rest = createChatPlatformRest({
+    token: discordToken,
+  });
 
   watchRestRateLimits(rest, 'worker');
 
   let messageIdentifier: Worker_ProcessDiscordMessageJob_MessageIdentifier = payload['messageIdentifier'] ?? '';
 
   if (messageIdentifier === '') {
-    const response: Worker_ProcessDiscordMessageJob_Response = parseDiscordMessageResponse(await rest.post(
-      Routes.channelMessages(payload['channelIdentifier']),
+    const response: Worker_ProcessDiscordMessageJob_Response = parseDiscordMessageResponse(await rest.createMessage(
+      payload['channelIdentifier'],
       {
-        body: {
-          allowed_mentions: {
-            parse: [],
-          },
-          content: payload['content'],
+        allowedMentions: {
+          parse: [],
         },
+        content: payload['content'],
       },
     ));
 
@@ -330,11 +324,11 @@ async function processDiscordMessageJob(
   }
 
   const reactionTasks: Worker_ProcessDiscordMessageJob_ReactionTasks = payload['reactions'].map(async (reaction) => {
-    await rest.put(Routes.channelMessageOwnReaction(
+    await rest.createOwnReaction(
       payload['channelIdentifier'],
       messageIdentifier,
-      encodeURIComponent(reaction),
-    ));
+      reaction,
+    );
 
     return;
   });
@@ -388,23 +382,22 @@ async function processDiscordPermissionJob(
     runtimeControl['discordTokenCiphertext'],
     credentialKey,
   );
-  const rest: Worker_ProcessDiscordPermissionJob_Rest = new REST({
-    version: '10',
-  }).setToken(discordToken);
+  const rest: Worker_ProcessDiscordPermissionJob_Rest = createChatPlatformRest({
+    token: discordToken,
+  });
 
   watchRestRateLimits(rest, 'worker');
 
   const tasks: Worker_ProcessDiscordPermissionJob_Tasks = payload['overwrites'].map(async (overwrite) => {
-    await rest.put(
-      Routes.channelPermission(overwrite['channelIdentifier'], overwrite['targetIdentifier']),
+    await rest.editChannelPermission(
+      overwrite['channelIdentifier'],
+      overwrite['targetIdentifier'],
       {
-        body: {
-          allow: overwrite['allow'],
-          deny: overwrite['deny'],
-          type: (overwrite['targetType'] === 'role') ? 0 : 1,
-        },
-        reason: `Stonker scheduled permission set: ${payload['name']}`,
+        allow: overwrite['allow'],
+        deny: overwrite['deny'],
+        targetType: overwrite['targetType'],
       },
+      `Stonker scheduled permission set: ${payload['name']}`,
     );
 
     return;

@@ -1,18 +1,16 @@
 import type {
-  Client,
-  GatewayIntentBits,
-  Guild,
-  GuildBasedChannel,
-  GuildMember,
-  PartialGuildMember,
-  PartialUser,
-  User,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Guild,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_PartialUser,
+  Lib_ChatPlatform_Contracts_User,
+} from './chat-platform/index.d.ts';
 
 export type Lib_ImpersonatorFeatures_ChannelReference_ChannelIdentifier = string;
 export type Lib_ImpersonatorFeatures_ChannelReference = {
@@ -79,7 +77,7 @@ export type Lib_ImpersonatorFeatures_IdentityMatch = {
   rule: Lib_ImpersonatorFeatures_IdentityMatch_Rule;
 };
 
-export type Lib_ImpersonatorFeatures_Registration_Client = Client;
+export type Lib_ImpersonatorFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_ImpersonatorFeatures_Registration_GuildIdentifier = string;
 export type Lib_ImpersonatorFeatures_Registration = (
   client: Lib_ImpersonatorFeatures_Registration_Client,
@@ -88,7 +86,7 @@ export type Lib_ImpersonatorFeatures_Registration = (
 
 export type Lib_ImpersonatorFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_ImpersonatorFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_ImpersonatorFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_ImpersonatorFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_ImpersonatorFeatures_Prepared_Register = Lib_ImpersonatorFeatures_Registration;
 export type Lib_ImpersonatorFeatures_Prepared = {
   activeFeatureKeys: Lib_ImpersonatorFeatures_Prepared_ActiveFeatureKeys;
@@ -128,7 +126,7 @@ export type Lib_ImpersonatorFeatures_FormatConfigurationError_Returns = string;
 
 export type Lib_ImpersonatorFeatures_FormatImpersonatorMessage_Content = string;
 export type Lib_ImpersonatorFeatures_FormatImpersonatorMessage_Match = Lib_ImpersonatorFeatures_IdentityMatch;
-export type Lib_ImpersonatorFeatures_FormatImpersonatorMessage_Member = GuildMember;
+export type Lib_ImpersonatorFeatures_FormatImpersonatorMessage_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ImpersonatorFeatures_FormatImpersonatorMessage_Returns = string;
 
 export type Lib_ImpersonatorFeatures_GetEnabledFeature_EnabledFeature = {
@@ -142,30 +140,30 @@ export type Lib_ImpersonatorFeatures_GetEnabledFeature_Settings = Shared_JsonObj
 
 export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_GuildIdentifier = string;
 export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_Identities = string[];
-export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_Member = GuildMember;
+export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_Returns = Promise<void>;
 export type Lib_ImpersonatorFeatures_HandleGuildMemberAdd_Runtime = Lib_ImpersonatorFeatures_Runtime;
 
 export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_GuildIdentifier = string;
-export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_NewMember = GuildMember;
-export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_OldMember = GuildMember | PartialGuildMember;
+export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_NewMember = Lib_ChatPlatform_Contracts_Member;
+export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_OldMember = Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_Member;
 export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_Returns = Promise<void>;
 export type Lib_ImpersonatorFeatures_HandleGuildMemberUpdate_Runtime = Lib_ImpersonatorFeatures_Runtime;
 
 export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Identities = string[];
 export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Match = Lib_ImpersonatorFeatures_IdentityMatch | undefined;
-export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Member = GuildMember;
+export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Returns = Promise<void>;
 export type Lib_ImpersonatorFeatures_HandleMemberIdentity_Runtime = Lib_ImpersonatorFeatures_Runtime;
 
-export type Lib_ImpersonatorFeatures_HandleUserUpdate_Client = Client;
+export type Lib_ImpersonatorFeatures_HandleUserUpdate_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_ImpersonatorFeatures_HandleUserUpdate_GuildIdentifier = string;
-export type Lib_ImpersonatorFeatures_HandleUserUpdate_Member = GuildMember | undefined;
-export type Lib_ImpersonatorFeatures_HandleUserUpdate_NewUser = User;
-export type Lib_ImpersonatorFeatures_HandleUserUpdate_OldUser = User | PartialUser;
+export type Lib_ImpersonatorFeatures_HandleUserUpdate_Member = Lib_ChatPlatform_Contracts_Member | undefined;
+export type Lib_ImpersonatorFeatures_HandleUserUpdate_NewUser = Lib_ChatPlatform_Contracts_User;
+export type Lib_ImpersonatorFeatures_HandleUserUpdate_OldUser = Lib_ChatPlatform_Contracts_User | Lib_ChatPlatform_Contracts_PartialUser;
 export type Lib_ImpersonatorFeatures_HandleUserUpdate_Returns = Promise<void>;
 export type Lib_ImpersonatorFeatures_HandleUserUpdate_Runtime = Lib_ImpersonatorFeatures_Runtime;
-export type Lib_ImpersonatorFeatures_HandleUserUpdate_TargetGuild = Guild | undefined;
+export type Lib_ImpersonatorFeatures_HandleUserUpdate_TargetGuild = Lib_ChatPlatform_Contracts_Guild | undefined;
 
 export type Lib_ImpersonatorFeatures_ChangedUserIdentities_OldUser = {
   globalName: string | null;
@@ -191,7 +189,7 @@ export type Lib_ImpersonatorFeatures_NormalizeIdentity_Returns = string;
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_ConfigurationErrors = string[];
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Feature = Lib_ImpersonatorFeatures_GetEnabledFeature_Returns;
-export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Intents = GatewayIntentBits[];
+export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Returns = Lib_ImpersonatorFeatures_Prepared;
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Runtime = Lib_ImpersonatorFeatures_Runtime | undefined;
 export type Lib_ImpersonatorFeatures_PrepareImpersonatorFeatures_Settings = Shared_JsonObject;
@@ -202,9 +200,9 @@ export type Lib_ImpersonatorFeatures_RecordConfigurationError_FeatureKey = Share
 export type Lib_ImpersonatorFeatures_RecordConfigurationError_Message = string;
 export type Lib_ImpersonatorFeatures_RecordConfigurationError_Returns = void;
 
-export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Channel = GuildBasedChannel | null;
+export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Match = Lib_ImpersonatorFeatures_IdentityMatch;
-export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Member = GuildMember;
+export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Returns = Promise<void>;
 export type Lib_ImpersonatorFeatures_SendImpersonatorAlert_Runtime = Lib_ImpersonatorFeatures_Runtime;
 

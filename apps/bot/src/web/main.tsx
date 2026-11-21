@@ -8,17 +8,19 @@ import {
   readThemePreference,
 } from '@/web/theme.ts';
 
+import type { Web_Main_RootElement } from '@/types/web/main.d.ts';
+
 applyThemePreference(readThemePreference());
 
 /**
- * Main - Root element.
+ * Main - Root Element.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const rootElement: HTMLElement | null = document.querySelector('#root');
+const rootElement: Web_Main_RootElement = document.querySelector('#root');
 if (rootElement === null) {
   throw new Error('The application root element was not found.');
 }

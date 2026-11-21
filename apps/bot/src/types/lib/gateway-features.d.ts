@@ -1,19 +1,16 @@
 import type {
-  AnyThreadChannel,
-  Client,
-  GatewayIntentBits,
-  Guild,
-  GuildBasedChannel,
-  GuildMember,
-  GuildScheduledEvent,
-  PartialGuildMember,
-  PartialGuildScheduledEvent,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Guild,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_ScheduledEvent,
+  Lib_ChatPlatform_Contracts_ThreadChannel,
+} from './chat-platform/index.d.ts';
 
 export type Lib_GatewayFeatures_LegacyEventEntityType = 'EXTERNAL' | 'STAGE_INSTANCE' | 'VOICE';
 export type Lib_GatewayFeatures_LegacyEventStatus = 'ACTIVE' | 'CANCELED' | 'COMPLETED' | 'SCHEDULED' | 'UPDATED';
@@ -132,7 +129,7 @@ export type Lib_GatewayFeatures_Runtime = {
   roleMessages: Lib_GatewayFeatures_Runtime_RoleMessages;
 };
 
-export type Lib_GatewayFeatures_Registration_Client = Client;
+export type Lib_GatewayFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_GatewayFeatures_Registration_GuildIdentifier = string;
 export type Lib_GatewayFeatures_Registration = (
   client: Lib_GatewayFeatures_Registration_Client,
@@ -141,7 +138,7 @@ export type Lib_GatewayFeatures_Registration = (
 
 export type Lib_GatewayFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_GatewayFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_GatewayFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_GatewayFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_GatewayFeatures_Prepared_Register = Lib_GatewayFeatures_Registration;
 export type Lib_GatewayFeatures_Prepared = {
   activeFeatureKeys: Lib_GatewayFeatures_Prepared_ActiveFeatureKeys;
@@ -165,8 +162,8 @@ export type Lib_GatewayFeatures_CompileRoleMessages_Parsed = Lib_GatewayFeatures
 export type Lib_GatewayFeatures_CreateRegistration_Runtime = Lib_GatewayFeatures_Runtime;
 export type Lib_GatewayFeatures_CreateRegistration_Returns = Lib_GatewayFeatures_Registration;
 
-export type Lib_GatewayFeatures_DoesRoleMessageMatch_OldMember = GuildMember | PartialGuildMember;
-export type Lib_GatewayFeatures_DoesRoleMessageMatch_NewMember = GuildMember;
+export type Lib_GatewayFeatures_DoesRoleMessageMatch_OldMember = Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_Member;
+export type Lib_GatewayFeatures_DoesRoleMessageMatch_NewMember = Lib_ChatPlatform_Contracts_Member;
 export type Lib_GatewayFeatures_DoesRoleMessageMatch_Rule = Lib_GatewayFeatures_RoleMessageRule;
 export type Lib_GatewayFeatures_DoesRoleMessageMatch_Returns = boolean;
 
@@ -174,13 +171,13 @@ export type Lib_GatewayFeatures_FormatConfigurationError_Error = unknown;
 export type Lib_GatewayFeatures_FormatConfigurationError_Returns = string;
 export type Lib_GatewayFeatures_FormatConfigurationError_Messages = string[];
 
-export type Lib_GatewayFeatures_FormatRoleMessage_Member = GuildMember;
+export type Lib_GatewayFeatures_FormatRoleMessage_Member = Lib_ChatPlatform_Contracts_Member;
 export type Lib_GatewayFeatures_FormatRoleMessage_Rule = Lib_GatewayFeatures_RoleMessageRule;
 export type Lib_GatewayFeatures_FormatRoleMessage_Returns = string;
 export type Lib_GatewayFeatures_FormatRoleMessage_CurrentYear = string;
 export type Lib_GatewayFeatures_FormatRoleMessage_Parts = string[];
 
-export type Lib_GatewayFeatures_FormatScheduledEventMessage_Event = GuildScheduledEvent | PartialGuildScheduledEvent;
+export type Lib_GatewayFeatures_FormatScheduledEventMessage_Event = Lib_ChatPlatform_Contracts_ScheduledEvent | Lib_ChatPlatform_Contracts_ScheduledEvent;
 export type Lib_GatewayFeatures_FormatScheduledEventMessage_Rule = Lib_GatewayFeatures_BroadcastRule;
 export type Lib_GatewayFeatures_FormatScheduledEventMessage_Returns = string;
 export type Lib_GatewayFeatures_FormatScheduledEventMessage_ChannelTag = string;
@@ -202,32 +199,32 @@ export type Lib_GatewayFeatures_GetEnabledFeature_EnabledFeature = {
   configuration: Lib_GatewayFeatures_GetEnabledFeature_EnabledFeature_Configuration;
 };
 
-export type Lib_GatewayFeatures_GetEventEntityType_Event = GuildScheduledEvent | PartialGuildScheduledEvent;
+export type Lib_GatewayFeatures_GetEventEntityType_Event = Lib_ChatPlatform_Contracts_ScheduledEvent | Lib_ChatPlatform_Contracts_ScheduledEvent;
 export type Lib_GatewayFeatures_GetEventEntityType_Returns = Lib_GatewayFeatures_LegacyEventEntityType;
 
-export type Lib_GatewayFeatures_GetEventStatus_Event = GuildScheduledEvent | PartialGuildScheduledEvent;
+export type Lib_GatewayFeatures_GetEventStatus_Event = Lib_ChatPlatform_Contracts_ScheduledEvent | Lib_ChatPlatform_Contracts_ScheduledEvent;
 export type Lib_GatewayFeatures_GetEventStatus_Returns = Exclude<Lib_GatewayFeatures_LegacyEventStatus, 'UPDATED'>;
 
-export type Lib_GatewayFeatures_HandleBroadcastEvent_Client = Client;
-export type Lib_GatewayFeatures_HandleBroadcastEvent_Event = GuildScheduledEvent | PartialGuildScheduledEvent;
+export type Lib_GatewayFeatures_HandleBroadcastEvent_Client = Lib_ChatPlatform_Contracts_Client;
+export type Lib_GatewayFeatures_HandleBroadcastEvent_Event = Lib_ChatPlatform_Contracts_ScheduledEvent | Lib_ChatPlatform_Contracts_ScheduledEvent;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_GuildIdentifier = string;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_Rules = Lib_GatewayFeatures_BroadcastRule[];
 export type Lib_GatewayFeatures_HandleBroadcastEvent_Status = Lib_GatewayFeatures_LegacyEventStatus;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_Returns = Promise<void>;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_EntityType = Lib_GatewayFeatures_LegacyEventEntityType;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_MatchingRules = Lib_GatewayFeatures_BroadcastRule[];
-export type Lib_GatewayFeatures_HandleBroadcastEvent_Guild = Guild;
+export type Lib_GatewayFeatures_HandleBroadcastEvent_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_GatewayFeatures_HandleBroadcastEvent_Tasks = Promise<void>[];
 
-export type Lib_GatewayFeatures_HandleRoleMessages_OldMember = GuildMember | PartialGuildMember;
-export type Lib_GatewayFeatures_HandleRoleMessages_NewMember = GuildMember;
+export type Lib_GatewayFeatures_HandleRoleMessages_OldMember = Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_Member;
+export type Lib_GatewayFeatures_HandleRoleMessages_NewMember = Lib_ChatPlatform_Contracts_Member;
 export type Lib_GatewayFeatures_HandleRoleMessages_GuildIdentifier = string;
 export type Lib_GatewayFeatures_HandleRoleMessages_Rules = Lib_GatewayFeatures_RoleMessageRule[];
 export type Lib_GatewayFeatures_HandleRoleMessages_Returns = Promise<void>;
 export type Lib_GatewayFeatures_HandleRoleMessages_MatchingRules = Lib_GatewayFeatures_RoleMessageRule[];
 export type Lib_GatewayFeatures_HandleRoleMessages_Tasks = Promise<void>[];
 
-export type Lib_GatewayFeatures_HandleThreadUpdate_Thread = AnyThreadChannel;
+export type Lib_GatewayFeatures_HandleThreadUpdate_Thread = Lib_ChatPlatform_Contracts_ThreadChannel;
 export type Lib_GatewayFeatures_HandleThreadUpdate_GuildIdentifier = string;
 export type Lib_GatewayFeatures_HandleThreadUpdate_Rules = Lib_GatewayFeatures_ThreadRule[];
 export type Lib_GatewayFeatures_HandleThreadUpdate_Returns = Promise<void>;
@@ -244,19 +241,19 @@ export type Lib_GatewayFeatures_PrepareGatewayFeatures_ConfigurationErrors = str
 export type Lib_GatewayFeatures_PrepareGatewayFeatures_BroadcastFeature = Lib_GatewayFeatures_GetEnabledFeature_EnabledFeature | undefined;
 export type Lib_GatewayFeatures_PrepareGatewayFeatures_BumpThreadFeature = Lib_GatewayFeatures_GetEnabledFeature_EnabledFeature | undefined;
 export type Lib_GatewayFeatures_PrepareGatewayFeatures_RoleMessageFeature = Lib_GatewayFeatures_GetEnabledFeature_EnabledFeature | undefined;
-export type Lib_GatewayFeatures_PrepareGatewayFeatures_Intents = GatewayIntentBits[];
+export type Lib_GatewayFeatures_PrepareGatewayFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 
-export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Client = Client;
+export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_GatewayFeatures_ReconcileConfiguredThreads_GuildIdentifier = string;
 export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Rules = Lib_GatewayFeatures_ThreadRule[];
 export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Returns = Promise<void>;
-export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Guild = Guild;
+export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_GatewayFeatures_ReconcileConfiguredThreads_Tasks = Promise<void>[];
 
-export type Lib_GatewayFeatures_ReconcileThread_Guild = Guild;
+export type Lib_GatewayFeatures_ReconcileThread_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_GatewayFeatures_ReconcileThread_Rule = Lib_GatewayFeatures_ThreadRule;
 export type Lib_GatewayFeatures_ReconcileThread_Returns = Promise<void>;
-export type Lib_GatewayFeatures_ReconcileThread_Channel = GuildBasedChannel | null;
+export type Lib_GatewayFeatures_ReconcileThread_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 
 export type Lib_GatewayFeatures_RecordConfigurationError_FeatureKey = Shared_FeatureKey;
 export type Lib_GatewayFeatures_RecordConfigurationError_Error = unknown;
@@ -264,9 +261,9 @@ export type Lib_GatewayFeatures_RecordConfigurationError_ConfigurationErrors = s
 export type Lib_GatewayFeatures_RecordConfigurationError_Returns = void;
 export type Lib_GatewayFeatures_RecordConfigurationError_Message = string;
 
-export type Lib_GatewayFeatures_SendGuildMessage_Guild = Guild;
+export type Lib_GatewayFeatures_SendGuildMessage_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_GatewayFeatures_SendGuildMessage_ChannelIdentifier = string;
 export type Lib_GatewayFeatures_SendGuildMessage_Content = string;
 export type Lib_GatewayFeatures_SendGuildMessage_ContextName = string;
 export type Lib_GatewayFeatures_SendGuildMessage_Returns = Promise<void>;
-export type Lib_GatewayFeatures_SendGuildMessage_Channel = GuildBasedChannel | null;
+export type Lib_GatewayFeatures_SendGuildMessage_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;

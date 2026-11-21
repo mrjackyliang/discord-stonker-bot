@@ -1,6 +1,6 @@
-import { Events } from 'discord.js';
 import { z } from 'zod';
 
+import { chatPlatformEvents } from './chat-platform/index.js';
 import { enqueueDurableJob } from './database.js';
 import {
   getErrorMessage,
@@ -689,13 +689,13 @@ export function watchGatewayConnection(
     return;
   };
 
-  client.on(Events.ShardDisconnect, markDown);
+  client.on(chatPlatformEvents['ShardDisconnect'], markDown);
 
-  client.on(Events.ShardReconnecting, markDown);
+  client.on(chatPlatformEvents['ShardReconnecting'], markDown);
 
-  client.on(Events.ShardReady, markUp);
+  client.on(chatPlatformEvents['ShardReady'], markUp);
 
-  client.on(Events.ShardResume, markUp);
+  client.on(chatPlatformEvents['ShardResume'], markUp);
 
   gatewayWatchers.set(client, stop);
 

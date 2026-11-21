@@ -5,7 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "check": "docker build --check --file ../../Dockerfile ../..",
+    "check": "nova utility run-scripts --sequential \"check:*\"",
+    "check:dockerfile": "docker build --check --file ../../Dockerfile ../..",
+    "check:test": "bash ./tests/prepare-state.test.sh",
     "build": "docker compose --file ../../compose.yml --project-directory ../.. build"
   },
   "engines": {

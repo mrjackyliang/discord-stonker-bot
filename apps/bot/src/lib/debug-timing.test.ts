@@ -1,9 +1,4 @@
 import {
-  Client,
-  Events,
-  RESTEvents,
-} from 'discord.js';
-import {
   afterEach,
   describe,
   expect,
@@ -11,6 +6,8 @@ import {
   vi,
 } from 'vitest';
 
+import { Runner as TestChatPlatformClient } from '../tests/support/chat-platform.js';
+import { chatPlatformEvents } from './chat-platform/index.js';
 import {
   timedPool,
   timeFeatureHandler,
@@ -134,7 +131,7 @@ describe('debug timing', () => {
   it('notes feature handlers that run slow or fail, and passes their results on', async () => {
     const write: Lib_DebugTiming_Test_Write = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
 
-    expect(await timeFeatureHandler('message', Events.MessageCreate, '111111111111111111', async () => 'quiet while off')).toBe('quiet while off');
+    expect(await timeFeatureHandler('message', chatPlatformEvents['MessageCreate'], '111111111111111111', async () => 'quiet while off')).toBe('quiet while off');
 
     setDebugLogging(true);
 
@@ -146,11 +143,11 @@ describe('debug timing', () => {
       .mockReturnValueOnce(30_000)
       .mockReturnValueOnce(30_020);
 
-    expect(await timeFeatureHandler('message', Events.MessageCreate, '111111111111111111', async () => 'sent')).toBe('sent');
+    expect(await timeFeatureHandler('message', chatPlatformEvents['MessageCreate'], '111111111111111111', async () => 'sent')).toBe('sent');
 
-    expect(await timeFeatureHandler('audit', Events.GuildMemberAdd, '111111111111111111', async () => 'quick')).toBe('quick');
+    expect(await timeFeatureHandler('audit', chatPlatformEvents['GuildMemberAdd'], '111111111111111111', async () => 'quick')).toBe('quick');
 
-    await expect(timeFeatureHandler('scammer', Events.MessageUpdate, '111111111111111111', async () => Promise.reject(new Error('Missing Permissions')))).rejects.toThrow('Missing Permissions');
+    await expect(timeFeatureHandler('scammer', chatPlatformEvents['MessageUpdate'], '111111111111111111', async () => Promise.reject(new Error('Missing Permissions')))).rejects.toThrow('Missing Permissions');
 
     expect(readEntries(write)).toEqual([
       'DEBUG bot: feature_handler_slow elapsedMs=1500 event=messageCreate guildIdentifier=111111111111111111 module=message',
@@ -162,7 +159,7 @@ describe('debug timing', () => {
 
   it('notes Gateway connects, drops, and resumes, and REST rate limits without tokens', async () => {
     const write: Lib_DebugTiming_Test_Write = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
-    const client: Lib_DebugTiming_Test_Client = new Client({ intents: [] });
+    const client: Lib_DebugTiming_Test_Client = new TestChatPlatformClient();
 
     setDebugLogging(true);
 
@@ -174,30 +171,25 @@ describe('debug timing', () => {
 
     watchDiscordDebug(client);
 
-    client.emit(Events.ShardReady, 0, undefined);
+    client.emit(chatPlatformEvents['ShardReady'], 0, undefined);
 
-    client.emit(Events.ShardDisconnect, {
+    client.emit(chatPlatformEvents['ShardDisconnect'], {
       code: 1006,
       reason: '',
       wasClean: false,
     }, 0);
 
-    client.emit(Events.ShardReconnecting, 0);
+    client.emit(chatPlatformEvents['ShardReconnecting'], 0);
 
-    client.emit(Events.ShardResume, 0, 12);
+    client.emit(chatPlatformEvents['ShardResume'], 0, 12);
 
-    client.rest.emit(RESTEvents.RateLimited, {
+    client.emitRateLimited({
       global: false,
-      hash: 'fixture-bucket',
       limit: 5,
-      majorParameter: '222222222222222222/fixture-webhook-token',
       method: 'POST',
       retryAfter: 1250,
       route: '/webhooks/:id/:token',
       scope: 'shared',
-      sublimitTimeout: 0,
-      timeToReset: 1250,
-      url: 'https://discord.com/api/v10/webhooks/222222222222222222/fixture-webhook-token',
     });
 
     const output: Lib_DebugTiming_Test_Output = write.mock.calls.map((call) => String(call[0])).join('');

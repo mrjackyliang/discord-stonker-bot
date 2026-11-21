@@ -1,5 +1,4 @@
-import { Events } from 'discord.js';
-
+import { chatPlatformEvents } from './chat-platform/index.js';
 import {
   getErrorMessage,
   writeLog,
@@ -60,7 +59,7 @@ export function registerApplicationCommands(
 
     registries.set(client, state);
 
-    client.once(Events.ClientReady, (readyClient) => {
+    client.once(chatPlatformEvents['ClientReady'], (readyClient) => {
       void synchronizeCommands(readyClient, state as Lib_ApplicationCommands_SynchronizeCommands_State).catch(
         (error) => {
           writeLog('error', 'bot', 'application_command_registration_failed', {

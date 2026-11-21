@@ -1,17 +1,17 @@
 import type {
-  Client,
-  GatewayIntentBits,
-  GuildBasedChannel,
-  GuildMember,
-  Message,
-  MessageReplyOptions,
-  PartialMessage,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_FullGuildMessage,
+  Lib_ChatPlatform_Contracts_FullMessage,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_Message,
+  Lib_ChatPlatform_Contracts_MessagePayload,
+} from './chat-platform/index.d.ts';
 
 export type Lib_MessageFeatures_ChannelReference_ChannelIdentifier = string;
 export type Lib_MessageFeatures_ChannelReference = {
@@ -166,7 +166,7 @@ export type Lib_MessageFeatures_Runtime = {
   suspiciousWords: Lib_MessageFeatures_Runtime_SuspiciousWords;
 };
 
-export type Lib_MessageFeatures_Registration_Client = Client;
+export type Lib_MessageFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_MessageFeatures_Registration_GuildIdentifier = string;
 export type Lib_MessageFeatures_Registration = (
   client: Lib_MessageFeatures_Registration_Client,
@@ -175,7 +175,7 @@ export type Lib_MessageFeatures_Registration = (
 
 export type Lib_MessageFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_MessageFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_MessageFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_MessageFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_MessageFeatures_Prepared_Register = Lib_MessageFeatures_Registration;
 export type Lib_MessageFeatures_Prepared = {
   activeFeatureKeys: Lib_MessageFeatures_Prepared_ActiveFeatureKeys;
@@ -205,7 +205,7 @@ export type Lib_MessageFeatures_CompileSuspiciousWords_Categories = Lib_MessageF
 export type Lib_MessageFeatures_CompileSuspiciousWords_Parsed = Lib_MessageFeatures_SuspiciousWordsConfiguration;
 
 export type Lib_MessageFeatures_CreateMessageOptions_Payload = Lib_MessageFeatures_SafeMessagePayload;
-export type Lib_MessageFeatures_CreateMessageOptions_Returns = MessageReplyOptions;
+export type Lib_MessageFeatures_CreateMessageOptions_Returns = Lib_ChatPlatform_Contracts_MessagePayload;
 
 export type Lib_MessageFeatures_CreateRegistration_Runtime = Lib_MessageFeatures_Runtime;
 export type Lib_MessageFeatures_CreateRegistration_Returns = Lib_MessageFeatures_Registration;
@@ -233,51 +233,51 @@ export type Lib_MessageFeatures_GetEnabledFeature_EnabledFeature = {
 export type Lib_MessageFeatures_GetRoleIdentifiers_References = Lib_MessageFeatures_RoleReference[] | undefined;
 export type Lib_MessageFeatures_GetRoleIdentifiers_Returns = string[];
 
-export type Lib_MessageFeatures_HandleAffiliateCleanup_Message = Message<true>;
+export type Lib_MessageFeatures_HandleAffiliateCleanup_Message = Lib_ChatPlatform_Contracts_FullGuildMessage;
 export type Lib_MessageFeatures_HandleAffiliateCleanup_Settings = Lib_MessageFeatures_AffiliateCleanup;
 export type Lib_MessageFeatures_HandleAffiliateCleanup_Returns = Promise<boolean>;
 export type Lib_MessageFeatures_HandleAffiliateCleanup_DetectedPlatforms = string[];
 export type Lib_MessageFeatures_HandleAffiliateCleanup_Deleted = boolean;
 
-export type Lib_MessageFeatures_HandleAutoReplies_Message = Message<true>;
+export type Lib_MessageFeatures_HandleAutoReplies_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageFeatures_HandleAutoReplies_Rules = Lib_MessageFeatures_AutoReplyRule[];
 export type Lib_MessageFeatures_HandleAutoReplies_Returns = Promise<void>;
 export type Lib_MessageFeatures_HandleAutoReplies_ChannelMatches = boolean;
 export type Lib_MessageFeatures_HandleAutoReplies_Matches = boolean;
 export type Lib_MessageFeatures_HandleAutoReplies_Payload = Lib_MessageFeatures_SafeMessagePayload | undefined;
 export type Lib_MessageFeatures_HandleAutoReplies_PayloadIndex = number;
-export type Lib_MessageFeatures_HandleAutoReplies_SendOptions = MessageReplyOptions;
+export type Lib_MessageFeatures_HandleAutoReplies_SendOptions = Lib_ChatPlatform_Contracts_MessagePayload;
 
-export type Lib_MessageFeatures_HandleMessage_Message = Message;
+export type Lib_MessageFeatures_HandleMessage_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageFeatures_HandleMessage_GuildIdentifier = string;
 export type Lib_MessageFeatures_HandleMessage_Runtime = Lib_MessageFeatures_Runtime;
 export type Lib_MessageFeatures_HandleMessage_RunAutoReplies = boolean;
 export type Lib_MessageFeatures_HandleMessage_Returns = Promise<void>;
 export type Lib_MessageFeatures_HandleMessage_Deleted = boolean;
 
-export type Lib_MessageFeatures_HandleMessageUpdate_OldMessage = Message | PartialMessage;
-export type Lib_MessageFeatures_HandleMessageUpdate_NewMessage = Message;
+export type Lib_MessageFeatures_HandleMessageUpdate_OldMessage = Lib_ChatPlatform_Contracts_FullMessage | Lib_ChatPlatform_Contracts_Message;
+export type Lib_MessageFeatures_HandleMessageUpdate_NewMessage = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageFeatures_HandleMessageUpdate_GuildIdentifier = string;
 export type Lib_MessageFeatures_HandleMessageUpdate_Runtime = Lib_MessageFeatures_Runtime;
 export type Lib_MessageFeatures_HandleMessageUpdate_Returns = Promise<void>;
 
-export type Lib_MessageFeatures_HandleRegexRules_Message = Message<true>;
+export type Lib_MessageFeatures_HandleRegexRules_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageFeatures_HandleRegexRules_Rules = Lib_MessageFeatures_RegexRule[];
 export type Lib_MessageFeatures_HandleRegexRules_Returns = Promise<boolean>;
 export type Lib_MessageFeatures_HandleRegexRules_Matches = boolean;
 export type Lib_MessageFeatures_HandleRegexRules_Deleted = boolean;
 
-export type Lib_MessageFeatures_HandleSuspiciousWords_Message = Message<true>;
+export type Lib_MessageFeatures_HandleSuspiciousWords_Message = Lib_ChatPlatform_Contracts_FullGuildMessage;
 export type Lib_MessageFeatures_HandleSuspiciousWords_Settings = Lib_MessageFeatures_SuspiciousWords;
 export type Lib_MessageFeatures_HandleSuspiciousWords_Returns = Promise<void>;
 export type Lib_MessageFeatures_HandleSuspiciousWords_CleanedContent = string;
 export type Lib_MessageFeatures_HandleSuspiciousWords_DetectedCategories = string[];
 export type Lib_MessageFeatures_HandleSuspiciousWords_PaddedContent = string;
 
-export type Lib_MessageFeatures_HasExcludedRole_Message = Message<true>;
+export type Lib_MessageFeatures_HasExcludedRole_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageFeatures_HasExcludedRole_RoleIdentifiers = string[];
 export type Lib_MessageFeatures_HasExcludedRole_Returns = boolean;
-export type Lib_MessageFeatures_HasExcludedRole_Member = GuildMember | null;
+export type Lib_MessageFeatures_HasExcludedRole_Member = Lib_ChatPlatform_Contracts_Member | null;
 
 export type Lib_MessageFeatures_IsRecord_Value = unknown;
 export type Lib_MessageFeatures_IsRecord_TypeGuard = Record<string, unknown>;
@@ -303,7 +303,7 @@ export type Lib_MessageFeatures_PrepareMessageFeatures_AffiliateFeature = Lib_Me
 export type Lib_MessageFeatures_PrepareMessageFeatures_AutoReplyFeature = Lib_MessageFeatures_GetEnabledFeature_EnabledFeature | undefined;
 export type Lib_MessageFeatures_PrepareMessageFeatures_RegexFeature = Lib_MessageFeatures_GetEnabledFeature_EnabledFeature | undefined;
 export type Lib_MessageFeatures_PrepareMessageFeatures_SuspiciousWordsFeature = Lib_MessageFeatures_GetEnabledFeature_EnabledFeature | undefined;
-export type Lib_MessageFeatures_PrepareMessageFeatures_Intents = GatewayIntentBits[];
+export type Lib_MessageFeatures_PrepareMessageFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 
 export type Lib_MessageFeatures_RecordConfigurationError_FeatureKey = Shared_FeatureKey;
 export type Lib_MessageFeatures_RecordConfigurationError_Error = unknown;
@@ -311,12 +311,12 @@ export type Lib_MessageFeatures_RecordConfigurationError_ConfigurationErrors = s
 export type Lib_MessageFeatures_RecordConfigurationError_Returns = void;
 export type Lib_MessageFeatures_RecordConfigurationError_Message = string;
 
-export type Lib_MessageFeatures_SendModerationAlert_Message = Message<true>;
+export type Lib_MessageFeatures_SendModerationAlert_Message = Lib_ChatPlatform_Contracts_FullGuildMessage;
 export type Lib_MessageFeatures_SendModerationAlert_ChannelIdentifier = string;
 export type Lib_MessageFeatures_SendModerationAlert_Title = string;
 export type Lib_MessageFeatures_SendModerationAlert_Details = string;
 export type Lib_MessageFeatures_SendModerationAlert_Returns = Promise<void>;
-export type Lib_MessageFeatures_SendModerationAlert_Channel = GuildBasedChannel | null;
+export type Lib_MessageFeatures_SendModerationAlert_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 export type Lib_MessageFeatures_SendModerationAlert_Description = string;
 
 export type Lib_MessageFeatures_TruncateContent_Content = string;

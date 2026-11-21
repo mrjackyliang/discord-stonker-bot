@@ -1,13 +1,18 @@
 import type {
+  Web_AppNavigation_AppRouteForFeature_FeatureKey,
   Web_AppNavigation_Items,
   Web_AppNavigation_PathMatch,
   Web_AppNavigation_Paths,
+  Web_AppNavigation_ResolveAppNavigationPath_EncodedFeatureKey,
+  Web_AppNavigation_ResolveAppNavigationPath_FeatureKey,
+  Web_AppNavigation_ResolveAppNavigationPath_FeaturePrefix,
+  Web_AppNavigation_ResolveAppNavigationPath_Pathname,
   Web_AppNavigation_Route,
 } from '@/types/web/app-navigation.d.ts';
 import type { Web_Components_View } from '@/types/web/components.d.ts';
 
 /**
- * App Navigation - Paths.
+ * App Navigation - App Navigation Paths.
  *
  * Owns every bookmarkable console address, including feature editors and the
  * specialized invite-page editor. The selected server remains browser-local.
@@ -30,7 +35,7 @@ export const appNavigationPaths: Web_AppNavigation_Paths = {
 };
 
 /**
- * App Navigation - Items.
+ * App Navigation - App Navigation Items.
  *
  * Defines the Stonker Bot navigation separately from the shared shell and
  * helpers. Desktop keeps this full order while phones derive their four tabs.
@@ -129,25 +134,25 @@ export const appNavigationItems: Web_AppNavigation_Items = [
 ];
 
 /**
- * App Navigation - Route for feature.
+ * App Navigation - App Route For Feature.
  *
  * Builds an encoded editor address while keeping feature identifiers opaque.
  * The editor receives the decoded identifier from the resolved route.
  *
- * @param {string} featureKey - Feature key.
+ * @param {Web_AppNavigation_AppRouteForFeature_FeatureKey} featureKey - Feature key.
  *
  * @returns {Web_AppNavigation_Route}
  *
  * @since 4.0.0
  */
-export const appRouteForFeature = (featureKey: string): Web_AppNavigation_Route => ({
+export const appRouteForFeature = (featureKey: Web_AppNavigation_AppRouteForFeature_FeatureKey): Web_AppNavigation_Route => ({
   featureKey,
   path: `${appNavigationPaths['features']}/${encodeURIComponent(featureKey)}`,
   view: 'feature',
 });
 
 /**
- * App Navigation - Route for invite.
+ * App Navigation - App Route For Invite.
  *
  * Gives the specialized Web applications invite editor its own stable address.
  * The generic feature editor remains available at /features/web-applications.
@@ -162,7 +167,7 @@ export const appRouteForInvite = (): Web_AppNavigation_Route => ({
 });
 
 /**
- * App Navigation - Route for view.
+ * App Navigation - App Route For View.
  *
  * Returns the canonical path used by shell navigation. The root address is a
  * valid Overview alias, while explicit Overview navigation uses /overview.
@@ -245,18 +250,18 @@ export const appRouteForView = (view: Web_Components_View): Web_AppNavigation_Ro
 };
 
 /**
- * App Navigation - Resolve path.
+ * App Navigation - Resolve App Navigation Path.
  *
  * Parses every console page and one encoded feature-editor segment. Unknown or
  * malformed paths fall back to Overview with a History API replacement.
  *
- * @param {string} pathname - Pathname.
+ * @param {Web_AppNavigation_ResolveAppNavigationPath_Pathname} pathname - Pathname.
  *
  * @returns {Web_AppNavigation_PathMatch}
  *
  * @since 4.0.0
  */
-export const resolveAppNavigationPath = (pathname: string): Web_AppNavigation_PathMatch => {
+export const resolveAppNavigationPath = (pathname: Web_AppNavigation_ResolveAppNavigationPath_Pathname): Web_AppNavigation_PathMatch => {
   if (pathname === appNavigationPaths['root']) {
     return {
       path: pathname,
@@ -309,12 +314,12 @@ export const resolveAppNavigationPath = (pathname: string): Web_AppNavigation_Pa
     };
   }
 
-  const featurePrefix: string = `${appNavigationPaths['features']}/`;
-  if (pathname.startsWith(featurePrefix)) {
-    const encodedFeatureKey: string = pathname.slice(featurePrefix.length);
-    if (encodedFeatureKey !== '' && !encodedFeatureKey.includes('/')) {
+  const featurePrefix: Web_AppNavigation_ResolveAppNavigationPath_FeaturePrefix = `${appNavigationPaths['features']}/`;
+  if (pathname.startsWith(featurePrefix) === true) {
+    const encodedFeatureKey: Web_AppNavigation_ResolveAppNavigationPath_EncodedFeatureKey = pathname.slice(featurePrefix.length);
+    if (encodedFeatureKey !== '' && encodedFeatureKey.includes('/') === false) {
       try {
-        const featureKey: string = decodeURIComponent(encodedFeatureKey);
+        const featureKey: Web_AppNavigation_ResolveAppNavigationPath_FeatureKey = decodeURIComponent(encodedFeatureKey);
         if (featureKey !== '') {
           const route: Web_AppNavigation_Route = appRouteForFeature(featureKey);
 

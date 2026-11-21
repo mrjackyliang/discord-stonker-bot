@@ -16,6 +16,12 @@
   <h1>Stonker Bot for Discord</h1>
 <!-- nova-region-end: header -->
 <!-- nova-region: badges -->
+  <a href="https://hub.docker.com/r/mrjackyliang/discord-stonker-bot">
+    <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/mrjackyliang/discord-stonker-bot?style=for-the-badge&logo=docker&logoColor=%23ffffff&color=%23b25da6">
+  </a>
+  <a href="https://hub.docker.com/r/mrjackyliang/discord-stonker-bot">
+    <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/mrjackyliang/discord-stonker-bot?style=for-the-badge&logo=docker&logoColor=%23ffffff&color=%236688c3">
+  </a>
   <a href="https://github.com/mrjackyliang/discord-stonker-bot/releases">
     <img alt="GitHub Releases" src="https://img.shields.io/github/v/release/mrjackyliang/discord-stonker-bot?style=for-the-badge&logo=github&logoColor=%23ffffff&color=%23b25da6">
   </a>
@@ -24,6 +30,9 @@
   </a>
   <a href="https://github.com/mrjackyliang/discord-stonker-bot/blob/HEAD/LICENSE">
     <img alt="GitHub License" src="https://img.shields.io/github/license/mrjackyliang/discord-stonker-bot?style=for-the-badge&logo=googledocs&logoColor=%23ffffff&color=%2348a56a">
+  </a>
+  <a href="https://github.com/mrjackyliang/discord-stonker-bot/actions">
+    <img alt="Test Coverage" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fmrjackyliang.github.io%2Fdiscord-stonker-bot%2Fbadges%2Fcoverage.json&style=for-the-badge&logo=vitest&logoColor=%23ffffff">
   </a>
   <a href="https://github.com/sponsors/mrjackyliang">
     <img alt="Become a GitHub Sponsor" src="https://img.shields.io/badge/github-sponsor-gray?style=for-the-badge&logo=githubsponsors&logoColor=%23ffffff&color=%23eaaf41">
@@ -37,7 +46,7 @@
 <!-- nova-region: introduction -->
 ## Introduction
 
-Stonker Bot for Discord is a self-hosted, all-purpose operations bot for Discord communities. It brings moderation, community safety, content automation, and optional integrations into a modular service that operators can understand, with least-privilege access, observable behavior, and a focused capability set.
+Run community safety, moderation, content automation, and optional integrations for your Discord servers from one self-hosted bot. Turn features on per server from a browser control panel, and get operator alerts when something needs you.
 <!-- nova-region-end: introduction -->
 
 <!-- nova-region: documentation -->

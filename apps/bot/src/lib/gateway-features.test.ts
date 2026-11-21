@@ -1,10 +1,10 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
 
+import { chatPlatformIntents } from './chat-platform/index.js';
 import { prepareGatewayFeatures } from './gateway-features.js';
 
 import type { Lib_GatewayFeatures_PrepareGatewayFeatures_Returns } from '../types/lib/gateway-features.d.ts';
@@ -97,8 +97,8 @@ describe('gateway feature preparation', () => {
     expect(prepared['configurationErrors']).toEqual([]);
 
     expect(prepared['intents']).toEqual([
-      GatewayIntentBits.GuildScheduledEvents,
-      GatewayIntentBits.GuildMembers,
+      chatPlatformIntents['GuildScheduledEvents'],
+      chatPlatformIntents['GuildMembers'],
     ]);
 
     return;

@@ -1,16 +1,16 @@
 import type {
-  APIEmbed,
-  Client,
-  GatewayIntentBits,
-  GuildBasedChannel,
-  Message,
-  WebhookClient,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Embed,
+  Lib_ChatPlatform_Contracts_FullGuildMessage,
+  Lib_ChatPlatform_Contracts_FullMessage,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Webhook,
+} from './chat-platform/index.d.ts';
 
 export type Lib_MessageRoutingFeatures_SecretReference_Key = string;
 export type Lib_MessageRoutingFeatures_SecretReference = {
@@ -150,7 +150,7 @@ export type Lib_MessageRoutingFeatures_Runtime = {
   proxyRules: Lib_MessageRoutingFeatures_Runtime_ProxyRules;
 };
 
-export type Lib_MessageRoutingFeatures_Registration_Client = Client;
+export type Lib_MessageRoutingFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_MessageRoutingFeatures_Registration_GuildIdentifier = string;
 export type Lib_MessageRoutingFeatures_Registration = (
   client: Lib_MessageRoutingFeatures_Registration_Client,
@@ -159,7 +159,7 @@ export type Lib_MessageRoutingFeatures_Registration = (
 
 export type Lib_MessageRoutingFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_MessageRoutingFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_MessageRoutingFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_MessageRoutingFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_MessageRoutingFeatures_Prepared_Register = Lib_MessageRoutingFeatures_Registration;
 export type Lib_MessageRoutingFeatures_Prepared = {
   activeFeatureKeys: Lib_MessageRoutingFeatures_Prepared_ActiveFeatureKeys;
@@ -176,7 +176,7 @@ export type Lib_MessageRoutingFeatures_ApplyReplacements_Returns = string;
 export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_AttachmentUrls = string[];
 export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_Content = string;
 export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_IncludeAttachments = boolean;
-export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_Message = Message<true>;
+export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageRoutingFeatures_AppendAttachmentLinks_Returns = string;
 
 export type Lib_MessageRoutingFeatures_CompileCopierRules_Configuration = unknown;
@@ -196,7 +196,7 @@ export type Lib_MessageRoutingFeatures_CompileReplacements_Returns = Lib_Message
 export type Lib_MessageRoutingFeatures_CreateRegistration_Returns = Lib_MessageRoutingFeatures_Registration;
 export type Lib_MessageRoutingFeatures_CreateRegistration_Runtime = Lib_MessageRoutingFeatures_Runtime;
 
-export type Lib_MessageRoutingFeatures_FindMatchingCopierRule_Message = Message<true>;
+export type Lib_MessageRoutingFeatures_FindMatchingCopierRule_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageRoutingFeatures_FindMatchingCopierRule_Returns = Lib_MessageRoutingFeatures_CopierRule | undefined;
 export type Lib_MessageRoutingFeatures_FindMatchingCopierRule_Rules = Lib_MessageRoutingFeatures_CopierRule[];
 
@@ -209,7 +209,7 @@ export type Lib_MessageRoutingFeatures_FormatConfigurationError_Messages = strin
 export type Lib_MessageRoutingFeatures_FormatConfigurationError_Returns = string;
 
 export type Lib_MessageRoutingFeatures_FormatCopierContent_Content = string;
-export type Lib_MessageRoutingFeatures_FormatCopierContent_Message = Message<true>;
+export type Lib_MessageRoutingFeatures_FormatCopierContent_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageRoutingFeatures_FormatCopierContent_Returns = string;
 export type Lib_MessageRoutingFeatures_FormatCopierContent_Rule = Lib_MessageRoutingFeatures_CopierRule;
 export type Lib_MessageRoutingFeatures_FormatCopierContent_TransformedContent = string;
@@ -225,18 +225,13 @@ export type Lib_MessageRoutingFeatures_GetEnabledFeature_Settings = Shared_JsonO
 
 export type Lib_MessageRoutingFeatures_HandleMessage_CopierRule = Lib_MessageRoutingFeatures_CopierRule | undefined;
 export type Lib_MessageRoutingFeatures_HandleMessage_GuildIdentifier = string;
-export type Lib_MessageRoutingFeatures_HandleMessage_Message = Message;
+export type Lib_MessageRoutingFeatures_HandleMessage_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageRoutingFeatures_HandleMessage_ProxyRule = Lib_MessageRoutingFeatures_ProxyRule | undefined;
 export type Lib_MessageRoutingFeatures_HandleMessage_Returns = Promise<void>;
 export type Lib_MessageRoutingFeatures_HandleMessage_Runtime = Lib_MessageRoutingFeatures_Runtime;
 
 export type Lib_MessageRoutingFeatures_IsRecord_TypeGuard = Record<string, unknown>;
 export type Lib_MessageRoutingFeatures_IsRecord_Value = unknown;
-
-export type Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_ParsedUrl = URL;
-export type Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_PathPattern = RegExp;
-export type Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Returns = boolean;
-export type Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Value = string;
 
 export type Lib_MessageRoutingFeatures_MatchesRegularExpression_Content = string;
 export type Lib_MessageRoutingFeatures_MatchesRegularExpression_RegularExpression = RegExp;
@@ -246,7 +241,7 @@ export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_ActiveFeatu
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_ConfigurationErrors = string[];
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_CopierFeature = Lib_MessageRoutingFeatures_GetEnabledFeature_Returns;
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_CopierRules = Lib_MessageRoutingFeatures_CopierRule[];
-export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_Intents = GatewayIntentBits[];
+export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_ProxyFeature = Lib_MessageRoutingFeatures_GetEnabledFeature_Returns;
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_ProxyRules = Lib_MessageRoutingFeatures_ProxyRule[];
 export type Lib_MessageRoutingFeatures_PrepareMessageRoutingFeatures_Returns = Lib_MessageRoutingFeatures_Prepared;
@@ -264,20 +259,20 @@ export type Lib_MessageRoutingFeatures_ResolveSecretReference_Returns = string;
 export type Lib_MessageRoutingFeatures_ResolveSecretReference_Secret = string | undefined;
 export type Lib_MessageRoutingFeatures_ResolveSecretReference_Secrets = Lib_MessageRoutingFeatures_SecretResolver;
 
-export type Lib_MessageRoutingFeatures_SendCopierMessage_Channel = GuildBasedChannel | null;
+export type Lib_MessageRoutingFeatures_SendCopierMessage_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 export type Lib_MessageRoutingFeatures_SendCopierMessage_Content = string;
-export type Lib_MessageRoutingFeatures_SendCopierMessage_Message = Message<true>;
+export type Lib_MessageRoutingFeatures_SendCopierMessage_Message = Lib_ChatPlatform_Contracts_FullGuildMessage;
 export type Lib_MessageRoutingFeatures_SendCopierMessage_Returns = Promise<void>;
 export type Lib_MessageRoutingFeatures_SendCopierMessage_Rule = Lib_MessageRoutingFeatures_CopierRule;
-export type Lib_MessageRoutingFeatures_SendCopierMessage_WebhookClient = WebhookClient;
+export type Lib_MessageRoutingFeatures_SendCopierMessage_WebhookClient = Lib_ChatPlatform_Contracts_Webhook;
 
 export type Lib_MessageRoutingFeatures_SendProxyMessage_AttachmentContent = string;
 export type Lib_MessageRoutingFeatures_SendProxyMessage_Content = string;
-export type Lib_MessageRoutingFeatures_SendProxyMessage_Embeds = APIEmbed[];
-export type Lib_MessageRoutingFeatures_SendProxyMessage_Message = Message<true>;
+export type Lib_MessageRoutingFeatures_SendProxyMessage_Embeds = Lib_ChatPlatform_Contracts_Embed[];
+export type Lib_MessageRoutingFeatures_SendProxyMessage_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_MessageRoutingFeatures_SendProxyMessage_Returns = Promise<void>;
 export type Lib_MessageRoutingFeatures_SendProxyMessage_Rule = Lib_MessageRoutingFeatures_ProxyRule;
-export type Lib_MessageRoutingFeatures_SendProxyMessage_WebhookClient = WebhookClient;
+export type Lib_MessageRoutingFeatures_SendProxyMessage_WebhookClient = Lib_ChatPlatform_Contracts_Webhook;
 
 export type Lib_MessageRoutingFeatures_Test_CopierRules = Lib_MessageRoutingFeatures_CopierRule[];
 export type Lib_MessageRoutingFeatures_Test_CreateSecretResolver_Returns = Lib_MessageRoutingFeatures_SecretResolver;

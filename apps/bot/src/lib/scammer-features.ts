@@ -1,9 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -155,8 +155,8 @@ function createRegistration(
   runtime: Lib_ScammerFeatures_CreateRegistration_Runtime,
 ): Lib_ScammerFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.MessageCreate, (message) => {
-      void timeFeatureHandler('scammer', Events.MessageCreate, guildIdentifier, () => handleMessage(message, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageCreate'], (message) => {
+      void timeFeatureHandler('scammer', chatPlatformEvents['MessageCreate'], guildIdentifier, () => handleMessage(message, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'scammer_alert_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -168,8 +168,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
-      void timeFeatureHandler('scammer', Events.MessageUpdate, guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageUpdate'], (oldMessage, newMessage) => {
+      void timeFeatureHandler('scammer', chatPlatformEvents['MessageUpdate'], guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'scammer_alert_update_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -468,8 +468,8 @@ export function prepareScammerFeatures(
 
   if (runtime !== undefined) {
     intents.push(
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     );
   }
 

@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
-
-import nodemailer from 'nodemailer';
 import { z } from 'zod';
+
+import { Runner as HttpDelivery } from './notifiers/http.js';
+import { Runner as NotifierRegistry } from './notifiers/registry.js';
 
 import type {
   Lib_Notifications_BuildEventNotification_Definition,
@@ -12,14 +12,6 @@ import type {
   Lib_Notifications_BuildPayload_App,
   Lib_Notifications_BuildPayload_Notification,
   Lib_Notifications_BuildPayload_Returns,
-  Lib_Notifications_BuildRequest_App,
-  Lib_Notifications_BuildRequest_Bearer,
-  Lib_Notifications_BuildRequest_Notification,
-  Lib_Notifications_BuildRequest_Returns,
-  Lib_Notifications_BuildRequest_Secrets,
-  Lib_Notifications_BuildRequest_Settings,
-  Lib_Notifications_BuildRequest_Target,
-  Lib_Notifications_BuildRequest_Title,
   Lib_Notifications_BuildSecretsRemovedNotification_App,
   Lib_Notifications_BuildSecretsRemovedNotification_Items,
   Lib_Notifications_BuildSecretsRemovedNotification_KeyTerm,
@@ -29,39 +21,13 @@ import type {
   Lib_Notifications_BuildTestNotification_App,
   Lib_Notifications_BuildTestNotification_Returns,
   Lib_Notifications_DefaultDependencies,
-  Lib_Notifications_DescribeError_Error,
-  Lib_Notifications_DescribeError_Returns,
-  Lib_Notifications_DescribeResponse_Body,
-  Lib_Notifications_DescribeResponse_Candidate,
-  Lib_Notifications_DescribeResponse_Detail,
-  Lib_Notifications_DescribeResponse_Parsed,
-  Lib_Notifications_DescribeResponse_Response,
-  Lib_Notifications_DescribeResponse_Returns,
-  Lib_Notifications_EmailAddressSchema,
-  Lib_Notifications_EscapeSlack_Returns,
-  Lib_Notifications_EscapeSlack_Value,
   Lib_Notifications_EventDefinitions,
   Lib_Notifications_FieldSchema_Field,
   Lib_Notifications_FieldSchema_Keep,
   Lib_Notifications_FieldSchema_Missing,
   Lib_Notifications_FieldSchema_Returns,
   Lib_Notifications_FieldSchema_Schema,
-  Lib_Notifications_HasWhitespace_Returns,
-  Lib_Notifications_HasWhitespace_Value,
-  Lib_Notifications_InvalidMessages,
-  Lib_Notifications_IsHttpUrl_Protocols,
-  Lib_Notifications_IsHttpUrl_Returns,
-  Lib_Notifications_IsHttpUrl_Url,
-  Lib_Notifications_IsHttpUrl_Value,
-  Lib_Notifications_IsMatrixRoomId_Colon,
-  Lib_Notifications_IsMatrixRoomId_Returns,
-  Lib_Notifications_IsMatrixRoomId_Value,
-  Lib_Notifications_IsPort_Port,
-  Lib_Notifications_IsPort_Returns,
-  Lib_Notifications_IsPort_Value,
-  Lib_Notifications_IsValidField_Kind,
-  Lib_Notifications_IsValidField_Returns,
-  Lib_Notifications_IsValidField_Value,
+  Lib_Notifications_FieldSchema_Service,
   Lib_Notifications_NotificationEventsSchema_Keys,
   Lib_Notifications_NotificationEventsSchema_Returns,
   Lib_Notifications_NotificationInputSchema_ClearableSecretKeys,
@@ -74,309 +40,37 @@ import type {
   Lib_Notifications_NotificationSecretKeys_Returns,
   Lib_Notifications_NotificationSecretKeys_Service,
   Lib_Notifications_NotificationServiceBody,
+  Lib_Notifications_NotificationServices,
   Lib_Notifications_NotificationServiceSchema,
   Lib_Notifications_NotificationSettingsSchema_Returns,
   Lib_Notifications_NotificationSettingsSchema_SavedSecretKeys,
   Lib_Notifications_NotificationSettingsSchema_Service,
   Lib_Notifications_NotificationSettingsSchema_Shape,
-  Lib_Notifications_NtfyTopic_Returns,
-  Lib_Notifications_NtfyTopic_Segments,
-  Lib_Notifications_NtfyTopic_Topic,
-  Lib_Notifications_NtfyTopic_Url,
-  Lib_Notifications_NtfyTopic_Value,
   Lib_Notifications_PriorityNumbers,
-  Lib_Notifications_SendMail_Options,
-  Lib_Notifications_SendMail_Returns,
-  Lib_Notifications_SendMail_Transport,
   Lib_Notifications_SendNotification_App,
   Lib_Notifications_SendNotification_Dependencies,
   Lib_Notifications_SendNotification_Notification,
-  Lib_Notifications_SendNotification_Request,
-  Lib_Notifications_SendNotification_Response,
+  Lib_Notifications_SendNotification_Notifier,
+  Lib_Notifications_SendNotification_Payload,
   Lib_Notifications_SendNotification_Returns,
   Lib_Notifications_SendNotification_Target,
-  Lib_Notifications_SendNotification_Title,
-  Lib_Notifications_ServiceDefinitions,
   Lib_Notifications_SplitNotificationSettings_Input,
   Lib_Notifications_SplitNotificationSettings_Returns,
   Lib_Notifications_SplitNotificationSettings_Secrets,
   Lib_Notifications_SplitNotificationSettings_Service,
   Lib_Notifications_SplitNotificationSettings_Settings,
   Lib_Notifications_SplitNotificationSettings_Value,
-  Lib_Notifications_TrimTrailingSlashes_End,
-  Lib_Notifications_TrimTrailingSlashes_Returns,
-  Lib_Notifications_TrimTrailingSlashes_Value,
 } from '../types/lib/notifications.d.ts';
 
 /**
  * Notifications - Notification Services.
  *
  * Lists the fields each service needs and which of them are secret.
- * Secret fields are sealed with the app's key and never returned by the API.
+ * Each project-owned adapter supplies its own metadata and validation rules.
  *
  * @since 4.0.0
  */
-export const notificationServices: Lib_Notifications_ServiceDefinitions = {
-  'apprise': {
-    fields: [
-      {
-        key: 'url',
-        kind: 'http-url',
-        maximum: 2048,
-        missing: 'Enter the Apprise URL.',
-        required: true,
-        secret: true,
-      },
-      {
-        key: 'urls',
-        kind: 'text',
-        maximum: 4096,
-        missing: '',
-        required: false,
-        secret: true,
-      },
-    ],
-    label: 'Apprise',
-  },
-  'discord': {
-    fields: [{
-      key: 'webhookUrl',
-      kind: 'discord-webhook',
-      maximum: 2048,
-      missing: 'Enter the webhook URL.',
-      required: true,
-      secret: true,
-    }],
-    label: 'Discord',
-  },
-  'email': {
-    fields: [
-      {
-        key: 'host',
-        kind: 'text',
-        maximum: 255,
-        missing: 'Enter the SMTP server.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'port',
-        kind: 'port',
-        maximum: 5,
-        missing: 'Enter a port number.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'security',
-        kind: 'security',
-        maximum: 8,
-        missing: 'Choose STARTTLS, TLS, or none.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'username',
-        kind: 'text',
-        maximum: 255,
-        missing: '',
-        required: false,
-        secret: false,
-      },
-      {
-        key: 'password',
-        kind: 'text',
-        maximum: 1024,
-        missing: '',
-        required: false,
-        secret: true,
-      },
-      {
-        key: 'from',
-        kind: 'email',
-        maximum: 255,
-        missing: 'Enter the address to send from.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'to',
-        kind: 'emails',
-        maximum: 1024,
-        missing: 'Enter the address to send to.',
-        required: true,
-        secret: false,
-      },
-    ],
-    label: 'Email',
-  },
-  'gotify': {
-    fields: [
-      {
-        key: 'url',
-        kind: 'http-url',
-        maximum: 2048,
-        missing: 'Enter the server URL.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'token',
-        kind: 'text',
-        maximum: 1024,
-        missing: 'Enter the app token.',
-        required: true,
-        secret: true,
-      },
-    ],
-    label: 'Gotify',
-  },
-  'matrix': {
-    fields: [
-      {
-        key: 'homeserverUrl',
-        kind: 'https-url',
-        maximum: 2048,
-        missing: 'Enter the homeserver URL.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'roomId',
-        kind: 'matrix-room',
-        maximum: 255,
-        missing: 'Enter the room ID.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'accessToken',
-        kind: 'text',
-        maximum: 1024,
-        missing: 'Enter the access token.',
-        required: true,
-        secret: true,
-      },
-    ],
-    label: 'Matrix',
-  },
-  'ntfy': {
-    fields: [
-      {
-        key: 'url',
-        kind: 'ntfy-topic-url',
-        maximum: 2048,
-        missing: 'Enter the topic URL.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'token',
-        kind: 'text',
-        maximum: 1024,
-        missing: '',
-        required: false,
-        secret: true,
-      },
-    ],
-    label: 'ntfy',
-  },
-  'ntfy-reverse-proxy': {
-    fields: [
-      {
-        key: 'url',
-        kind: 'https-url',
-        maximum: 2048,
-        missing: 'Enter the context URL.',
-        required: true,
-        secret: false,
-      },
-      {
-        key: 'token',
-        kind: 'text',
-        maximum: 1024,
-        missing: '',
-        required: false,
-        secret: true,
-      },
-    ],
-    label: 'Reverse Proxy for ntfy',
-  },
-  'pushover': {
-    fields: [
-      {
-        key: 'userKey',
-        kind: 'text',
-        maximum: 255,
-        missing: 'Enter the user key.',
-        required: true,
-        secret: true,
-      },
-      {
-        key: 'appToken',
-        kind: 'text',
-        maximum: 255,
-        missing: 'Enter the app token.',
-        required: true,
-        secret: true,
-      },
-    ],
-    label: 'Pushover',
-  },
-  'slack': {
-    fields: [{
-      key: 'webhookUrl',
-      kind: 'slack-webhook',
-      maximum: 2048,
-      missing: 'Enter the webhook URL.',
-      required: true,
-      secret: true,
-    }],
-    label: 'Slack',
-  },
-  'telegram': {
-    fields: [
-      {
-        key: 'botToken',
-        kind: 'text',
-        maximum: 255,
-        missing: 'Enter the bot token.',
-        required: true,
-        secret: true,
-      },
-      {
-        key: 'chatId',
-        kind: 'text',
-        maximum: 255,
-        missing: 'Enter the chat ID.',
-        required: true,
-        secret: false,
-      },
-    ],
-    label: 'Telegram',
-  },
-  'webhook': {
-    fields: [
-      {
-        key: 'url',
-        kind: 'http-url',
-        maximum: 2048,
-        missing: 'Enter the URL.',
-        required: true,
-        secret: true,
-      },
-      {
-        key: 'token',
-        kind: 'text',
-        maximum: 1024,
-        missing: '',
-        required: false,
-        secret: true,
-      },
-    ],
-    label: 'Webhook',
-  },
-};
+export const notificationServices: Lib_Notifications_NotificationServices = NotifierRegistry.getDefinitions();
 
 /**
  * Notifications - Common Notification Events.
@@ -409,28 +103,6 @@ export const commonNotificationEvents: Lib_Notifications_EventDefinitions = [
 ];
 
 /**
- * Notifications - Invalid Messages.
- *
- * Gives each field kind the message shown when its value has the wrong form.
- * The same words appear in all four apps.
- *
- * @since 4.0.0
- */
-const invalidMessages: Lib_Notifications_InvalidMessages = {
-  'discord-webhook': 'Use a Discord webhook URL. It starts with https://discord.com/api/webhooks/.',
-  'email': 'Use an email address, like alerts@example.com.',
-  'emails': 'Use email addresses separated by commas.',
-  'http-url': 'Use an http:// or https:// URL.',
-  'https-url': 'Use an https:// URL.',
-  'matrix-room': 'Use a room ID like !room:example.com.',
-  'ntfy-topic-url': 'Use the full topic URL, like https://ntfy.sh/my-alerts.',
-  'port': 'Use a port from 1 to 65535.',
-  'security': 'Choose STARTTLS, TLS, or none.',
-  'slack-webhook': 'Use a Slack webhook URL. It starts with https://hooks.slack.com/.',
-  'text': 'Check this value.',
-};
-
-/**
  * Notifications - Priority Numbers.
  *
  * Maps a notification's priority to the 1-to-5 scale ntfy and the payload use.
@@ -443,16 +115,6 @@ const priorityNumbers: Lib_Notifications_PriorityNumbers = {
   high: 4,
   low: 2,
 };
-
-/**
- * Notifications - Email Address Schema.
- *
- * Checks one address for the From and To fields of the email service.
- * A list of addresses is split on commas and checked one address at a time.
- *
- * @since 4.0.0
- */
-const emailAddressSchema: Lib_Notifications_EmailAddressSchema = z.email();
 
 /**
  * Notifications - Notification Name Schema.
@@ -507,10 +169,7 @@ export const notificationServiceBody: Lib_Notifications_NotificationServiceBody 
  *
  * @since 4.0.0
  */
-const defaultDependencies: Lib_Notifications_DefaultDependencies = {
-  fetch: (input, init) => fetch(input, init),
-  sendMail,
-};
+const defaultDependencies: Lib_Notifications_DefaultDependencies = NotifierRegistry.getDefaultDependencies();
 
 /**
  * Notifications - Build Event Notification.
@@ -646,8 +305,7 @@ export function notificationEventsSchema(keys: Lib_Notifications_NotificationEve
  * Notifications - Notification Input Schema.
  *
  * Validates the body that adds or edits a destination, with field issues under settings.
- * When editing, the service is fixed, saved secrets can be left blank to keep them,
- * and optional secrets that are saved or missing can be cleared, never with a new value.
+ * When editing, saved secrets can stay blank or optional ones can be cleared.
  *
  * @param {Lib_Notifications_NotificationInputSchema_Service}           service           - Service.
  * @param {Lib_Notifications_NotificationInputSchema_EventKeys}         eventKeys         - Event keys.
@@ -679,7 +337,7 @@ export function notificationInputSchema(service: Lib_Notifications_NotificationI
     service: z.literal(service, { error: 'The service can\'t be changed.' }).optional(),
     settings: notificationSettingsSchema(service, savedSecretKeys),
   }).strict().superRefine((input, context) => {
-    for (const key of input['clearSecrets']) {
+    for (const key of input['clearSecrets'] ?? []) {
       if (clearableSecretKeys.includes(key) === true && (input['settings'][key] ?? '') !== '') {
         context.addIssue({
           code: 'custom',
@@ -715,7 +373,7 @@ export function notificationSecretKeys(service: Lib_Notifications_NotificationSe
 /**
  * Notifications - Notification Settings Schema.
  *
- * Builds the schema for one service's fields, with the shared messages.
+ * Builds the schema for one service's fields, with the adapter's validation rules.
  * Unknown fields are rejected, and blank optional fields count as not set.
  *
  * @param {Lib_Notifications_NotificationSettingsSchema_Service}         service         - Service.
@@ -729,7 +387,7 @@ export function notificationSettingsSchema(service: Lib_Notifications_Notificati
   const shape: Lib_Notifications_NotificationSettingsSchema_Shape = {};
 
   for (const field of notificationServices[service]['fields']) {
-    Reflect.set(shape, field['key'], fieldSchema(field, field['secret'] === true && savedSecretKeys.includes(field['key'])));
+    Reflect.set(shape, field['key'], fieldSchema(service, field, field['secret'] === true && savedSecretKeys.includes(field['key'])));
   }
 
   return z.object(shape, { error: 'Fill in the service settings.' }).strict();
@@ -738,8 +396,8 @@ export function notificationSettingsSchema(service: Lib_Notifications_Notificati
 /**
  * Notifications - Send Notification.
  *
- * Delivers one notification to one destination and reports what happened.
- * Every send has a 10-second limit, and a failure is returned instead of thrown.
+ * Delivers one notification through the adapter for its destination.
+ * Every send keeps the existing timeout and returns failures instead of throwing.
  *
  * @param {Lib_Notifications_SendNotification_App}          app          - App.
  * @param {Lib_Notifications_SendNotification_Target}       target       - Target.
@@ -751,45 +409,19 @@ export function notificationSettingsSchema(service: Lib_Notifications_Notificati
  * @since 4.0.0
  */
 export async function sendNotification(app: Lib_Notifications_SendNotification_App, target: Lib_Notifications_SendNotification_Target, notification: Lib_Notifications_SendNotification_Notification, dependencies: Lib_Notifications_SendNotification_Dependencies = defaultDependencies): Lib_Notifications_SendNotification_Returns {
+  const payload: Lib_Notifications_SendNotification_Payload = {
+    notification,
+    title: `${app['name']}: ${notification['title']}`,
+    webhook: buildNotificationPayload(app, notification),
+  };
   try {
-    if (target['service'] === 'email') {
-      const title: Lib_Notifications_SendNotification_Title = `${app['name']}: ${notification['title']}`;
+    const notifier: Lib_Notifications_SendNotification_Notifier = NotifierRegistry.create(target);
 
-      await dependencies.sendMail({
-        from: target['settings']['from'] ?? '',
-        host: target['settings']['host'] ?? '',
-        password: target['secrets']['password'] ?? '',
-        port: Number(target['settings']['port'] ?? '587'),
-        security: target['settings']['security'] ?? 'starttls',
-        subject: title,
-        text: notification['message'],
-        to: (target['settings']['to'] ?? '').split(',').map((address) => address.trim()).filter((address) => address !== ''),
-        username: target['settings']['username'] ?? '',
-      });
-
-      return { delivered: true };
-    }
-
-    const request: Lib_Notifications_SendNotification_Request = buildRequest(app, target, notification);
-    const response: Lib_Notifications_SendNotification_Response = await dependencies.fetch(request['url'], {
-      body: request['body'],
-      headers: request['headers'],
-      method: request['method'],
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    if (response.ok === false) {
-      return {
-        delivered: false,
-        message: await describeResponse(response),
-      };
-    }
-
-    return { delivered: true };
+    return await notifier.send(payload, dependencies);
   } catch (error) {
     return {
       delivered: false,
-      message: describeError(error),
+      message: HttpDelivery.describeError(error),
     };
   }
 }
@@ -828,280 +460,14 @@ export function splitNotificationSettings(service: Lib_Notifications_SplitNotifi
 }
 
 /**
- * Notifications - Build Request.
- *
- * Builds the HTTP request each service expects, from the notification.
- * People see the app name before the title, except in the shared JSON payload.
- *
- * @param {Lib_Notifications_BuildRequest_App}          app          - App.
- * @param {Lib_Notifications_BuildRequest_Target}       target       - Target.
- * @param {Lib_Notifications_BuildRequest_Notification} notification - Notification.
- *
- * @private
- *
- * @returns {Lib_Notifications_BuildRequest_Returns}
- *
- * @since 4.0.0
- */
-function buildRequest(app: Lib_Notifications_BuildRequest_App, target: Lib_Notifications_BuildRequest_Target, notification: Lib_Notifications_BuildRequest_Notification): Lib_Notifications_BuildRequest_Returns {
-  const title: Lib_Notifications_BuildRequest_Title = `${app['name']}: ${notification['title']}`;
-  const settings: Lib_Notifications_BuildRequest_Settings = target['settings'];
-  const secrets: Lib_Notifications_BuildRequest_Secrets = target['secrets'];
-  const bearer: Lib_Notifications_BuildRequest_Bearer = (secrets['token'] === undefined) ? {} : { Authorization: `Bearer ${secrets['token']}` };
-
-  switch (target['service']) {
-    case 'apprise': {
-      return {
-        body: JSON.stringify({
-          body: notification['message'],
-          title,
-          type: (notification['priority'] === 'high') ? 'warning' : 'info',
-          ...((secrets['urls'] === undefined) ? {} : { urls: secrets['urls'] }),
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        url: secrets['url'] ?? '',
-      };
-    }
-
-    case 'discord': {
-      return {
-        body: JSON.stringify({
-          embeds: [{
-            color: (notification['priority'] === 'high') ? parseInt('d04437', 16) : parseInt('2f81f7', 16),
-            description: notification['message'],
-            timestamp: notification['occurredAt'],
-            title,
-          }],
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        url: secrets['webhookUrl'] ?? '',
-      };
-    }
-
-    case 'gotify': {
-      return {
-        body: JSON.stringify({
-          message: notification['message'],
-          priority: {
-            default: 5,
-            high: 8,
-            low: 2,
-          }[notification['priority']],
-          title,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Gotify-Key': secrets['token'] ?? '',
-        },
-        method: 'POST',
-        url: `${trimTrailingSlashes(settings['url'] ?? '')}/message`,
-      };
-    }
-
-    case 'matrix': {
-      return {
-        body: JSON.stringify({
-          body: [
-            title,
-            notification['message'],
-          ].join('\n'),
-          msgtype: 'm.text',
-        }),
-        headers: {
-          'Authorization': `Bearer ${secrets['accessToken'] ?? ''}`,
-          'Content-Type': 'application/json',
-        },
-        method: 'PUT',
-        url: `${trimTrailingSlashes(settings['homeserverUrl'] ?? '')}/_matrix/client/v3/rooms/${encodeURIComponent(settings['roomId'] ?? '')}/send/m.room.message/${randomUUID()}`,
-      };
-    }
-
-    case 'ntfy': {
-      const topic: Lib_Notifications_NtfyTopic_Returns = ntfyTopic(settings['url'] ?? '');
-
-      return {
-        body: JSON.stringify({
-          message: notification['message'],
-          priority: priorityNumbers[notification['priority']],
-          tags: notification['tags'],
-          title,
-          topic: topic['topic'],
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          ...bearer,
-        },
-        method: 'POST',
-        url: topic['server'],
-      };
-    }
-
-    case 'pushover': {
-      return {
-        body: JSON.stringify({
-          message: notification['message'],
-          priority: {
-            default: 0,
-            high: 1,
-            low: -1,
-          }[notification['priority']],
-          title,
-          token: secrets['appToken'] ?? '',
-          user: secrets['userKey'] ?? '',
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        url: 'https://api.pushover.net/1/messages.json',
-      };
-    }
-
-    case 'slack': {
-      return {
-        body: JSON.stringify({
-          text: [
-            `*${escapeSlack(title)}*`,
-            escapeSlack(notification['message']),
-          ].join('\n'),
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        url: secrets['webhookUrl'] ?? '',
-      };
-    }
-
-    case 'telegram': {
-      return {
-        body: JSON.stringify({
-          chat_id: settings['chatId'] ?? '',
-          disable_web_page_preview: true,
-          text: [
-            title,
-            '',
-            notification['message'],
-          ].join('\n'),
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        url: `https://api.telegram.org/bot${secrets['botToken'] ?? ''}/sendMessage`,
-      };
-    }
-
-    default: {
-      return {
-        body: JSON.stringify(buildNotificationPayload(app, notification)),
-        headers: {
-          'Content-Type': 'application/json',
-          ...bearer,
-        },
-        method: 'POST',
-        url: (target['service'] === 'webhook') ? (secrets['url'] ?? '') : (settings['url'] ?? ''),
-      };
-    }
-  }
-}
-
-/**
- * Notifications - Describe Error.
- *
- * Turns a network or mail error into the short reason shown on the destination.
- * A send that took longer than 10 seconds says so in plain words.
- *
- * @param {Lib_Notifications_DescribeError_Error} error - Error.
- *
- * @private
- *
- * @returns {Lib_Notifications_DescribeError_Returns}
- *
- * @since 4.0.0
- */
-function describeError(error: Lib_Notifications_DescribeError_Error): Lib_Notifications_DescribeError_Returns {
-  if (
-    error instanceof Error
-    && (
-      error.name === 'TimeoutError'
-      || error.name === 'AbortError'
-    )
-  ) {
-    return 'No answer within 10 seconds.';
-  }
-
-  return ((error instanceof Error) ? error.message : String(error)).slice(0, 200);
-}
-
-/**
- * Notifications - Describe Response.
- *
- * Reports a refused send with its status and the service's own reason when it gives one.
- * The reason is cut short so a long error page can't flood the destination row.
- *
- * @param {Lib_Notifications_DescribeResponse_Response} response - Response.
- *
- * @private
- *
- * @returns {Lib_Notifications_DescribeResponse_Returns}
- *
- * @since 4.0.0
- */
-async function describeResponse(response: Lib_Notifications_DescribeResponse_Response): Lib_Notifications_DescribeResponse_Returns {
-  let detail: Lib_Notifications_DescribeResponse_Detail = '';
-
-  try {
-    const body: Lib_Notifications_DescribeResponse_Body = (await response.text()).trim();
-
-    try {
-      const parsed: Lib_Notifications_DescribeResponse_Parsed = JSON.parse(body);
-
-      for (const key of [
-        'description',
-        'message',
-        'error',
-      ]) {
-        const candidate: Lib_Notifications_DescribeResponse_Candidate = parsed[key];
-
-        if (typeof candidate === 'string' && candidate !== '') {
-          detail = candidate;
-
-          break;
-        }
-      }
-    } catch {
-      detail = body.split('\n')[0] ?? '';
-    }
-  } catch {
-    detail = '';
-  }
-
-  return (detail === '') ? `HTTP ${String(response.status)}` : `HTTP ${String(response.status)}: ${detail.slice(0, 200)}`;
-}
-
-/**
- * Notifications - Escape Slack.
- *
- * Escapes the three characters Slack treats as markup in message text.
- * Everything else is sent as written.
- *
- * @param {Lib_Notifications_EscapeSlack_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_EscapeSlack_Returns}
- *
- * @since 4.0.0
- */
-function escapeSlack(value: Lib_Notifications_EscapeSlack_Value): Lib_Notifications_EscapeSlack_Returns {
-  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-}
-
-/**
  * Notifications - Field Schema.
  *
- * Builds the check for one service field with its missing and invalid messages.
+ * Builds one field check while its service adapter owns the actual rule and words.
  * A saved secret becomes optional, and a blank value keeps it.
  *
- * @param {Lib_Notifications_FieldSchema_Field} field - Field.
- * @param {Lib_Notifications_FieldSchema_Keep}  keep  - Keep.
+ * @param {Lib_Notifications_FieldSchema_Service} service - Service.
+ * @param {Lib_Notifications_FieldSchema_Field}   field   - Field.
+ * @param {Lib_Notifications_FieldSchema_Keep}    keep    - Keep.
  *
  * @private
  *
@@ -1109,288 +475,16 @@ function escapeSlack(value: Lib_Notifications_EscapeSlack_Value): Lib_Notificati
  *
  * @since 4.0.0
  */
-function fieldSchema(field: Lib_Notifications_FieldSchema_Field, keep: Lib_Notifications_FieldSchema_Keep): Lib_Notifications_FieldSchema_Returns {
-  const missing: Lib_Notifications_FieldSchema_Missing = (field['missing'] === '') ? invalidMessages['text'] : field['missing'];
+function fieldSchema(service: Lib_Notifications_FieldSchema_Service, field: Lib_Notifications_FieldSchema_Field, keep: Lib_Notifications_FieldSchema_Keep): Lib_Notifications_FieldSchema_Returns {
+  const missing: Lib_Notifications_FieldSchema_Missing = (field['missing'] === '') ? field['invalid'] : field['missing'];
   const schema: Lib_Notifications_FieldSchema_Schema = z.string({ error: missing })
     .trim()
     .max(field['maximum'], `Use ${String(field['maximum'])} characters or fewer.`)
-    .refine((value) => value === '' || isValidField(field['kind'], value), { error: invalidMessages[field['kind']] });
+    .refine((value) => value === '' || NotifierRegistry.validate(service, field['key'], value), { error: field['invalid'] });
 
   if (field['required'] === true && keep === false) {
     return schema.refine((value) => value !== '', { error: missing });
   }
 
   return schema.optional();
-}
-
-/**
- * Notifications - Has Whitespace.
- *
- * Checks whether a value contains a space, tab, or line break anywhere.
- * Matrix room IDs can't contain any.
- *
- * @param {Lib_Notifications_HasWhitespace_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_HasWhitespace_Returns}
- *
- * @since 4.0.0
- */
-function hasWhitespace(value: Lib_Notifications_HasWhitespace_Value): Lib_Notifications_HasWhitespace_Returns {
-  return [...value].some((character) => character.trim() === '');
-}
-
-/**
- * Notifications - Is HTTP URL.
- *
- * Checks that a value is an absolute URL with one of the allowed protocols.
- * Credentials in the URL are allowed because some services put tokens there.
- *
- * @param {Lib_Notifications_IsHttpUrl_Value}     value     - Value.
- * @param {Lib_Notifications_IsHttpUrl_Protocols} protocols - Protocols.
- *
- * @private
- *
- * @returns {Lib_Notifications_IsHttpUrl_Returns}
- *
- * @since 4.0.0
- */
-function isHttpUrl(value: Lib_Notifications_IsHttpUrl_Value, protocols: Lib_Notifications_IsHttpUrl_Protocols): Lib_Notifications_IsHttpUrl_Returns {
-  try {
-    const url: Lib_Notifications_IsHttpUrl_Url = new URL(value);
-
-    return protocols.includes(url.protocol) && url.hostname !== '';
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Notifications - Is Matrix Room ID.
- *
- * Checks a room ID like !room:example.com.
- * Matrix aliases start with #, but the send endpoint needs the immutable room ID.
- *
- * @param {Lib_Notifications_IsMatrixRoomId_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_IsMatrixRoomId_Returns}
- *
- * @since 4.0.0
- */
-function isMatrixRoomId(value: Lib_Notifications_IsMatrixRoomId_Value): Lib_Notifications_IsMatrixRoomId_Returns {
-  const colon: Lib_Notifications_IsMatrixRoomId_Colon = value.indexOf(':');
-
-  return (
-    value.startsWith('!')
-    && colon > 1
-    && colon < value.length - 1
-    && hasWhitespace(value) === false
-  );
-}
-
-/**
- * Notifications - Is Port.
- *
- * Checks for a whole port number from 1 to 65535, written without extra characters.
- * Values like 0587 or 5e2 don't count.
- *
- * @param {Lib_Notifications_IsPort_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_IsPort_Returns}
- *
- * @since 4.0.0
- */
-function isPort(value: Lib_Notifications_IsPort_Value): Lib_Notifications_IsPort_Returns {
-  const port: Lib_Notifications_IsPort_Port = Number(value);
-
-  return (
-    Number.isInteger(port)
-    && port >= 1
-    && port <= 65535
-    && String(port) === value
-  );
-}
-
-/**
- * Notifications - Is Valid Field.
- *
- * Checks one non-blank field value against the rule for its kind.
- * Plain text fields only have a length limit.
- *
- * @param {Lib_Notifications_IsValidField_Kind}  kind  - Kind.
- * @param {Lib_Notifications_IsValidField_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_IsValidField_Returns}
- *
- * @since 4.0.0
- */
-function isValidField(kind: Lib_Notifications_IsValidField_Kind, value: Lib_Notifications_IsValidField_Value): Lib_Notifications_IsValidField_Returns {
-  switch (kind) {
-    case 'discord-webhook': {
-      return value.startsWith('https://discord.com/api/webhooks/') || value.startsWith('https://discordapp.com/api/webhooks/');
-    }
-
-    case 'email': {
-      return emailAddressSchema.safeParse(value)['success'];
-    }
-
-    case 'emails': {
-      return value.split(',').map((address) => address.trim()).every((address) => emailAddressSchema.safeParse(address)['success']);
-    }
-
-    case 'http-url': {
-      return isHttpUrl(value, [
-        'http:',
-        'https:',
-      ]);
-    }
-
-    case 'https-url': {
-      return isHttpUrl(value, ['https:']);
-    }
-
-    case 'matrix-room': {
-      return isMatrixRoomId(value);
-    }
-
-    case 'ntfy-topic-url': {
-      return isHttpUrl(value, [
-        'http:',
-        'https:',
-      ]) && ntfyTopic(value)['topic'] !== '';
-    }
-
-    case 'port': {
-      return isPort(value);
-    }
-
-    case 'security': {
-      return [
-        'none',
-        'starttls',
-        'tls',
-      ].includes(value);
-    }
-
-    case 'slack-webhook': {
-      return value.startsWith('https://hooks.slack.com/');
-    }
-
-    default: {
-      return true;
-    }
-  }
-}
-
-/**
- * Notifications - Ntfy Topic.
- *
- * Splits a topic URL into the server address and the topic name.
- * Publishing as JSON to the server keeps non-English titles intact.
- *
- * @param {Lib_Notifications_NtfyTopic_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_NtfyTopic_Returns}
- *
- * @since 4.0.0
- */
-function ntfyTopic(value: Lib_Notifications_NtfyTopic_Value): Lib_Notifications_NtfyTopic_Returns {
-  try {
-    const url: Lib_Notifications_NtfyTopic_Url = new URL(value);
-    const segments: Lib_Notifications_NtfyTopic_Segments = url.pathname.split('/').filter((segment) => segment !== '');
-    const topic: Lib_Notifications_NtfyTopic_Topic = segments.pop() ?? '';
-
-    url.pathname = `/${segments.join('/')}`;
-    url.search = '';
-    url.hash = '';
-
-    return {
-      server: url.toString(),
-      topic: decodeURIComponent(topic),
-    };
-  } catch {
-    return {
-      server: '',
-      topic: '',
-    };
-  }
-}
-
-/**
- * Notifications - Send Mail.
- *
- * Sends one plain-text email through the destination's SMTP server.
- * Connecting, greeting, and sending each give up after 10 seconds.
- *
- * @param {Lib_Notifications_SendMail_Options} options - Options.
- *
- * @private
- *
- * @returns {Lib_Notifications_SendMail_Returns}
- *
- * @since 4.0.0
- */
-async function sendMail(options: Lib_Notifications_SendMail_Options): Lib_Notifications_SendMail_Returns {
-  const transport: Lib_Notifications_SendMail_Transport = nodemailer.createTransport({
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    host: options['host'],
-    ignoreTLS: options['security'] === 'none',
-    port: options['port'],
-    requireTLS: options['security'] === 'starttls',
-    secure: options['security'] === 'tls',
-    socketTimeout: 10_000,
-    ...((options['username'] === '') ? {} : {
-      auth: {
-        pass: options['password'],
-        user: options['username'],
-      },
-    }),
-  });
-
-  try {
-    await transport.sendMail({
-      from: options['from'],
-      subject: options['subject'],
-      text: options['text'],
-      to: options['to'],
-    });
-  } finally {
-    transport.close();
-  }
-
-  return;
-}
-
-/**
- * Notifications - Trim Trailing Slashes.
- *
- * Removes the slashes at the end of a server URL before a service path is added.
- * The rest of the URL is left as it is.
- *
- * @param {Lib_Notifications_TrimTrailingSlashes_Value} value - Value.
- *
- * @private
- *
- * @returns {Lib_Notifications_TrimTrailingSlashes_Returns}
- *
- * @since 4.0.0
- */
-function trimTrailingSlashes(value: Lib_Notifications_TrimTrailingSlashes_Value): Lib_Notifications_TrimTrailingSlashes_Returns {
-  let end: Lib_Notifications_TrimTrailingSlashes_End = value.length;
-
-  while (end > 0 && value.charAt(end - 1) === '/') {
-    end -= 1;
-  }
-
-  return value.slice(0, end);
 }

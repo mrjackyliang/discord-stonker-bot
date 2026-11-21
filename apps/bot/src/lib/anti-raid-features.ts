@@ -1,9 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -203,8 +203,8 @@ function createRegistration(
   runtime: Lib_AntiRaidFeatures_CreateRegistration_Runtime,
 ): Lib_AntiRaidFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.GuildMemberAdd, (member) => {
-      void timeFeatureHandler('anti-raid', Events.GuildMemberAdd, guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberAdd'], (member) => {
+      void timeFeatureHandler('anti-raid', chatPlatformEvents['GuildMemberAdd'], guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'anti_raid_join_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -217,8 +217,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
-      void timeFeatureHandler('anti-raid', Events.GuildMemberUpdate, guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberUpdate'], (oldMember, newMember) => {
+      void timeFeatureHandler('anti-raid', chatPlatformEvents['GuildMemberUpdate'], guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'membership_gate_reconciliation_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -568,7 +568,7 @@ export function prepareAntiRaidFeatures(
   const intents: Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_Intents = [];
 
   if (runtime !== undefined) {
-    intents.push(GatewayIntentBits.GuildMembers);
+    intents.push(chatPlatformIntents['GuildMembers']);
   }
 
   return {

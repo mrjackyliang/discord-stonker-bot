@@ -1,19 +1,18 @@
-import {
-  Events,
-  GatewayIntentBits,
-  WebhookClient,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+  chatPlatformWebhookUrlPrefix,
+  createChatPlatformWebhook,
+  isChatPlatformWebhookUrl,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
   writeLog,
 } from './logger.js';
-import {
-  LIB_REGEX_PATTERN_DISCORD_IDENTIFIER,
-  LIB_REGEX_PATTERN_DISCORD_WEBHOOK_PATH,
-} from './regex.js';
+import { LIB_REGEX_PATTERN_DISCORD_IDENTIFIER } from './regex.js';
 
 import type {
   Lib_MessageRoutingFeatures_AppendAttachmentLinks_AttachmentUrls,
@@ -66,10 +65,6 @@ import type {
   Lib_MessageRoutingFeatures_HandleMessage_Runtime,
   Lib_MessageRoutingFeatures_IsRecord_TypeGuard,
   Lib_MessageRoutingFeatures_IsRecord_Value,
-  Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_ParsedUrl,
-  Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_PathPattern,
-  Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Returns,
-  Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Value,
   Lib_MessageRoutingFeatures_MatchesRegularExpression_Content,
   Lib_MessageRoutingFeatures_MatchesRegularExpression_RegularExpression,
   Lib_MessageRoutingFeatures_MatchesRegularExpression_Returns,
@@ -116,7 +111,7 @@ import type {
  *
  * @since 4.0.0
  */
-const WEBHOOK_URL_MESSAGE = 'Enter a Discord webhook URL, starting with https://discord.com/api/webhooks/.';
+const webhookUrlMessage = `Enter a Discord webhook URL, starting with ${chatPlatformWebhookUrlPrefix}.`;
 
 /**
  * Message Routing Features - Secret Reference Schema.
@@ -355,8 +350,8 @@ function compileCopierRules(
           secrets,
         );
 
-        if (isValidDiscordWebhookUrl(webhookUrl) === false) {
-          throw new Error(`${ruleIndex}.destinations.${destinationIndex}.webhook.url: ${WEBHOOK_URL_MESSAGE}`);
+        if (isChatPlatformWebhookUrl(webhookUrl) === false) {
+          throw new Error(`${ruleIndex}.destinations.${destinationIndex}.webhook.url: ${webhookUrlMessage}`);
         }
 
         return {
@@ -410,8 +405,8 @@ function compileProxyRules(
       secrets,
     );
 
-    if (isValidDiscordWebhookUrl(webhookUrl) === false) {
-      throw new Error(`${ruleIndex}.webhook.webhook-url: ${WEBHOOK_URL_MESSAGE}`);
+    if (isChatPlatformWebhookUrl(webhookUrl) === false) {
+      throw new Error(`${ruleIndex}.webhook.webhook-url: ${webhookUrlMessage}`);
     }
 
     return {
@@ -466,8 +461,8 @@ function createRegistration(
   runtime: Lib_MessageRoutingFeatures_CreateRegistration_Runtime,
 ): Lib_MessageRoutingFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.MessageCreate, (message) => {
-      void timeFeatureHandler('message-routing', Events.MessageCreate, guildIdentifier, () => handleMessage(message, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageCreate'], (message) => {
+      void timeFeatureHandler('message-routing', chatPlatformEvents['MessageCreate'], guildIdentifier, () => handleMessage(message, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'message_routing_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -719,41 +714,6 @@ function isRecord(
 }
 
 /**
- * Message Routing Features - Is Valid Discord Webhook URL.
- *
- * Restricts decrypted credentials to Discord's canonical HTTPS webhook host.
- * Userinfo, ports, query strings, fragments, and alternate paths are rejected.
- *
- * @param {Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Value} value - Value.
- *
- * @returns {Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Returns}
- *
- * @since 4.0.0
- */
-export function isValidDiscordWebhookUrl(
-  value: Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Value,
-): Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_Returns {
-  try {
-    const parsedUrl: Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_ParsedUrl = new URL(value);
-    const pathPattern: Lib_MessageRoutingFeatures_IsValidDiscordWebhookUrl_PathPattern = new RegExp(
-      LIB_REGEX_PATTERN_DISCORD_WEBHOOK_PATH,
-      'u',
-    );
-
-    return parsedUrl['protocol'] === 'https:'
-      && parsedUrl['hostname'] === 'discord.com'
-      && parsedUrl['port'] === ''
-      && parsedUrl['username'] === ''
-      && parsedUrl['password'] === ''
-      && parsedUrl['search'] === ''
-      && parsedUrl['hash'] === ''
-      && pathPattern.test(parsedUrl['pathname']) === true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Message Routing Features - Matches Regular Expression.
  *
  * Reconstructs configured expressions so global and sticky state cannot leak.
@@ -829,8 +789,8 @@ export function prepareMessageRoutingFeatures(
 
   if (copierRules.length > 0 || proxyRules.length > 0) {
     intents.push(
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     );
   }
 
@@ -948,7 +908,7 @@ async function sendCopierMessage(
           content,
         });
       } else {
-        const webhookClient: Lib_MessageRoutingFeatures_SendCopierMessage_WebhookClient = new WebhookClient({
+        const webhookClient: Lib_MessageRoutingFeatures_SendCopierMessage_WebhookClient = createChatPlatformWebhook({
           url: destination['url'],
         });
 
@@ -959,7 +919,7 @@ async function sendCopierMessage(
             },
             content,
             ...(destination['avatarUrl'] === undefined) ? {} : {
-              avatarURL: destination['avatarUrl'],
+              avatarUrl: destination['avatarUrl'],
             },
             ...(destination['username'] === undefined) ? {} : {
               username: destination['username'],
@@ -1020,14 +980,13 @@ async function sendProxyMessage(
     rule['replacements'],
   ).replaceAll('%YEAR%', new Date().getUTCFullYear().toString()).slice(0, 2_000);
   const embeds: Lib_MessageRoutingFeatures_SendProxyMessage_Embeds = message['embeds']
-    .slice(0, 10)
-    .map((embed) => embed.toJSON());
+    .slice(0, 10);
 
   if (content.length === 0 && embeds.length === 0) {
     return;
   }
 
-  const webhookClient: Lib_MessageRoutingFeatures_SendProxyMessage_WebhookClient = new WebhookClient({
+  const webhookClient: Lib_MessageRoutingFeatures_SendProxyMessage_WebhookClient = createChatPlatformWebhook({
     url: rule['webhookUrl'],
   });
 
@@ -1036,7 +995,7 @@ async function sendProxyMessage(
       allowedMentions: {
         parse: [],
       },
-      avatarURL: message['author'].displayAvatarURL(),
+      avatarUrl: message['author'].displayAvatarUrl(),
       ...(content.length === 0) ? {} : {
         content,
       },

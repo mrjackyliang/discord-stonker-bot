@@ -24,7 +24,7 @@ export type Tests_Routes_Invite_ValidationCase = {
   value: unknown;
 };
 export type Tests_Routes_Invite_ValidationCases = Tests_Routes_Invite_ValidationCase[];
-export type Tests_Routes_Invite_Image = Buffer;
+export type Tests_Routes_Invite_Image = Buffer<ArrayBuffer>;
 export type Tests_Routes_Invite_MediaResponse = Response;
 export type Tests_Routes_Invite_Html = string;
 export type Tests_Routes_Invite_Data = unknown;

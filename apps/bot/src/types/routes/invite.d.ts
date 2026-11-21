@@ -2,6 +2,7 @@ import type express from 'express';
 import type { RateLimitRequestHandler } from 'express-rate-limit';
 import type { z } from 'zod';
 
+import type { Lib_CaptchaVerifier_ContentSecurityPolicySources } from '../lib/captcha-verifier.d.ts';
 import type {
   Lib_InvitePages_InviteImage,
   Lib_InvitePages_InvitePage,
@@ -154,6 +155,8 @@ export type Routes_Invite_Runner_RouteSave_Principal = Shared_Principal;
 export type Routes_Invite_Runner_RouteSave_InviteSettings = Lib_WebApplicationFeatures_InviteSettings;
 
 export type Routes_Invite_Runner_SetPageHeaders_Response = express.Response;
+export type Routes_Invite_Runner_SetPageHeaders_CaptchaSources = Lib_CaptchaVerifier_ContentSecurityPolicySources;
+export type Routes_Invite_Runner_SetPageHeaders_ContentSecurityPolicy = string;
 export type Routes_Invite_Runner_SetPageHeaders_Returns = void;
 
 export type Routes_Invite_Runner_SetPublicHeaders_Response = express.Response;

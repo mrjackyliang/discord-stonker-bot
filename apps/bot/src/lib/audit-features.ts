@@ -1,9 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -249,8 +249,8 @@ function createRegistration(
   runtime: Lib_AuditFeatures_CreateRegistration_Runtime,
 ): Lib_AuditFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.GuildMemberAdd, (member) => {
-      void timeFeatureHandler('audit', Events.GuildMemberAdd, guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberAdd'], (member) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['GuildMemberAdd'], guildIdentifier, () => handleGuildMemberAdd(member, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_member_join_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -262,8 +262,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.GuildMemberRemove, (member) => {
-      void timeFeatureHandler('audit', Events.GuildMemberRemove, guildIdentifier, () => handleGuildMemberRemove(member, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberRemove'], (member) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['GuildMemberRemove'], guildIdentifier, () => handleGuildMemberRemove(member, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_member_leave_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -275,8 +275,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
-      void timeFeatureHandler('audit', Events.GuildMemberUpdate, guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['GuildMemberUpdate'], (oldMember, newMember) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['GuildMemberUpdate'], guildIdentifier, () => handleGuildMemberUpdate(oldMember, newMember, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_member_update_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -288,8 +288,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.MessageCreate, (message) => {
-      void timeFeatureHandler('audit', Events.MessageCreate, guildIdentifier, () => handleMessageCreate(message, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageCreate'], (message) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['MessageCreate'], guildIdentifier, () => handleMessageCreate(message, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_message_create_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -301,8 +301,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.MessageDelete, (message) => {
-      void timeFeatureHandler('audit', Events.MessageDelete, guildIdentifier, () => handleMessageDelete(message, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageDelete'], (message) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['MessageDelete'], guildIdentifier, () => handleMessageDelete(message, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_message_delete_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -314,8 +314,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
-      void timeFeatureHandler('audit', Events.MessageUpdate, guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageUpdate'], (oldMessage, newMessage) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['MessageUpdate'], guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_message_update_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -327,8 +327,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.UserUpdate, (oldUser, newUser) => {
-      void timeFeatureHandler('audit', Events.UserUpdate, guildIdentifier, () => handleUserUpdate(client, oldUser, newUser, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['UserUpdate'], (oldUser, newUser) => {
+      void timeFeatureHandler('audit', chatPlatformEvents['UserUpdate'], guildIdentifier, () => handleUserUpdate(client, oldUser, newUser, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'audit_username_update_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -707,7 +707,7 @@ async function handleMessageDelete(
   }
 
   const authorIdentifier: Lib_AuditFeatures_HandleMessageDelete_AuthorIdentifier = (
-    message['partial'] === true
+    message['partial'] === true || message['author'] === null
   ) ? 'unknown' : message['author']['id'];
 
   await sendAudit(message['guild'], channelIdentifier, [
@@ -899,15 +899,15 @@ export function prepareAuditFeatures(
     );
 
     if (memberEventsEnabled === true) {
-      intents.push(GatewayIntentBits.GuildMembers);
+      intents.push(chatPlatformIntents['GuildMembers']);
     }
 
     if (messageEventsEnabled === true) {
-      intents.push(GatewayIntentBits.GuildMessages);
+      intents.push(chatPlatformIntents['GuildMessages']);
     }
 
     if (messageContentEnabled === true) {
-      intents.push(GatewayIntentBits.MessageContent);
+      intents.push(chatPlatformIntents['MessageContent']);
     }
   }
 

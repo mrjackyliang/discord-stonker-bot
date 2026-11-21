@@ -1,16 +1,11 @@
-import {
-  ApplicationCommandOptionType,
-  ApplicationIntegrationType,
-  ChannelType,
-  Events,
-  GatewayIntentBits,
-  InteractionContextType,
-  MessageFlags,
-  PermissionFlagsBits,
-} from 'discord.js';
 import { z } from 'zod';
 
 import { registerApplicationCommands } from './application-commands.js';
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+  chatPlatformPermissions,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -219,40 +214,40 @@ export function createCommandData(
 
   if (runtime['tools']['fetch-members'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['ManageGuild'],
       description: 'Show the server member count and current cache coverage.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-members',
     });
   }
 
   if (runtime['tools']['fetch-emojis'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['ManageGuild'],
       description: 'Show a bounded summary of server emojis.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-emojis',
     });
   }
 
   if (runtime['tools']['fetch-duplicates'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['ManageGuild'],
       description: 'Find duplicate display names in the current member cache.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-duplicates',
     });
   }
 
   if (runtime['tools']['role-manager'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.ManageRoles,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['ManageRoles'],
       description: 'Add or remove one manageable server role.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-role',
       options: [
         {
@@ -269,25 +264,25 @@ export function createCommandData(
           description: 'Role action.',
           name: 'action',
           required: true,
-          type: ApplicationCommandOptionType.String,
+          type: 'string',
         },
         {
           description: 'Server member to update.',
           name: 'member',
           required: true,
-          type: ApplicationCommandOptionType.User,
+          type: 'user',
         },
         {
           description: 'Server role to add or remove.',
           name: 'role',
           required: true,
-          type: ApplicationCommandOptionType.Role,
+          type: 'role',
         },
         {
           description: 'Confirm this role change.',
           name: 'confirm',
           required: true,
-          type: ApplicationCommandOptionType.Boolean,
+          type: 'boolean',
         },
       ],
     });
@@ -295,10 +290,10 @@ export function createCommandData(
 
   if (runtime['tools']['voice-tools'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.MoveMembers,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['MoveMembers'],
       description: 'Move or disconnect one member in voice.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-voice',
       options: [
         {
@@ -315,29 +310,29 @@ export function createCommandData(
           description: 'Voice action.',
           name: 'action',
           required: true,
-          type: ApplicationCommandOptionType.String,
+          type: 'string',
         },
         {
           description: 'Server member to update.',
           name: 'member',
           required: true,
-          type: ApplicationCommandOptionType.User,
+          type: 'user',
         },
         {
           description: 'Confirm this voice action.',
           name: 'confirm',
           required: true,
-          type: ApplicationCommandOptionType.Boolean,
+          type: 'boolean',
         },
         {
           channelTypes: [
-            ChannelType.GuildVoice,
-            ChannelType.GuildStageVoice,
+            'guild-voice',
+            'guild-stage-voice',
           ],
           description: 'Destination voice channel for a move.',
           name: 'channel',
           required: false,
-          type: ApplicationCommandOptionType.Channel,
+          type: 'channel',
         },
       ],
     });
@@ -345,10 +340,10 @@ export function createCommandData(
 
   if (runtime['tools']['bulk-ban'] !== undefined) {
     commands.push({
-      contexts: [InteractionContextType.Guild],
-      defaultMemberPermissions: PermissionFlagsBits.BanMembers,
+      contexts: ['guild'],
+      defaultMemberPermissions: chatPlatformPermissions['BanMembers'],
       description: 'Ban up to 25 validated Discord user IDs.',
-      integrationTypes: [ApplicationIntegrationType.GuildInstall],
+      integrationTypes: ['guild-install'],
       name: 'stonker-bulk-ban',
       options: [
         {
@@ -356,13 +351,13 @@ export function createCommandData(
           maxLength: 525,
           name: 'user-ids',
           required: true,
-          type: ApplicationCommandOptionType.String,
+          type: 'string',
         },
         {
           description: 'Confirm this bounded bulk ban.',
           name: 'confirm',
           required: true,
-          type: ApplicationCommandOptionType.Boolean,
+          type: 'boolean',
         },
         {
           description: 'Seconds of message history to remove.',
@@ -370,7 +365,7 @@ export function createCommandData(
           minValue: 0,
           name: 'delete-message-seconds',
           required: false,
-          type: ApplicationCommandOptionType.Integer,
+          type: 'integer',
         },
       ],
     });
@@ -399,7 +394,7 @@ function createRegistration(
   return (client, guildIdentifier) => {
     registerApplicationCommands(client, guildIdentifier, createCommandData(runtime));
 
-    client.on(Events.InteractionCreate, (interaction) => {
+    client.on(chatPlatformEvents['InteractionCreate'], (interaction) => {
       if (
         interaction.isChatInputCommand() === false
         || interaction.inCachedGuild() === false
@@ -408,7 +403,7 @@ function createRegistration(
         return;
       }
 
-      void timeFeatureHandler('server-tool', Events.InteractionCreate, guildIdentifier, () => handleCommand(interaction, guildIdentifier, runtime)).catch((error) => {
+      void timeFeatureHandler('server-tool', chatPlatformEvents['InteractionCreate'], guildIdentifier, () => handleCommand(interaction, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'server_tool_command_failed', {
           commandName: interaction['commandName'],
           error: getErrorMessage(error),
@@ -421,7 +416,7 @@ function createRegistration(
         } else {
           void interaction.reply({
             content: 'The command could not be completed. Review the bot logs.',
-            flags: MessageFlags.Ephemeral,
+            flags: 'ephemeral',
           });
         }
 
@@ -654,7 +649,7 @@ async function handleBulkBan(
 
   const botMember: Lib_ServerToolFeatures_HandleBulkBan_BotMember = interaction['guild']['members']['me'];
 
-  if (botMember === null || botMember['permissions'].has(PermissionFlagsBits.BanMembers) === false) {
+  if (botMember === null || botMember['permissions'].has(chatPlatformPermissions['BanMembers']) === false) {
     return 'The bot does not currently have permission to ban members.';
   }
 
@@ -731,7 +726,7 @@ async function handleCommand(
   }
 
   await interaction.deferReply({
-    flags: MessageFlags.Ephemeral,
+    flags: 'ephemeral',
   });
 
   const invoker: Lib_ServerToolFeatures_HandleCommand_Invoker = interaction['member'];
@@ -908,7 +903,7 @@ async function handleRole(
 
   if (
     botMember === null
-    || botMember['permissions'].has(PermissionFlagsBits.ManageRoles) === false
+    || botMember['permissions'].has(chatPlatformPermissions['ManageRoles']) === false
     || role['id'] === interaction['guild']['id']
     || role['managed'] === true
     || role['position'] >= botMember['roles']['highest']['position']
@@ -1040,19 +1035,19 @@ function hasRequiredDiscordPermission(
 ): Lib_ServerToolFeatures_HasRequiredDiscordPermission_Returns {
   switch (toolKey) {
     case 'bulk-ban': {
-      return invoker['permissions'].has(PermissionFlagsBits.BanMembers);
+      return invoker['permissions'].has(chatPlatformPermissions['BanMembers']);
     }
 
     case 'role-manager': {
-      return invoker['permissions'].has(PermissionFlagsBits.ManageRoles);
+      return invoker['permissions'].has(chatPlatformPermissions['ManageRoles']);
     }
 
     case 'voice-tools': {
-      return invoker['permissions'].has(PermissionFlagsBits.MoveMembers);
+      return invoker['permissions'].has(chatPlatformPermissions['MoveMembers']);
     }
 
     default: {
-      return invoker['permissions'].has(PermissionFlagsBits.ManageGuild);
+      return invoker['permissions'].has(chatPlatformPermissions['ManageGuild']);
     }
   }
 }
@@ -1126,11 +1121,11 @@ export function prepareServerToolFeatures(
   );
 
   if (memberIntentRequired === true) {
-    intents.push(GatewayIntentBits.GuildMembers);
+    intents.push(chatPlatformIntents['GuildMembers']);
   }
 
   if (voiceIntentRequired === true) {
-    intents.push(GatewayIntentBits.GuildVoiceStates);
+    intents.push(chatPlatformIntents['GuildVoiceStates']);
   }
 
   return {

@@ -1,5 +1,4 @@
-import { Events, RESTEvents } from 'discord.js';
-
+import { chatPlatformEvents } from './chat-platform/index.js';
 import {
   getErrorMessage,
   isDebugLogging,
@@ -310,7 +309,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return context;
   };
 
-  client.on(Events.ShardDisconnect, (closeEvent, shardId) => {
+  client.on(chatPlatformEvents['ShardDisconnect'], (closeEvent, shardId) => {
     markDown(shardId);
 
     writeLog('debug', 'bot', 'gateway_shard_disconnected', {
@@ -321,7 +320,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return;
   });
 
-  client.on(Events.ShardReconnecting, (shardId) => {
+  client.on(chatPlatformEvents['ShardReconnecting'], (shardId) => {
     markDown(shardId);
 
     writeLog('debug', 'bot', 'gateway_shard_reconnecting', {
@@ -331,7 +330,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return;
   });
 
-  client.on(Events.ShardReady, (shardId, unavailableGuilds) => {
+  client.on(chatPlatformEvents['ShardReady'], (shardId, unavailableGuilds) => {
     writeLog('debug', 'bot', 'gateway_shard_ready', {
       ...recovered(shardId),
       unavailableGuilds: (unavailableGuilds === undefined) ? 0 : unavailableGuilds.size,
@@ -340,7 +339,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return;
   });
 
-  client.on(Events.ShardResume, (shardId, replayedEvents) => {
+  client.on(chatPlatformEvents['ShardResume'], (shardId, replayedEvents) => {
     writeLog('debug', 'bot', 'gateway_shard_resumed', {
       ...recovered(shardId),
       replayedEvents,
@@ -349,7 +348,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return;
   });
 
-  client.on(Events.ShardError, (error, shardId) => {
+  client.on(chatPlatformEvents['ShardError'], (error, shardId) => {
     writeLog('debug', 'bot', 'gateway_shard_error', {
       error: getErrorMessage(error),
       shardId,
@@ -358,7 +357,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
     return;
   });
 
-  watchRestRateLimits(client.rest, 'bot');
+  watchRestRateLimits(client['rest'], 'bot');
 
   return;
 }
@@ -377,7 +376,7 @@ export function watchDiscordDebug(client: Lib_DebugTiming_WatchDiscordDebug_Clie
  * @since 4.0.0
  */
 export function watchRestRateLimits(rest: Lib_DebugTiming_WatchRestRateLimits_Rest, component: Lib_DebugTiming_WatchRestRateLimits_Component): Lib_DebugTiming_WatchRestRateLimits_Returns {
-  rest.on(RESTEvents.RateLimited, (rateLimit) => {
+  rest.onRateLimited((rateLimit) => {
     writeLog('debug', component, 'rest_rate_limited', {
       global: rateLimit['global'],
       limit: rateLimit['limit'],

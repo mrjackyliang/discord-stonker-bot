@@ -64,9 +64,11 @@ describe('repository appliance', () => {
 
     expect(manifestJson['workspaces'].map((workspace) => workspace['path'])).toEqual(['apps/bot']);
 
-    expect(manifestJson['workspaces'][0]!['runtimePaths']).toEqual([
-      'examples',
-      'migrations',
+    expect(manifestJson['workspaces'][0]!['runtimePaths']).toEqual([]);
+
+    expect(manifestJson['runtime']['copies'].filter((copy) => copy['source'].startsWith('apps/bot/')).map((copy) => copy['destination'])).toEqual([
+      './apps/bot/examples',
+      './apps/bot/migrations',
     ]);
 
     expect(manifestJson['services'].find((service) => service['name'] === 'postgres')!['command']).toContain('-D "$'.concat('{NOVA_DATABASE_DIRECTORY}"'));

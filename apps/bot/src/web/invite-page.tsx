@@ -1,39 +1,92 @@
-import type {
-  CSSProperties,
-  ReactElement,
-} from 'react';
+import {
+  hexColorChannelsPattern,
+  inviteFooterLinkPattern,
+  trailingPunctuationPattern,
+} from '@/web/regex.js';
 
-import type { Web_Components_InvitePage_Props } from '@/types/web/components.d.ts';
 import type {
-  Web_Invite_FooterPart,
-  Web_Invite_Rgb,
-} from '@/types/web/invite.d.ts';
+  Web_InvitePage_ButtonTextColor_Accent,
+  Web_InvitePage_ButtonTextColor_Returns,
+  Web_InvitePage_ContrastRatio_Darker,
+  Web_InvitePage_ContrastRatio_First,
+  Web_InvitePage_ContrastRatio_Lighter,
+  Web_InvitePage_ContrastRatio_Returns,
+  Web_InvitePage_ContrastRatio_Second,
+  Web_InvitePage_DarkText,
+  Web_InvitePage_FallbackAccent,
+  Web_InvitePage_FooterLinkPattern,
+  Web_InvitePage_InvitePage_Accent,
+  Web_InvitePage_InvitePage_Available,
+  Web_InvitePage_InvitePage_Busy,
+  Web_InvitePage_InvitePage_ButtonLabel,
+  Web_InvitePage_InvitePage_CustomProperty,
+  Web_InvitePage_InvitePage_Error,
+  Web_InvitePage_InvitePage_Footer,
+  Web_InvitePage_InvitePage_JoinState,
+  Web_InvitePage_InvitePage_MemberNoun,
+  Web_InvitePage_InvitePage_OnJoin,
+  Web_InvitePage_InvitePage_Page,
+  Web_InvitePage_InvitePage_Preview,
+  Web_InvitePage_InvitePage_Props,
+  Web_InvitePage_InvitePage_Recaptcha,
+  Web_InvitePage_InvitePage_Returns,
+  Web_InvitePage_InvitePage_Server,
+  Web_InvitePage_InvitePage_Stats,
+  Web_InvitePage_InvitePage_Style,
+  Web_InvitePage_Luminance_Channels,
+  Web_InvitePage_Luminance_Color,
+  Web_InvitePage_Luminance_Returns,
+  Web_InvitePage_Luminance_Value,
+  Web_InvitePage_ParseFooter_Address,
+  Web_InvitePage_ParseFooter_Href,
+  Web_InvitePage_ParseFooter_Index,
+  Web_InvitePage_ParseFooter_Label,
+  Web_InvitePage_ParseFooter_Parts,
+  Web_InvitePage_ParseFooter_Position,
+  Web_InvitePage_ParseFooter_Punctuation,
+  Web_InvitePage_ParseFooter_Returns,
+  Web_InvitePage_ParseFooter_Text,
+  Web_InvitePage_ParseFooter_Trailing,
+  Web_InvitePage_ParseHex_Match,
+  Web_InvitePage_ParseHex_Returns,
+  Web_InvitePage_ParseHex_Value,
+  Web_InvitePage_RgbText_Color,
+  Web_InvitePage_RgbText_Returns,
+  Web_InvitePage_SafeLink_Returns,
+  Web_InvitePage_SafeLink_Url,
+  Web_InvitePage_SafeLink_Value,
+  Web_InvitePage_WhiteText,
+} from '@/types/web/invite-page.d.ts';
 
 // Footer links are either [text](https://…) or a bare https:// address.
 
 /**
- * Invite Page - Footer link pattern.
+ * Invite Page - Footer Link Pattern.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const footerLinkPattern: RegExp = /\[([^\]\n]{1,200})\]\((https:\/\/[^\s)]{1,2000})\)|(https:\/\/[^\s<>()[\]]{1,2000})/gu;
+const footerLinkPattern: Web_InvitePage_FooterLinkPattern = new RegExp(inviteFooterLinkPattern, 'gu');
 
 // safeLink keeps only https addresses that parse, so a footer can't link to scripts or other schemes.
 
 /**
- * Invite Page - Safe link.
+ * Invite Page - Safe Link.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_SafeLink_Value} value - Value.
+ *
+ * @returns {Web_InvitePage_SafeLink_Returns}
+ *
  * @since 4.0.0
  */
-const safeLink = (value: string): string | undefined => {
+const safeLink = (value: Web_InvitePage_SafeLink_Value): Web_InvitePage_SafeLink_Returns => {
   try {
-    const url: URL = new URL(value);
+    const url: Web_InvitePage_SafeLink_Url = new URL(value);
 
     return (url.protocol === 'https:') ? url.toString() : undefined;
   } catch {
@@ -44,26 +97,34 @@ const safeLink = (value: string): string | undefined => {
 // parseFooter splits footer text into plain text and links, without ever reading it as HTML.
 
 /**
- * Invite Page - Parses footer.
+ * Invite Page - Parse Footer.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_ParseFooter_Text} text - Text.
+ *
+ * @returns {Web_InvitePage_ParseFooter_Returns}
+ *
  * @since 4.0.0
  */
-export const parseFooter = (text: string): Web_Invite_FooterPart[] => {
-  const parts: Web_Invite_FooterPart[] = [];
-  let position: number = 0;
+export const parseFooter = (text: Web_InvitePage_ParseFooter_Text): Web_InvitePage_ParseFooter_Returns => {
+  const parts: Web_InvitePage_ParseFooter_Parts = [];
+  let position: Web_InvitePage_ParseFooter_Position = 0;
 
   for (const match of text.matchAll(footerLinkPattern)) {
-    const index: number = match.index;
-    const label: string | undefined = match[1];
-    let address: string = match[2] ?? match[3] ?? '';
-    let trailing: string = '';
+    const index: Web_InvitePage_ParseFooter_Index = match.index;
+    const label: Web_InvitePage_ParseFooter_Label = match[1];
+    let address: Web_InvitePage_ParseFooter_Address = (
+      match[2]
+      ?? match[3]
+      ?? ''
+    );
+    let trailing: Web_InvitePage_ParseFooter_Trailing = '';
 
     if (match[3] !== undefined) {
       // A bare link at the end of a sentence keeps its full stop as text.
-      const punctuation: RegExpExecArray | null = /[.,;:!?]+$/u.exec(address);
+      const punctuation: Web_InvitePage_ParseFooter_Punctuation = new RegExp(trailingPunctuationPattern, 'u').exec(address);
 
       if (punctuation !== null) {
         trailing = punctuation[0];
@@ -71,7 +132,7 @@ export const parseFooter = (text: string): Web_Invite_FooterPart[] => {
       }
     }
 
-    const href: string | undefined = safeLink(address);
+    const href: Web_InvitePage_ParseFooter_Href = safeLink(address);
 
     if (index > position) {
       parts.push({ text: text.slice(position, index) });
@@ -99,15 +160,19 @@ export const parseFooter = (text: string): Web_Invite_FooterPart[] => {
 // parseHex reads a #rrggbb color, or returns null for anything else.
 
 /**
- * Invite Page - Parses hex.
+ * Invite Page - Parse Hex.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_ParseHex_Value} value - Value.
+ *
+ * @returns {Web_InvitePage_ParseHex_Returns}
+ *
  * @since 4.0.0
  */
-export const parseHex = (value: string): Web_Invite_Rgb | null => {
-  const match: RegExpExecArray | null = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/iu.exec(value.trim());
+export const parseHex = (value: Web_InvitePage_ParseHex_Value): Web_InvitePage_ParseHex_Returns => {
+  const match: Web_InvitePage_ParseHex_Match = new RegExp(hexColorChannelsPattern, 'iu').exec(value.trim());
 
   if (match === null) {
     return null;
@@ -128,11 +193,15 @@ export const parseHex = (value: string): Web_Invite_Rgb | null => {
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_Luminance_Color} color - Color.
+ *
+ * @returns {Web_InvitePage_Luminance_Returns}
+ *
  * @since 4.0.0
  */
-const luminance = (color: Web_Invite_Rgb): number => {
-  const channels: number[] = color.map((channel: number): number => {
-    const value: number = channel / 255;
+const luminance = (color: Web_InvitePage_Luminance_Color): Web_InvitePage_Luminance_Returns => {
+  const channels: Web_InvitePage_Luminance_Channels = color.map((channel) => {
+    const value: Web_InvitePage_Luminance_Value = channel / 255;
 
     return (value <= 0.040_45) ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
@@ -143,43 +212,48 @@ const luminance = (color: Web_Invite_Rgb): number => {
 // contrastRatio is the WCAG contrast between two colors, from 1 to 21.
 
 /**
- * Invite Page - Contrast ratio.
+ * Invite Page - Contrast Ratio.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_ContrastRatio_First}  first  - First.
+ * @param {Web_InvitePage_ContrastRatio_Second} second - Second.
+ *
+ * @returns {Web_InvitePage_ContrastRatio_Returns}
+ *
  * @since 4.0.0
  */
-export const contrastRatio = (first: Web_Invite_Rgb, second: Web_Invite_Rgb): number => {
-  const lighter: number = Math.max(luminance(first), luminance(second));
-  const darker: number = Math.min(luminance(first), luminance(second));
+export const contrastRatio = (first: Web_InvitePage_ContrastRatio_First, second: Web_InvitePage_ContrastRatio_Second): Web_InvitePage_ContrastRatio_Returns => {
+  const lighter: Web_InvitePage_ContrastRatio_Lighter = Math.max(luminance(first), luminance(second));
+  const darker: Web_InvitePage_ContrastRatio_Darker = Math.min(luminance(first), luminance(second));
 
   return (lighter + 0.05) / (darker + 0.05);
 };
 
 /**
- * Invite Page - White text.
+ * Invite Page - White Text.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-export const whiteText: Web_Invite_Rgb = [
+export const whiteText: Web_InvitePage_WhiteText = [
   255,
   255,
   255,
 ];
 
 /**
- * Invite Page - Dark text.
+ * Invite Page - Dark Text.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-export const darkText: Web_Invite_Rgb = [
+export const darkText: Web_InvitePage_DarkText = [
   17,
   19,
   22,
@@ -188,85 +262,98 @@ export const darkText: Web_Invite_Rgb = [
 // buttonTextColor picks white or near-black text, whichever reads better on the accent.
 
 /**
- * Invite Page - Button text color.
+ * Invite Page - Button Text Color.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_ButtonTextColor_Accent} accent - Accent.
+ *
+ * @returns {Web_InvitePage_ButtonTextColor_Returns}
+ *
  * @since 4.0.0
  */
-export const buttonTextColor = (accent: Web_Invite_Rgb): Web_Invite_Rgb => (
+export const buttonTextColor = (accent: Web_InvitePage_ButtonTextColor_Accent): Web_InvitePage_ButtonTextColor_Returns => (
   (contrastRatio(accent, whiteText) >= contrastRatio(accent, darkText)) ? whiteText : darkText
 );
 
 /**
- * Invite Page - Fallback accent.
+ * Invite Page - Fallback Accent.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const fallbackAccent: Web_Invite_Rgb = [
+const fallbackAccent: Web_InvitePage_FallbackAccent = [
   98,
   80,
   217,
 ];
 
 /**
- * Invite Page - Rgb text.
+ * Invite Page - Rgb Text.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePage_RgbText_Color} color - Color.
+ *
+ * @returns {Web_InvitePage_RgbText_Returns}
+ *
  * @since 4.0.0
  */
-const rgbText = (color: Web_Invite_Rgb): string => `rgb(${color[0]} ${color[1]} ${color[2]})`;
+const rgbText = (color: Web_InvitePage_RgbText_Color): Web_InvitePage_RgbText_Returns => `rgb(${color[0]} ${color[1]} ${color[2]})`;
 
 /**
- * Invite Page.
+ * Invite Page - Invite Page.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_InvitePage_InvitePage_Props} props - Props.
+ *
+ * @returns {Web_InvitePage_InvitePage_Returns}
+ *
  * @since 4.0.0
  */
-export const InvitePage = ({
-  available,
-  error,
-  joinState,
-  onJoin,
-  page,
-  preview = false,
-  recaptcha = null,
-  server,
-}: Web_Components_InvitePage_Props): ReactElement => {
-  const accent: Web_Invite_Rgb = parseHex(page['accentColor']) ?? fallbackAccent;
-  const style: CSSProperties = {
-    ['--invite-accent' as string]: rgbText(accent),
-    ['--invite-on-accent' as string]: rgbText(buttonTextColor(accent)),
+export const InvitePage = (props: Web_InvitePage_InvitePage_Props): Web_InvitePage_InvitePage_Returns => {
+  const available: Web_InvitePage_InvitePage_Available = props['available'];
+  const error: Web_InvitePage_InvitePage_Error = props['error'];
+  const joinState: Web_InvitePage_InvitePage_JoinState = props['joinState'];
+  const onJoin: Web_InvitePage_InvitePage_OnJoin = props['onJoin'];
+  const page: Web_InvitePage_InvitePage_Page = props['page'];
+  const preview: Web_InvitePage_InvitePage_Preview = props['preview'] ?? false;
+  const recaptcha: Web_InvitePage_InvitePage_Recaptcha = props['recaptcha'] ?? null;
+  const server: Web_InvitePage_InvitePage_Server = props['server'];
+  const accent: Web_InvitePage_InvitePage_Accent = parseHex(page['accentColor']) ?? fallbackAccent;
+  const style: Web_InvitePage_InvitePage_Style = {
+    ['--invite-accent' as Web_InvitePage_InvitePage_CustomProperty]: rgbText(accent),
+    ['--invite-on-accent' as Web_InvitePage_InvitePage_CustomProperty]: rgbText(buttonTextColor(accent)),
   };
-  const stats: string[] = [];
+  const stats: Web_InvitePage_InvitePage_Stats = [];
 
-  if (page['showMemberCount']) {
+  if (page['showMemberCount'] === true) {
     if (server['memberCount'] !== null) {
-      stats.push(`${server['memberCount'].toLocaleString('en-US')} ${(server['memberCount'] === 1) ? 'member' : 'members'}`);
-    } else if (preview) {
+      const memberNoun: Web_InvitePage_InvitePage_MemberNoun = (server['memberCount'] === 1) ? 'member' : 'members';
+
+      stats.push(`${server['memberCount'].toLocaleString('en-US')} ${memberNoun}`);
+    } else if (preview === true) {
       stats.push('Member count');
     }
   }
 
-  if (page['showBoostTier']) {
+  if (page['showBoostTier'] === true) {
     if (server['boostTier'] !== null && server['boostTier'] > 0) {
       stats.push(`Boost level ${server['boostTier']}`);
-    } else if (preview) {
+    } else if (preview === true) {
       stats.push('Boost level');
     }
   }
 
-  const footer: Web_Invite_FooterPart[] = parseFooter(page['footerText']);
-  const busy: boolean = joinState === 'joining' || joinState === 'redirecting';
-  let buttonLabel: string = page['buttonLabel'];
+  const footer: Web_InvitePage_InvitePage_Footer = parseFooter(page['footerText']);
+  const busy: Web_InvitePage_InvitePage_Busy = joinState === 'joining' || joinState === 'redirecting';
+  let buttonLabel: Web_InvitePage_InvitePage_ButtonLabel = page['buttonLabel'];
 
   if (joinState === 'joining') {
     buttonLabel = 'Creating your invite…';
@@ -275,7 +362,7 @@ export const InvitePage = ({
   }
 
   return (
-    <div className={(preview) ? 'invite-page invite-page-preview' : 'invite-page'} data-theme={page['theme']} style={style}>
+    <div className={(preview === true) ? 'invite-page invite-page-preview' : 'invite-page'} data-theme={page['theme']} style={style}>
       <main className="invite-card">
         {(page['bannerUrl'] === null) ? null : <img alt="" className="invite-banner" src={page['bannerUrl']} />}
         <div className={(page['bannerUrl'] === null) ? 'invite-body' : 'invite-body invite-body-banner'}>
@@ -285,24 +372,28 @@ export const InvitePage = ({
           {(page['description'].trim() === '') ? null : <p className="invite-description">{page['description']}</p>}
           {(stats.length === 0) ? null : (
             <ul aria-label="About this server" className="invite-stats">
-              {stats.map((stat: string): ReactElement => <li key={stat}>{stat}</li>)}
+              {stats.map((stat) => <li key={stat}>{stat}</li>)}
             </ul>
           )}
-          {(available) ? recaptcha : null}
+          {(available === true) ? recaptcha : null}
           <button
             className="invite-button"
-            disabled={!available || busy || onJoin === undefined}
+            disabled={(
+              available === false
+              || busy === true
+              || onJoin === undefined
+            )}
             onClick={onJoin}
             type="button"
           >
             {buttonLabel}
           </button>
-          {(available) ? null : <p className="invite-paused">Invites are paused right now. Try again later.</p>}
+          {(available === true) ? null : <p className="invite-paused">Invites are paused right now. Try again later.</p>}
           {(error === '') ? null : <p className="invite-error" role="alert">{error}</p>}
         </div>
         {(footer.length === 0) ? null : (
           <footer className="invite-footer">
-            {footer.map((part: Web_Invite_FooterPart, index: number): ReactElement => (
+            {footer.map((part, index) => (
               (part['href'] === undefined) ? (
                 <span key={index}>{part['text']}</span>
               ) : (

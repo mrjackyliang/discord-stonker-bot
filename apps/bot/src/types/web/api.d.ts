@@ -1,5 +1,18 @@
-import type { ZodType } from 'zod';
+import type {
+  ZodSafeParseResult,
+  ZodType,
+} from 'zod';
 
+import type {
+  Web_Backup_Grant,
+  Web_Backup_ImportPreview,
+  Web_Backup_ImportResult,
+} from '@/types/web/backup.d.ts';
+import type {
+  Web_Notifications_Event,
+  Web_Notifications_Target,
+  Web_Notifications_TestResult,
+} from '@/types/web/notifications.d.ts';
 import type { Web_Schema_Node } from '@/types/web/schema.d.ts';
 
 /**
@@ -603,3 +616,792 @@ export type Web_Api_UploadedImage = {
   id: string;
   url: string;
 };
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_AccountSecuritySchema = Web_Api_Schema<Web_Api_AccountSecurity>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_AddPasskey_Name = string;
+export type Web_Api_AddPasskey_Password = string;
+export type Web_Api_AddPasskey_Returns = Promise<Web_Api_Passkey>;
+export type Web_Api_AddPasskey_Credential = Record<string, unknown>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ApiError_Code = string;
+export type Web_Api_ApiError_Status = number;
+export type Web_Api_ApiError_Issues = Web_Api_ErrorIssue[];
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ApiError_Constructor_Message = string;
+export type Web_Api_ApiError_Constructor_Code = string;
+export type Web_Api_ApiError_Constructor_Status = number;
+export type Web_Api_ApiError_Constructor_Issues = Web_Api_ErrorIssue[];
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ApplyBackupImport_Grant = string;
+export type Web_Api_ApplyBackupImport_Returns = Promise<Web_Backup_ImportResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_AuthenticationResponseSchema = Web_Api_Schema<Web_Api_AuthenticationResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_BackupGrantSchema = Web_Api_Schema<Web_Backup_Grant>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_BackupImportPreviewSchema = Web_Api_Schema<Web_Backup_ImportPreview>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_BackupImportResultSchema = Web_Api_Schema<Web_Backup_ImportResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_BotSchema = Web_Api_Schema<Web_Api_Bot>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_BuildRequest_Returns = RequestInit;
+export type Web_Api_BuildRequest_Method = string;
+export type Web_Api_BuildRequest_Body = BodyInit | undefined;
+export type Web_Api_BuildRequest_CsrfToken = string | undefined;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ChangePassword_CurrentPassword = string;
+export type Web_Api_ChangePassword_NewPassword = string;
+export type Web_Api_ChangePassword_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ChangeUsername_Username = string;
+export type Web_Api_ChangeUsername_Password = string;
+export type Web_Api_ChangeUsername_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ClaimInstallation_Returns = Promise<Web_Api_AuthenticationResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ConfirmBackupOperation_Password = string;
+export type Web_Api_ConfirmBackupOperation_Code = string;
+export type Web_Api_ConfirmBackupOperation_Returns = Promise<string>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ConfirmBackupOperationWithPasskey_Returns = Promise<string>;
+export type Web_Api_ConfirmBackupOperationWithPasskey_Credential = Record<string, unknown>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_CreatedTokenSchema = Web_Api_Schema<Web_Api_CreatedToken>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_CreateNotification_Returns = Promise<Web_Notifications_Target>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_CreateToken_Returns = Promise<Web_Api_CreatedToken>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_CreateUser_Returns = Promise<Web_Api_User>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_DeleteUser_UserId = string;
+export type Web_Api_DeleteUser_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_DiagnosticsSchema = Web_Api_Schema<Web_Api_Diagnostics>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_DisableTotp_Password = string;
+export type Web_Api_DisableTotp_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_DismissRemovedSecrets_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_DownloadBackupExport_Grant = string;
+export type Web_Api_DownloadBackupExport_Returns = Promise<void>;
+export type Web_Api_DownloadBackupExport_ContentDisposition = string;
+export type Web_Api_DownloadBackupExport_FilenameMatch = RegExpMatchArray | null;
+export type Web_Api_DownloadBackupExport_MatchedFilename = string | undefined;
+export type Web_Api_DownloadBackupExport_Filename = string;
+export type Web_Api_DownloadBackupExport_ObjectUrl = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_EditorSchema = Web_Api_Schema<Web_Schema_Node>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_EnableTotp_Code = string;
+export type Web_Api_EnableTotp_Returns = Promise<Web_Api_RecoveryCodes>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ErrorEnvelopeSchema = Web_Api_Schema<Web_Api_ErrorEnvelope>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ErrorMessage_CaughtError = unknown;
+export type Web_Api_ErrorMessage_Fallback = string;
+export type Web_Api_ErrorMessage_Returns = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_FeatureDetailSchema = Web_Api_Schema<Web_Api_FeatureDetail>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_FeatureSummarySchema = Web_Api_Schema<Web_Api_FeatureSummary>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetAccountSecurity_Returns = Promise<Web_Api_AccountSecurity>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetBot_Returns = Promise<Web_Api_Bot>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetCurrentPrincipal_Returns = Promise<Web_Api_Principal | null>;
+export type Web_Api_GetCurrentPrincipal_ResponseValue = unknown;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetDiagnostics_Returns = Promise<Web_Api_Diagnostics>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetFeature_ServerId = string;
+export type Web_Api_GetFeature_FeatureKey = string;
+export type Web_Api_GetFeature_Returns = Promise<Web_Api_FeatureDetail>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetFeatures_ServerId = string;
+export type Web_Api_GetFeatures_Returns = Promise<Web_Api_FeatureSummary[]>;
+export type Web_Api_GetFeatures_Response = {
+  items: Web_Api_FeatureSummary[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetInvitePage_ServerId = string;
+export type Web_Api_GetInvitePage_Returns = Promise<Web_Api_InvitePageResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetLogs_Returns = Promise<Web_Api_LogPage>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetNotificationEvents_Returns = Promise<Web_Notifications_Event[]>;
+export type Web_Api_GetNotificationEvents_Response = {
+  items: Web_Notifications_Event[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetNotifications_Returns = Promise<Web_Notifications_Target[]>;
+export type Web_Api_GetNotifications_Response = {
+  items: Web_Notifications_Target[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetResources_ServerId = string;
+export type Web_Api_GetResources_Returns = Promise<Web_Api_Resources>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetServers_Returns = Promise<Web_Api_Server[]>;
+export type Web_Api_GetServers_Response = {
+  items: Web_Api_Server[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetSetupStatus_Returns = Promise<Web_Api_SetupStatus>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetTokens_Returns = Promise<Web_Api_Token[]>;
+export type Web_Api_GetTokens_Response = {
+  items: Web_Api_Token[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_GetUsers_Returns = Promise<Web_Api_User[]>;
+export type Web_Api_GetUsers_Response = {
+  items: Web_Api_User[];
+};
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_InvitePageResponseSchema = Web_Api_Schema<Web_Api_InvitePageResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_InvitePageSchema = Web_Api_Schema<Web_Api_InvitePage>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_IssueFor_CaughtError = unknown;
+export type Web_Api_IssueFor_Field = string;
+export type Web_Api_IssueFor_Returns = string;
+export type Web_Api_IssueFor_Issue = Web_Api_ErrorIssue | undefined;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_LogEntrySchema = Web_Api_Schema<Web_Api_LogEntry>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_Login_Returns = Promise<Web_Api_LoginResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_LoginResultSchema = Web_Api_Schema<Web_Api_LoginResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_Logout_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_LogPageSchema = Web_Api_Schema<Web_Api_LogPage>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_LogQuery_Returns = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_LogStreamPath_Returns = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_NotificationTargetSchema = Web_Api_Schema<Web_Notifications_Target>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_NotificationTestSchema = Web_Api_Schema<Web_Notifications_TestResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ParseLogEntry_Value = unknown;
+export type Web_Api_ParseLogEntry_Returns = Web_Api_LogEntry | null;
+export type Web_Api_ParseLogEntry_Parsed = ZodSafeParseResult<Web_Api_LogEntry>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_PasskeyCeremonySchema = Web_Api_Schema<Web_Api_PasskeyCeremony>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_PasskeySchema = Web_Api_Schema<Web_Api_Passkey>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_PreviewBackupImport_Returns = Promise<Web_Backup_ImportPreview>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_PrincipalSchema = Web_Api_Schema<Web_Api_Principal>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ReadCookie_Name = string;
+export type Web_Api_ReadCookie_Returns = string | undefined;
+export type Web_Api_ReadCookie_Prefix = string;
+export type Web_Api_ReadCookie_Parts = string[];
+export type Web_Api_ReadCookie_MatchingPart = string | undefined;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RecoveryCodesSchema = Web_Api_Schema<Web_Api_RecoveryCodes>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RegenerateRecoveryCodes_Password = string;
+export type Web_Api_RegenerateRecoveryCodes_Returns = Promise<Web_Api_RecoveryCodes>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RemovedSecretSchema = Web_Api_Schema<Web_Api_RemovedSecret>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RemoveNotification_NotificationId = string;
+export type Web_Api_RemoveNotification_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RemovePasskey_PasskeyId = string;
+export type Web_Api_RemovePasskey_Password = string;
+export type Web_Api_RemovePasskey_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RequestBotAction_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RequestJson_Path = string;
+export type Web_Api_RequestJson_ResponseValue = unknown;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RequestVoid_Path = string;
+export type Web_Api_RequestVoid_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ResetUserPassword_UserId = string;
+export type Web_Api_ResetUserPassword_Password = string;
+export type Web_Api_ResetUserPassword_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ResetUserTwoFactor_UserId = string;
+export type Web_Api_ResetUserTwoFactor_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ResourcesSchema = Web_Api_Schema<Web_Api_Resources>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ResponseError_Returns = Promise<Web_Api_ResponseError_ApiError>;
+export type Web_Api_ResponseError_ApiError = Error & {
+  readonly code: string;
+  readonly issues: Web_Api_ErrorIssue[];
+  readonly status: number;
+};
+export type Web_Api_ResponseError_ResponseValue = unknown;
+export type Web_Api_ResponseError_ParsedError = ZodSafeParseResult<Web_Api_ErrorEnvelope>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_RevokeToken_TokenId = string;
+export type Web_Api_RevokeToken_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SaveBotToken_Token = string;
+export type Web_Api_SaveBotToken_Returns = Promise<void>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SaveFeature_ServerId = string;
+export type Web_Api_SaveFeature_FeatureKey = string;
+export type Web_Api_SaveFeature_Returns = Promise<Web_Api_FeatureDetail>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SaveInvitePage_ServerId = string;
+export type Web_Api_SaveInvitePage_Returns = Promise<Web_Api_InvitePage>;
+export type Web_Api_SaveInvitePage_Response = unknown;
+export type Web_Api_SaveInvitePage_Wrapped = ZodSafeParseResult<Web_Api_InvitePageResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ServerPath_ServerId = string;
+export type Web_Api_ServerPath_Suffix = string;
+export type Web_Api_ServerPath_Returns = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_ServerSchema = Web_Api_Schema<Web_Api_Server>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SetFeatureEnabled_ServerId = string;
+export type Web_Api_SetFeatureEnabled_FeatureKey = string;
+export type Web_Api_SetFeatureEnabled_Enabled = boolean;
+export type Web_Api_SetFeatureEnabled_Returns = Promise<Web_Api_FeatureSummary>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SetupStatusSchema = Web_Api_Schema<Web_Api_SetupStatus>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SignInWithPasskey_Returns = Promise<Web_Api_AuthenticationResponse>;
+export type Web_Api_SignInWithPasskey_Credential = Record<string, unknown>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_StartTotpSetup_Password = string;
+export type Web_Api_StartTotpSetup_Returns = Promise<Web_Api_TotpSetup>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SubmitSecondFactor_Challenge = string;
+export type Web_Api_SubmitSecondFactor_Code = string;
+export type Web_Api_SubmitSecondFactor_Returns = Promise<Web_Api_AuthenticationResponse>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_SummaryFor_CaughtError = unknown;
+export type Web_Api_SummaryFor_ShownFields = string[];
+export type Web_Api_SummaryFor_Fallback = string;
+export type Web_Api_SummaryFor_Returns = string;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_TestNotification_NotificationId = string;
+export type Web_Api_TestNotification_Returns = Promise<Web_Notifications_TestResult>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_TokenSchema = Web_Api_Schema<Web_Api_Token>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_TotpSetupSchema = Web_Api_Schema<Web_Api_TotpSetup>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UpdateDiagnostics_Returns = Promise<Web_Api_Diagnostics>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UpdateNotification_NotificationId = string;
+export type Web_Api_UpdateNotification_Returns = Promise<Web_Notifications_Target>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UpdateToken_TokenId = string;
+export type Web_Api_UpdateToken_Returns = Promise<Web_Api_Token>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UpdateUser_UserId = string;
+export type Web_Api_UpdateUser_Returns = Promise<Web_Api_User>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UploadedImageSchema = Web_Api_Schema<Web_Api_UploadedImage>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UploadInviteImage_ServerId = string;
+export type Web_Api_UploadInviteImage_Returns = Promise<Web_Api_UploadedImage>;
+
+/**
+ * API.
+ *
+ * @since 4.2.1
+ */
+export type Web_Api_UserSchema = Web_Api_Schema<Web_Api_User>;

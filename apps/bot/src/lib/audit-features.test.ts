@@ -1,4 +1,3 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
@@ -10,7 +9,10 @@ import {
   prepareAuditFeatures,
   summarizeRoleChanges,
 } from './audit-features.js';
-import { LIB_REGEX_PATTERN_DISCORD_CDN_URL } from './regex.js';
+import {
+  chatPlatformAssetUrlPattern,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 
 import type { Lib_AuditFeatures_PrepareAuditFeatures_Returns } from '../types/lib/audit-features.d.ts';
 
@@ -26,7 +28,7 @@ describe('privacy aware audit runtime', () => {
   it('reports unique external hosts after configured exclusions', () => {
     expect(findExternalLinkHosts(
       'See https://example.com/private?token=hidden and https://cdn.discordapp.com/file.png',
-      [new RegExp(LIB_REGEX_PATTERN_DISCORD_CDN_URL, 'i')],
+      [new RegExp(chatPlatformAssetUrlPattern, 'i')],
     )).toEqual(['example.com']);
 
     return;
@@ -74,9 +76,9 @@ describe('privacy aware audit runtime', () => {
     expect(prepared['activeFeatureKeys']).toEqual(['snitch']);
 
     expect(prepared['intents']).toEqual([
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMembers'],
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     ]);
 
     return;

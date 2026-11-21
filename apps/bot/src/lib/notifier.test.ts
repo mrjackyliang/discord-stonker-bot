@@ -1,10 +1,6 @@
 import { randomBytes } from 'node:crypto';
 
 import {
-  Client,
-  Events,
-} from 'discord.js';
-import {
   afterEach,
   beforeEach,
   describe,
@@ -13,7 +9,9 @@ import {
   vi,
 } from 'vitest';
 
+import { Runner as TestChatPlatformClient } from '../tests/support/chat-platform.js';
 import { createTestDatabase } from '../tests/support/database.js';
+import { chatPlatformEvents } from './chat-platform/index.js';
 import {
   createNotificationTarget,
   getNotificationTarget,
@@ -284,7 +282,7 @@ describe('notifier', () => {
 
   it('reports a Gateway drop only when it outlasts the grace period', async () => {
     const pool: Lib_Notifier_Test_Pool = getTestDatabase()['pool'];
-    const client: Lib_Notifier_Test_Client = new Client({ intents: [] });
+    const client: Lib_Notifier_Test_Client = new TestChatPlatformClient();
 
     await createNotificationTarget(pool, key, {
       events: [
@@ -299,17 +297,17 @@ describe('notifier', () => {
 
     watchGatewayConnection(client, pool, 50);
 
-    client.emit(Events.ShardReconnecting, 0);
+    client.emit(chatPlatformEvents['ShardReconnecting'], 0);
 
     await wait(10);
 
-    client.emit(Events.ShardResume, 0, 0);
+    client.emit(chatPlatformEvents['ShardResume'], 0, 0);
 
     await wait(100);
 
     expect(await listJobs(pool)).toEqual([]);
 
-    client.emit(Events.ShardReconnecting, 0);
+    client.emit(chatPlatformEvents['ShardReconnecting'], 0);
 
     await vi.waitFor(async () => {
       expect(await listJobs(pool)).toHaveLength(1);
@@ -317,7 +315,7 @@ describe('notifier', () => {
       return;
     });
 
-    client.emit(Events.ShardReady, 0, undefined);
+    client.emit(chatPlatformEvents['ShardReady'], 0, undefined);
 
     await vi.waitFor(async () => {
       expect(await listJobs(pool)).toHaveLength(2);
@@ -338,7 +336,7 @@ describe('notifier', () => {
 
     stopGatewayWatch(client);
 
-    client.emit(Events.ShardReconnecting, 0);
+    client.emit(chatPlatformEvents['ShardReconnecting'], 0);
 
     await wait(100);
 

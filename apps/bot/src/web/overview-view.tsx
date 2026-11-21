@@ -16,41 +16,61 @@ import {
   Icon,
 } from '@/web/primitives.tsx';
 
-import type { ReactElement } from 'react';
-
 import type {
-  Web_Api_Service,
-  Web_Api_ServiceComponent,
-} from '@/types/web/api.d.ts';
-import type {
-  Web_Components_BotStatus,
-  Web_Components_OverviewView_Props,
-  Web_Components_ServiceStatus,
-} from '@/types/web/components.d.ts';
+  Web_OverviewView_OverviewView_Bot,
+  Web_OverviewView_OverviewView_Busy,
+  Web_OverviewView_OverviewView_BusyState,
+  Web_OverviewView_OverviewView_Can,
+  Web_OverviewView_OverviewView_Copied,
+  Web_OverviewView_OverviewView_CopiedState,
+  Web_OverviewView_OverviewView_EnabledFeaturesNoun,
+  Web_OverviewView_OverviewView_Error,
+  Web_OverviewView_OverviewView_ErrorState,
+  Web_OverviewView_OverviewView_OnBotAction,
+  Web_OverviewView_OverviewView_OnOpenConnection,
+  Web_OverviewView_OverviewView_OnOpenFeatures,
+  Web_OverviewView_OverviewView_OnRefresh,
+  Web_OverviewView_OverviewView_Principal,
+  Web_OverviewView_OverviewView_Props,
+  Web_OverviewView_OverviewView_Refresh,
+  Web_OverviewView_OverviewView_Refresh_Returns,
+  Web_OverviewView_OverviewView_Returns,
+  Web_OverviewView_OverviewView_Server,
+  Web_OverviewView_OverviewView_Servers,
+  Web_OverviewView_OverviewView_Service,
+  Web_OverviewView_OverviewView_Services,
+  Web_OverviewView_OverviewView_ServiceStatus,
+  Web_OverviewView_OverviewView_SetBusy,
+  Web_OverviewView_OverviewView_SetCopied,
+  Web_OverviewView_OverviewView_SetError,
+  Web_OverviewView_OverviewView_Status,
+  Web_OverviewView_ServiceNames,
+  Web_OverviewView_ToneClasses,
+} from '@/types/web/overview-view.d.ts';
 
 /**
- * Overview View - Service names.
+ * Overview View - Service Names.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const serviceNames: Record<Web_Api_ServiceComponent, string> = {
+const serviceNames: Web_OverviewView_ServiceNames = {
   bot: 'Bot process',
   web: 'Control panel',
   worker: 'Scheduled jobs',
 };
 
 /**
- * Overview View - Tone classes.
+ * Overview View - Tone Classes.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const toneClasses: Record<Web_Components_BotStatus['tone'], string> = {
+const toneClasses: Web_OverviewView_ToneClasses = {
   blocked: 'details-status-blocked',
   connecting: 'details-status-connecting',
   idle: '',
@@ -58,36 +78,36 @@ const toneClasses: Record<Web_Components_BotStatus['tone'], string> = {
 };
 
 /**
- * Overview View.
+ * Overview View - Overview View.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_OverviewView_OverviewView_Props} props - Props.
+ *
+ * @returns {Web_OverviewView_OverviewView_Returns}
+ *
  * @since 4.0.0
  */
-export const OverviewView = ({
-  bot,
-  can,
-  onBotAction,
-  onOpenConnection,
-  onOpenFeatures,
-  onRefresh,
-  principal,
-  server,
-  servers,
-}: Web_Components_OverviewView_Props): ReactElement => {
-  const [
-    busy,
-    setBusy,
-  ] = useState<boolean>(false);
-  const [
-    error,
-    setError,
-  ] = useState<string>('');
-  const [
-    copied,
-    setCopied,
-  ] = useState<boolean>(false);
+export const OverviewView = (props: Web_OverviewView_OverviewView_Props): Web_OverviewView_OverviewView_Returns => {
+  const bot: Web_OverviewView_OverviewView_Bot = props['bot'];
+  const can: Web_OverviewView_OverviewView_Can = props['can'];
+  const onBotAction: Web_OverviewView_OverviewView_OnBotAction = props['onBotAction'];
+  const onOpenConnection: Web_OverviewView_OverviewView_OnOpenConnection = props['onOpenConnection'];
+  const onOpenFeatures: Web_OverviewView_OverviewView_OnOpenFeatures = props['onOpenFeatures'];
+  const onRefresh: Web_OverviewView_OverviewView_OnRefresh = props['onRefresh'];
+  const principal: Web_OverviewView_OverviewView_Principal = props['principal'];
+  const server: Web_OverviewView_OverviewView_Server = props['server'];
+  const servers: Web_OverviewView_OverviewView_Servers = props['servers'];
+  const busyState: Web_OverviewView_OverviewView_BusyState = useState<Web_OverviewView_OverviewView_Busy>(false);
+  const busy: Web_OverviewView_OverviewView_Busy = busyState[0];
+  const setBusy: Web_OverviewView_OverviewView_SetBusy = busyState[1];
+  const errorState: Web_OverviewView_OverviewView_ErrorState = useState<Web_OverviewView_OverviewView_Error>('');
+  const error: Web_OverviewView_OverviewView_Error = errorState[0];
+  const setError: Web_OverviewView_OverviewView_SetError = errorState[1];
+  const copiedState: Web_OverviewView_OverviewView_CopiedState = useState<Web_OverviewView_OverviewView_Copied>(false);
+  const copied: Web_OverviewView_OverviewView_Copied = copiedState[0];
+  const setCopied: Web_OverviewView_OverviewView_SetCopied = copiedState[1];
 
   /**
    * Overview View - Refresh.
@@ -95,9 +115,11 @@ export const OverviewView = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_OverviewView_OverviewView_Refresh_Returns}
+   *
    * @since 4.0.0
    */
-  const refresh = async (): Promise<void> => {
+  const refresh: Web_OverviewView_OverviewView_Refresh = async (): Web_OverviewView_OverviewView_Refresh_Returns => {
     setBusy(true);
     setError('');
     try {
@@ -107,6 +129,8 @@ export const OverviewView = ({
     } finally {
       setBusy(false);
     }
+
+    return;
   };
 
   if (bot === null) {
@@ -118,25 +142,28 @@ export const OverviewView = ({
     );
   }
 
-  const status: Web_Components_BotStatus = describeBot(bot);
-  const services: Web_Api_ServiceComponent[] = [
+  const status: Web_OverviewView_OverviewView_Status = describeBot(bot);
+  const services: Web_OverviewView_OverviewView_Services = [
     'bot',
     'web',
     'worker',
   ];
+  const enabledFeaturesNoun: Web_OverviewView_OverviewView_EnabledFeaturesNoun = (server !== undefined && server['enabledFeatures'] === 1) ? 'feature' : 'features';
 
   return (
     <section className="workspace-section">
       <div className="workspace-heading workspace-heading-split">
         <div>
           <h1>Overview</h1>
-          <p>{(server === undefined) ? 'The bot hasn\'t joined a Discord server yet.' : `${server['name']} has ${server['enabledFeatures']} ${(server['enabledFeatures'] === 1) ? 'feature' : 'features'} turned on.`}</p>
+          <p>{(server === undefined) ? 'The bot hasn\'t joined a Discord server yet.' : `${server['name']} has ${server['enabledFeatures']} ${enabledFeaturesNoun} turned on.`}</p>
         </div>
         <Button
           disabled={busy}
           icon="refresh"
-          onClick={(): void => {
+          onClick={() => {
             void refresh();
+
+            return;
           }}
         >
           Refresh
@@ -150,7 +177,7 @@ export const OverviewView = ({
         </div>
       )}
 
-      {(bot['tokenConfigured']) ? null : (
+      {(bot['tokenConfigured'] === true) ? null : (
         <div className="panel">
           <section className="form-section">
             <div className="form-section-head">
@@ -168,7 +195,7 @@ export const OverviewView = ({
         <section className="form-section">
           <div className="form-section-head">
             <h2>Bot</h2>
-            {(can('bot:control')) ? <BotControls bot={bot} onBotAction={onBotAction} onError={setError} /> : null}
+            {(can('bot:control') === true) ? <BotControls bot={bot} onBotAction={onBotAction} onError={setError} /> : null}
           </div>
           <dl className="details">
             <div>
@@ -180,7 +207,7 @@ export const OverviewView = ({
             </div>
             <div>
               <dt>Bot token</dt>
-              <dd>{(bot['tokenConfigured']) ? 'Saved' : 'Not added'}</dd>
+              <dd>{(bot['tokenConfigured'] === true) ? 'Saved' : 'Not added'}</dd>
             </div>
             <div>
               <dt>Signed in as</dt>
@@ -207,7 +234,7 @@ export const OverviewView = ({
             <div className="bot-errors">
               <p className="form-section-note">{(bot['configurationErrors'].length === 1) ? 'One feature has settings the bot couldn\'t use:' : `${bot['configurationErrors'].length} features have settings the bot couldn't use:`}</p>
               <ul>
-                {bot['configurationErrors'].map((configurationError: string): ReactElement => <li key={configurationError}>{configurationError}</li>)}
+                {bot['configurationErrors'].map((configurationError) => <li key={configurationError}>{configurationError}</li>)}
               </ul>
             </div>
           )}
@@ -218,9 +245,9 @@ export const OverviewView = ({
             <h2>Services</h2>
           </div>
           <dl className="details">
-            {services.map((component: Web_Api_ServiceComponent): ReactElement => {
-              const service: Web_Api_Service | undefined = bot['services'].find((candidate: Web_Api_Service): boolean => candidate['component'] === component);
-              const serviceStatus: Web_Components_ServiceStatus = describeService(service);
+            {services.map((component) => {
+              const service: Web_OverviewView_OverviewView_Service = bot['services'].find((candidate) => candidate['component'] === component);
+              const serviceStatus: Web_OverviewView_OverviewView_ServiceStatus = describeService(service);
 
               return (
                 <div key={component}>
@@ -257,16 +284,21 @@ export const OverviewView = ({
                   <button
                     aria-label="Copy server ID"
                     className="icon-button icon-button-inline"
-                    onClick={(): void => {
-                      void navigator.clipboard.writeText(server['id']).then((): void => {
+                    onClick={() => {
+                      void navigator.clipboard.writeText(server['id']).then(() => {
                         setCopied(true);
-                        window.setTimeout((): void => setCopied(false), 1800);
+
+                        window.setTimeout(() => setCopied(false), 1800);
+
+                        return;
                       });
+
+                      return;
                     }}
                     title="Copy server ID"
                     type="button"
                   >
-                    <Icon name={(copied) ? 'check' : 'copy'} size={14} />
+                    <Icon name={(copied === true) ? 'check' : 'copy'} size={14} />
                   </button>
                 </dd>
               </div>
@@ -276,7 +308,7 @@ export const OverviewView = ({
               </div>
               <div>
                 <dt>Bot in this server</dt>
-                <dd>{(server['available']) ? 'Yes' : 'No, it was removed'}</dd>
+                <dd>{(server['available'] === true) ? 'Yes' : 'No, it was removed'}</dd>
               </div>
               <div>
                 <dt>Servers you can open</dt>

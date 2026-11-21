@@ -1,12 +1,11 @@
 import { randomInt } from 'node:crypto';
 
-import {
-  EmbedBuilder,
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -424,8 +423,8 @@ function createRegistration(
   runtime: Lib_MessageFeatures_CreateRegistration_Runtime,
 ): Lib_MessageFeatures_CreateRegistration_Returns {
   return (client, guildIdentifier) => {
-    client.on(Events.MessageCreate, (message) => {
-      void timeFeatureHandler('message', Events.MessageCreate, guildIdentifier, () => handleMessage(message, guildIdentifier, runtime, true)).catch((error) => {
+    client.on(chatPlatformEvents['MessageCreate'], (message) => {
+      void timeFeatureHandler('message', chatPlatformEvents['MessageCreate'], guildIdentifier, () => handleMessage(message, guildIdentifier, runtime, true)).catch((error) => {
         writeLog('error', 'bot', 'message_feature_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -437,8 +436,8 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.MessageUpdate, (oldMessage, newMessage) => {
-      void timeFeatureHandler('message', Events.MessageUpdate, guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
+    client.on(chatPlatformEvents['MessageUpdate'], (oldMessage, newMessage) => {
+      void timeFeatureHandler('message', chatPlatformEvents['MessageUpdate'], guildIdentifier, () => handleMessageUpdate(oldMessage, newMessage, guildIdentifier, runtime)).catch((error) => {
         writeLog('error', 'bot', 'message_feature_update_dispatch_failed', {
           error: getErrorMessage(error),
           guildIdentifier,
@@ -1000,7 +999,7 @@ function hasExcludedRole(
     return false;
   }
 
-  return roleIdentifiers.some((roleIdentifier) => member.roles.cache.has(roleIdentifier) === true);
+  return roleIdentifiers.some((roleIdentifier) => member['roles']['cache'].has(roleIdentifier) === true);
 }
 
 /**
@@ -1185,8 +1184,8 @@ export function prepareMessageFeatures(
 
   if (activeFeatureKeys.length > 0) {
     intents.push(
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     );
   }
 
@@ -1273,11 +1272,12 @@ async function sendModerationAlert(
     allowedMentions: {
       parse: [],
     },
-    embeds: [new EmbedBuilder()
-      .setColor(parseInt('F0B232', 16))
-      .setDescription(truncateContent(description, 4_096))
-      .setTimestamp(message['createdAt'])
-      .setTitle(title)],
+    embeds: [{
+      color: parseInt('F0B232', 16),
+      description: truncateContent(description, 4_096),
+      timestamp: message['createdAt'].toISOString(),
+      title,
+    }],
   });
 
   return;

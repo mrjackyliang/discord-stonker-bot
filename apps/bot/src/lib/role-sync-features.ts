@@ -1,9 +1,9 @@
-import {
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import { z } from 'zod';
 
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 import { timeFeatureHandler } from './debug-timing.js';
 import {
   getErrorMessage,
@@ -199,7 +199,7 @@ function createRegistration(
   return (client, guildIdentifier) => {
     const debounceTimers: Lib_RoleSyncFeatures_CreateRegistration_DebounceTimers = new Map();
 
-    client.on(Events.GuildMemberUpdate, (oldMember, newMember) => {
+    client.on(chatPlatformEvents['GuildMemberUpdate'], (oldMember, newMember) => {
       if (
         newMember['guild']['id'] !== guildIdentifier
         || didMemberRolesChange(oldMember, newMember) === false
@@ -216,7 +216,7 @@ function createRegistration(
       const debounceTimer: Lib_RoleSyncFeatures_CreateRegistration_DebounceTimer = setTimeout(() => {
         debounceTimers.delete(newMember['id']);
 
-        void timeFeatureHandler('role-sync', Events.GuildMemberUpdate, guildIdentifier, () => reconcileMemberRoles(newMember, runtime)).catch((error) => {
+        void timeFeatureHandler('role-sync', chatPlatformEvents['GuildMemberUpdate'], guildIdentifier, () => reconcileMemberRoles(newMember, runtime)).catch((error) => {
           writeLog('error', 'bot', 'role_sync_reconciliation_failed', {
             error: getErrorMessage(error),
             guildIdentifier,
@@ -234,7 +234,7 @@ function createRegistration(
       return;
     });
 
-    client.on(Events.ShardDisconnect, () => {
+    client.on(chatPlatformEvents['ShardDisconnect'], () => {
       clearDebounceTimers(debounceTimers);
 
       return;
@@ -549,7 +549,7 @@ export function prepareRoleSyncFeatures(
   const intents: Lib_RoleSyncFeatures_PrepareRoleSyncFeatures_Intents = [];
 
   if (runtime !== undefined) {
-    intents.push(GatewayIntentBits.GuildMembers);
+    intents.push(chatPlatformIntents['GuildMembers']);
   }
 
   return {

@@ -53,51 +53,138 @@ import { SecurityView } from '@/web/security-view.tsx';
 import { ServerSwitcher } from '@/web/server-switcher.tsx';
 import { UsersView } from '@/web/users-view.tsx';
 
-import type { ReactElement } from 'react';
-
+import type { Web_Api_Permission } from '@/types/web/api.d.ts';
 import type {
-  Web_Api_Bot,
-  Web_Api_BotAction,
-  Web_Api_CreatedToken,
-  Web_Api_CreateTokenInput,
-  Web_Api_Permission,
-  Web_Api_Principal,
-  Web_Api_RemovedSecret,
-  Web_Api_Server,
-  Web_Api_Token,
-  Web_Api_UpdateTokenInput,
-} from '@/types/web/api.d.ts';
-import type {
-  Web_AppNavigation_PathMatch,
-  Web_AppNavigation_Route,
-} from '@/types/web/app-navigation.d.ts';
-import type {
-  Web_App_Phase,
-  Web_App_RemovedSecretAction,
+  Web_App_App_ActiveRoute,
+  Web_App_App_ActiveRouteState,
+  Web_App_App_ActiveView,
+  Web_App_App_AddServerUrl,
+  Web_App_App_ApplyAppRoute,
+  Web_App_App_ApplyAppRoute_Returns,
+  Web_App_App_ApplyAppRoute_Route,
+  Web_App_App_Bootstrap,
+  Web_App_App_Bootstrap_Returns,
+  Web_App_App_Bootstrap_SetupStatus,
+  Web_App_App_Bot,
+  Web_App_App_BotState,
+  Web_App_App_BotTimer,
+  Web_App_App_Can,
+  Web_App_App_Can_Permission,
+  Web_App_App_Can_Returns,
+  Web_App_App_ChangeServer,
+  Web_App_App_ChangeServer_FeaturesRoute,
+  Web_App_App_ChangeServer_NextServerId,
+  Web_App_App_ChangeServer_Returns,
+  Web_App_App_EnterApplication,
+  Web_App_App_EnterApplication_NextPrincipal,
+  Web_App_App_EnterApplication_Returns,
+  Web_App_App_FeatureDirty,
+  Web_App_App_FeatureDirtyState,
+  Web_App_App_FeatureKey,
+  Web_App_App_FeatureKeyState,
+  Web_App_App_Guard,
+  Web_App_App_Guard_Action,
+  Web_App_App_Guard_Returns,
+  Web_App_App_InitialNavigation,
+  Web_App_App_LastRemovedSecret,
+  Web_App_App_LoadBot,
+  Web_App_App_LoadBot_Returns,
+  Web_App_App_LoadRemovedSecrets,
+  Web_App_App_LoadRemovedSecrets_NextPrincipal,
+  Web_App_App_LoadRemovedSecrets_Returns,
+  Web_App_App_LoadServers,
+  Web_App_App_LoadServers_First,
+  Web_App_App_LoadServers_NextServers,
+  Web_App_App_LoadServers_Returns,
+  Web_App_App_LoadTokens,
+  Web_App_App_LoadTokens_Returns,
+  Web_App_App_NoServer,
+  Web_App_App_Notice,
+  Web_App_App_OpenRemovedSecret,
+  Web_App_App_OpenRemovedSecret_Action,
+  Web_App_App_OpenRemovedSecret_Returns,
+  Web_App_App_OpenRoute,
+  Web_App_App_OpenRoute_Replace,
+  Web_App_App_OpenRoute_Returns,
+  Web_App_App_OpenRoute_Route,
+  Web_App_App_OpenView,
+  Web_App_App_OpenView_Returns,
+  Web_App_App_OpenView_View,
+  Web_App_App_Permissions,
+  Web_App_App_Phase,
+  Web_App_App_PhaseState,
+  Web_App_App_Principal,
+  Web_App_App_PrincipalState,
+  Web_App_App_RemovedAt,
+  Web_App_App_RemovedSecrets,
+  Web_App_App_RemovedSecretsState,
+  Web_App_App_RenderView,
+  Web_App_App_RenderView_NextToken,
+  Web_App_App_RenderView_Returns,
+  Web_App_App_ResetSession,
+  Web_App_App_ResetSession_Returns,
+  Web_App_App_Returns,
+  Web_App_App_RunBotAction,
+  Web_App_App_RunBotAction_Action,
+  Web_App_App_RunBotAction_Returns,
+  Web_App_App_Server,
+  Web_App_App_ServerId,
+  Web_App_App_ServerIdState,
+  Web_App_App_Servers,
+  Web_App_App_ServersState,
+  Web_App_App_ServerTimer,
+  Web_App_App_SetActiveRoute,
+  Web_App_App_SetBot,
+  Web_App_App_SetFeatureDirty,
+  Web_App_App_SetFeatureKey,
+  Web_App_App_SetPhase,
+  Web_App_App_SetPrincipal,
+  Web_App_App_SetRemovedSecrets,
+  Web_App_App_SetServerId,
+  Web_App_App_SetServers,
+  Web_App_App_SetStartupError,
+  Web_App_App_SetTokens,
+  Web_App_App_SignOut,
+  Web_App_App_SignOut_Returns,
+  Web_App_App_SignOut_RootNavigation,
+  Web_App_App_StartupError,
+  Web_App_App_StartupErrorState,
+  Web_App_App_Tokens,
+  Web_App_App_TokensState,
+  Web_App_App_Username,
+  Web_App_DescribeRemovedSecret_FeatureName,
+  Web_App_DescribeRemovedSecret_RemovedSecret,
+  Web_App_DescribeRemovedSecret_Returns,
+  Web_App_DescribeRemovedSecret_ServerName,
+  Web_App_ReadStoredServer_Returns,
+  Web_App_ServerStorageKey,
+  Web_App_StoreServer_Returns,
+  Web_App_StoreServer_ServerId,
 } from '@/types/web/app.d.ts';
-import type { Web_Components_View } from '@/types/web/components.d.ts';
 
 // The server picked last is remembered per browser, like the theme.
 
 /**
- * App - Server storage key.
+ * App - Server Storage Key.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const serverStorageKey: string = 'discord-stonker-bot-server';
+const serverStorageKey: Web_App_ServerStorageKey = 'discord-stonker-bot-server';
 
 /**
- * App - Reads stored server.
+ * App - Read Stored Server.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_App_ReadStoredServer_Returns}
+ *
  * @since 4.0.0
  */
-const readStoredServer = (): string => {
+const readStoredServer = (): Web_App_ReadStoredServer_Returns => {
   try {
     return window.localStorage.getItem(serverStorageKey) ?? '';
   } catch {
@@ -106,32 +193,42 @@ const readStoredServer = (): string => {
 };
 
 /**
- * App - Store server.
+ * App - Store Server.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_App_StoreServer_ServerId} serverId - Server id.
+ *
+ * @returns {Web_App_StoreServer_Returns}
+ *
  * @since 4.0.0
  */
-const storeServer = (serverId: string): void => {
+const storeServer = (serverId: Web_App_StoreServer_ServerId): Web_App_StoreServer_Returns => {
   try {
     window.localStorage.setItem(serverStorageKey, serverId);
   } catch {
     // Private windows may refuse storage; the choice then lasts for this visit only.
   }
+
+  return;
 };
 
 // What each secret removed with a lost key asks for, and where it is entered again.
 
 /**
- * App - Describe removed secret.
+ * App - Describe Removed Secret.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_App_DescribeRemovedSecret_RemovedSecret} removedSecret - Removed secret.
+ *
+ * @returns {Web_App_DescribeRemovedSecret_Returns}
+ *
  * @since 4.0.0
  */
-const describeRemovedSecret = (removedSecret: Web_Api_RemovedSecret): Web_App_RemovedSecretAction => {
+const describeRemovedSecret = (removedSecret: Web_App_DescribeRemovedSecret_RemovedSecret): Web_App_DescribeRemovedSecret_Returns => {
   if (removedSecret['kind'] === 'notification') {
     return {
       featureKey: '',
@@ -151,8 +248,8 @@ const describeRemovedSecret = (removedSecret: Web_Api_RemovedSecret): Web_App_Re
   }
 
   if (removedSecret['kind'] === 'feature-secrets') {
-    const featureName: string = removedSecret['featureName'] ?? 'feature';
-    const serverName: string = removedSecret['serverName'] ?? 'this server';
+    const featureName: Web_App_DescribeRemovedSecret_FeatureName = removedSecret['featureName'] ?? 'feature';
+    const serverName: Web_App_DescribeRemovedSecret_ServerName = removedSecret['serverName'] ?? 'this server';
 
     return {
       featureKey: removedSecret['featureKey'] ?? '',
@@ -171,70 +268,63 @@ const describeRemovedSecret = (removedSecret: Web_Api_RemovedSecret): Web_App_Re
 };
 
 /**
- * App.
+ * App - App.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @returns {Web_App_App_Returns}
+ *
  * @since 4.0.0
  */
-export const App = (): ReactElement => {
-  const initialNavigation: Web_AppNavigation_PathMatch = resolveAppNavigationPath(window.location.pathname);
-  const [
-    phase,
-    setPhase,
-  ] = useState<Web_App_Phase>('loading');
-  const [
-    principal,
-    setPrincipal,
-  ] = useState<Web_Api_Principal | null>(null);
-  const [
-    activeRoute,
-    setActiveRoute,
-  ] = useState<Web_AppNavigation_Route>(initialNavigation['route']);
-  const activeView: Web_Components_View = activeRoute['view'];
-  const [
-    featureKey,
-    setFeatureKey,
-  ] = useState<string>(initialNavigation['route']['featureKey'] ?? '');
-  const [
-    servers,
-    setServers,
-  ] = useState<Web_Api_Server[]>([]);
-  const [
-    serverId,
-    setServerId,
-  ] = useState<string>(readStoredServer);
-  const [
-    bot,
-    setBot,
-  ] = useState<Web_Api_Bot | null>(null);
-  const [
-    tokens,
-    setTokens,
-  ] = useState<Web_Api_Token[]>([]);
-  const [
-    removedSecrets,
-    setRemovedSecrets,
-  ] = useState<Web_Api_RemovedSecret[]>([]);
-  const [
-    startupError,
-    setStartupError,
-  ] = useState<string>('');
-  const [
-    featureDirty,
-    setFeatureDirty,
-  ] = useState<boolean>(false);
+export const App = (): Web_App_App_Returns => {
+  const initialNavigation: Web_App_App_InitialNavigation = resolveAppNavigationPath(window.location.pathname);
+  const phaseState: Web_App_App_PhaseState = useState<Web_App_App_Phase>('loading');
+  const phase: Web_App_App_Phase = phaseState[0];
+  const setPhase: Web_App_App_SetPhase = phaseState[1];
+  const principalState: Web_App_App_PrincipalState = useState<Web_App_App_Principal>(null);
+  const principal: Web_App_App_Principal = principalState[0];
+  const setPrincipal: Web_App_App_SetPrincipal = principalState[1];
+  const activeRouteState: Web_App_App_ActiveRouteState = useState<Web_App_App_ActiveRoute>(initialNavigation['route']);
+  const activeRoute: Web_App_App_ActiveRoute = activeRouteState[0];
+  const setActiveRoute: Web_App_App_SetActiveRoute = activeRouteState[1];
+  const activeView: Web_App_App_ActiveView = activeRoute['view'];
+  const featureKeyState: Web_App_App_FeatureKeyState = useState<Web_App_App_FeatureKey>(initialNavigation['route']['featureKey'] ?? '');
+  const featureKey: Web_App_App_FeatureKey = featureKeyState[0];
+  const setFeatureKey: Web_App_App_SetFeatureKey = featureKeyState[1];
+  const serversState: Web_App_App_ServersState = useState<Web_App_App_Servers>([]);
+  const servers: Web_App_App_Servers = serversState[0];
+  const setServers: Web_App_App_SetServers = serversState[1];
+  const serverIdState: Web_App_App_ServerIdState = useState<Web_App_App_ServerId>(readStoredServer);
+  const serverId: Web_App_App_ServerId = serverIdState[0];
+  const setServerId: Web_App_App_SetServerId = serverIdState[1];
+  const botState: Web_App_App_BotState = useState<Web_App_App_Bot>(null);
+  const bot: Web_App_App_Bot = botState[0];
+  const setBot: Web_App_App_SetBot = botState[1];
+  const tokensState: Web_App_App_TokensState = useState<Web_App_App_Tokens>([]);
+  const tokens: Web_App_App_Tokens = tokensState[0];
+  const setTokens: Web_App_App_SetTokens = tokensState[1];
+  const removedSecretsState: Web_App_App_RemovedSecretsState = useState<Web_App_App_RemovedSecrets>([]);
+  const removedSecrets: Web_App_App_RemovedSecrets = removedSecretsState[0];
+  const setRemovedSecrets: Web_App_App_SetRemovedSecrets = removedSecretsState[1];
+  const startupErrorState: Web_App_App_StartupErrorState = useState<Web_App_App_StartupError>('');
+  const startupError: Web_App_App_StartupError = startupErrorState[0];
+  const setStartupError: Web_App_App_SetStartupError = startupErrorState[1];
+  const featureDirtyState: Web_App_App_FeatureDirtyState = useState<Web_App_App_FeatureDirty>(false);
+  const featureDirty: Web_App_App_FeatureDirty = featureDirtyState[0];
+  const setFeatureDirty: Web_App_App_SetFeatureDirty = featureDirtyState[1];
 
   /**
-   * App - Reset session.
+   * App - Reset Session.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_ResetSession_Returns}
+   *
    * @since 4.0.0
    */
-  const resetSession = (): void => {
+  const resetSession: Web_App_App_ResetSession = (): Web_App_App_ResetSession_Returns => {
     setPrincipal(null);
     setServers([]);
     setBot(null);
@@ -242,6 +332,8 @@ export const App = (): ReactElement => {
     setRemovedSecrets([]);
     setFeatureDirty(false);
     setPhase('login');
+
+    return;
   };
 
   // A request that finds the session gone sends the browser back to sign-in.
@@ -252,9 +344,13 @@ export const App = (): ReactElement => {
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_App_App_Guard_Action} action - Action.
+   *
+   * @returns {Web_App_App_Guard_Returns}
+   *
    * @since 4.0.0
    */
-  const guard = async (action: () => Promise<void>): Promise<void> => {
+  const guard: Web_App_App_Guard = async (action: Web_App_App_Guard_Action): Web_App_App_Guard_Returns => {
     try {
       await action();
     } catch (caughtError) {
@@ -266,100 +362,121 @@ export const App = (): ReactElement => {
 
       throw caughtError;
     }
+
+    return;
   };
 
   /**
-   * App - Loads bot.
+   * App - Load Bot.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_LoadBot_Returns}
+   *
    * @since 4.0.0
    */
-  const loadBot = async (): Promise<void> => guard(async (): Promise<void> => {
+  const loadBot: Web_App_App_LoadBot = async (): Web_App_App_LoadBot_Returns => guard(async () => {
     setBot(await getBot());
+
+    return;
   });
 
   /**
-   * App - Loads servers.
+   * App - Load Servers.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_LoadServers_Returns}
+   *
    * @since 4.0.0
    */
-  const loadServers = async (): Promise<void> => guard(async (): Promise<void> => {
-    const nextServers: Web_Api_Server[] = await getServers();
+  const loadServers: Web_App_App_LoadServers = async (): Web_App_App_LoadServers_Returns => guard(async () => {
+    const nextServers: Web_App_App_LoadServers_NextServers = await getServers();
 
     setServers(nextServers);
-    setServerId((current: string): string => {
-      if (nextServers.some((server: Web_Api_Server): boolean => server['id'] === current)) {
+    setServerId((current) => {
+      if (nextServers.some((server) => server['id'] === current) === true) {
         return current;
       }
 
-      const first: Web_Api_Server | undefined = nextServers.find((server: Web_Api_Server): boolean => server['available']) ?? nextServers[0];
+      const first: Web_App_App_LoadServers_First = nextServers.find((server) => server['available']) ?? nextServers[0];
 
       return (first === undefined) ? '' : first['id'];
     });
+
+    return;
   });
 
   /**
-   * App - Loads tokens.
+   * App - Load Tokens.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_LoadTokens_Returns}
+   *
    * @since 4.0.0
    */
-  const loadTokens = async (): Promise<void> => guard(async (): Promise<void> => {
+  const loadTokens: Web_App_App_LoadTokens = async (): Web_App_App_LoadTokens_Returns => guard(async () => {
     setTokens(await getTokens());
+
+    return;
   });
 
   /**
-   * App - Applies route.
+   * App - Apply App Route.
    *
    * Keeps the rendered page and feature editor synchronized with a resolved
    * address. Browser Back and Forward reuse this transition without pushing.
    *
-   * @param {Web_AppNavigation_Route} route - Route.
+   * @param {Web_App_App_ApplyAppRoute_Route} route - Route.
+   *
+   * @returns {Web_App_App_ApplyAppRoute_Returns}
    *
    * @since 4.0.0
    */
-  const applyAppRoute = (route: Web_AppNavigation_Route): void => {
+  const applyAppRoute: Web_App_App_ApplyAppRoute = (route: Web_App_App_ApplyAppRoute_Route): Web_App_App_ApplyAppRoute_Returns => {
     setFeatureDirty(false);
     setFeatureKey(route['featureKey'] ?? '');
     setActiveRoute(route);
+
     window.scrollTo(0, 0);
 
     return;
   };
 
   /**
-   * App - Opens route.
+   * App - Open Route.
    *
    * Preserves the unsaved-feature guard, updates browser history, and then
    * applies the matching page state. Incidental page resets use replacement.
    *
-   * @param {Web_AppNavigation_Route} route     - Route.
-   * @param {boolean}                 [replace] - Replace.
+   * @param {Web_App_App_OpenRoute_Route}   route     - Route.
+   * @param {Web_App_App_OpenRoute_Replace} [replace] - Replace.
    *
-   * @returns {boolean}
+   * @returns {Web_App_App_OpenRoute_Returns}
    *
    * @since 4.0.0
    */
-  const openRoute = (
-    route: Web_AppNavigation_Route,
-    replace: boolean = false,
-  ): boolean => {
+  const openRoute: Web_App_App_OpenRoute = (
+    route: Web_App_App_OpenRoute_Route,
+    replace: Web_App_App_OpenRoute_Replace = false,
+  ): Web_App_App_OpenRoute_Returns => {
     if (route['path'] === activeRoute['path']) {
       return true;
     }
 
-    if (activeView === 'feature' && featureDirty && !window.confirm('Discard your unsaved changes?')) {
+    if (
+      activeView === 'feature'
+      && featureDirty === true
+      && window.confirm('Discard your unsaved changes?') === false
+    ) {
       return false;
     }
 
-    if (replace) {
+    if (replace === true) {
       replaceNavigationPath(window, route['path']);
     } else {
       pushNavigationPath(window, route['path']);
@@ -367,46 +484,48 @@ export const App = (): ReactElement => {
     applyAppRoute(route);
 
     if (route['view'] === 'overview' || route['view'] === 'connection') {
-      void loadBot().catch((): undefined => undefined);
+      void loadBot().catch(() => undefined);
     }
 
     if (route['view'] === 'overview') {
-      void loadServers().catch((): undefined => undefined);
+      void loadServers().catch(() => undefined);
     }
 
     if (route['view'] === 'access') {
-      void loadTokens().catch((): undefined => undefined);
+      void loadTokens().catch(() => undefined);
     }
 
     return true;
   };
 
   /**
-   * App - Opens view.
+   * App - Open View.
    *
    * Resolves shell destinations through the app-owned path table before the
    * shared History API transition runs.
    *
-   * @param {Web_Components_View} view - View.
+   * @param {Web_App_App_OpenView_View} view - View.
    *
-   * @returns {boolean}
+   * @returns {Web_App_App_OpenView_Returns}
    *
    * @since 4.0.0
    */
-  const openView = (view: Web_Components_View): boolean => openRoute(appRouteForView(view));
+  const openView: Web_App_App_OpenView = (view: Web_App_App_OpenView_View): Web_App_App_OpenView_Returns => openRoute(appRouteForView(view));
 
   // The notice shrinks as secrets are entered again, so the list is read again after each one.
 
   /**
-   * App - Loads removed secrets.
+   * App - Load Removed Secrets.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_LoadRemovedSecrets_Returns}
+   *
    * @since 4.0.0
    */
-  const loadRemovedSecrets = async (): Promise<void> => guard(async (): Promise<void> => {
-    const nextPrincipal: Web_Api_Principal | null = await getCurrentPrincipal();
+  const loadRemovedSecrets: Web_App_App_LoadRemovedSecrets = async (): Web_App_App_LoadRemovedSecrets_Returns => guard(async () => {
+    const nextPrincipal: Web_App_App_LoadRemovedSecrets_NextPrincipal = await getCurrentPrincipal();
     if (nextPrincipal === null) {
       resetSession();
 
@@ -414,18 +533,22 @@ export const App = (): ReactElement => {
     }
 
     setRemovedSecrets(nextPrincipal['removedSecrets'] ?? []);
+
+    return;
   });
 
   /**
-   * App - Enter application.
+   * App - Enter Application.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_EnterApplication_Returns}
+   *
    * @since 4.0.0
    */
-  const enterApplication = async (): Promise<void> => {
-    const nextPrincipal: Web_Api_Principal | null = await getCurrentPrincipal();
+  const enterApplication: Web_App_App_EnterApplication = async (): Web_App_App_EnterApplication_Returns => {
+    const nextPrincipal: Web_App_App_EnterApplication_NextPrincipal = await getCurrentPrincipal();
     if (nextPrincipal === null || nextPrincipal['authenticationType'] !== 'session') {
       setPhase('login');
 
@@ -442,28 +565,32 @@ export const App = (): ReactElement => {
       loadServers(),
       loadTokens(),
     ]);
+
+    return;
   };
 
-  useEffect((): (() => void) => startNavigationHistory(
+  useEffect(() => startNavigationHistory(
     window,
     resolveAppNavigationPath,
     applyAppRoute,
   ), []);
 
-  useEffect((): void => {
+  useEffect(() => {
     /**
      * App - Bootstrap.
      *
      * Centralizes this operation for the surrounding workflow.
      * Callers reuse one implementation instead of repeating the behavior.
      *
+     * @returns {Web_App_App_Bootstrap_Returns}
+     *
      * @since 4.0.0
      */
-    const bootstrap = async (): Promise<void> => {
+    const bootstrap: Web_App_App_Bootstrap = async (): Web_App_App_Bootstrap_Returns => {
       setStartupError('');
       try {
-        const setupStatus = await getSetupStatus();
-        if (setupStatus['claimRequired']) {
+        const setupStatus: Web_App_App_Bootstrap_SetupStatus = await getSetupStatus();
+        if (setupStatus['claimRequired'] === true) {
           setPhase('claim');
 
           return;
@@ -473,54 +600,70 @@ export const App = (): ReactElement => {
       } catch (caughtError) {
         setStartupError((caughtError instanceof Error) ? caughtError.message : 'The control panel could not be loaded.');
       }
+
+      return;
     };
 
     void bootstrap();
+
+    return;
   }, []);
 
   // The bot's status shows in the sidebar on every page, so it refreshes in the background.
-  useEffect((): (() => void) | undefined => {
+  useEffect(() => {
     if (phase !== 'application') {
       return undefined;
     }
 
-    const botTimer: number = window.setInterval((): void => {
-      void loadBot().catch((): undefined => undefined);
+    const botTimer: Web_App_App_BotTimer = window.setInterval(() => {
+      void loadBot().catch(() => undefined);
+
+      return;
     }, 15_000);
-    const serverTimer: number = window.setInterval((): void => {
-      void loadServers().catch((): undefined => undefined);
+    const serverTimer: Web_App_App_ServerTimer = window.setInterval(() => {
+      void loadServers().catch(() => undefined);
+
+      return;
     }, 60_000);
 
-    return (): void => {
+    return () => {
       window.clearInterval(botTimer);
       window.clearInterval(serverTimer);
+
+      return;
     };
   }, [phase]);
 
-  useEffect((): void => {
+  useEffect(() => {
     if (serverId !== '') {
       storeServer(serverId);
     }
+
+    return;
   }, [serverId]);
 
   /**
-   * App - Sign out.
+   * App - Sign Out.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_SignOut_Returns}
+   *
    * @since 4.0.0
    */
-  const signOut = async (): Promise<void> => {
+  const signOut: Web_App_App_SignOut = async (): Web_App_App_SignOut_Returns => {
     try {
       await logout();
     } finally {
-      const rootNavigation: Web_AppNavigation_PathMatch = resolveAppNavigationPath('/');
+      const rootNavigation: Web_App_App_SignOut_RootNavigation = resolveAppNavigationPath('/');
 
       replaceNavigationPath(window, rootNavigation['path']);
       applyAppRoute(rootNavigation['route']);
       resetSession();
     }
+
+    return;
   };
 
   if (phase === 'loading') {
@@ -534,11 +677,15 @@ export const App = (): ReactElement => {
     );
   }
 
-  if (phase === 'claim' || phase === 'login' || principal === null) {
+  if (
+    phase === 'claim'
+    || phase === 'login'
+    || principal === null
+  ) {
     return <AuthenticationScreen mode={(phase === 'claim') ? 'claim' : 'login'} onSignedIn={enterApplication} />;
   }
 
-  const permissions: Web_Api_Permission[] = permissionsFor(principal);
+  const permissions: Web_App_App_Permissions = permissionsFor(principal);
 
   /**
    * App - Can.
@@ -546,41 +693,57 @@ export const App = (): ReactElement => {
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_App_App_Can_Permission} permission - Permission.
+   *
+   * @returns {Web_App_App_Can_Returns}
+   *
    * @since 4.0.0
    */
-  const can = (permission: Web_Api_Permission): boolean => permissions.includes(permission);
-  const server: Web_Api_Server | undefined = servers.find((candidate: Web_Api_Server): boolean => candidate['id'] === serverId);
-  const username: string = principal['username'] ?? 'Signed in';
+  const can: Web_App_App_Can = (permission: Web_App_App_Can_Permission): Web_App_App_Can_Returns => permissions.includes(permission);
+  const server: Web_App_App_Server = servers.find((candidate) => candidate['id'] === serverId);
+  const username: Web_App_App_Username = principal['username'] ?? 'Signed in';
 
   /**
-   * App - Run bot action.
+   * App - Run Bot Action.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_App_App_RunBotAction_Action} action - Action.
+   *
+   * @returns {Web_App_App_RunBotAction_Returns}
+   *
    * @since 4.0.0
    */
-  const runBotAction = async (action: Web_Api_BotAction): Promise<void> => guard(async (): Promise<void> => {
+  const runBotAction: Web_App_App_RunBotAction = async (action: Web_App_App_RunBotAction_Action): Web_App_App_RunBotAction_Returns => guard(async () => {
     await requestBotAction(action);
     await loadBot();
 
     // The bot process picks the change up within a few seconds; check again so the status catches up.
-    window.setTimeout((): void => {
-      void loadBot().catch((): undefined => undefined);
+    window.setTimeout(() => {
+      void loadBot().catch(() => undefined);
+
+      return;
     }, 3_000);
+
+    return;
   });
 
   /**
-   * App - Opens removed secret.
+   * App - Open Removed Secret.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_App_App_OpenRemovedSecret_Action} action - Action.
+   *
+   * @returns {Web_App_App_OpenRemovedSecret_Returns}
+   *
    * @since 4.0.0
    */
-  const openRemovedSecret = (action: Web_App_RemovedSecretAction): void => {
+  const openRemovedSecret: Web_App_App_OpenRemovedSecret = (action: Web_App_App_OpenRemovedSecret_Action): Web_App_App_OpenRemovedSecret_Returns => {
     if (action['view'] === 'feature') {
-      if (!openRoute(appRouteForFeature(action['featureKey']))) {
+      if (openRoute(appRouteForFeature(action['featureKey'])) === false) {
         return;
       }
 
@@ -594,63 +757,75 @@ export const App = (): ReactElement => {
     return;
   };
 
-  const noServer: ReactElement = (
+  const noServer: Web_App_App_NoServer = (
     <NoServer
       addServerUrl={(bot === null) ? null : bot['addServerUrl']}
-      onOpenConnection={(): void => {
+      onOpenConnection={() => {
         openView('connection');
+
+        return;
       }}
     />
   );
 
   /**
-   * App - Renders view.
+   * App - Render View.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_App_App_RenderView_Returns}
+   *
    * @since 4.0.0
    */
-  const renderView = (): ReactElement => {
+  const renderView: Web_App_App_RenderView = (): Web_App_App_RenderView_Returns => {
     switch (activeView) {
       case 'access': {
         return (
           <AccessView
-            onCreateToken={async (input: Web_Api_CreateTokenInput): Promise<Web_Api_CreatedToken> => {
-              const nextToken: Web_Api_CreatedToken = await createToken(input);
+            onCreateToken={async (input) => {
+              const nextToken: Web_App_App_RenderView_NextToken = await createToken(input);
 
               await loadTokens();
 
               return nextToken;
             }}
-            onRevokeToken={async (tokenId: string): Promise<void> => {
+            onRevokeToken={async (tokenId) => {
               await revokeToken(tokenId);
               await loadTokens();
+
+              return;
             }}
-            onUpdateToken={async (tokenId: string, input: Web_Api_UpdateTokenInput): Promise<void> => {
+            onUpdateToken={async (tokenId, input) => {
               await updateToken(tokenId, input);
               await loadTokens();
+
+              return;
             }}
             role={principal['role']}
             tokens={tokens}
           />
         );
       }
+
       case 'connection': {
         return (
           <ConnectionView
             bot={bot}
             can={can}
             onBotAction={runBotAction}
-            onTokenSaved={async (): Promise<void> => {
+            onTokenSaved={async () => {
               await Promise.all([
                 loadBot(),
                 loadRemovedSecrets(),
               ]);
+
+              return;
             }}
           />
         );
       }
+
       case 'feature': {
         if (server === undefined || featureKey === '') {
           return noServer;
@@ -661,18 +836,23 @@ export const App = (): ReactElement => {
             canWrite={can('configuration:write')}
             featureKey={featureKey}
             key={`${server['id']}:${featureKey}`}
-            onBack={(): void => {
+            onBack={() => {
               openView('features');
+
+              return;
             }}
             onDirtyChange={setFeatureDirty}
-            onFeaturesChanged={(): void => {
-              void loadServers().catch((): undefined => undefined);
-              void loadRemovedSecrets().catch((): undefined => undefined);
+            onFeaturesChanged={() => {
+              void loadServers().catch(() => undefined);
+              void loadRemovedSecrets().catch(() => undefined);
+
+              return;
             }}
             server={server}
           />
         );
       }
+
       case 'features': {
         if (server === undefined) {
           return noServer;
@@ -681,10 +861,12 @@ export const App = (): ReactElement => {
         return (
           <FeaturesView
             canWrite={can('configuration:write')}
-            onFeaturesChanged={(): void => {
-              void loadServers().catch((): undefined => undefined);
+            onFeaturesChanged={() => {
+              void loadServers().catch(() => undefined);
+
+              return;
             }}
-            onOpenFeature={(nextFeatureKey: string): void => {
+            onOpenFeature={(nextFeatureKey) => {
               if (nextFeatureKey === 'web-applications') {
                 openRoute(appRouteForInvite());
 
@@ -692,22 +874,27 @@ export const App = (): ReactElement => {
               }
 
               openRoute(appRouteForFeature(nextFeatureKey));
+
+              return;
             }}
             server={server}
           />
         );
       }
+
       case 'backup': {
-        if (can('users:manage')) {
+        if (can('users:manage') === true) {
           return (
             <BackupView
-              onImported={async (): Promise<void> => {
+              onImported={async () => {
                 await Promise.all([
                   loadServers(),
                   loadBot(),
                   loadRemovedSecrets(),
                   loadTokens(),
                 ]);
+
+                return;
               }}
               server={server}
             />
@@ -716,6 +903,7 @@ export const App = (): ReactElement => {
 
         break;
       }
+
       case 'invite': {
         if (server === undefined) {
           return noServer;
@@ -724,23 +912,29 @@ export const App = (): ReactElement => {
         return (
           <InvitePageView
             canWrite={can('configuration:write')}
-            onOpenFeature={(nextFeatureKey: string): void => {
+            onOpenFeature={(nextFeatureKey) => {
               openRoute(appRouteForFeature(nextFeatureKey));
+
+              return;
             }}
             server={server}
           />
         );
       }
+
       case 'logs': {
         return <LogsView canChangeDebugLogging={can('bot:control')} />;
       }
+
       case 'notifications': {
-        if (can('configuration:write')) {
+        if (can('configuration:write') === true) {
           return (
             <NotificationsView
               interpreter="discord-stonker-bot"
-              onChange={(): void => {
-                void loadRemovedSecrets().catch((): undefined => undefined);
+              onChange={() => {
+                void loadRemovedSecrets().catch(() => undefined);
+
+                return;
               }}
             />
           );
@@ -748,26 +942,31 @@ export const App = (): ReactElement => {
 
         break;
       }
+
       case 'security': {
         return (
           <SecurityView
-            onAuthenticatorEnabled={(): void => {
-              void loadRemovedSecrets().catch((): undefined => undefined);
+            onAuthenticatorEnabled={() => {
+              void loadRemovedSecrets().catch(() => undefined);
+
+              return;
             }}
-            onUsernameChanged={(nextUsername: string): void => setPrincipal({
+            onUsernameChanged={(nextUsername) => setPrincipal({
               ...principal,
               username: nextUsername,
             })}
           />
         );
       }
+
       case 'users': {
-        if (can('users:manage')) {
+        if (can('users:manage') === true) {
           return <UsersView principal={principal} servers={servers} />;
         }
 
         break;
       }
+
       default: {
         break;
       }
@@ -778,17 +977,23 @@ export const App = (): ReactElement => {
         bot={bot}
         can={can}
         onBotAction={runBotAction}
-        onOpenConnection={(): void => {
+        onOpenConnection={() => {
           openView('connection');
+
+          return;
         }}
-        onOpenFeatures={(): void => {
+        onOpenFeatures={() => {
           openView('features');
+
+          return;
         }}
-        onRefresh={async (): Promise<void> => {
+        onRefresh={async () => {
           await Promise.all([
             loadBot(),
             loadServers(),
           ]);
+
+          return;
         }}
         principal={principal}
         server={server}
@@ -797,20 +1002,26 @@ export const App = (): ReactElement => {
     );
   };
 
-  const addServerUrl: string | null = (bot === null) ? null : bot['addServerUrl'];
+  const addServerUrl: Web_App_App_AddServerUrl = (bot === null) ? null : bot['addServerUrl'];
 
   /**
-   * App - Change server.
+   * App - Change Server.
    *
    * Keeps the current server selection synchronized across the desktop and
    * phone switchers without discarding an unfinished feature form silently.
    *
-   * @param {string} nextServerId - Next server id.
+   * @param {Web_App_App_ChangeServer_NextServerId} nextServerId - Next server id.
+   *
+   * @returns {Web_App_App_ChangeServer_Returns}
    *
    * @since 4.0.0
    */
-  const changeServer = (nextServerId: string): void => {
-    if (activeView === 'feature' && featureDirty && !window.confirm('Discard your unsaved changes?')) {
+  const changeServer: Web_App_App_ChangeServer = (nextServerId: Web_App_App_ChangeServer_NextServerId): Web_App_App_ChangeServer_Returns => {
+    if (
+      activeView === 'feature'
+      && featureDirty === true
+      && window.confirm('Discard your unsaved changes?') === false
+    ) {
       return;
     }
 
@@ -818,7 +1029,7 @@ export const App = (): ReactElement => {
     setServerId(nextServerId);
 
     if (activeView === 'feature') {
-      const featuresRoute: Web_AppNavigation_Route = appRouteForView('features');
+      const featuresRoute: Web_App_App_ChangeServer_FeaturesRoute = appRouteForView('features');
 
       replaceNavigationPath(window, featuresRoute['path']);
       applyAppRoute(featuresRoute);
@@ -827,20 +1038,24 @@ export const App = (): ReactElement => {
     return;
   };
 
-  const notice: ReactElement | null = (removedSecrets.length === 0) ? null : (
+  const lastRemovedSecret: Web_App_App_LastRemovedSecret = removedSecrets.at(-1);
+  const removedAt: Web_App_App_RemovedAt = (lastRemovedSecret !== undefined) ? lastRemovedSecret['removedAt'] : '';
+  const notice: Web_App_App_Notice = (removedSecrets.length === 0) ? null : (
     <KeyNotice
       appName={appConfig['appName']}
-      items={removedSecrets.map((removedSecret: Web_Api_RemovedSecret) => ({
+      items={removedSecrets.map((removedSecret) => ({
         id: `${removedSecret['kind']}:${removedSecret['serverId'] ?? ''}:${removedSecret['featureKey'] ?? ''}:${removedSecret['notificationId'] ?? ''}`,
         label: describeRemovedSecret(removedSecret)['label'],
-        onOpen: (): void => openRemovedSecret(describeRemovedSecret(removedSecret)),
+        onOpen: () => openRemovedSecret(describeRemovedSecret(removedSecret)),
       }))}
       keyName="installation key"
-      onDismiss={async (): Promise<void> => {
+      onDismiss={async () => {
         await dismissRemovedSecrets();
         setRemovedSecrets([]);
+
+        return;
       }}
-      removedAt={removedSecrets.at(-1)?.['removedAt'] ?? ''}
+      removedAt={removedAt}
     />
   );
 
@@ -848,21 +1063,27 @@ export const App = (): ReactElement => {
     <AppShell
       accountDetail={(principal['role'] === undefined) ? undefined : roleLabels[principal['role']]}
       activeView={activeView}
-      canOpen={(permission: string): boolean => can(permission as Web_Api_Permission)}
+      canOpen={(permission) => can(permission as Web_Api_Permission)}
       notice={notice}
-      onLogout={(): void => {
+      onLogout={() => {
         void signOut();
+
+        return;
       }}
-      onViewChange={(view: Web_Components_View): void => {
+      onViewChange={(view) => {
         openView(view);
+
+        return;
       }}
       phonePageTop={(
         <div className="mobile-server-bar">
           <ServerSwitcher
             addServerUrl={addServerUrl}
             onChange={changeServer}
-            onOpenConnection={(): void => {
+            onOpenConnection={() => {
               openView('connection');
+
+              return;
             }}
             serverId={serverId}
             servers={servers}
@@ -873,8 +1094,10 @@ export const App = (): ReactElement => {
         <ServerSwitcher
           addServerUrl={addServerUrl}
           onChange={changeServer}
-          onOpenConnection={(): void => {
+          onOpenConnection={() => {
             openView('connection');
+
+            return;
           }}
           serverId={serverId}
           servers={servers}
@@ -882,8 +1105,10 @@ export const App = (): ReactElement => {
       )}
       status={{
         ...describeBot(bot),
-        onOpen: (): void => {
+        onOpen: () => {
           openView('connection');
+
+          return;
         },
       }}
       username={username}

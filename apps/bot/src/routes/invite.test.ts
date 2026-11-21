@@ -926,7 +926,11 @@ describe('public invite page', () => {
 
     expect(discord['get']).toHaveBeenCalledTimes(1);
 
-    expect(discord['get']).toHaveBeenCalledWith(Routes.guild(SERVER_ID), expect.anything());
+    expect(discord['get']).toHaveBeenCalledWith(Routes.guild(SERVER_ID), {
+      query: new URLSearchParams({
+        with_counts: 'true',
+      }),
+    });
 
     return;
   });
@@ -1032,14 +1036,15 @@ describe('public invite requests', () => {
       status: 200,
     }));
 
-    expect(discord['post']).toHaveBeenCalledWith(Routes.channelInvites(RULES_CHANNEL_ID), expect.objectContaining({
+    expect(discord['post']).toHaveBeenCalledWith(Routes.channelInvites(RULES_CHANNEL_ID), {
       body: {
         max_age: 300,
         max_uses: 1,
         temporary: false,
         unique: true,
       },
-    }));
+      reason: 'Visitor completed Stonker invite verification',
+    });
 
     const googleCall: Tests_Routes_Invite_RecaptchaCall = recaptcha.mock.calls.find((call) => String(call[0]).startsWith('https://www.google.com/recaptcha/') === true);
 

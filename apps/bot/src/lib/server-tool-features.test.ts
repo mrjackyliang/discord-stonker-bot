@@ -1,10 +1,10 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
 
+import { chatPlatformIntents } from './chat-platform/index.js';
 import {
   createCommandData,
   findDuplicateMemberNames,
@@ -96,8 +96,8 @@ describe('server tool runtime', () => {
     expect(prepared['configurationErrors']).toEqual([]);
 
     expect(prepared['intents']).toEqual([
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildVoiceStates,
+      chatPlatformIntents['GuildMembers'],
+      chatPlatformIntents['GuildVoiceStates'],
     ]);
 
     return;

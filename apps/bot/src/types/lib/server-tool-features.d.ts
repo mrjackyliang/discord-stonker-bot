@@ -1,19 +1,18 @@
 import type {
-  ApplicationCommandDataResolvable,
-  ChatInputCommandInteraction,
-  Client,
-  GatewayIntentBits,
-  Guild,
-  GuildBasedChannel,
-  GuildMember,
-  Role,
-  User,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_ApplicationCommand,
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_Guild,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Interaction,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_Role,
+  Lib_ChatPlatform_Contracts_User,
+} from './chat-platform/index.d.ts';
 
 export type Lib_ServerToolFeatures_ToolKey =
   | 'bulk-ban'
@@ -41,11 +40,11 @@ export type Lib_ServerToolFeatures_Runtime_Tools = Partial<Record<Lib_ServerTool
 export type Lib_ServerToolFeatures_Runtime = {
   tools: Lib_ServerToolFeatures_Runtime_Tools;
 };
-export type Lib_ServerToolFeatures_Registration = (client: Client, guildIdentifier: string) => void;
+export type Lib_ServerToolFeatures_Registration = (client: Lib_ChatPlatform_Contracts_Client, guildIdentifier: string) => void;
 export type Lib_ServerToolFeatures_Prepared = {
   activeFeatureKeys: Shared_FeatureKey[];
   configurationErrors: string[];
-  intents: GatewayIntentBits[];
+  intents: Lib_ChatPlatform_Contracts_Intent[];
   register: Lib_ServerToolFeatures_Registration;
 };
 export type Lib_ServerToolFeatures_DuplicateEntry = {
@@ -65,8 +64,8 @@ export type Lib_ServerToolFeatures_CompileServerTools_ToolKeys = Lib_ServerToolF
 export type Lib_ServerToolFeatures_CompileServerTools_ToolConfiguration = Lib_ServerToolFeatures_ToolConfiguration | undefined;
 
 export type Lib_ServerToolFeatures_CreateCommandData_Runtime = Lib_ServerToolFeatures_Runtime;
-export type Lib_ServerToolFeatures_CreateCommandData_Returns = ApplicationCommandDataResolvable[];
-export type Lib_ServerToolFeatures_CreateCommandData_Commands = ApplicationCommandDataResolvable[];
+export type Lib_ServerToolFeatures_CreateCommandData_Returns = Lib_ChatPlatform_Contracts_ApplicationCommand[];
+export type Lib_ServerToolFeatures_CreateCommandData_Commands = Lib_ChatPlatform_Contracts_ApplicationCommand[];
 
 export type Lib_ServerToolFeatures_CreateRegistration_Runtime = Lib_ServerToolFeatures_Runtime;
 export type Lib_ServerToolFeatures_CreateRegistration_Returns = Lib_ServerToolFeatures_Registration;
@@ -92,66 +91,66 @@ export type Lib_ServerToolFeatures_GetEnabledFeature_EnabledFeature = {
   configuration: unknown;
 };
 
-export type Lib_ServerToolFeatures_HandleBulkBan_Interaction = ChatInputCommandInteraction<'cached'>;
-export type Lib_ServerToolFeatures_HandleBulkBan_Invoker = GuildMember;
+export type Lib_ServerToolFeatures_HandleBulkBan_Interaction = Lib_ChatPlatform_Contracts_Interaction;
+export type Lib_ServerToolFeatures_HandleBulkBan_Invoker = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HandleBulkBan_Returns = Promise<string>;
 export type Lib_ServerToolFeatures_HandleBulkBan_Confirmed = boolean;
 export type Lib_ServerToolFeatures_HandleBulkBan_RawIdentifiers = string;
 export type Lib_ServerToolFeatures_HandleBulkBan_Separator = RegExp;
 export type Lib_ServerToolFeatures_HandleBulkBan_Identifiers = string[];
 export type Lib_ServerToolFeatures_HandleBulkBan_DeleteMessageSeconds = number;
-export type Lib_ServerToolFeatures_HandleBulkBan_BotMember = GuildMember | null;
-export type Lib_ServerToolFeatures_HandleBulkBan_TargetMembers = GuildMember[];
-export type Lib_ServerToolFeatures_HandleBulkBan_TargetMember = GuildMember | undefined;
-export type Lib_ServerToolFeatures_HandleBulkBan_Tasks = Array<Promise<GuildMember | User | string>>;
-export type Lib_ServerToolFeatures_HandleBulkBan_Results = Array<PromiseSettledResult<GuildMember | User | string>>;
+export type Lib_ServerToolFeatures_HandleBulkBan_BotMember = Lib_ChatPlatform_Contracts_Member | null;
+export type Lib_ServerToolFeatures_HandleBulkBan_TargetMembers = Lib_ChatPlatform_Contracts_Member[];
+export type Lib_ServerToolFeatures_HandleBulkBan_TargetMember = Lib_ChatPlatform_Contracts_Member | undefined;
+export type Lib_ServerToolFeatures_HandleBulkBan_Tasks = Array<Promise<Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_User | string>>;
+export type Lib_ServerToolFeatures_HandleBulkBan_Results = Array<PromiseSettledResult<Lib_ChatPlatform_Contracts_Member | Lib_ChatPlatform_Contracts_User | string>>;
 export type Lib_ServerToolFeatures_HandleBulkBan_SucceededCount = number;
 
-export type Lib_ServerToolFeatures_HandleCommand_Interaction = ChatInputCommandInteraction<'cached'>;
+export type Lib_ServerToolFeatures_HandleCommand_Interaction = Lib_ChatPlatform_Contracts_Interaction;
 export type Lib_ServerToolFeatures_HandleCommand_GuildIdentifier = string;
 export type Lib_ServerToolFeatures_HandleCommand_Runtime = Lib_ServerToolFeatures_Runtime;
 export type Lib_ServerToolFeatures_HandleCommand_Returns = Promise<void>;
 export type Lib_ServerToolFeatures_HandleCommand_ToolKey = Lib_ServerToolFeatures_ToolKey | undefined;
-export type Lib_ServerToolFeatures_HandleCommand_Invoker = GuildMember;
+export type Lib_ServerToolFeatures_HandleCommand_Invoker = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HandleCommand_Response = string;
 
-export type Lib_ServerToolFeatures_HandleDuplicates_Guild = Guild;
+export type Lib_ServerToolFeatures_HandleDuplicates_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_ServerToolFeatures_HandleDuplicates_Returns = string;
 export type Lib_ServerToolFeatures_HandleDuplicates_Entries = Lib_ServerToolFeatures_DuplicateEntry[];
 export type Lib_ServerToolFeatures_HandleDuplicates_Groups = Lib_ServerToolFeatures_DuplicateGroup[];
 export type Lib_ServerToolFeatures_HandleDuplicates_Lines = string[];
 
-export type Lib_ServerToolFeatures_HandleEmojis_Guild = Guild;
+export type Lib_ServerToolFeatures_HandleEmojis_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_ServerToolFeatures_HandleEmojis_Returns = Promise<string>;
 export type Lib_ServerToolFeatures_HandleEmojis_Names = string[];
 
-export type Lib_ServerToolFeatures_HandleMembers_Guild = Guild;
+export type Lib_ServerToolFeatures_HandleMembers_Guild = Lib_ChatPlatform_Contracts_Guild;
 export type Lib_ServerToolFeatures_HandleMembers_Returns = string;
 
-export type Lib_ServerToolFeatures_HandleRole_Interaction = ChatInputCommandInteraction<'cached'>;
-export type Lib_ServerToolFeatures_HandleRole_Invoker = GuildMember;
+export type Lib_ServerToolFeatures_HandleRole_Interaction = Lib_ChatPlatform_Contracts_Interaction;
+export type Lib_ServerToolFeatures_HandleRole_Invoker = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HandleRole_Returns = Promise<string>;
 export type Lib_ServerToolFeatures_HandleRole_Confirmed = boolean;
-export type Lib_ServerToolFeatures_HandleRole_TargetUser = User;
-export type Lib_ServerToolFeatures_HandleRole_TargetMember = GuildMember;
-export type Lib_ServerToolFeatures_HandleRole_Role = Role;
+export type Lib_ServerToolFeatures_HandleRole_TargetUser = Lib_ChatPlatform_Contracts_User;
+export type Lib_ServerToolFeatures_HandleRole_TargetMember = Lib_ChatPlatform_Contracts_Member;
+export type Lib_ServerToolFeatures_HandleRole_Role = Lib_ChatPlatform_Contracts_Role;
 export type Lib_ServerToolFeatures_HandleRole_Action = string;
-export type Lib_ServerToolFeatures_HandleRole_BotMember = GuildMember | null;
+export type Lib_ServerToolFeatures_HandleRole_BotMember = Lib_ChatPlatform_Contracts_Member | null;
 
-export type Lib_ServerToolFeatures_HandleVoice_Interaction = ChatInputCommandInteraction<'cached'>;
+export type Lib_ServerToolFeatures_HandleVoice_Interaction = Lib_ChatPlatform_Contracts_Interaction;
 export type Lib_ServerToolFeatures_HandleVoice_Returns = Promise<string>;
 export type Lib_ServerToolFeatures_HandleVoice_Confirmed = boolean;
-export type Lib_ServerToolFeatures_HandleVoice_TargetUser = User;
-export type Lib_ServerToolFeatures_HandleVoice_TargetMember = GuildMember;
+export type Lib_ServerToolFeatures_HandleVoice_TargetUser = Lib_ChatPlatform_Contracts_User;
+export type Lib_ServerToolFeatures_HandleVoice_TargetMember = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HandleVoice_Action = string;
-export type Lib_ServerToolFeatures_HandleVoice_ChannelOption = GuildBasedChannel | null;
-export type Lib_ServerToolFeatures_HandleVoice_TargetChannel = GuildBasedChannel | null;
+export type Lib_ServerToolFeatures_HandleVoice_ChannelOption = Lib_ChatPlatform_Contracts_GuildChannel | null;
+export type Lib_ServerToolFeatures_HandleVoice_TargetChannel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 
-export type Lib_ServerToolFeatures_HasConfiguredRole_Invoker = GuildMember;
+export type Lib_ServerToolFeatures_HasConfiguredRole_Invoker = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HasConfiguredRole_AllowedRoleIdentifiers = Set<string>;
 export type Lib_ServerToolFeatures_HasConfiguredRole_Returns = boolean;
 
-export type Lib_ServerToolFeatures_HasRequiredDiscordPermission_Invoker = GuildMember;
+export type Lib_ServerToolFeatures_HasRequiredDiscordPermission_Invoker = Lib_ChatPlatform_Contracts_Member;
 export type Lib_ServerToolFeatures_HasRequiredDiscordPermission_ToolKey = Lib_ServerToolFeatures_ToolKey;
 export type Lib_ServerToolFeatures_HasRequiredDiscordPermission_Returns = boolean;
 
@@ -164,7 +163,7 @@ export type Lib_ServerToolFeatures_PrepareServerToolFeatures_Runtime = Lib_Serve
 export type Lib_ServerToolFeatures_PrepareServerToolFeatures_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_ServerToolFeatures_PrepareServerToolFeatures_ConfigurationErrors = string[];
 export type Lib_ServerToolFeatures_PrepareServerToolFeatures_Feature = Lib_ServerToolFeatures_GetEnabledFeature_Returns;
-export type Lib_ServerToolFeatures_PrepareServerToolFeatures_Intents = GatewayIntentBits[];
+export type Lib_ServerToolFeatures_PrepareServerToolFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_ServerToolFeatures_PrepareServerToolFeatures_MemberIntentRequired = boolean;
 export type Lib_ServerToolFeatures_PrepareServerToolFeatures_VoiceIntentRequired = boolean;
 
@@ -173,9 +172,9 @@ export type Lib_ServerToolFeatures_RecordConfigurationError_ConfigurationErrors 
 export type Lib_ServerToolFeatures_RecordConfigurationError_Returns = void;
 export type Lib_ServerToolFeatures_RecordConfigurationError_Message = string;
 
-export type Lib_ServerToolFeatures_RegisterCommands_Client = Client<true>;
+export type Lib_ServerToolFeatures_RegisterCommands_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_ServerToolFeatures_RegisterCommands_GuildIdentifier = string;
 export type Lib_ServerToolFeatures_RegisterCommands_Runtime = Lib_ServerToolFeatures_Runtime;
 export type Lib_ServerToolFeatures_RegisterCommands_Returns = Promise<void>;
-export type Lib_ServerToolFeatures_RegisterCommands_Guild = Guild;
-export type Lib_ServerToolFeatures_RegisterCommands_Commands = ApplicationCommandDataResolvable[];
+export type Lib_ServerToolFeatures_RegisterCommands_Guild = Lib_ChatPlatform_Contracts_Guild;
+export type Lib_ServerToolFeatures_RegisterCommands_Commands = Lib_ChatPlatform_Contracts_ApplicationCommand[];

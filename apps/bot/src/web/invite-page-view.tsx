@@ -27,34 +27,108 @@ import { countChanges } from '@/web/schema.ts';
 import { showToast } from '@/web/toast.ts';
 
 import type {
-  ChangeEvent,
-  ReactElement,
-} from 'react';
-
-import type {
-  Web_Api_InvitePage,
-  Web_Api_InvitePageResponse,
-  Web_Api_UploadedImage,
-} from '@/types/web/api.d.ts';
-import type {
-  Web_Components_AccentSwatch,
-  Web_Components_InviteDraft,
-  Web_Components_InviteImageKind,
-  Web_Components_InviteLogoOption,
-  Web_Components_InvitePageView_Props,
-  Web_Components_InviteThemeOption,
-} from '@/types/web/components.d.ts';
-import type { Web_Invite_Rgb } from '@/types/web/invite.d.ts';
+  Web_InvitePageView_AccentSwatches,
+  Web_InvitePageView_CountDraftChanges_Draft,
+  Web_InvitePageView_CountDraftChanges_Returns,
+  Web_InvitePageView_CountDraftChanges_Saved,
+  Web_InvitePageView_DarkSurface,
+  Web_InvitePageView_DraftFrom_Page,
+  Web_InvitePageView_DraftFrom_Returns,
+  Web_InvitePageView_FormatRatio_Ratio,
+  Web_InvitePageView_FormatRatio_Returns,
+  Web_InvitePageView_ImageTypes,
+  Web_InvitePageView_InvitePageView_Accent,
+  Web_InvitePageView_InvitePageView_BannerButton,
+  Web_InvitePageView_InvitePageView_BannerError,
+  Web_InvitePageView_InvitePageView_BannerInput,
+  Web_InvitePageView_InvitePageView_BannerInputValue,
+  Web_InvitePageView_InvitePageView_ButtonRatio,
+  Web_InvitePageView_InvitePageView_CanWrite,
+  Web_InvitePageView_InvitePageView_ChangeCount,
+  Web_InvitePageView_InvitePageView_ChangeNoun,
+  Web_InvitePageView_InvitePageView_ChooseAccent,
+  Web_InvitePageView_InvitePageView_ChooseAccent_Color,
+  Web_InvitePageView_InvitePageView_ChooseAccent_Returns,
+  Web_InvitePageView_InvitePageView_Conflict,
+  Web_InvitePageView_InvitePageView_ConflictState,
+  Web_InvitePageView_InvitePageView_Copied,
+  Web_InvitePageView_InvitePageView_CopiedState,
+  Web_InvitePageView_InvitePageView_Draft,
+  Web_InvitePageView_InvitePageView_DraftState,
+  Web_InvitePageView_InvitePageView_FieldError,
+  Web_InvitePageView_InvitePageView_FieldError_Field,
+  Web_InvitePageView_InvitePageView_FieldError_Returns,
+  Web_InvitePageView_InvitePageView_File,
+  Web_InvitePageView_InvitePageView_Files,
+  Web_InvitePageView_InvitePageView_HexText,
+  Web_InvitePageView_InvitePageView_HexTextState,
+  Web_InvitePageView_InvitePageView_LinkSurfaces,
+  Web_InvitePageView_InvitePageView_Load,
+  Web_InvitePageView_InvitePageView_Load_Response,
+  Web_InvitePageView_InvitePageView_Load_Returns,
+  Web_InvitePageView_InvitePageView_Loaded,
+  Web_InvitePageView_InvitePageView_LoadedState,
+  Web_InvitePageView_InvitePageView_LoadError,
+  Web_InvitePageView_InvitePageView_LoadErrorState,
+  Web_InvitePageView_InvitePageView_LogoError,
+  Web_InvitePageView_InvitePageView_LogoInput,
+  Web_InvitePageView_InvitePageView_LogoInputValue,
+  Web_InvitePageView_InvitePageView_LogoUrl,
+  Web_InvitePageView_InvitePageView_Next,
+  Web_InvitePageView_InvitePageView_OnOpenFeature,
+  Web_InvitePageView_InvitePageView_Props,
+  Web_InvitePageView_InvitePageView_ReadOnly,
+  Web_InvitePageView_InvitePageView_Returns,
+  Web_InvitePageView_InvitePageView_Save,
+  Web_InvitePageView_InvitePageView_Save_Page,
+  Web_InvitePageView_InvitePageView_Save_Returns,
+  Web_InvitePageView_InvitePageView_Saved,
+  Web_InvitePageView_InvitePageView_SaveError,
+  Web_InvitePageView_InvitePageView_SaveErrorState,
+  Web_InvitePageView_InvitePageView_Saving,
+  Web_InvitePageView_InvitePageView_SavingState,
+  Web_InvitePageView_InvitePageView_Server,
+  Web_InvitePageView_InvitePageView_SetConflict,
+  Web_InvitePageView_InvitePageView_SetCopied,
+  Web_InvitePageView_InvitePageView_SetDraft,
+  Web_InvitePageView_InvitePageView_SetHexText,
+  Web_InvitePageView_InvitePageView_SetLoaded,
+  Web_InvitePageView_InvitePageView_SetLoadError,
+  Web_InvitePageView_InvitePageView_SetSaveError,
+  Web_InvitePageView_InvitePageView_SetSaving,
+  Web_InvitePageView_InvitePageView_SetUploadError,
+  Web_InvitePageView_InvitePageView_SetUploading,
+  Web_InvitePageView_InvitePageView_Summary,
+  Web_InvitePageView_InvitePageView_ThemeName,
+  Web_InvitePageView_InvitePageView_Update,
+  Web_InvitePageView_InvitePageView_Update_Key,
+  Web_InvitePageView_InvitePageView_Update_Returns,
+  Web_InvitePageView_InvitePageView_Update_Value,
+  Web_InvitePageView_InvitePageView_Upload,
+  Web_InvitePageView_InvitePageView_Upload_File,
+  Web_InvitePageView_InvitePageView_Upload_Image,
+  Web_InvitePageView_InvitePageView_Upload_Kind,
+  Web_InvitePageView_InvitePageView_Upload_Returns,
+  Web_InvitePageView_InvitePageView_UploadError,
+  Web_InvitePageView_InvitePageView_UploadErrorState,
+  Web_InvitePageView_InvitePageView_Uploading,
+  Web_InvitePageView_InvitePageView_UploadingState,
+  Web_InvitePageView_InvitePageView_WeakLinkThemes,
+  Web_InvitePageView_LightSurface,
+  Web_InvitePageView_LogoOptions,
+  Web_InvitePageView_MaximumImageBytes,
+  Web_InvitePageView_ThemeOptions,
+} from '@/types/web/invite-page-view.d.ts';
 
 /**
- * Invite Page View - Accent swatches.
+ * Invite Page View - Accent Swatches.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const accentSwatches: Web_Components_AccentSwatch[] = [
+const accentSwatches: Web_InvitePageView_AccentSwatches = [
   {
     color: '#6250d9',
     name: 'Purple',
@@ -98,14 +172,14 @@ const accentSwatches: Web_Components_AccentSwatch[] = [
 ];
 
 /**
- * Invite Page View - Theme options.
+ * Invite Page View - Theme Options.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const themeOptions: Web_Components_InviteThemeOption[] = [
+const themeOptions: Web_InvitePageView_ThemeOptions = [
   {
     id: 'system',
     label: 'System',
@@ -121,14 +195,14 @@ const themeOptions: Web_Components_InviteThemeOption[] = [
 ];
 
 /**
- * Invite Page View - Logo options.
+ * Invite Page View - Logo Options.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const logoOptions: Web_Components_InviteLogoOption[] = [
+const logoOptions: Web_InvitePageView_LogoOptions = [
   {
     id: 'server',
     label: 'Server icon',
@@ -144,14 +218,14 @@ const logoOptions: Web_Components_InviteLogoOption[] = [
 ];
 
 /**
- * Invite Page View - Image types.
+ * Invite Page View - Image Types.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const imageTypes: string[] = [
+const imageTypes: Web_InvitePageView_ImageTypes = [
   'image/gif',
   'image/jpeg',
   'image/png',
@@ -159,38 +233,38 @@ const imageTypes: string[] = [
 ];
 
 /**
- * Invite Page View - Maximum image bytes.
+ * Invite Page View - Maximum Image Bytes.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const maximumImageBytes: number = 2 * 1024 * 1024;
+const maximumImageBytes: Web_InvitePageView_MaximumImageBytes = 2 * 1024 * 1024;
 
 /**
- * Invite Page View - Light surface.
+ * Invite Page View - Light Surface.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const lightSurface: Web_Invite_Rgb = [
+const lightSurface: Web_InvitePageView_LightSurface = [
   255,
   255,
   255,
 ];
 
 /**
- * Invite Page View - Dark surface.
+ * Invite Page View - Dark Surface.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const darkSurface: Web_Invite_Rgb = [
+const darkSurface: Web_InvitePageView_DarkSurface = [
   24,
   27,
   30,
@@ -199,14 +273,18 @@ const darkSurface: Web_Invite_Rgb = [
 // draftFrom copies the saved page into the fields the designer edits.
 
 /**
- * Invite Page View - Draft from.
+ * Invite Page View - Draft From.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePageView_DraftFrom_Page} page - Page.
+ *
+ * @returns {Web_InvitePageView_DraftFrom_Returns}
+ *
  * @since 4.0.0
  */
-const draftFrom = (page: Web_Api_InvitePage): Web_Components_InviteDraft => ({
+const draftFrom = (page: Web_InvitePageView_DraftFrom_Page): Web_InvitePageView_DraftFrom_Returns => ({
   accentColor: page['accentColor'],
   bannerImageId: page['bannerImageId'],
   bannerImageUrl: page['bannerImageUrl'],
@@ -226,14 +304,19 @@ const draftFrom = (page: Web_Api_InvitePage): Web_Components_InviteDraft => ({
 // so a new banner is one change, not two.
 
 /**
- * Invite Page View - Count draft changes.
+ * Invite Page View - Count Draft Changes.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePageView_CountDraftChanges_Draft} draft - Draft.
+ * @param {Web_InvitePageView_CountDraftChanges_Saved} saved - Saved.
+ *
+ * @returns {Web_InvitePageView_CountDraftChanges_Returns}
+ *
  * @since 4.0.0
  */
-const countDraftChanges = (draft: Web_Components_InviteDraft, saved: Web_Components_InviteDraft): number => countChanges({
+const countDraftChanges = (draft: Web_InvitePageView_CountDraftChanges_Draft, saved: Web_InvitePageView_CountDraftChanges_Saved): Web_InvitePageView_CountDraftChanges_Returns => countChanges({
   ...draft,
   bannerImageUrl: null,
   logoImageUrl: null,
@@ -246,70 +329,67 @@ const countDraftChanges = (draft: Web_Components_InviteDraft, saved: Web_Compone
 // formatRatio shows a contrast ratio the way contrast checkers do, such as 4.6:1.
 
 /**
- * Invite Page View - Formats ratio.
+ * Invite Page View - Format Ratio.
  *
  * Centralizes this operation for the surrounding workflow.
  * Callers reuse one implementation instead of repeating the behavior.
  *
+ * @param {Web_InvitePageView_FormatRatio_Ratio} ratio - Ratio.
+ *
+ * @returns {Web_InvitePageView_FormatRatio_Returns}
+ *
  * @since 4.0.0
  */
-const formatRatio = (ratio: number): string => `${(Math.floor(ratio * 10) / 10).toFixed(1)}:1`;
+const formatRatio = (ratio: Web_InvitePageView_FormatRatio_Ratio): Web_InvitePageView_FormatRatio_Returns => `${(Math.floor(ratio * 10) / 10).toFixed(1)}:1`;
 
 /**
- * Invite Page View.
+ * Invite Page View - Invite Page View.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_InvitePageView_InvitePageView_Props} props - Props.
+ *
+ * @returns {Web_InvitePageView_InvitePageView_Returns}
+ *
  * @since 4.0.0
  */
-export const InvitePageView = ({
-  canWrite,
-  onOpenFeature,
-  server,
-}: Web_Components_InvitePageView_Props): ReactElement => {
-  const [
-    loaded,
-    setLoaded,
-  ] = useState<Web_Api_InvitePageResponse | null>(null);
-  const [
-    draft,
-    setDraft,
-  ] = useState<Web_Components_InviteDraft | null>(null);
-  const [
-    loadError,
-    setLoadError,
-  ] = useState<string>('');
-  const [
-    saveError,
-    setSaveError,
-  ] = useState<unknown>(null);
-  const [
-    conflict,
-    setConflict,
-  ] = useState<boolean>(false);
-  const [
-    saving,
-    setSaving,
-  ] = useState<boolean>(false);
-  const [
-    uploading,
-    setUploading,
-  ] = useState<Web_Components_InviteImageKind | null>(null);
-  const [
-    uploadError,
-    setUploadError,
-  ] = useState<string>('');
-  const [
-    hexText,
-    setHexText,
-  ] = useState<string>('');
-  const [
-    copied,
-    setCopied,
-  ] = useState<boolean>(false);
-  const logoInput = useRef<HTMLInputElement | null>(null);
-  const bannerInput = useRef<HTMLInputElement | null>(null);
+export const InvitePageView = (props: Web_InvitePageView_InvitePageView_Props): Web_InvitePageView_InvitePageView_Returns => {
+  const canWrite: Web_InvitePageView_InvitePageView_CanWrite = props['canWrite'];
+  const onOpenFeature: Web_InvitePageView_InvitePageView_OnOpenFeature = props['onOpenFeature'];
+  const server: Web_InvitePageView_InvitePageView_Server = props['server'];
+  const loadedState: Web_InvitePageView_InvitePageView_LoadedState = useState<Web_InvitePageView_InvitePageView_Loaded>(null);
+  const loaded: Web_InvitePageView_InvitePageView_Loaded = loadedState[0];
+  const setLoaded: Web_InvitePageView_InvitePageView_SetLoaded = loadedState[1];
+  const draftState: Web_InvitePageView_InvitePageView_DraftState = useState<Web_InvitePageView_InvitePageView_Draft>(null);
+  const draft: Web_InvitePageView_InvitePageView_Draft = draftState[0];
+  const setDraft: Web_InvitePageView_InvitePageView_SetDraft = draftState[1];
+  const loadErrorState: Web_InvitePageView_InvitePageView_LoadErrorState = useState<Web_InvitePageView_InvitePageView_LoadError>('');
+  const loadError: Web_InvitePageView_InvitePageView_LoadError = loadErrorState[0];
+  const setLoadError: Web_InvitePageView_InvitePageView_SetLoadError = loadErrorState[1];
+  const saveErrorState: Web_InvitePageView_InvitePageView_SaveErrorState = useState<Web_InvitePageView_InvitePageView_SaveError>(null);
+  const saveError: Web_InvitePageView_InvitePageView_SaveError = saveErrorState[0];
+  const setSaveError: Web_InvitePageView_InvitePageView_SetSaveError = saveErrorState[1];
+  const conflictState: Web_InvitePageView_InvitePageView_ConflictState = useState<Web_InvitePageView_InvitePageView_Conflict>(false);
+  const conflict: Web_InvitePageView_InvitePageView_Conflict = conflictState[0];
+  const setConflict: Web_InvitePageView_InvitePageView_SetConflict = conflictState[1];
+  const savingState: Web_InvitePageView_InvitePageView_SavingState = useState<Web_InvitePageView_InvitePageView_Saving>(false);
+  const saving: Web_InvitePageView_InvitePageView_Saving = savingState[0];
+  const setSaving: Web_InvitePageView_InvitePageView_SetSaving = savingState[1];
+  const uploadingState: Web_InvitePageView_InvitePageView_UploadingState = useState<Web_InvitePageView_InvitePageView_Uploading>(null);
+  const uploading: Web_InvitePageView_InvitePageView_Uploading = uploadingState[0];
+  const setUploading: Web_InvitePageView_InvitePageView_SetUploading = uploadingState[1];
+  const uploadErrorState: Web_InvitePageView_InvitePageView_UploadErrorState = useState<Web_InvitePageView_InvitePageView_UploadError>('');
+  const uploadError: Web_InvitePageView_InvitePageView_UploadError = uploadErrorState[0];
+  const setUploadError: Web_InvitePageView_InvitePageView_SetUploadError = uploadErrorState[1];
+  const hexTextState: Web_InvitePageView_InvitePageView_HexTextState = useState<Web_InvitePageView_InvitePageView_HexText>('');
+  const hexText: Web_InvitePageView_InvitePageView_HexText = hexTextState[0];
+  const setHexText: Web_InvitePageView_InvitePageView_SetHexText = hexTextState[1];
+  const copiedState: Web_InvitePageView_InvitePageView_CopiedState = useState<Web_InvitePageView_InvitePageView_Copied>(false);
+  const copied: Web_InvitePageView_InvitePageView_Copied = copiedState[0];
+  const setCopied: Web_InvitePageView_InvitePageView_SetCopied = copiedState[1];
+  const logoInput: Web_InvitePageView_InvitePageView_LogoInput = useRef<Web_InvitePageView_InvitePageView_LogoInputValue>(null);
+  const bannerInput: Web_InvitePageView_InvitePageView_BannerInput = useRef<Web_InvitePageView_InvitePageView_BannerInputValue>(null);
 
   /**
    * Invite Page View - Load.
@@ -317,12 +397,14 @@ export const InvitePageView = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_InvitePageView_InvitePageView_Load_Returns}
+   *
    * @since 4.0.0
    */
-  const load = async (): Promise<void> => {
+  const load: Web_InvitePageView_InvitePageView_Load = async (): Web_InvitePageView_InvitePageView_Load_Returns => {
     setLoadError('');
     try {
-      const response: Web_Api_InvitePageResponse = await getInvitePage(server['id']);
+      const response: Web_InvitePageView_InvitePageView_Load_Response = await getInvitePage(server['id']);
 
       setLoaded(response);
       setDraft(draftFrom(response['page']));
@@ -332,16 +414,20 @@ export const InvitePageView = ({
     } catch (caughtError) {
       setLoadError(errorMessage(caughtError, 'The invite page could not be loaded.'));
     }
+
+    return;
   };
 
-  useEffect((): void => {
+  useEffect(() => {
     setLoaded(null);
     setDraft(null);
     void load();
+
+    return;
   }, [server['id']]);
 
-  const saved: Web_Components_InviteDraft | null = (loaded === null) ? null : draftFrom(loaded['page']);
-  const changeCount: number = (saved === null || draft === null) ? 0 : countDraftChanges(draft, saved);
+  const saved: Web_InvitePageView_InvitePageView_Saved = (loaded === null) ? null : draftFrom(loaded['page']);
+  const changeCount: Web_InvitePageView_InvitePageView_ChangeCount = (saved === null || draft === null) ? 0 : countDraftChanges(draft, saved);
 
   if (loaded === null || draft === null) {
     return (
@@ -356,7 +442,7 @@ export const InvitePageView = ({
     );
   }
 
-  const readOnly: boolean = !canWrite || saving;
+  const readOnly: Web_InvitePageView_InvitePageView_ReadOnly = canWrite === false || saving;
 
   /**
    * Invite Page View - Update.
@@ -364,26 +450,39 @@ export const InvitePageView = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Key}                                                 key   - Key.
+   * @param {Web_InvitePageView_InvitePageView_Update_Value<Key>} value - Value.
+   *
+   * @returns {Web_InvitePageView_InvitePageView_Update_Returns}
+   *
    * @since 4.0.0
    */
-  const update = <Key extends keyof Web_Components_InviteDraft>(key: Key, value: Web_Components_InviteDraft[Key]): void => {
+  const update: Web_InvitePageView_InvitePageView_Update = <Key extends Web_InvitePageView_InvitePageView_Update_Key>(key: Key, value: Web_InvitePageView_InvitePageView_Update_Value<Key>): Web_InvitePageView_InvitePageView_Update_Returns => {
     setDraft({
       ...draft,
       [key]: value,
     });
+
+    return;
   };
 
   /**
-   * Invite Page View - Choose accent.
+   * Invite Page View - Choose Accent.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_InvitePageView_InvitePageView_ChooseAccent_Color} color - Color.
+   *
+   * @returns {Web_InvitePageView_InvitePageView_ChooseAccent_Returns}
+   *
    * @since 4.0.0
    */
-  const chooseAccent = (color: string): void => {
+  const chooseAccent: Web_InvitePageView_InvitePageView_ChooseAccent = (color: Web_InvitePageView_InvitePageView_ChooseAccent_Color): Web_InvitePageView_InvitePageView_ChooseAccent_Returns => {
     setHexText(color);
     update('accentColor', color.toLowerCase());
+
+    return;
   };
 
   /**
@@ -392,16 +491,21 @@ export const InvitePageView = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_InvitePageView_InvitePageView_Upload_Kind} kind - Kind.
+   * @param {Web_InvitePageView_InvitePageView_Upload_File} file - File.
+   *
+   * @returns {Web_InvitePageView_InvitePageView_Upload_Returns}
+   *
    * @since 4.0.0
    */
-  const upload = async (kind: Web_Components_InviteImageKind, file: File | undefined): Promise<void> => {
+  const upload: Web_InvitePageView_InvitePageView_Upload = async (kind: Web_InvitePageView_InvitePageView_Upload_Kind, file: Web_InvitePageView_InvitePageView_Upload_File): Web_InvitePageView_InvitePageView_Upload_Returns => {
     if (file === undefined) {
       return;
     }
 
     setUploadError('');
 
-    if (!imageTypes.includes(file.type)) {
+    if (imageTypes.includes(file.type) === false) {
       setUploadError('Upload a PNG, JPEG, WebP, or GIF image.');
 
       return;
@@ -415,7 +519,7 @@ export const InvitePageView = ({
 
     setUploading(kind);
     try {
-      const image: Web_Api_UploadedImage = await uploadInviteImage(server['id'], file);
+      const image: Web_InvitePageView_InvitePageView_Upload_Image = await uploadInviteImage(server['id'], file);
 
       setDraft((kind === 'logo') ? {
         ...draft,
@@ -432,6 +536,8 @@ export const InvitePageView = ({
     } finally {
       setUploading(null);
     }
+
+    return;
   };
 
   /**
@@ -440,13 +546,15 @@ export const InvitePageView = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @returns {Web_InvitePageView_InvitePageView_Save_Returns}
+   *
    * @since 4.0.0
    */
-  const save = async (): Promise<void> => {
+  const save: Web_InvitePageView_InvitePageView_Save = async (): Web_InvitePageView_InvitePageView_Save_Returns => {
     setSaving(true);
     setSaveError(null);
     try {
-      const page: Web_Api_InvitePage = await saveInvitePage(server['id'], {
+      const page: Web_InvitePageView_InvitePageView_Save_Page = await saveInvitePage(server['id'], {
         accentColor: draft['accentColor'],
         bannerImageId: draft['bannerImageId'],
         buttonLabel: draft['buttonLabel'],
@@ -467,7 +575,7 @@ export const InvitePageView = ({
       });
       setDraft(draftFrom(page));
       setHexText(page['accentColor']);
-      showToast((loaded['publicUrl'] === null || !loaded['enabled']) ? 'Saved.' : 'Saved. Visitors see the new page right away.', true);
+      showToast((loaded['publicUrl'] === null || loaded['enabled'] === false) ? 'Saved.' : 'Saved. Visitors see the new page right away.', true);
     } catch (caughtError) {
       if (caughtError instanceof ApiError && caughtError.code === 'revision_conflict') {
         setConflict(true);
@@ -477,20 +585,26 @@ export const InvitePageView = ({
     } finally {
       setSaving(false);
     }
+
+    return;
   };
 
   /**
-   * Invite Page View - Field error.
+   * Invite Page View - Field Error.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_InvitePageView_InvitePageView_FieldError_Field} field - Field.
+   *
+   * @returns {Web_InvitePageView_InvitePageView_FieldError_Returns}
+   *
    * @since 4.0.0
    */
-  const fieldError = (field: string): string => issueFor(saveError, field);
-  const accent: Web_Invite_Rgb | null = parseHex(draft['accentColor']);
-  const buttonRatio: number = (accent === null) ? 0 : contrastRatio(accent, buttonTextColor(accent));
-  const linkSurfaces: [string, Web_Invite_Rgb][] = [];
+  const fieldError: Web_InvitePageView_InvitePageView_FieldError = (field: Web_InvitePageView_InvitePageView_FieldError_Field): Web_InvitePageView_InvitePageView_FieldError_Returns => issueFor(saveError, field);
+  const accent: Web_InvitePageView_InvitePageView_Accent = parseHex(draft['accentColor']);
+  const buttonRatio: Web_InvitePageView_InvitePageView_ButtonRatio = (accent === null) ? 0 : contrastRatio(accent, buttonTextColor(accent));
+  const linkSurfaces: Web_InvitePageView_InvitePageView_LinkSurfaces = [];
 
   if (draft['theme'] !== 'dark') {
     linkSurfaces.push([
@@ -506,12 +620,10 @@ export const InvitePageView = ({
     ]);
   }
 
-  const weakLinkThemes: string[] = (accent === null) ? [] : linkSurfaces
-    .filter(([
-      , surface]: [string, Web_Invite_Rgb,
-    ]): boolean => contrastRatio(accent, surface) < 4.5)
-    .map(([name]: [string, Web_Invite_Rgb]): string => name);
-  let logoUrl: string | null = null;
+  const weakLinkThemes: Web_InvitePageView_InvitePageView_WeakLinkThemes = (accent === null) ? [] : linkSurfaces
+    .filter((linkSurface) => contrastRatio(accent, linkSurface[1]) < 4.5)
+    .map((linkSurface) => linkSurface[0]);
+  let logoUrl: Web_InvitePageView_InvitePageView_LogoUrl = null;
 
   if (draft['logo'] === 'server') {
     logoUrl = loaded['server']['iconUrl'];
@@ -519,15 +631,17 @@ export const InvitePageView = ({
     logoUrl = draft['logoImageUrl'];
   }
 
-  const bannerError: string = fieldError('bannerImageId');
-  let bannerButton: string = (draft['bannerImageUrl'] === null) ? 'Upload a banner' : 'Replace';
+  const bannerError: Web_InvitePageView_InvitePageView_BannerError = fieldError('bannerImageId');
+  let bannerButton: Web_InvitePageView_InvitePageView_BannerButton = (draft['bannerImageUrl'] === null) ? 'Upload a banner' : 'Replace';
 
   if (uploading === 'banner') {
     bannerButton = 'Uploading…';
   }
 
-  const logoError: string = fieldError('logoImageId');
-  const summary: string = (saveError === null) ? '' : errorMessage(saveError, 'The invite page could not be saved. Try again.');
+  const logoError: Web_InvitePageView_InvitePageView_LogoError = fieldError('logoImageId');
+  const summary: Web_InvitePageView_InvitePageView_Summary = (saveError === null) ? '' : errorMessage(saveError, 'The invite page could not be saved. Try again.');
+  const themeName: Web_InvitePageView_InvitePageView_ThemeName = (draft['theme'] === 'dark') ? 'Dark' : 'Light';
+  const changeNoun: Web_InvitePageView_InvitePageView_ChangeNoun = (changeCount === 1) ? 'change' : 'changes';
 
   return (
     <section className="workspace-section">
@@ -536,12 +650,12 @@ export const InvitePageView = ({
         <p>{`The page people open to join ${server['name']}. They check a reCAPTCHA box, then the bot creates a Discord invite for them.`}</p>
       </div>
 
-      {(loaded['publicUrl'] === null || !loaded['enabled']) ? (
+      {(loaded['publicUrl'] === null || loaded['enabled'] === false) ? (
         <div className="panel">
           <section className="form-section">
             <div className="form-section-head">
               <h2>Not published yet</h2>
-              <button className="text-button" onClick={(): void => onOpenFeature('web-applications')} type="button">Open Web applications</button>
+              <button className="text-button" onClick={() => onOpenFeature('web-applications')} type="button">Open Web applications</button>
             </div>
             <p className="form-section-note">Turn on the Web applications feature and give the invite page a path. You can design the page now; it goes live once both are set.</p>
           </section>
@@ -555,16 +669,21 @@ export const InvitePageView = ({
               <button
                 aria-label="Copy the public link"
                 className="icon-button"
-                onClick={(): void => {
-                  void navigator.clipboard.writeText(loaded['publicUrl'] ?? '').then((): void => {
+                onClick={() => {
+                  void navigator.clipboard.writeText(loaded['publicUrl'] ?? '').then(() => {
                     setCopied(true);
-                    window.setTimeout((): void => setCopied(false), 1800);
+
+                    window.setTimeout(() => setCopied(false), 1800);
+
+                    return;
                   });
+
+                  return;
                 }}
                 title="Copy"
                 type="button"
               >
-                <Icon name={(copied) ? 'check' : 'copy'} size={16} />
+                <Icon name={(copied === true) ? 'check' : 'copy'} size={16} />
               </button>
               <a aria-label="Open the public page" className="icon-button" href={loaded['publicUrl']} rel="noopener noreferrer" target="_blank" title="Open">
                 <Icon name="external" size={16} />
@@ -574,21 +693,23 @@ export const InvitePageView = ({
         </div>
       )}
 
-      {(canWrite) ? null : (
+      {(canWrite === true) ? null : (
         <p className="form-notice form-notice-info">
           <Icon name="shield" size={16} />
           <span>Your role can see the invite page but not change it.</span>
         </p>
       )}
 
-      {(conflict) ? (
+      {(conflict === true) ? (
         <div className="form-error" role="alert">
           <Icon name="warning" size={16} />
           <span>The invite page changed since you opened it. Reload to see the latest version.</span>
           <button
             className="text-button"
-            onClick={(): void => {
+            onClick={() => {
               void load();
+
+              return;
             }}
             type="button"
           >
@@ -616,7 +737,7 @@ export const InvitePageView = ({
                 aria-invalid={fieldError('title') !== ''}
                 disabled={readOnly}
                 maxLength={100}
-                onChange={(event: ChangeEvent<HTMLInputElement>): void => update('title', event.currentTarget.value)}
+                onChange={(event) => update('title', event.currentTarget.value)}
                 value={draft['title']}
               />
               {(fieldError('title') === '') ? null : <small className="field-error">{fieldError('title')}</small>}
@@ -627,7 +748,7 @@ export const InvitePageView = ({
                 aria-invalid={fieldError('description') !== ''}
                 disabled={readOnly}
                 maxLength={300}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>): void => update('description', event.currentTarget.value)}
+                onChange={(event) => update('description', event.currentTarget.value)}
                 rows={3}
                 value={draft['description']}
               />
@@ -639,7 +760,7 @@ export const InvitePageView = ({
                 aria-invalid={fieldError('buttonLabel') !== ''}
                 disabled={readOnly}
                 maxLength={40}
-                onChange={(event: ChangeEvent<HTMLInputElement>): void => update('buttonLabel', event.currentTarget.value)}
+                onChange={(event) => update('buttonLabel', event.currentTarget.value)}
                 value={draft['buttonLabel']}
               />
               {(fieldError('buttonLabel') === '') ? null : <small className="field-error">{fieldError('buttonLabel')}</small>}
@@ -650,7 +771,7 @@ export const InvitePageView = ({
                 aria-invalid={fieldError('footerText') !== ''}
                 disabled={readOnly}
                 maxLength={500}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>): void => update('footerText', event.currentTarget.value)}
+                onChange={(event) => update('footerText', event.currentTarget.value)}
                 rows={3}
                 value={draft['footerText']}
               />
@@ -665,8 +786,8 @@ export const InvitePageView = ({
             <div className="field">
               <span id="invite-theme-label">Theme</span>
               <div aria-labelledby="invite-theme-label" className="segmented segmented-fit" role="group">
-                {themeOptions.map((option: Web_Components_InviteThemeOption): ReactElement => (
-                  <button aria-pressed={draft['theme'] === option['id']} disabled={readOnly} key={option['id']} onClick={(): void => update('theme', option['id'])} type="button">
+                {themeOptions.map((option) => (
+                  <button aria-pressed={draft['theme'] === option['id']} disabled={readOnly} key={option['id']} onClick={() => update('theme', option['id'])} type="button">
                     {option['label']}
                   </button>
                 ))}
@@ -677,14 +798,14 @@ export const InvitePageView = ({
             <div className="field">
               <span id="invite-accent-label">Accent color</span>
               <div aria-labelledby="invite-accent-label" className="accent-swatches" role="group">
-                {accentSwatches.map((swatch: Web_Components_AccentSwatch): ReactElement => (
+                {accentSwatches.map((swatch) => (
                   <button
                     aria-label={swatch['name']}
                     aria-pressed={draft['accentColor'] === swatch['color']}
                     className="accent-swatch"
                     disabled={readOnly}
                     key={swatch['color']}
-                    onClick={(): void => chooseAccent(swatch['color'])}
+                    onClick={() => chooseAccent(swatch['color'])}
                     style={{ backgroundColor: swatch['color'] }}
                     title={swatch['name']}
                     type="button"
@@ -695,7 +816,7 @@ export const InvitePageView = ({
                 <input
                   aria-label="Pick a color"
                   disabled={readOnly}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => chooseAccent(event.currentTarget.value)}
+                  onChange={(event) => chooseAccent(event.currentTarget.value)}
                   type="color"
                   value={(accent === null) ? '#6250d9' : draft['accentColor']}
                 />
@@ -706,14 +827,16 @@ export const InvitePageView = ({
                   className="monospace"
                   disabled={readOnly}
                   maxLength={7}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-                    const next: string = event.currentTarget.value.trim();
+                  onChange={(event) => {
+                    const next: Web_InvitePageView_InvitePageView_Next = event.currentTarget.value.trim();
 
                     setHexText(next);
 
                     if (parseHex(next) !== null) {
                       update('accentColor', next.toLowerCase());
                     }
+
+                    return;
                   }}
                   spellCheck={false}
                   value={hexText}
@@ -732,19 +855,23 @@ export const InvitePageView = ({
             <div className="field">
               <span id="invite-logo-label">Logo</span>
               <div aria-labelledby="invite-logo-label" className="segmented segmented-fit" role="group">
-                {logoOptions.map((option: Web_Components_InviteLogoOption): ReactElement => (
+                {logoOptions.map((option) => (
                   <button
                     aria-pressed={draft['logo'] === option['id']}
                     disabled={readOnly}
                     key={option['id']}
-                    onClick={(): void => {
+                    onClick={() => {
                       if (option['id'] === 'custom' && draft['logoImageId'] === null) {
-                        logoInput.current?.click();
+                        if (logoInput.current !== null) {
+                          logoInput.current.click();
+                        }
 
                         return;
                       }
 
                       update('logo', option['id']);
+
+                      return;
                     }}
                     type="button"
                   >
@@ -756,8 +883,18 @@ export const InvitePageView = ({
               {(draft['logo'] === 'custom') ? (
                 <div className="invite-image-row">
                   {(draft['logoImageUrl'] === null) ? null : <img alt="" className="invite-image-thumb invite-image-thumb-logo" src={draft['logoImageUrl']} />}
-                  {(readOnly) ? null : (
-                    <Button disabled={uploading !== null} icon="upload" onClick={(): void => logoInput.current?.click()}>
+                  {(readOnly === true) ? null : (
+                    <Button
+                      disabled={uploading !== null}
+                      icon="upload"
+                      onClick={() => {
+                        if (logoInput.current !== null) {
+                          logoInput.current.click();
+                        }
+
+                        return;
+                      }}
+                    >
                       {(uploading === 'logo') ? 'Uploading…' : 'Upload a logo'}
                     </Button>
                   )}
@@ -767,8 +904,9 @@ export const InvitePageView = ({
               <input
                 accept={imageTypes.join(',')}
                 hidden
-                onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-                  const file: File | undefined = event.currentTarget.files?.[0];
+                onChange={(event) => {
+                  const files: Web_InvitePageView_InvitePageView_Files = event.currentTarget.files;
+                  const file: Web_InvitePageView_InvitePageView_File = (files === null) ? undefined : files[0];
 
                   // Clearing the picker lets the same file be chosen again after an error.
                   if (logoInput.current !== null) {
@@ -776,6 +914,8 @@ export const InvitePageView = ({
                   }
 
                   void upload('logo', file);
+
+                  return;
                 }}
                 ref={logoInput}
                 type="file"
@@ -786,16 +926,26 @@ export const InvitePageView = ({
               <span>Banner</span>
               <div className="invite-image-row">
                 {(draft['bannerImageUrl'] === null) ? <small>No banner.</small> : <img alt="" className="invite-image-thumb" src={draft['bannerImageUrl']} />}
-                {(readOnly) ? null : (
+                {(readOnly === true) ? null : (
                   <>
-                    <Button disabled={uploading !== null} icon="upload" onClick={(): void => bannerInput.current?.click()}>
+                    <Button
+                      disabled={uploading !== null}
+                      icon="upload"
+                      onClick={() => {
+                        if (bannerInput.current !== null) {
+                          bannerInput.current.click();
+                        }
+
+                        return;
+                      }}
+                    >
                       {bannerButton}
                     </Button>
                     {(draft['bannerImageUrl'] === null) ? null : (
                       <Button
                         disabled={uploading !== null}
                         icon="remove"
-                        onClick={(): void => setDraft({
+                        onClick={() => setDraft({
                           ...draft,
                           bannerImageId: null,
                           bannerImageUrl: null,
@@ -812,14 +962,17 @@ export const InvitePageView = ({
               <input
                 accept={imageTypes.join(',')}
                 hidden
-                onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-                  const file: File | undefined = event.currentTarget.files?.[0];
+                onChange={(event) => {
+                  const files: Web_InvitePageView_InvitePageView_Files = event.currentTarget.files;
+                  const file: Web_InvitePageView_InvitePageView_File = (files === null) ? undefined : files[0];
 
                   if (bannerInput.current !== null) {
                     bannerInput.current.value = '';
                   }
 
                   void upload('banner', file);
+
+                  return;
                 }}
                 ref={bannerInput}
                 type="file"
@@ -844,7 +997,7 @@ export const InvitePageView = ({
                 <small>Shown when Discord shares it, like 1,204 members.</small>
               </span>
               <span className="switch-control">
-                <input checked={draft['showMemberCount']} disabled={readOnly} onChange={(event: ChangeEvent<HTMLInputElement>): void => update('showMemberCount', event.currentTarget.checked)} type="checkbox" />
+                <input checked={draft['showMemberCount']} disabled={readOnly} onChange={(event) => update('showMemberCount', event.currentTarget.checked)} type="checkbox" />
                 <span className="switch-track"><span /></span>
               </span>
             </label>
@@ -854,7 +1007,7 @@ export const InvitePageView = ({
                 <small>Shown when the server has at least boost level 1.</small>
               </span>
               <span className="switch-control">
-                <input checked={draft['showBoostTier']} disabled={readOnly} onChange={(event: ChangeEvent<HTMLInputElement>): void => update('showBoostTier', event.currentTarget.checked)} type="checkbox" />
+                <input checked={draft['showBoostTier']} disabled={readOnly} onChange={(event) => update('showBoostTier', event.currentTarget.checked)} type="checkbox" />
                 <span className="switch-track"><span /></span>
               </span>
             </label>
@@ -864,7 +1017,7 @@ export const InvitePageView = ({
         <div className="invite-designer-preview">
           <div className="invite-preview-head">
             <span>Preview</span>
-            <small>{(draft['theme'] === 'system') ? 'Follows your device theme' : `${(draft['theme'] === 'dark') ? 'Dark' : 'Light'} theme`}</small>
+            <small>{(draft['theme'] === 'system') ? 'Follows your device theme' : `${themeName} theme`}</small>
           </div>
           <div className="invite-preview-frame">
             <InvitePage
@@ -895,12 +1048,12 @@ export const InvitePageView = ({
         </div>
       </div>
 
-      {(changeCount > 0 && canWrite) ? (
+      {(changeCount > 0 && canWrite === true) ? (
         <div aria-label="Unsaved changes" className="save-bar" role="region">
-          <strong>{`${changeCount} unsaved ${(changeCount === 1) ? 'change' : 'changes'}`}</strong>
+          <strong>{`${changeCount} unsaved ${changeNoun}`}</strong>
           <Button
             disabled={saving}
-            onClick={(): void => {
+            onClick={() => {
               if (saved !== null) {
                 setDraft(saved);
                 setHexText(saved['accentColor']);
@@ -908,18 +1061,27 @@ export const InvitePageView = ({
 
               setSaveError(null);
               setUploadError('');
+
+              return;
             }}
           >
             Discard
           </Button>
           <Button
-            disabled={saving || conflict || uploading !== null || accent === null}
-            onClick={(): void => {
+            disabled={(
+              saving
+              || conflict
+              || uploading !== null
+              || accent === null
+            )}
+            onClick={() => {
               void save();
+
+              return;
             }}
             variant="primary"
           >
-            {(saving) ? 'Saving…' : 'Save'}
+            {(saving === true) ? 'Saving…' : 'Save'}
           </Button>
         </div>
       ) : null}

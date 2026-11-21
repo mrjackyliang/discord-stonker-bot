@@ -1,15 +1,15 @@
 import type {
-  Client,
-  GatewayIntentBits,
-  GuildBasedChannel,
-  Message,
-  PartialMessage,
-} from 'discord.js';
-
-import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
+import type {
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_FullGuildMessage,
+  Lib_ChatPlatform_Contracts_FullMessage,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Message,
+} from './chat-platform/index.d.ts';
 
 export type Lib_ScammerFeatures_ChannelReference_ChannelIdentifier = string;
 export type Lib_ScammerFeatures_ChannelReference = {
@@ -60,7 +60,7 @@ export type Lib_ScammerFeatures_Runtime = {
   rules: Lib_ScammerFeatures_Runtime_Rules;
 };
 
-export type Lib_ScammerFeatures_Registration_Client = Client;
+export type Lib_ScammerFeatures_Registration_Client = Lib_ChatPlatform_Contracts_Client;
 export type Lib_ScammerFeatures_Registration_GuildIdentifier = string;
 export type Lib_ScammerFeatures_Registration = (
   client: Lib_ScammerFeatures_Registration_Client,
@@ -69,7 +69,7 @@ export type Lib_ScammerFeatures_Registration = (
 
 export type Lib_ScammerFeatures_Prepared_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_ScammerFeatures_Prepared_ConfigurationErrors = string[];
-export type Lib_ScammerFeatures_Prepared_Intents = GatewayIntentBits[];
+export type Lib_ScammerFeatures_Prepared_Intents = Lib_ChatPlatform_Contracts_Intent[];
 export type Lib_ScammerFeatures_Prepared_Register = Lib_ScammerFeatures_Registration;
 export type Lib_ScammerFeatures_Prepared = {
   activeFeatureKeys: Lib_ScammerFeatures_Prepared_ActiveFeatureKeys;
@@ -94,7 +94,7 @@ export type Lib_ScammerFeatures_FormatConfigurationError_Error = unknown;
 export type Lib_ScammerFeatures_FormatConfigurationError_Returns = string;
 export type Lib_ScammerFeatures_FormatConfigurationError_Messages = string[];
 
-export type Lib_ScammerFeatures_FormatScammerMessage_Message = Message<true>;
+export type Lib_ScammerFeatures_FormatScammerMessage_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_ScammerFeatures_FormatScammerMessage_Rule = Lib_ScammerFeatures_Rule;
 export type Lib_ScammerFeatures_FormatScammerMessage_Returns = string;
 export type Lib_ScammerFeatures_FormatScammerMessage_Content = string;
@@ -109,14 +109,14 @@ export type Lib_ScammerFeatures_GetEnabledFeature_EnabledFeature = {
   configuration: Lib_ScammerFeatures_GetEnabledFeature_EnabledFeature_Configuration;
 };
 
-export type Lib_ScammerFeatures_HandleMessage_Message = Message;
+export type Lib_ScammerFeatures_HandleMessage_Message = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_ScammerFeatures_HandleMessage_GuildIdentifier = string;
 export type Lib_ScammerFeatures_HandleMessage_Runtime = Lib_ScammerFeatures_Runtime;
 export type Lib_ScammerFeatures_HandleMessage_Returns = Promise<void>;
 export type Lib_ScammerFeatures_HandleMessage_Rule = Lib_ScammerFeatures_Rule | undefined;
 
-export type Lib_ScammerFeatures_HandleMessageUpdate_OldMessage = Message | PartialMessage;
-export type Lib_ScammerFeatures_HandleMessageUpdate_NewMessage = Message;
+export type Lib_ScammerFeatures_HandleMessageUpdate_OldMessage = Lib_ChatPlatform_Contracts_FullMessage | Lib_ChatPlatform_Contracts_Message;
+export type Lib_ScammerFeatures_HandleMessageUpdate_NewMessage = Lib_ChatPlatform_Contracts_FullMessage;
 export type Lib_ScammerFeatures_HandleMessageUpdate_GuildIdentifier = string;
 export type Lib_ScammerFeatures_HandleMessageUpdate_Runtime = Lib_ScammerFeatures_Runtime;
 export type Lib_ScammerFeatures_HandleMessageUpdate_Returns = Promise<void>;
@@ -134,7 +134,7 @@ export type Lib_ScammerFeatures_PrepareScammerFeatures_Runtime = Lib_ScammerFeat
 export type Lib_ScammerFeatures_PrepareScammerFeatures_ActiveFeatureKeys = Shared_FeatureKey[];
 export type Lib_ScammerFeatures_PrepareScammerFeatures_ConfigurationErrors = string[];
 export type Lib_ScammerFeatures_PrepareScammerFeatures_Feature = Lib_ScammerFeatures_GetEnabledFeature_Returns;
-export type Lib_ScammerFeatures_PrepareScammerFeatures_Intents = GatewayIntentBits[];
+export type Lib_ScammerFeatures_PrepareScammerFeatures_Intents = Lib_ChatPlatform_Contracts_Intent[];
 
 export type Lib_ScammerFeatures_RecordConfigurationError_FeatureKey = Shared_FeatureKey;
 export type Lib_ScammerFeatures_RecordConfigurationError_Error = unknown;
@@ -142,10 +142,10 @@ export type Lib_ScammerFeatures_RecordConfigurationError_ConfigurationErrors = s
 export type Lib_ScammerFeatures_RecordConfigurationError_Returns = void;
 export type Lib_ScammerFeatures_RecordConfigurationError_Message = string;
 
-export type Lib_ScammerFeatures_SendScammerAlert_Message = Message<true>;
+export type Lib_ScammerFeatures_SendScammerAlert_Message = Lib_ChatPlatform_Contracts_FullGuildMessage;
 export type Lib_ScammerFeatures_SendScammerAlert_Runtime = Lib_ScammerFeatures_Runtime;
 export type Lib_ScammerFeatures_SendScammerAlert_Rule = Lib_ScammerFeatures_Rule;
 export type Lib_ScammerFeatures_SendScammerAlert_Returns = Promise<void>;
-export type Lib_ScammerFeatures_SendScammerAlert_Channel = GuildBasedChannel | null;
+export type Lib_ScammerFeatures_SendScammerAlert_Channel = Lib_ChatPlatform_Contracts_GuildChannel | null;
 
 export type Lib_ScammerFeatures_Test_Rules = Lib_ScammerFeatures_Rule[];

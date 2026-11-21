@@ -1,3 +1,5 @@
+import { buildChatPlatformGuildIconUrl } from './chat-platform/index.js';
+
 import type {
   Lib_InvitePages_BuildInviteDescription_BoostTier,
   Lib_InvitePages_BuildInviteDescription_Description,
@@ -275,11 +277,7 @@ export function getMediaUrl(imageId: Lib_InvitePages_GetMediaUrl_ImageId): Lib_I
  * @since 4.0.0
  */
 export function getServerIconUrl(guildIdentifier: Lib_InvitePages_GetServerIconUrl_GuildIdentifier, iconHash: Lib_InvitePages_GetServerIconUrl_IconHash): Lib_InvitePages_GetServerIconUrl_Returns {
-  if (iconHash === null || iconHash === '') {
-    return null;
-  }
-
-  return `https://cdn.discordapp.com/icons/${encodeURIComponent(guildIdentifier)}/${encodeURIComponent(iconHash)}.png?size=256`;
+  return buildChatPlatformGuildIconUrl(guildIdentifier, iconHash, 256);
 }
 
 /**

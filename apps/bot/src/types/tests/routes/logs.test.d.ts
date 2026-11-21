@@ -23,6 +23,7 @@ export type Tests_Routes_Logs_Body = {
 export type Tests_Routes_Logs_Item = Tests_Routes_Logs_BodyItem | undefined;
 export type Tests_Routes_Logs_Controller = AbortController;
 export type Tests_Routes_Logs_StreamResponse = Response;
+/* eslint-disable-next-line n/no-unsupported-features/node-builtins -- Web stream readers are stable since Node.js 22.15, which the log-stream test runs on. */
 export type Tests_Routes_Logs_Reader = ReadableStreamDefaultReader<Uint8Array> | undefined;
 export type Tests_Routes_Logs_Decoder = TextDecoder;
 export type Tests_Routes_Logs_Text = string;

@@ -1,8 +1,8 @@
-import { PermissionFlagsBits } from 'discord.js';
 import { z } from 'zod';
 
 import { antiRaidSchema } from './anti-raid-features.js';
 import { auditSchema } from './audit-features.js';
+import { listChatPlatformPermissionNames } from './chat-platform/index.js';
 import { getFeatureDefinition } from './feature-catalog.js';
 import { blankSecretReferences } from './feature-secrets.js';
 import {
@@ -795,11 +795,11 @@ const presentations: Lib_FeatureEditor_Presentations = {
  * Feature Editor - Permission Names.
  *
  * Lists every Discord permission name the permission toggles accept, sorted for pickers.
- * They come from discord.js, so new Discord permissions appear automatically.
+ * They come from the chat-platform adapter, so provider changes stay isolated.
  *
  * @since 4.0.0
  */
-const permissionNames: Lib_FeatureEditor_PermissionNames = Object.keys(PermissionFlagsBits).sort();
+const permissionNames: Lib_FeatureEditor_PermissionNames = listChatPlatformPermissionNames();
 
 /**
  * Feature Editor - Editor Cache.

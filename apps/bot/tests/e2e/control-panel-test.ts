@@ -1,15 +1,34 @@
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 import {
   expect,
   test,
 } from '@playwright/test';
 
-const BOT_TOKEN = 'not-a-real-discord-token-for-e2e';
-const containerName = process.env['STONKER_E2E_CONTAINER_NAME'] ?? 'discord-stonker-bot-e2e';
-const OWNER_PASSWORD = 'Stonker E2E owner password 2026!';
-const OWNER_USERNAME = 'e2e-owner';
-const panelPages = [
+import type {
+  Tests_E2e_ControlPanelTest_BotToken,
+  Tests_E2e_ControlPanelTest_ContainerName,
+  Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_ConsoleErrors,
+  Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_PageErrors,
+  Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_Sidebar,
+  Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_SignOut_SessionResponse,
+  Tests_E2e_ControlPanelTest_OwnerPassword,
+  Tests_E2e_ControlPanelTest_OwnerUsername,
+  Tests_E2e_ControlPanelTest_PanelPages,
+  Tests_E2e_ControlPanelTest_ReadSetupCode_ContainerLog,
+  Tests_E2e_ControlPanelTest_ReadSetupCode_ContainerLogResult,
+  Tests_E2e_ControlPanelTest_ReadSetupCode_Returns,
+  Tests_E2e_ControlPanelTest_ReadSetupCode_SetupCode,
+  Tests_E2e_ControlPanelTest_ReadSetupCode_SetupCodeLine,
+  Tests_E2e_ControlPanelTest_SignOut_Page,
+  Tests_E2e_ControlPanelTest_SignOut_Returns,
+} from '../../src/types/tests/e2e/control-panel-test.d.ts';
+
+const BOT_TOKEN: Tests_E2e_ControlPanelTest_BotToken = 'not-a-real-discord-token-for-e2e';
+const containerName: Tests_E2e_ControlPanelTest_ContainerName = process.env['STONKER_E2E_CONTAINER_NAME'] ?? 'discord-stonker-bot-e2e';
+const OWNER_PASSWORD: Tests_E2e_ControlPanelTest_OwnerPassword = 'Stonker E2E owner password 2026!';
+const OWNER_USERNAME: Tests_E2e_ControlPanelTest_OwnerUsername = 'e2e-owner';
+const panelPages: Tests_E2e_ControlPanelTest_PanelPages = [
   {
     heading: 'Overview',
     navigationLabel: 'Overview',
@@ -48,31 +67,36 @@ const panelPages = [
  * Control Panel Test - Read Setup Code.
  *
  * Reads the one-time setup code the way an operator would, from the newest
- * setup_code_issued line in the container log.
+ * setup_code_issued line in the container log, which warnings write to stderr.
  *
- * @returns {string}
+ * @returns {Tests_E2e_ControlPanelTest_ReadSetupCode_Returns}
  *
  * @since 4.0.0
  */
-function readSetupCode() {
-  const containerLog = execFileSync('docker', [
+function readSetupCode(): Tests_E2e_ControlPanelTest_ReadSetupCode_Returns {
+  const containerLogResult: Tests_E2e_ControlPanelTest_ReadSetupCode_ContainerLogResult = spawnSync('docker', [
     'logs',
     containerName,
   ], {
     encoding: 'utf8',
-    stdio: [
-      'ignore',
-      'pipe',
-      'ignore',
-    ],
   });
-  const setupCodeLine = containerLog.split('\n').findLast((containerLogLine) => containerLogLine.includes('"setup_code_issued"'));
+  const containerLog: Tests_E2e_ControlPanelTest_ReadSetupCode_ContainerLog = [
+    containerLogResult.stdout,
+    containerLogResult.stderr,
+  ].join('\n');
+  const setupCodeLine: Tests_E2e_ControlPanelTest_ReadSetupCode_SetupCodeLine = containerLog.split('\n').findLast((containerLogLine) => containerLogLine.includes(' setup_code_issued ') && containerLogLine.includes(' setupCode='));
 
   if (setupCodeLine === undefined) {
     throw new Error('The container log has no setup_code_issued line.');
   }
 
-  return JSON.parse(setupCodeLine)['context']['setupCode'];
+  const setupCode: Tests_E2e_ControlPanelTest_ReadSetupCode_SetupCode = (setupCodeLine.split(' setupCode=').at(-1) ?? '').trim();
+
+  if (setupCode === '') {
+    throw new Error('The setup_code_issued line has no setup code.');
+  }
+
+  return setupCode;
 }
 
 /**
@@ -81,16 +105,17 @@ function readSetupCode() {
  * Signs out through the account menu at the bottom of the sidebar and waits
  * for the sign-in screen.
  *
- * @param {import('@playwright/test').Page} page - Page.
+ * @param {Tests_E2e_ControlPanelTest_SignOut_Page} page - Page.
  *
- * @returns {Promise<void>}
+ * @returns {Tests_E2e_ControlPanelTest_SignOut_Returns}
  *
  * @since 4.0.0
  */
-async function signOut(page) {
+async function signOut(page: Tests_E2e_ControlPanelTest_SignOut_Page): Tests_E2e_ControlPanelTest_SignOut_Returns {
   await page.getByRole('complementary').getByRole('button', {
     name: OWNER_USERNAME,
   }).click();
+
   await page.getByRole('menuitem', {
     name: 'Sign out',
   }).click();
@@ -99,22 +124,28 @@ async function signOut(page) {
     level: 1,
     name: 'Sign in',
   })).toBeVisible();
+
+  return;
 }
 
 test.describe('control panel appliance', () => {
   test('sets up the owner, opens every page, and saves a bot token', async ({ page }) => {
-    const consoleErrors = [];
-    const pageErrors = [];
-    const sidebar = page.getByRole('complementary');
+    const consoleErrors: Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_ConsoleErrors = [];
+    const pageErrors: Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_PageErrors = [];
+    const sidebar: Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_Sidebar = page.getByRole('complementary');
 
     page.on('console', (consoleMessage) => {
       if (consoleMessage.type() === 'error') {
         consoleErrors.push(consoleMessage.text());
       }
+
+      return;
     });
 
     page.on('pageerror', (pageError) => {
       pageErrors.push(pageError.message);
+
+      return;
     });
 
     await test.step('create the owner account with the setup code from the log', async () => {
@@ -126,11 +157,15 @@ test.describe('control panel appliance', () => {
       })).toBeVisible();
 
       await page.getByLabel('One-time code').fill(readSetupCode());
+
       await page.getByLabel('Username').fill(OWNER_USERNAME);
+
       await page.getByLabel('Password', {
         exact: true,
       }).fill(OWNER_PASSWORD);
+
       await page.getByLabel('Confirm password').fill(OWNER_PASSWORD);
+
       await page.getByRole('button', {
         name: 'Create account',
       }).click();
@@ -139,15 +174,19 @@ test.describe('control panel appliance', () => {
         level: 1,
         name: 'Overview',
       })).toBeVisible();
+
+      return;
     });
 
     await test.step('sign out, then sign in with the password', async () => {
       await signOut(page);
 
       await page.getByLabel('Username').fill(OWNER_USERNAME);
+
       await page.getByLabel('Password', {
         exact: true,
       }).fill(OWNER_PASSWORD);
+
       await page.getByRole('button', {
         exact: true,
         name: 'Sign in',
@@ -157,6 +196,8 @@ test.describe('control panel appliance', () => {
         level: 1,
         name: 'Overview',
       })).toBeVisible();
+
+      return;
     });
 
     await test.step('open every page of the panel', async () => {
@@ -170,7 +211,9 @@ test.describe('control panel appliance', () => {
           level: 1,
           name: panelPage['heading'],
         })).toBeVisible();
+
         await expect(page.locator('.detail-loading')).toHaveCount(0);
+
         await expect(page.getByRole('alert')).toHaveCount(0);
       }
 
@@ -178,6 +221,7 @@ test.describe('control panel appliance', () => {
         exact: true,
         name: 'Invite page',
       })).toHaveCount(0);
+
       await expect(sidebar.getByRole('button', {
         exact: true,
         name: 'Security',
@@ -187,6 +231,7 @@ test.describe('control panel appliance', () => {
         exact: true,
         name: 'Features',
       }).click();
+
       await page.locator('.feature-card-open').filter({
         hasText: 'Web applications',
       }).click();
@@ -195,6 +240,7 @@ test.describe('control panel appliance', () => {
         level: 1,
         name: 'Invite page',
       })).toBeVisible();
+
       await expect(sidebar.getByRole('button', {
         exact: true,
         name: 'Features',
@@ -203,6 +249,7 @@ test.describe('control panel appliance', () => {
       await sidebar.getByRole('button', {
         name: OWNER_USERNAME,
       }).click();
+
       await page.getByRole('menuitem', {
         name: 'Sign-in and security',
       }).click();
@@ -211,6 +258,8 @@ test.describe('control panel appliance', () => {
         level: 1,
         name: 'Sign-in and security',
       })).toBeVisible();
+
+      return;
     });
 
     await test.step('save a fixture bot token on the Connection page', async () => {
@@ -218,7 +267,9 @@ test.describe('control panel appliance', () => {
         exact: true,
         name: 'Connection',
       }).click();
+
       await page.getByLabel('Bot token').fill(BOT_TOKEN);
+
       await page.getByRole('button', {
         name: 'Save token',
       }).click();
@@ -227,20 +278,30 @@ test.describe('control panel appliance', () => {
       await expect(page.locator('.notyf__message').filter({
         hasText: 'Token saved. Start the bot to bring it online.',
       })).toBeVisible();
+
       await expect(page.getByText('Saved', {
         exact: true,
       })).toBeVisible();
+
+      return;
     });
 
     await test.step('sign out', async () => {
       await signOut(page);
 
-      const sessionResponse = await page.request.get('/api/v1/auth/me');
+      const sessionResponse: Tests_E2e_ControlPanelTest_ControlPanelAppliance_SetsUpTheOwnerOpensEveryPageAndSavesABotToken_SignOut_SessionResponse = await page.request.get('/api/v1/auth/me');
 
       expect(sessionResponse.status()).toBe(401);
+
+      return;
     });
 
     expect(consoleErrors).toEqual([]);
+
     expect(pageErrors).toEqual([]);
+
+    return;
   });
+
+  return;
 });

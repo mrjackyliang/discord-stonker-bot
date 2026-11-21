@@ -1,9 +1,12 @@
 import { createHash } from 'node:crypto';
 
-import { PermissionFlagsBits } from 'discord.js';
 import { z } from 'zod';
 
 import { applicationUserAgent } from './application-metadata.js';
+import {
+  compileChatPlatformPermissionOverwrite,
+  isChatPlatformPermissionName,
+} from './chat-platform/index.js';
 import { getErrorMessage } from './logger.js';
 import {
   LIB_REGEX_PATTERN_DISCORD_IDENTIFIER,
@@ -11,11 +14,7 @@ import {
 } from './regex.js';
 
 import type {
-  Lib_WorkerFeatures_CompilePermissionOverwrite_Allow,
   Lib_WorkerFeatures_CompilePermissionOverwrite_ChannelIdentifier,
-  Lib_WorkerFeatures_CompilePermissionOverwrite_Deny,
-  Lib_WorkerFeatures_CompilePermissionOverwrite_Entries,
-  Lib_WorkerFeatures_CompilePermissionOverwrite_FlagValue,
   Lib_WorkerFeatures_CompilePermissionOverwrite_Permission,
   Lib_WorkerFeatures_CompilePermissionOverwrite_Returns,
   Lib_WorkerFeatures_CompilePermissionRule_Configuration,
@@ -228,7 +227,7 @@ const permissionMapSchema = z.record(z.string().min(1).max(100), z.boolean())
   )
   .refine(
     (permissions) => Object.keys(permissions).every(
-      (permissionName) => typeof Reflect.get(PermissionFlagsBits, permissionName) === 'bigint',
+      (permissionName) => isChatPlatformPermissionName(permissionName),
     ),
     'Every permission name must be supported by the current Discord API.',
   );
@@ -409,33 +408,9 @@ function compilePermissionOverwrite(
   channelIdentifier: Lib_WorkerFeatures_CompilePermissionOverwrite_ChannelIdentifier,
   permission: Lib_WorkerFeatures_CompilePermissionOverwrite_Permission,
 ): Lib_WorkerFeatures_CompilePermissionOverwrite_Returns {
-  let allow: Lib_WorkerFeatures_CompilePermissionOverwrite_Allow = 0n;
-  let deny: Lib_WorkerFeatures_CompilePermissionOverwrite_Deny = 0n;
-  const entries: Lib_WorkerFeatures_CompilePermissionOverwrite_Entries = Object.entries(
-    permission['user-or-role-perms'],
-  );
-
-  for (const entry of entries) {
-    const flagValue: Lib_WorkerFeatures_CompilePermissionOverwrite_FlagValue = Reflect.get(
-      PermissionFlagsBits,
-      entry[0],
-    );
-
-    if (typeof flagValue !== 'bigint') {
-      throw new Error(`Unsupported Discord permission name: ${entry[0]}`);
-    }
-
-    if (entry[1] === true) {
-      allow += flagValue;
-    } else {
-      deny += flagValue;
-    }
-  }
-
   return {
-    allow: allow.toString(),
+    ...compileChatPlatformPermissionOverwrite(permission['user-or-role-perms']),
     channelIdentifier,
-    deny: deny.toString(),
     targetIdentifier: permission['user-or-role-id'],
     targetType: permission['target-type'],
   };

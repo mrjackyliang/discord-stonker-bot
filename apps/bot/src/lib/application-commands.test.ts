@@ -1,9 +1,3 @@
-import { EventEmitter } from 'node:events';
-
-import {
-  Client,
-  Events,
-} from 'discord.js';
 import {
   describe,
   expect,
@@ -11,11 +5,13 @@ import {
   vi,
 } from 'vitest';
 
+import { Runner as TestChatPlatformClient } from '../tests/support/chat-platform.js';
 import { registerApplicationCommands } from './application-commands.js';
+import { chatPlatformEvents } from './chat-platform/index.js';
 
 import type { Mock } from 'vitest';
 
-import type { Lib_ApplicationCommands_RegisterApplicationCommands_Client } from '../types/lib/application-commands.d.ts';
+import type { Lib_ApplicationCommands_Test_Client } from '../types/lib/application-commands.d.ts';
 
 /**
  * Application Commands - Application Command Guild Registries.
@@ -27,9 +23,7 @@ import type { Lib_ApplicationCommands_RegisterApplicationCommands_Client } from 
  */
 describe('application command guild registries', () => {
   it('accepts command contributions for more than one server', () => {
-    const client: Lib_ApplicationCommands_RegisterApplicationCommands_Client = new Client({
-      intents: [],
-    });
+    const client: Lib_ApplicationCommands_Test_Client = new TestChatPlatformClient();
 
     registerApplicationCommands(client, '1197999049190674442', []);
 
@@ -45,9 +39,7 @@ describe('application command guild registries', () => {
   });
 
   it('synchronizes commands independently for every registered server', async () => {
-    const client: Lib_ApplicationCommands_RegisterApplicationCommands_Client = new Client({
-      intents: [],
-    });
+    const client: Lib_ApplicationCommands_Test_Client = new TestChatPlatformClient();
     const setCommands: Mock = vi.fn();
     const fetchGuild: Mock = vi.fn();
 
@@ -64,7 +56,7 @@ describe('application command guild registries', () => {
     registerApplicationCommands(client, '1197999049190674442', []);
     registerApplicationCommands(client, '1197999049190674443', []);
 
-    EventEmitter.prototype.emit.call(client, Events.ClientReady, client);
+    client.emit(chatPlatformEvents['ClientReady'], client);
 
     await vi.waitFor(() => {
       expect(fetchGuild).toHaveBeenCalledTimes(2);

@@ -99,16 +99,6 @@ export const LIB_REGEX_PATTERN_DISCORD_IDENTIFIER = /^\d{17,20}$/;
 export const LIB_REGEX_PATTERN_DISCORD_MARKDOWN_CHARACTER = '[\\\\_*~`>|]';
 
 /**
- * Regex - Lib Regex Pattern Discord Cdn URL.
- *
- * Provides a representative excluded attachment host for audit feature tests.
- * Runtime exclusions remain operator-configured and precompiled at startup.
- *
- * @since 4.0.0
- */
-export const LIB_REGEX_PATTERN_DISCORD_CDN_URL = '^https://cdn\\.discordapp\\.com/';
-
-/**
  * Regex - Lib Regex Pattern Discord Webhook Path.
  *
  * Restricts encrypted webhook destinations to Discord's current HTTPS route.

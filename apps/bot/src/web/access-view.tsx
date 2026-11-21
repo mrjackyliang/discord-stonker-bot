@@ -14,13 +14,47 @@ import {
 import { showToast } from '@/web/toast.ts';
 import { TokenDialog } from '@/web/token-dialog.tsx';
 
-import type { ReactElement } from 'react';
-
-import type { Web_Api_Token } from '@/types/web/api.d.ts';
 import type {
-  Web_Components_AccessView_Props,
-  Web_Components_Endpoint,
-} from '@/types/web/components.d.ts';
+  Web_AccessView_AccessView_BaseUrl,
+  Web_AccessView_AccessView_Busy,
+  Web_AccessView_AccessView_BusyState,
+  Web_AccessView_AccessView_Copied,
+  Web_AccessView_AccessView_CopiedState,
+  Web_AccessView_AccessView_CopyValue,
+  Web_AccessView_AccessView_CopyValue_Label,
+  Web_AccessView_AccessView_CopyValue_Returns,
+  Web_AccessView_AccessView_CopyValue_Value,
+  Web_AccessView_AccessView_DialogOpen,
+  Web_AccessView_AccessView_DialogOpenState,
+  Web_AccessView_AccessView_EditingToken,
+  Web_AccessView_AccessView_EditingTokenState,
+  Web_AccessView_AccessView_ExpiryLabel,
+  Web_AccessView_AccessView_ExpiryLabel_Returns,
+  Web_AccessView_AccessView_ExpiryLabel_Token,
+  Web_AccessView_AccessView_OnCreateToken,
+  Web_AccessView_AccessView_OnRevokeToken,
+  Web_AccessView_AccessView_OnUpdateToken,
+  Web_AccessView_AccessView_Props,
+  Web_AccessView_AccessView_Returns,
+  Web_AccessView_AccessView_Revoke,
+  Web_AccessView_AccessView_Revoke_Returns,
+  Web_AccessView_AccessView_Revoke_Token,
+  Web_AccessView_AccessView_RevokeError,
+  Web_AccessView_AccessView_RevokeErrorState,
+  Web_AccessView_AccessView_Revoking,
+  Web_AccessView_AccessView_RevokingName,
+  Web_AccessView_AccessView_RevokingState,
+  Web_AccessView_AccessView_Role,
+  Web_AccessView_AccessView_SetBusy,
+  Web_AccessView_AccessView_SetCopied,
+  Web_AccessView_AccessView_SetDialogOpen,
+  Web_AccessView_AccessView_SetEditingToken,
+  Web_AccessView_AccessView_SetRevokeError,
+  Web_AccessView_AccessView_SetRevoking,
+  Web_AccessView_AccessView_Tokens,
+  Web_AccessView_AccessView_TokensNoun,
+  Web_AccessView_Endpoints,
+} from '@/types/web/access-view.d.ts';
 
 /**
  * Access View - Endpoints.
@@ -30,7 +64,7 @@ import type {
  *
  * @since 4.0.0
  */
-const endpoints: Web_Components_Endpoint[] = [
+const endpoints: Web_AccessView_Endpoints = [
   {
     method: 'GET',
     path: '/api/v1/servers',
@@ -69,58 +103,64 @@ const endpoints: Web_Components_Endpoint[] = [
 ];
 
 /**
- * Access View.
+ * Access View - Access View.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_AccessView_AccessView_Props} props - Props.
+ *
+ * @returns {Web_AccessView_AccessView_Returns}
+ *
  * @since 4.0.0
  */
-export const AccessView = ({
-  onCreateToken,
-  onRevokeToken,
-  onUpdateToken,
-  role,
-  tokens,
-}: Web_Components_AccessView_Props): ReactElement => {
-  const [
-    dialogOpen,
-    setDialogOpen,
-  ] = useState<boolean>(false);
-  const [
-    editingToken,
-    setEditingToken,
-  ] = useState<Web_Api_Token | null>(null);
-  const [
-    revoking,
-    setRevoking,
-  ] = useState<Web_Api_Token | null>(null);
-  const [
-    busy,
-    setBusy,
-  ] = useState<boolean>(false);
-  const [
-    revokeError,
-    setRevokeError,
-  ] = useState<string>('');
-  const [
-    copied,
-    setCopied,
-  ] = useState<string>('');
-  const baseUrl: string = window.location.origin;
+export const AccessView = (props: Web_AccessView_AccessView_Props): Web_AccessView_AccessView_Returns => {
+  const onCreateToken: Web_AccessView_AccessView_OnCreateToken = props['onCreateToken'];
+  const onRevokeToken: Web_AccessView_AccessView_OnRevokeToken = props['onRevokeToken'];
+  const onUpdateToken: Web_AccessView_AccessView_OnUpdateToken = props['onUpdateToken'];
+  const role: Web_AccessView_AccessView_Role = props['role'];
+  const tokens: Web_AccessView_AccessView_Tokens = props['tokens'];
+  const dialogOpenState: Web_AccessView_AccessView_DialogOpenState = useState<Web_AccessView_AccessView_DialogOpen>(false);
+  const dialogOpen: Web_AccessView_AccessView_DialogOpen = dialogOpenState[0];
+  const setDialogOpen: Web_AccessView_AccessView_SetDialogOpen = dialogOpenState[1];
+  const editingTokenState: Web_AccessView_AccessView_EditingTokenState = useState<Web_AccessView_AccessView_EditingToken>(null);
+  const editingToken: Web_AccessView_AccessView_EditingToken = editingTokenState[0];
+  const setEditingToken: Web_AccessView_AccessView_SetEditingToken = editingTokenState[1];
+  const revokingState: Web_AccessView_AccessView_RevokingState = useState<Web_AccessView_AccessView_Revoking>(null);
+  const revoking: Web_AccessView_AccessView_Revoking = revokingState[0];
+  const setRevoking: Web_AccessView_AccessView_SetRevoking = revokingState[1];
+  const busyState: Web_AccessView_AccessView_BusyState = useState<Web_AccessView_AccessView_Busy>(false);
+  const busy: Web_AccessView_AccessView_Busy = busyState[0];
+  const setBusy: Web_AccessView_AccessView_SetBusy = busyState[1];
+  const revokeErrorState: Web_AccessView_AccessView_RevokeErrorState = useState<Web_AccessView_AccessView_RevokeError>('');
+  const revokeError: Web_AccessView_AccessView_RevokeError = revokeErrorState[0];
+  const setRevokeError: Web_AccessView_AccessView_SetRevokeError = revokeErrorState[1];
+  const copiedState: Web_AccessView_AccessView_CopiedState = useState<Web_AccessView_AccessView_Copied>('');
+  const copied: Web_AccessView_AccessView_Copied = copiedState[0];
+  const setCopied: Web_AccessView_AccessView_SetCopied = copiedState[1];
+  const baseUrl: Web_AccessView_AccessView_BaseUrl = window.location.origin;
 
   /**
-   * Access View - Copies value.
+   * Access View - Copy Value.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_AccessView_AccessView_CopyValue_Label} label - Label.
+   * @param {Web_AccessView_AccessView_CopyValue_Value} value - Value.
+   *
+   * @returns {Web_AccessView_AccessView_CopyValue_Returns}
+   *
    * @since 4.0.0
    */
-  const copyValue = async (label: string, value: string): Promise<void> => {
+  const copyValue: Web_AccessView_AccessView_CopyValue = async (label: Web_AccessView_AccessView_CopyValue_Label, value: Web_AccessView_AccessView_CopyValue_Value): Web_AccessView_AccessView_CopyValue_Returns => {
     await navigator.clipboard.writeText(value);
+
     setCopied(label);
-    window.setTimeout((): void => setCopied(''), 1800);
+
+    window.setTimeout(() => setCopied(''), 1800);
+
+    return;
   };
 
   /**
@@ -129,9 +169,13 @@ export const AccessView = ({
    * Revokes the token picked in the confirm dialog and confirms it with a toast.
    * A failure stays in the dialog so it can be tried again.
    *
+   * @param {Web_AccessView_AccessView_Revoke_Token} token - Token.
+   *
+   * @returns {Web_AccessView_AccessView_Revoke_Returns}
+   *
    * @since 4.0.0
    */
-  const revoke = async (token: Web_Api_Token): Promise<void> => {
+  const revoke: Web_AccessView_AccessView_Revoke = async (token: Web_AccessView_AccessView_Revoke_Token): Web_AccessView_AccessView_Revoke_Returns => {
     setBusy(true);
     setRevokeError('');
     try {
@@ -143,23 +187,32 @@ export const AccessView = ({
     } finally {
       setBusy(false);
     }
+
+    return;
   };
 
   /**
-   * Access View - Expiry label.
+   * Access View - Expiry Label.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_AccessView_AccessView_ExpiryLabel_Token} token - Token.
+   *
+   * @returns {Web_AccessView_AccessView_ExpiryLabel_Returns}
+   *
    * @since 4.0.0
    */
-  const expiryLabel = (token: Web_Api_Token): string => {
+  const expiryLabel: Web_AccessView_AccessView_ExpiryLabel = (token: Web_AccessView_AccessView_ExpiryLabel_Token): Web_AccessView_AccessView_ExpiryLabel_Returns => {
     if (token['expiresAt'] === null) {
       return 'no expiry';
     }
 
     return (Date.parse(token['expiresAt']) <= Date.now()) ? `expired ${formatShortDate(token['expiresAt'])}` : `expires ${formatShortDate(token['expiresAt'])}`;
   };
+
+  const tokensNoun: Web_AccessView_AccessView_TokensNoun = (tokens.length === 1) ? 'token' : 'tokens';
+  const revokingName: Web_AccessView_AccessView_RevokingName = (revoking !== null) ? revoking['name'] : 'token';
 
   return (
     <section className="workspace-section">
@@ -170,9 +223,11 @@ export const AccessView = ({
         </div>
         <Button
           icon="add"
-          onClick={(): void => {
+          onClick={() => {
             setEditingToken(null);
             setDialogOpen(true);
+
+            return;
           }}
           variant="primary"
         >
@@ -184,33 +239,35 @@ export const AccessView = ({
         <section className="form-section">
           <div className="form-section-head">
             <h2>Tokens</h2>
-            <span>{`${tokens.length} ${(tokens.length === 1) ? 'token' : 'tokens'}`}</span>
+            <span>{`${tokens.length} ${tokensNoun}`}</span>
           </div>
           {(tokens.length === 0) ? (
             <p className="select-list select-list-empty">No tokens yet. Create one for each script or app that calls the API.</p>
           ) : (
             <div className="select-list token-list">
-              {tokens.map((token: Web_Api_Token): ReactElement => (
+              {tokens.map((token) => (
                 <div className="select-list-row token-row" key={token['id']}>
                   <span className="select-list-main">
                     <span className="token-title">
                       <span className="token-name">{token['name']}</span>
-                      {token['scopes'].map((scope: string): ReactElement => <span className="tag" key={scope}>{scope}</span>)}
+                      {token['scopes'].map((scope) => <span className="tag" key={scope}>{scope}</span>)}
                     </span>
                     <small>
                       {[
                         `created ${formatShortDate(token['createdAt'])}`,
                         (token['lastUsedAt'] === null) ? 'never used' : `used ${formatRelative(token['lastUsedAt'])}`,
                         expiryLabel(token),
-                      ].map((part: string): string => keepTogether(part)).join(' · ')}
+                      ].map((part) => keepTogether(part)).join(' · ')}
                     </small>
                   </span>
                   <span className="token-actions">
                     <Button
                       icon="edit"
-                      onClick={(): void => {
+                      onClick={() => {
                         setEditingToken(token);
                         setDialogOpen(true);
+
+                        return;
                       }}
                       variant="quiet"
                     >
@@ -218,9 +275,11 @@ export const AccessView = ({
                     </Button>
                     <Button
                       icon="remove"
-                      onClick={(): void => {
+                      onClick={() => {
                         setRevokeError('');
                         setRevoking(token);
+
+                        return;
                       }}
                       variant="danger"
                     >
@@ -245,8 +304,10 @@ export const AccessView = ({
               <code>{baseUrl}</code>
               <button
                 className="icon-button"
-                onClick={(): void => {
+                onClick={() => {
                   void copyValue('base', baseUrl);
+
+                  return;
                 }}
                 title="Copy base URL"
                 type="button"
@@ -260,7 +321,7 @@ export const AccessView = ({
             </div>
           </div>
           <ul className="endpoint-list">
-            {endpoints.map((endpoint: Web_Components_Endpoint): ReactElement => (
+            {endpoints.map((endpoint) => (
               <li key={`${endpoint['method']} ${endpoint['path']}`}>
                 <code>
                   <span className="endpoint-method">{endpoint['method']}</span>
@@ -276,7 +337,7 @@ export const AccessView = ({
 
       <TokenDialog
         allowedScopes={scopesForRole(role)}
-        onClose={(): void => setDialogOpen(false)}
+        onClose={() => setDialogOpen(false)}
         onCreate={onCreateToken}
         onUpdate={onUpdateToken}
         open={dialogOpen}
@@ -289,14 +350,16 @@ export const AccessView = ({
         confirmLabel="Revoke"
         error={revokeError}
         message="Apps using this token stop working right away. This can't be undone."
-        onCancel={(): void => setRevoking(null)}
-        onConfirm={(): void => {
+        onCancel={() => setRevoking(null)}
+        onConfirm={() => {
           if (revoking !== null) {
             void revoke(revoking);
           }
+
+          return;
         }}
         open={revoking !== null}
-        title={`Revoke ${revoking?.['name'] ?? 'token'}?`}
+        title={`Revoke ${revokingName}?`}
       />
     </section>
   );

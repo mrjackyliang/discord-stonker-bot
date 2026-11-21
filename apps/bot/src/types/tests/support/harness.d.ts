@@ -32,7 +32,7 @@ export type Tests_Support_Harness_CreateClient_Cookies = Map<string, string>;
 
 export type Tests_Support_Harness_Request_Method = 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT';
 export type Tests_Support_Harness_Request_Path = string;
-export type Tests_Support_Harness_Request_Body = string | Uint8Array | Record<string, unknown> | unknown[];
+export type Tests_Support_Harness_Request_Body = string | Uint8Array<ArrayBuffer> | Record<string, unknown> | unknown[];
 export type Tests_Support_Harness_Request_Headers = Record<string, string>;
 export type Tests_Support_Harness_Request_Returns = Promise<Tests_Support_Harness_Response>;
 export type Tests_Support_Harness_Request_RequestHeaders = Headers;

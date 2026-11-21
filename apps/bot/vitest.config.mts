@@ -1,5 +1,6 @@
 import { availableParallelism } from 'node:os';
 
+import { VitestCoverage } from '@cbnventures/nova/toolkit';
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -25,5 +26,6 @@ export default defineConfig({
     maxWorkers: Math.max(1, Math.min(4, Math.floor(availableParallelism() / 2))),
     passWithNoTests: true,
     testTimeout: 30_000,
+    coverage: VitestCoverage.options(),
   },
 });

@@ -25,94 +25,130 @@ import {
 import { useEscapeKey } from '@/web/use-escape-key.ts';
 
 import type {
-  ChangeEvent,
-  FormEvent,
-  ReactElement,
-} from 'react';
-
-import type { Web_Api_Server } from '@/types/web/api.d.ts';
-import type {
-  Web_Components_ManagedRole,
-  Web_Components_ServerChoice,
-  Web_Components_UserDialog_Props,
-} from '@/types/web/components.d.ts';
+  Web_UserDialog_ManagedRoles,
+  Web_UserDialog_UserDialog_AllServers,
+  Web_UserDialog_UserDialog_AllServersState,
+  Web_UserDialog_UserDialog_Busy,
+  Web_UserDialog_UserDialog_BusyState,
+  Web_UserDialog_UserDialog_Choices,
+  Web_UserDialog_UserDialog_Error,
+  Web_UserDialog_UserDialog_ErrorState,
+  Web_UserDialog_UserDialog_ManagerAllServers,
+  Web_UserDialog_UserDialog_NewPassword,
+  Web_UserDialog_UserDialog_NewPasswordState,
+  Web_UserDialog_UserDialog_OnClose,
+  Web_UserDialog_UserDialog_OnSaved,
+  Web_UserDialog_UserDialog_Open,
+  Web_UserDialog_UserDialog_Password,
+  Web_UserDialog_UserDialog_PasswordIssue,
+  Web_UserDialog_UserDialog_PasswordState,
+  Web_UserDialog_UserDialog_Principal,
+  Web_UserDialog_UserDialog_Props,
+  Web_UserDialog_UserDialog_Returns,
+  Web_UserDialog_UserDialog_Role,
+  Web_UserDialog_UserDialog_RoleIssue,
+  Web_UserDialog_UserDialog_RoleState,
+  Web_UserDialog_UserDialog_ServerIds,
+  Web_UserDialog_UserDialog_ServerIdsState,
+  Web_UserDialog_UserDialog_Servers,
+  Web_UserDialog_UserDialog_ServersIssue,
+  Web_UserDialog_UserDialog_SetAllServers,
+  Web_UserDialog_UserDialog_SetBusy,
+  Web_UserDialog_UserDialog_SetError,
+  Web_UserDialog_UserDialog_SetNewPassword,
+  Web_UserDialog_UserDialog_SetPassword,
+  Web_UserDialog_UserDialog_SetRole,
+  Web_UserDialog_UserDialog_SetServerIds,
+  Web_UserDialog_UserDialog_SetSuspended,
+  Web_UserDialog_UserDialog_SetTurnOffTwoFactor,
+  Web_UserDialog_UserDialog_SetUsername,
+  Web_UserDialog_UserDialog_Submit,
+  Web_UserDialog_UserDialog_Submit_Event,
+  Web_UserDialog_UserDialog_Submit_Returns,
+  Web_UserDialog_UserDialog_SubmitLabel,
+  Web_UserDialog_UserDialog_Summary,
+  Web_UserDialog_UserDialog_Suspended,
+  Web_UserDialog_UserDialog_SuspendedState,
+  Web_UserDialog_UserDialog_ToggleServer,
+  Web_UserDialog_UserDialog_ToggleServer_Returns,
+  Web_UserDialog_UserDialog_ToggleServer_ServerId,
+  Web_UserDialog_UserDialog_TurnOffTwoFactor,
+  Web_UserDialog_UserDialog_TurnOffTwoFactorState,
+  Web_UserDialog_UserDialog_User,
+  Web_UserDialog_UserDialog_Username,
+  Web_UserDialog_UserDialog_UsernameIssue,
+  Web_UserDialog_UserDialog_UsernameState,
+} from '@/types/web/user-dialog.d.ts';
 
 /**
- * User Dialog - Managed roles.
+ * User Dialog - Managed Roles.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
  * @since 4.0.0
  */
-const managedRoles: Web_Components_ManagedRole[] = [
+const managedRoles: Web_UserDialog_ManagedRoles = [
   'administrator',
   'operator',
   'viewer',
 ];
 
 /**
- * User Dialog.
+ * User Dialog - User Dialog.
  *
  * Stores this module-level value in one named location.
  * Related code reuses it instead of duplicating the definition.
  *
+ * @param {Web_UserDialog_UserDialog_Props} props - Props.
+ *
+ * @returns {Web_UserDialog_UserDialog_Returns}
+ *
  * @since 4.0.0
  */
-export const UserDialog = ({
-  onClose,
-  onSaved,
-  open,
-  principal,
-  servers,
-  user,
-}: Web_Components_UserDialog_Props): ReactElement | null => {
-  const [
-    username,
-    setUsername,
-  ] = useState<string>('');
-  const [
-    password,
-    setPassword,
-  ] = useState<string>('');
-  const [
-    role,
-    setRole,
-  ] = useState<Web_Components_ManagedRole>('operator');
-  const [
-    allServers,
-    setAllServers,
-  ] = useState<boolean>(false);
-  const [
-    serverIds,
-    setServerIds,
-  ] = useState<string[]>([]);
-  const [
-    newPassword,
-    setNewPassword,
-  ] = useState<boolean>(false);
-  const [
-    turnOffTwoFactor,
-    setTurnOffTwoFactor,
-  ] = useState<boolean>(false);
-  const [
-    suspended,
-    setSuspended,
-  ] = useState<boolean>(false);
-  const [
-    error,
-    setError,
-  ] = useState<unknown>(null);
-  const [
-    busy,
-    setBusy,
-  ] = useState<boolean>(false);
-  const managerAllServers: boolean = principal['allServers'] === true;
+export const UserDialog = (props: Web_UserDialog_UserDialog_Props): Web_UserDialog_UserDialog_Returns => {
+  const onClose: Web_UserDialog_UserDialog_OnClose = props['onClose'];
+  const onSaved: Web_UserDialog_UserDialog_OnSaved = props['onSaved'];
+  const open: Web_UserDialog_UserDialog_Open = props['open'];
+  const principal: Web_UserDialog_UserDialog_Principal = props['principal'];
+  const servers: Web_UserDialog_UserDialog_Servers = props['servers'];
+  const user: Web_UserDialog_UserDialog_User = props['user'];
+  const usernameState: Web_UserDialog_UserDialog_UsernameState = useState<Web_UserDialog_UserDialog_Username>('');
+  const username: Web_UserDialog_UserDialog_Username = usernameState[0];
+  const setUsername: Web_UserDialog_UserDialog_SetUsername = usernameState[1];
+  const passwordState: Web_UserDialog_UserDialog_PasswordState = useState<Web_UserDialog_UserDialog_Password>('');
+  const password: Web_UserDialog_UserDialog_Password = passwordState[0];
+  const setPassword: Web_UserDialog_UserDialog_SetPassword = passwordState[1];
+  const roleState: Web_UserDialog_UserDialog_RoleState = useState<Web_UserDialog_UserDialog_Role>('operator');
+  const role: Web_UserDialog_UserDialog_Role = roleState[0];
+  const setRole: Web_UserDialog_UserDialog_SetRole = roleState[1];
+  const allServersState: Web_UserDialog_UserDialog_AllServersState = useState<Web_UserDialog_UserDialog_AllServers>(false);
+  const allServers: Web_UserDialog_UserDialog_AllServers = allServersState[0];
+  const setAllServers: Web_UserDialog_UserDialog_SetAllServers = allServersState[1];
+  const serverIdsState: Web_UserDialog_UserDialog_ServerIdsState = useState<Web_UserDialog_UserDialog_ServerIds>([]);
+  const serverIds: Web_UserDialog_UserDialog_ServerIds = serverIdsState[0];
+  const setServerIds: Web_UserDialog_UserDialog_SetServerIds = serverIdsState[1];
+  const newPasswordState: Web_UserDialog_UserDialog_NewPasswordState = useState<Web_UserDialog_UserDialog_NewPassword>(false);
+  const newPassword: Web_UserDialog_UserDialog_NewPassword = newPasswordState[0];
+  const setNewPassword: Web_UserDialog_UserDialog_SetNewPassword = newPasswordState[1];
+  const turnOffTwoFactorState: Web_UserDialog_UserDialog_TurnOffTwoFactorState = useState<Web_UserDialog_UserDialog_TurnOffTwoFactor>(false);
+  const turnOffTwoFactor: Web_UserDialog_UserDialog_TurnOffTwoFactor = turnOffTwoFactorState[0];
+  const setTurnOffTwoFactor: Web_UserDialog_UserDialog_SetTurnOffTwoFactor = turnOffTwoFactorState[1];
+  const suspendedState: Web_UserDialog_UserDialog_SuspendedState = useState<Web_UserDialog_UserDialog_Suspended>(false);
+  const suspended: Web_UserDialog_UserDialog_Suspended = suspendedState[0];
+  const setSuspended: Web_UserDialog_UserDialog_SetSuspended = suspendedState[1];
+  const errorState: Web_UserDialog_UserDialog_ErrorState = useState<Web_UserDialog_UserDialog_Error>(null);
+  const error: Web_UserDialog_UserDialog_Error = errorState[0];
+  const setError: Web_UserDialog_UserDialog_SetError = errorState[1];
+  const busyState: Web_UserDialog_UserDialog_BusyState = useState<Web_UserDialog_UserDialog_Busy>(false);
+  const busy: Web_UserDialog_UserDialog_Busy = busyState[0];
+  const setBusy: Web_UserDialog_UserDialog_SetBusy = busyState[1];
+  const managerAllServers: Web_UserDialog_UserDialog_ManagerAllServers = principal['allServers'] === true;
 
   useEscapeKey(onClose, open);
 
-  useEffect((): void => {
-    if (!open) {
+  useEffect(() => {
+    if (open === false) {
       return;
     }
 
@@ -123,27 +159,29 @@ export const UserDialog = ({
     setServerIds((user === null) ? [] : user['serverIds']);
     setNewPassword(false);
     setTurnOffTwoFactor(false);
-    setSuspended(user !== null && !user['enabled']);
+    setSuspended(user !== null && user['enabled'] === false);
     setError(null);
+
+    return;
   }, [
     open,
     user,
   ]);
 
-  if (!open) {
+  if (open === false) {
     return null;
   }
 
   // Servers the user already has stay listed even when the bot left them, so saving keeps them.
-  const choices: Web_Components_ServerChoice[] = [
-    ...servers.map((server: Web_Api_Server): Web_Components_ServerChoice => ({
+  const choices: Web_UserDialog_UserDialog_Choices = [
+    ...servers.map((server) => ({
       available: server['available'],
       id: server['id'],
       name: server['name'],
     })),
     ...serverIds
-      .filter((serverId: string): boolean => !servers.some((server: Web_Api_Server): boolean => server['id'] === serverId))
-      .map((serverId: string): Web_Components_ServerChoice => ({
+      .filter((serverId) => servers.some((server) => server['id'] === serverId) === false)
+      .map((serverId) => ({
         available: false,
         id: serverId,
         name: `Unknown server (${serverId})`,
@@ -151,20 +189,26 @@ export const UserDialog = ({
   ];
 
   /**
-   * User Dialog - Toggles server.
+   * User Dialog - Toggle Server.
    *
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_UserDialog_UserDialog_ToggleServer_ServerId} serverId - Server id.
+   *
+   * @returns {Web_UserDialog_UserDialog_ToggleServer_Returns}
+   *
    * @since 4.0.0
    */
-  const toggleServer = (serverId: string): void => {
-    setServerIds((current: string[]): string[] => (
-      (current.includes(serverId)) ? current.filter((candidate: string): boolean => candidate !== serverId) : [
+  const toggleServer: Web_UserDialog_UserDialog_ToggleServer = (serverId: Web_UserDialog_UserDialog_ToggleServer_ServerId): Web_UserDialog_UserDialog_ToggleServer_Returns => {
+    setServerIds((current) => (
+      (current.includes(serverId) === true) ? current.filter((candidate) => candidate !== serverId) : [
         ...current,
         serverId,
       ]
     ));
+
+    return;
   };
 
   /**
@@ -173,10 +217,15 @@ export const UserDialog = ({
    * Centralizes this operation for the surrounding workflow.
    * Callers reuse one implementation instead of repeating the behavior.
    *
+   * @param {Web_UserDialog_UserDialog_Submit_Event} event - Event.
+   *
+   * @returns {Web_UserDialog_UserDialog_Submit_Returns}
+   *
    * @since 4.0.0
    */
-  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const submit: Web_UserDialog_UserDialog_Submit = async (event: Web_UserDialog_UserDialog_Submit_Event): Web_UserDialog_UserDialog_Submit_Returns => {
     event.preventDefault();
+
     setBusy(true);
     setError(null);
     try {
@@ -190,18 +239,18 @@ export const UserDialog = ({
         });
       } else {
         // The new password goes first, so a password it rejects leaves the rest unsaved.
-        if (newPassword) {
+        if (newPassword === true) {
           await resetUserPassword(user['id'], password);
         }
 
         await updateUser(user['id'], {
           allServers,
-          enabled: !suspended,
+          enabled: suspended === false,
           role,
           serverIds,
         });
 
-        if (turnOffTwoFactor) {
+        if (turnOffTwoFactor === true) {
           await resetUserTwoFactor(user['id']);
         }
       }
@@ -213,22 +262,24 @@ export const UserDialog = ({
     } finally {
       setBusy(false);
     }
+
+    return;
   };
 
-  const usernameIssue: string = issueFor(error, 'username');
-  const passwordIssue: string = issueFor(error, 'password');
-  const roleIssue: string = issueFor(error, 'role');
-  const serversIssue: string = issueFor(error, 'serverIds') || issueFor(error, 'allServers');
-  const summary: string = summaryFor(error, [
+  const usernameIssue: Web_UserDialog_UserDialog_UsernameIssue = issueFor(error, 'username');
+  const passwordIssue: Web_UserDialog_UserDialog_PasswordIssue = issueFor(error, 'password');
+  const roleIssue: Web_UserDialog_UserDialog_RoleIssue = issueFor(error, 'role');
+  const serversIssue: Web_UserDialog_UserDialog_ServersIssue = issueFor(error, 'serverIds') || issueFor(error, 'allServers');
+  const summary: Web_UserDialog_UserDialog_Summary = summaryFor(error, [
     'allServers',
     'password',
     'role',
     'serverIds',
     'username',
   ], 'The user could not be saved.');
-  let submitLabel: string = (user === null) ? 'Add user' : 'Save';
+  let submitLabel: Web_UserDialog_UserDialog_SubmitLabel = (user === null) ? 'Add user' : 'Save';
 
-  if (busy) {
+  if (busy === true) {
     submitLabel = 'Saving…';
   }
 
@@ -256,7 +307,7 @@ export const UserDialog = ({
                   autoCapitalize="none"
                   autoComplete="off"
                   maxLength={64}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => setUsername(event.currentTarget.value)}
+                  onChange={(event) => setUsername(event.currentTarget.value)}
                   spellCheck={false}
                   value={username}
                 />
@@ -269,7 +320,7 @@ export const UserDialog = ({
                   aria-invalid={passwordIssue !== ''}
                   autoComplete="off"
                   maxLength={1024}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => setPassword(event.currentTarget.value)}
+                  onChange={(event) => setPassword(event.currentTarget.value)}
                   type="password"
                   value={password}
                 />
@@ -280,12 +331,12 @@ export const UserDialog = ({
 
           <fieldset className="scope-fieldset">
             <legend>Role</legend>
-            {managedRoles.map((candidate: Web_Components_ManagedRole): ReactElement => (
+            {managedRoles.map((candidate) => (
               <label aria-label={roleLabels[candidate]} className="check-row" key={candidate}>
                 <input
                   checked={role === candidate}
                   name="user-role"
-                  onChange={(): void => setRole(candidate)}
+                  onChange={() => setRole(candidate)}
                   type="radio"
                 />
                 <span>
@@ -302,35 +353,35 @@ export const UserDialog = ({
             <label aria-label="All servers" className="check-row">
               <input
                 checked={allServers}
-                disabled={!managerAllServers}
+                disabled={managerAllServers === false}
                 name="user-servers"
-                onChange={(): void => setAllServers(true)}
+                onChange={() => setAllServers(true)}
                 type="radio"
               />
               <span>
                 <strong>All servers</strong>
-                <small>{(managerAllServers) ? 'Includes servers the bot joins later.' : 'Only people who see every server can give this.'}</small>
+                <small>{(managerAllServers === true) ? 'Includes servers the bot joins later.' : 'Only people who see every server can give this.'}</small>
               </span>
             </label>
             <label aria-label="Only these servers" className="check-row">
               <input
-                checked={!allServers}
+                checked={allServers === false}
                 name="user-servers"
-                onChange={(): void => setAllServers(false)}
+                onChange={() => setAllServers(false)}
                 type="radio"
               />
               <span>
                 <strong>Only these servers</strong>
-                <small>{(managerAllServers) ? 'They see only the servers you tick.' : 'You can give the servers you can open.'}</small>
+                <small>{(managerAllServers === true) ? 'They see only the servers you tick.' : 'You can give the servers you can open.'}</small>
               </span>
             </label>
-            {(allServers) ? null : (
+            {(allServers === true) ? null : (
               <div aria-label="Servers" className="select-list user-servers" role="group">
-                {(choices.length === 0) ? <p className="select-list-empty">No servers yet.</p> : choices.map((choice: Web_Components_ServerChoice): ReactElement => (
+                {(choices.length === 0) ? <p className="select-list-empty">No servers yet.</p> : choices.map((choice) => (
                   <label aria-label={choice['name']} className="select-list-row" key={choice['id']}>
                     <input
                       checked={serverIds.includes(choice['id'])}
-                      onChange={(): void => toggleServer(choice['id'])}
+                      onChange={() => toggleServer(choice['id'])}
                       type="checkbox"
                     />
                     <span className="select-list-main">
@@ -350,9 +401,11 @@ export const UserDialog = ({
               <label aria-label="Set a new password" className="check-row">
                 <input
                   checked={newPassword}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => {
+                  onChange={(event) => {
                     setNewPassword(event.currentTarget.checked);
                     setPassword('');
+
+                    return;
                   }}
                   type="checkbox"
                 />
@@ -361,7 +414,7 @@ export const UserDialog = ({
                   <small>{'They\'re signed out everywhere. Their access tokens keep working.'}</small>
                 </span>
               </label>
-              {(newPassword) ? (
+              {(newPassword === true) ? (
                 <FieldLabel>
                   <span>New password</span>
                   <input
@@ -369,18 +422,18 @@ export const UserDialog = ({
                     aria-invalid={passwordIssue !== ''}
                     autoComplete="off"
                     maxLength={1024}
-                    onChange={(event: ChangeEvent<HTMLInputElement>): void => setPassword(event.currentTarget.value)}
+                    onChange={(event) => setPassword(event.currentTarget.value)}
                     type="password"
                     value={password}
                   />
                   <PasswordMeter hints={[user['username']]} issue={(passwordIssue === '') ? null : <small className="field-error">{passwordIssue}</small>} password={password} />
                 </FieldLabel>
               ) : null}
-              {(user['twoFactor'] || user['passkeys'] > 0) ? (
+              {(user['twoFactor'] === true || user['passkeys'] > 0) ? (
                 <label aria-label="Turn off two-factor" className="check-row">
                   <input
                     checked={turnOffTwoFactor}
-                    onChange={(event: ChangeEvent<HTMLInputElement>): void => setTurnOffTwoFactor(event.currentTarget.checked)}
+                    onChange={(event) => setTurnOffTwoFactor(event.currentTarget.checked)}
                     type="checkbox"
                   />
                   <span>
@@ -392,7 +445,7 @@ export const UserDialog = ({
               <label aria-label="Suspended" className="check-row">
                 <input
                   checked={suspended}
-                  onChange={(event: ChangeEvent<HTMLInputElement>): void => setSuspended(event.currentTarget.checked)}
+                  onChange={(event) => setSuspended(event.currentTarget.checked)}
                   type="checkbox"
                 />
                 <span>
@@ -412,7 +465,17 @@ export const UserDialog = ({
 
           <div className="dialog-actions">
             <Button disabled={busy} onClick={onClose}>Cancel</Button>
-            <Button disabled={busy || (!allServers && serverIds.length === 0)} type="submit" variant="primary">
+            <Button
+              disabled={(
+                busy
+                || (
+                  allServers === false
+                  && serverIds.length === 0
+                )
+              )}
+              type="submit"
+              variant="primary"
+            >
               {submitLabel}
             </Button>
           </div>

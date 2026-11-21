@@ -7,21 +7,27 @@
     "@cbnventures/nova/presets/tsconfig/fw-expressjs.json"
   ],
   "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
     "types": [
+      "emscripten",
       "node",
       "vitest/globals"
-    ],
-    "skipLibCheck": true
+    ]
   },
   "include": [
     "./src/**/*.test.ts",
     "./src/tests/**/*.ts",
     "./tests/**/*.test.ts",
+    "./tests/e2e/**/*.ts",
     "./vitest.config.mts"
   ]
 }

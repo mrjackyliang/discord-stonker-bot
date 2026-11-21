@@ -1,10 +1,10 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
 
+import { chatPlatformIntents } from './chat-platform/index.js';
 import {
   prepareMessageFeatures,
   truncateContent,
@@ -119,8 +119,8 @@ describe('message feature preparation', () => {
     expect(prepared['configurationErrors']).toEqual([]);
 
     expect(prepared['intents']).toEqual([
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
+      chatPlatformIntents['GuildMessages'],
+      chatPlatformIntents['MessageContent'],
     ]);
 
     return;

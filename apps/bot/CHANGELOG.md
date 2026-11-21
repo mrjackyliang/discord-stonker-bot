@@ -1,5 +1,16 @@
 # discord-stonker-bot-app-bot
 
+## 4.2.1 - 2026-11-21
+
+### UPDATED
+- Discord and reCAPTCHA integrations, which now pass through project-owned adapters that isolate provider SDK, request, asset, invite, add-bot and webhook URL changes, including the web control panel's invite link check and webhook placeholder. Message routing and Discord notification destinations now share one webhook URL check that accepts complete webhook URLs on discord.com and discordapp.com and rejects extra path segments, query strings and missing tokens.
+- Web control panel, mock API and end-to-end test code, which now follows the full lint rule set and type-checks every library, including browser and Emscripten types, with no change in behavior.
+- Tests now report coverage through a `check:coverage` script, which fails when line, function, branch or statement coverage drops below the project minimum, and the README badges now include that coverage.
+- Notification delivery code, which now uses one adapter per service with no change to saved destinations or the requests they send.
+- Nova 0.49.0, which brings the bot's build, lint, type-check and test tooling up to date and keeps the Docker image's workspace manifest in step with the bot's dependencies.
+- README badges, which now include Docker Hub pulls and image size.
+- README introduction, which now describes the project with its new long description.
+
 ## 4.2.0 - 2026-11-17
 
 ### UPDATED

@@ -49,3 +49,20 @@ export type Web_AppNavigation_Route = {
  * @since 4.0.0
  */
 export type Web_AppNavigation_PathMatch = Web_Navigation_PathMatch<Web_AppNavigation_Route>;
+
+/**
+ * App Navigation.
+ *
+ * @since 4.2.1
+ */
+export type Web_AppNavigation_AppRouteForFeature_FeatureKey = string;
+
+/**
+ * App Navigation.
+ *
+ * @since 4.2.1
+ */
+export type Web_AppNavigation_ResolveAppNavigationPath_Pathname = string;
+export type Web_AppNavigation_ResolveAppNavigationPath_FeaturePrefix = string;
+export type Web_AppNavigation_ResolveAppNavigationPath_EncodedFeatureKey = string;
+export type Web_AppNavigation_ResolveAppNavigationPath_FeatureKey = string;

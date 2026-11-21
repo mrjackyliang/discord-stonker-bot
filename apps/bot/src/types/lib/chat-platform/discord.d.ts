@@ -1,0 +1,221 @@
+import type {
+  APIEmbed,
+  ApplicationCommandDataResolvable,
+  ApplicationCommandOptionData,
+  Channel,
+  ChatInputCommandInteraction,
+  Client,
+  Collection,
+  Guild,
+  GuildBasedChannel,
+  GuildMember,
+  GuildScheduledEvent,
+  GuildVoiceChannelResolvable,
+  Message,
+  MessageCreateOptions,
+  PartialGuildMember,
+  PartialGuildScheduledEvent,
+  PartialMessage,
+  PartialUser,
+  PermissionResolvable,
+  REST,
+  Role,
+  User,
+  WebhookClient,
+  WebhookMessageCreateOptions,
+} from 'discord.js';
+
+import type {
+  Lib_ChatPlatform_Contracts_ApplicationCommand,
+  Lib_ChatPlatform_Contracts_ApplicationCommandOption,
+  Lib_ChatPlatform_Contracts_Attachment,
+  Lib_ChatPlatform_Contracts_Channel,
+  Lib_ChatPlatform_Contracts_Client,
+  Lib_ChatPlatform_Contracts_ClientEventListener,
+  Lib_ChatPlatform_Contracts_ClientEventName,
+  Lib_ChatPlatform_Contracts_ClientOptions,
+  Lib_ChatPlatform_Contracts_Collection,
+  Lib_ChatPlatform_Contracts_Embed,
+  Lib_ChatPlatform_Contracts_Emoji,
+  Lib_ChatPlatform_Contracts_Guild,
+  Lib_ChatPlatform_Contracts_GuildChannel,
+  Lib_ChatPlatform_Contracts_GuildMessage,
+  Lib_ChatPlatform_Contracts_Intent,
+  Lib_ChatPlatform_Contracts_Interaction,
+  Lib_ChatPlatform_Contracts_Member,
+  Lib_ChatPlatform_Contracts_Message,
+  Lib_ChatPlatform_Contracts_MessagePayload,
+  Lib_ChatPlatform_Contracts_PartialUser,
+  Lib_ChatPlatform_Contracts_PermissionName,
+  Lib_ChatPlatform_Contracts_PermissionOverwrite,
+  Lib_ChatPlatform_Contracts_Permissions,
+  Lib_ChatPlatform_Contracts_Rest,
+  Lib_ChatPlatform_Contracts_RestOptions,
+  Lib_ChatPlatform_Contracts_Role,
+  Lib_ChatPlatform_Contracts_ScheduledEvent,
+  Lib_ChatPlatform_Contracts_SendableChannel,
+  Lib_ChatPlatform_Contracts_ThreadChannel,
+  Lib_ChatPlatform_Contracts_User,
+  Lib_ChatPlatform_Contracts_Webhook,
+  Lib_ChatPlatform_Contracts_WebhookOptions,
+} from './index.d.ts';
+
+export type Lib_ChatPlatform_Discord_RawChannels = WeakMap<Lib_ChatPlatform_Contracts_Channel, Channel>;
+export type Lib_ChatPlatform_Discord_RawRoles = WeakMap<Lib_ChatPlatform_Contracts_Role, Role>;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordApplicationCommand_Command = Lib_ChatPlatform_Contracts_ApplicationCommand;
+export type Lib_ChatPlatform_Discord_AdaptDiscordApplicationCommand_Returns = ApplicationCommandDataResolvable;
+export type Lib_ChatPlatform_Discord_AdaptDiscordApplicationCommand_Options = ApplicationCommandOptionData[] | undefined;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordApplicationCommandOption_Option = Lib_ChatPlatform_Contracts_ApplicationCommandOption;
+export type Lib_ChatPlatform_Discord_AdaptDiscordApplicationCommandOption_Returns = ApplicationCommandOptionData;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordAttachment_Attachment = {
+  name: string;
+  url: string;
+};
+export type Lib_ChatPlatform_Discord_AdaptDiscordAttachment_Returns = Lib_ChatPlatform_Contracts_Attachment;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_Channel = Channel;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_Returns = Lib_ChatPlatform_Contracts_Channel;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_Guild = Lib_ChatPlatform_Contracts_Guild | undefined;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_GuildIdentifier = string | null;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_Name = string;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_ParentIdentifier = string | null;
+export type Lib_ChatPlatform_Discord_AdaptDiscordChannel_Adapted = Lib_ChatPlatform_Contracts_Channel
+  & Pick<Lib_ChatPlatform_Contracts_SendableChannel, 'send'>
+  & Pick<Lib_ChatPlatform_Contracts_ThreadChannel, 'setArchived'>;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordClient_Client = Client;
+export type Lib_ChatPlatform_Discord_AdaptDiscordClient_Returns = Lib_ChatPlatform_Contracts_Client;
+export type Lib_ChatPlatform_Discord_AdaptDiscordClient_Adapted = Lib_ChatPlatform_Contracts_Client;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Collection<RawValue> = Collection<string, RawValue>;
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Mapper<RawValue, AdaptedValue> = (value: RawValue) => AdaptedValue;
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Returns<AdaptedValue> = Lib_ChatPlatform_Contracts_Collection<AdaptedValue>;
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Values<RawValue> = RawValue[];
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_FirstValues<RawValue> = RawValue[];
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Filtered<RawValue> = Collection<string, RawValue>;
+export type Lib_ChatPlatform_Discord_AdaptDiscordCollection_Get_Value<RawValue> = RawValue | undefined;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordEmbed_Embed = {
+  toJSON(): APIEmbed;
+};
+export type Lib_ChatPlatform_Discord_AdaptDiscordEmbed_Returns = Lib_ChatPlatform_Contracts_Embed;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordEmoji_Emoji = {
+  id: string;
+  name: string | null;
+};
+export type Lib_ChatPlatform_Discord_AdaptDiscordEmoji_Returns = Lib_ChatPlatform_Contracts_Emoji;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuild_Guild = Guild;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuild_Returns = Lib_ChatPlatform_Contracts_Guild;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuild_Adapted = Lib_ChatPlatform_Contracts_Guild;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuild_BanResult = GuildMember | User | string;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuild_Role = Role | null;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuildChannel_Channel = GuildBasedChannel;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuildChannel_Returns = Lib_ChatPlatform_Contracts_GuildChannel;
+export type Lib_ChatPlatform_Discord_AdaptDiscordGuildChannel_Adapted = Lib_ChatPlatform_Contracts_Channel;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordInteraction_Interaction = ChatInputCommandInteraction<'cached'>;
+export type Lib_ChatPlatform_Discord_AdaptDiscordInteraction_Returns = Lib_ChatPlatform_Contracts_Interaction;
+export type Lib_ChatPlatform_Discord_AdaptDiscordInteraction_Adapted = Lib_ChatPlatform_Contracts_Interaction;
+export type Lib_ChatPlatform_Discord_AdaptDiscordInteraction_Channel = GuildBasedChannel | null;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordMember_Member = GuildMember | PartialGuildMember;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMember_Returns = Lib_ChatPlatform_Contracts_Member;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMember_Adapted = Lib_ChatPlatform_Contracts_Member;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessage_Message = Message | PartialMessage;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessage_Returns = Lib_ChatPlatform_Contracts_Message;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessage_Adapted = Lib_ChatPlatform_Contracts_Message;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessage_GuildTypeGuard = Lib_ChatPlatform_Contracts_GuildMessage;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessagePayload_Payload = Lib_ChatPlatform_Contracts_MessagePayload;
+export type Lib_ChatPlatform_Discord_AdaptDiscordMessagePayload_Returns = MessageCreateOptions;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordPartialUser_User = User | PartialUser;
+export type Lib_ChatPlatform_Discord_AdaptDiscordPartialUser_Returns = Lib_ChatPlatform_Contracts_PartialUser;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordPermissions_Permissions = {
+  has(permission: PermissionResolvable): boolean;
+};
+export type Lib_ChatPlatform_Discord_AdaptDiscordPermissions_Returns = Lib_ChatPlatform_Contracts_Permissions;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordRest_Rest = REST;
+export type Lib_ChatPlatform_Discord_AdaptDiscordRest_Returns = Lib_ChatPlatform_Contracts_Rest;
+export type Lib_ChatPlatform_Discord_AdaptDiscordRest_Adapted = Lib_ChatPlatform_Contracts_Rest;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordRole_Role = Role;
+export type Lib_ChatPlatform_Discord_AdaptDiscordRole_Returns = Lib_ChatPlatform_Contracts_Role;
+export type Lib_ChatPlatform_Discord_AdaptDiscordRole_Adapted = Lib_ChatPlatform_Contracts_Role;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordScheduledEvent_Event = GuildScheduledEvent | PartialGuildScheduledEvent;
+export type Lib_ChatPlatform_Discord_AdaptDiscordScheduledEvent_Returns = Lib_ChatPlatform_Contracts_ScheduledEvent;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordUser_User = User;
+export type Lib_ChatPlatform_Discord_AdaptDiscordUser_Returns = Lib_ChatPlatform_Contracts_User;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordWebhook_Webhook = WebhookClient;
+export type Lib_ChatPlatform_Discord_AdaptDiscordWebhook_Returns = Lib_ChatPlatform_Contracts_Webhook;
+
+export type Lib_ChatPlatform_Discord_AdaptDiscordWebhookPayload_Payload = Lib_ChatPlatform_Contracts_MessagePayload;
+export type Lib_ChatPlatform_Discord_AdaptDiscordWebhookPayload_Returns = WebhookMessageCreateOptions;
+
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Permissions = Record<string, boolean>;
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Returns = Lib_ChatPlatform_Contracts_PermissionOverwrite;
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Allow = bigint;
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Deny = bigint;
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Entries = Array<[string, boolean]>;
+export type Lib_ChatPlatform_Discord_CompileChatPlatformPermissionOverwrite_Flag = bigint;
+
+export type Lib_ChatPlatform_Discord_CreateChatPlatformClient_Options = Lib_ChatPlatform_Contracts_ClientOptions;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformClient_Returns = Lib_ChatPlatform_Contracts_Client;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformClient_Intents = number[];
+export type Lib_ChatPlatform_Discord_CreateChatPlatformClient_Client = Client;
+
+export type Lib_ChatPlatform_Discord_CreateChatPlatformRest_Options = Lib_ChatPlatform_Contracts_RestOptions;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformRest_Returns = Lib_ChatPlatform_Contracts_Rest;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformRest_Rest = REST;
+
+export type Lib_ChatPlatform_Discord_CreateChatPlatformWebhook_Options = Lib_ChatPlatform_Contracts_WebhookOptions;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformWebhook_Returns = Lib_ChatPlatform_Contracts_Webhook;
+export type Lib_ChatPlatform_Discord_CreateChatPlatformWebhook_Webhook = WebhookClient;
+
+export type Lib_ChatPlatform_Discord_IsChatPlatformPermissionName_PermissionName = string;
+export type Lib_ChatPlatform_Discord_IsChatPlatformPermissionName_Returns = boolean;
+
+export type Lib_ChatPlatform_Discord_ListChatPlatformPermissionNames_Returns = string[];
+
+export type Lib_ChatPlatform_Discord_MapDiscordIntent_Intent = Lib_ChatPlatform_Contracts_Intent;
+export type Lib_ChatPlatform_Discord_MapDiscordIntent_Returns = number;
+
+export type Lib_ChatPlatform_Discord_MapDiscordPermission_PermissionName = Lib_ChatPlatform_Contracts_PermissionName;
+export type Lib_ChatPlatform_Discord_MapDiscordPermission_Returns = bigint;
+export type Lib_ChatPlatform_Discord_MapDiscordPermission_Value = unknown;
+
+export type Lib_ChatPlatform_Discord_RegisterDiscordEvent_Client = Client;
+export type Lib_ChatPlatform_Discord_RegisterDiscordEvent_EventName = Lib_ChatPlatform_Contracts_ClientEventName;
+export type Lib_ChatPlatform_Discord_RegisterDiscordEvent_Listener<EventName extends Lib_ChatPlatform_Contracts_ClientEventName> = Lib_ChatPlatform_Contracts_ClientEventListener<EventName>;
+export type Lib_ChatPlatform_Discord_RegisterDiscordEvent_AdaptedClient = Lib_ChatPlatform_Contracts_Client;
+export type Lib_ChatPlatform_Discord_RegisterDiscordEvent_Returns = void;
+
+export type Lib_ChatPlatform_Discord_RegisterDiscordOnceEvent_Client = Client;
+export type Lib_ChatPlatform_Discord_RegisterDiscordOnceEvent_EventName = Lib_ChatPlatform_Contracts_ClientEventName;
+export type Lib_ChatPlatform_Discord_RegisterDiscordOnceEvent_Listener<EventName extends Lib_ChatPlatform_Contracts_ClientEventName> = Lib_ChatPlatform_Contracts_ClientEventListener<EventName>;
+export type Lib_ChatPlatform_Discord_RegisterDiscordOnceEvent_AdaptedClient = Lib_ChatPlatform_Contracts_Client;
+export type Lib_ChatPlatform_Discord_RegisterDiscordOnceEvent_Returns = void;
+
+export type Lib_ChatPlatform_Discord_UnwrapDiscordChannel_Channel = Lib_ChatPlatform_Contracts_Channel;
+export type Lib_ChatPlatform_Discord_UnwrapDiscordChannel_Returns = Channel;
+export type Lib_ChatPlatform_Discord_UnwrapDiscordChannel_RawChannel = Channel | undefined;
+export type Lib_ChatPlatform_Discord_UnwrapDiscordChannel_VoiceReturns = GuildVoiceChannelResolvable;
+
+export type Lib_ChatPlatform_Discord_UnwrapDiscordRole_Role = Lib_ChatPlatform_Contracts_Role;
+export type Lib_ChatPlatform_Discord_UnwrapDiscordRole_Returns = Role;
+export type Lib_ChatPlatform_Discord_UnwrapDiscordRole_RawRole = Role | undefined;
+
+export type Lib_ChatPlatform_Discord_UnwrapDiscordRoles_Roles = Lib_ChatPlatform_Contracts_Role | Lib_ChatPlatform_Contracts_Role[] | string[];
+export type Lib_ChatPlatform_Discord_UnwrapDiscordRoles_Returns = Role | Role[] | string[];

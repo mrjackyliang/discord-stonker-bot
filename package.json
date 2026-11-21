@@ -10,8 +10,9 @@
     "check": "nova utility run-workspaces check",
     "check:lint": "eslint ./ --max-warnings=0",
     "check:types-config": "nova utility type-check --project tsconfig.config.json",
+    "check:types-scripts": "nova utility type-check --project tsconfig.scripts.json --pass-with-no-inputs",
     "check:types-tests": "nova utility type-check --project tsconfig.tests.json",
-    "check:test": "bash ./packages/docker/tests/prepare-state.test.sh && vitest run",
+    "check:test": "vitest run",
     "build": "nova utility run-workspaces --node-env production build",
     "deploy": "nova utility run-workspaces --node-env production deploy",
     "deploy:container": "docker compose up --build --detach",
@@ -36,7 +37,7 @@
     "node": "^22 || ^24 || ^26"
   },
   "devDependencies": {
-    "@cbnventures/nova": "0.44.0",
+    "@cbnventures/nova": "0.49.0",
     "@types/node": "24.9.1",
     "eslint": "9.39.5",
     "jiti": "2.7.0",

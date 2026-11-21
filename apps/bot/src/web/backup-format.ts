@@ -1,19 +1,49 @@
 import { z } from 'zod';
 
 import { notificationServices } from '@/web/notification-services.js';
+import {
+  discordSnowflakePattern,
+  featureKeyPattern,
+  notificationTargetIdPattern,
+  sha256HashPattern,
+  tokenIdPattern,
+} from '@/web/regex.js';
 
-import type { Web_Api_Schema } from '@/types/web/api.d.ts';
-import type { Web_Backup_Document } from '@/types/web/backup.d.ts';
+import type {
+  Web_BackupFormat_BackupDocumentSchema,
+  Web_BackupFormat_BackupDocumentSchema_Groups,
+  Web_BackupFormat_BackupDocumentSchema_Keys,
+  Web_BackupFormat_BackupDocumentSchema_NotificationIds,
+  Web_BackupFormat_BackupDocumentSchema_NotificationNames,
+  Web_BackupFormat_BackupDocumentSchema_ServerIds,
+  Web_BackupFormat_BackupDocumentSchema_TokenHashes,
+  Web_BackupFormat_BackupDocumentSchema_TokenIds,
+  Web_BackupFormat_BackupDocumentSchema_TokenNames,
+  Web_BackupFormat_CollectSecretReferences_References,
+  Web_BackupFormat_CollectSecretReferences_Returns,
+  Web_BackupFormat_CollectSecretReferences_Value,
+  Web_BackupFormat_CollectSecretReferences_Visit,
+  Web_BackupFormat_CollectSecretReferences_Visit_Candidate,
+  Web_BackupFormat_CollectSecretReferences_Visit_Record,
+  Web_BackupFormat_CollectSecretReferences_Visit_Returns,
+  Web_BackupFormat_FeatureSchema_References,
+  Web_BackupFormat_JsonValueSchema,
+  Web_BackupFormat_NotificationSchema_PlainKeys,
+  Web_BackupFormat_NotificationSchema_SecretKeys,
+  Web_BackupFormat_NotificationSchema_Service,
+  Web_BackupFormat_ParseBackupDocument_Returns,
+  Web_BackupFormat_ParseBackupDocument_Value,
+} from '@/types/web/backup-format.d.ts';
 
 /**
- * Backup Format - JSON value schema.
+ * Backup Format - JSON Value Schema.
  *
  * Accepts only finite JSON-compatible feature configuration.
  * Size bounds keep untrusted uploads practical to validate.
  *
  * @since 4.0.0
  */
-const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
+const jsonValueSchema: Web_BackupFormat_JsonValueSchema = z.lazy(() => z.union([
   z.null(),
   z.boolean(),
   z.number().finite(),
@@ -23,7 +53,7 @@ const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
 ]));
 
 /**
- * Backup Format - String map schema.
+ * Backup Format - String Map Schema.
  *
  * Bounds portable public settings and plain-text secrets.
  * Nested values are rejected by the record value schema.
@@ -33,51 +63,56 @@ const jsonValueSchema: z.ZodType<unknown> = z.lazy(() => z.union([
 const stringMapSchema = z.record(z.string().min(1).max(512), z.string().max(32_768));
 
 /**
- * Backup Format - Collect secret references.
+ * Backup Format - Collect Secret References.
  *
  * Finds every portable secret key referenced by feature configuration.
  * Only explicit $secret objects contribute keys.
  *
- * @param {unknown} value - Value.
+ * @param {Web_BackupFormat_CollectSecretReferences_Value} value - Value.
  *
- * @returns {Set<string>}
+ * @returns {Web_BackupFormat_CollectSecretReferences_Returns}
  *
  * @since 4.0.0
  */
-const collectSecretReferences = (value: unknown): Set<string> => {
-  const references: Set<string> = new Set();
+const collectSecretReferences = (value: Web_BackupFormat_CollectSecretReferences_Value): Web_BackupFormat_CollectSecretReferences_Returns => {
+  const references: Web_BackupFormat_CollectSecretReferences_References = new Set();
+
   /**
-   * Backup Format - Collect secret references - Visit.
+   * Backup Format - Visit.
    *
    * Walks one nested JSON value and records explicit secret references.
    * Arrays and objects recurse while scalar values stop the walk.
    *
-   * @param {unknown} candidate - Candidate.
+   * @param {Web_BackupFormat_CollectSecretReferences_Visit_Candidate} candidate - Candidate.
    *
-   * @returns {void}
+   * @returns {Web_BackupFormat_CollectSecretReferences_Visit_Returns}
    *
    * @since 4.0.0
    */
-  const visit = (candidate: unknown): void => {
-    if (Array.isArray(candidate)) {
+  const visit: Web_BackupFormat_CollectSecretReferences_Visit = (candidate: Web_BackupFormat_CollectSecretReferences_Visit_Candidate): Web_BackupFormat_CollectSecretReferences_Visit_Returns => {
+    if (Array.isArray(candidate) === true) {
       candidate.forEach(visit);
       return;
     }
     if (typeof candidate !== 'object' || candidate === null) {
       return;
     }
-    const record: Record<string, unknown> = candidate as Record<string, unknown>;
+    const record: Web_BackupFormat_CollectSecretReferences_Visit_Record = candidate as Web_BackupFormat_CollectSecretReferences_Visit_Record;
     if (typeof record['$secret'] === 'string' && record['$secret'] !== '') {
       references.add(record['$secret']);
     }
     Object.values(record).forEach(visit);
+
+    return;
   };
+
   visit(value);
+
   return references;
 };
 
 /**
- * Backup Format - Feature schema.
+ * Backup Format - Feature Schema.
  *
  * Keeps plain-text feature secrets limited to keys used by its configuration.
  * Unreferenced values make the complete file invalid.
@@ -87,10 +122,11 @@ const collectSecretReferences = (value: unknown): Set<string> => {
 const featureSchema = z.object({
   configuration: jsonValueSchema,
   enabled: z.boolean(),
-  key: z.string().regex(/^[a-z][a-z0-9-]{0,99}$/u),
+  key: z.string().regex(new RegExp(featureKeyPattern, 'u')),
   secrets: stringMapSchema,
-}).strict().superRefine((feature, context): void => {
-  const references: Set<string> = collectSecretReferences(feature['configuration']);
+}).strict().superRefine((feature, context) => {
+  const references: Web_BackupFormat_FeatureSchema_References = collectSecretReferences(feature['configuration']);
+
   for (const key of Object.keys(feature['secrets'])) {
     if (references.has(key) === false) {
       context.addIssue({
@@ -103,10 +139,12 @@ const featureSchema = z.object({
       });
     }
   }
+
+  return;
 });
 
 /**
- * Backup Format - Notification schema.
+ * Backup Format - Notification Schema.
  *
  * Restricts targets to services, events, and fields supported by this console.
  * Public and secret values stay in their respective maps.
@@ -121,8 +159,8 @@ const notificationSchema = z.object({
     'bot-disconnected',
     'bot-reconnected',
     'job-failed',
-  ])).min(1).max(6).refine((events): boolean => new Set(events).size === events.length),
-  id: z.string().regex(/^ntf-[0-9a-f]{16}$/u),
+  ])).min(1).max(6).refine((events) => new Set(events).size === events.length),
+  id: z.string().regex(new RegExp(notificationTargetIdPattern, 'u')),
   name: z.string().trim().min(1).max(80),
   secrets: stringMapSchema,
   service: z.enum([
@@ -139,13 +177,14 @@ const notificationSchema = z.object({
     'webhook',
   ]),
   settings: stringMapSchema,
-}).strict().superRefine((notification, context): void => {
-  const service = notificationServices.find((definition): boolean => definition['key'] === notification['service']);
+}).strict().superRefine((notification, context) => {
+  const service: Web_BackupFormat_NotificationSchema_Service = notificationServices.find((definition) => definition['key'] === notification['service']);
   if (service === undefined) {
     return;
   }
-  const plainKeys: Set<string> = new Set(service['fields'].filter((field): boolean => field['secret'] === false).map((field): string => field['key']));
-  const secretKeys: Set<string> = new Set(service['fields'].filter((field): boolean => field['secret']).map((field): string => field['key']));
+  const plainKeys: Web_BackupFormat_NotificationSchema_PlainKeys = new Set(service['fields'].filter((field) => field['secret'] === false).map((field) => field['key']));
+  const secretKeys: Web_BackupFormat_NotificationSchema_SecretKeys = new Set(service['fields'].filter((field) => field['secret']).map((field) => field['key']));
+
   for (const key of Object.keys(notification['settings'])) {
     if (plainKeys.has(key) === false) {
       context.addIssue({
@@ -158,6 +197,7 @@ const notificationSchema = z.object({
       });
     }
   }
+
   for (const key of Object.keys(notification['secrets'])) {
     if (secretKeys.has(key) === false) {
       context.addIssue({
@@ -170,28 +210,30 @@ const notificationSchema = z.object({
       });
     }
   }
+
+  return;
 });
 
 /**
- * Backup Format - Document schema.
+ * Backup Format - Backup Document Schema.
  *
  * Mirrors the server's strict version-one portable contract.
  * Unknown keys and duplicate identities are rejected.
  *
  * @since 4.0.0
  */
-export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.object({
+export const backupDocumentSchema: Web_BackupFormat_BackupDocumentSchema = z.object({
   accessTokens: z.array(z.object({
     expiresAt: z.iso.datetime({ offset: true }).nullable(),
-    id: z.string().regex(/^tok-[0-9a-f]{16}$/u),
+    id: z.string().regex(new RegExp(tokenIdPattern, 'u')),
     name: z.string().trim().min(1).max(80),
     scopes: z.array(z.enum([
       'bot:control',
       'features:read',
       'features:write',
       'logs:read',
-    ])).min(1).max(4).refine((scopes): boolean => new Set(scopes).size === scopes.length),
-    tokenHash: z.string().regex(/^[0-9a-f]{64}$/u),
+    ])).min(1).max(4).refine((scopes) => new Set(scopes).size === scopes.length),
+    tokenHash: z.string().regex(new RegExp(sha256HashPattern, 'u')),
   }).strict()).max(1000).optional(),
   appVersion: z.string().min(1).max(100),
   connection: z.object({
@@ -204,20 +246,29 @@ export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.objec
   exportedAt: z.iso.datetime({ offset: true }),
   features: z.array(z.object({
     features: z.array(featureSchema).max(1000),
-    serverId: z.string().regex(/^[0-9]{17,20}$/u),
+    serverId: z.string().regex(new RegExp(discordSnowflakePattern, 'u')),
     timeZone: z.string().trim().min(1).max(100),
   }).strict()).max(1000).optional(),
   format: z.literal('discord-stonker-bot-export'),
   notifications: z.array(notificationSchema).max(1000).optional(),
   version: z.literal(1),
-}).strict().superRefine((document, context): void => {
-  if (document['connection'] === undefined && document['features'] === undefined && document['notifications'] === undefined && document['accessTokens'] === undefined) {
+}).strict().superRefine((document, context) => {
+  if (
+    document['connection'] === undefined
+    && document['features'] === undefined
+    && document['notifications'] === undefined
+    && document['accessTokens'] === undefined
+  ) {
     context.addIssue({
       code: 'custom',
       message: 'The export does not contain any sections.',
     });
   }
-  if (document['connection']?.['desiredState'] === 'running' && document['connection']['botToken'] === null) {
+  if (
+    document['connection'] !== undefined
+    && document['connection']['desiredState'] === 'running'
+    && document['connection']['botToken'] === null
+  ) {
     context.addIssue({
       code: 'custom',
       message: 'A running connection needs a Bot Token.',
@@ -227,20 +278,30 @@ export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.objec
       ],
     });
   }
-  const serverIds: string[] = (document['features'] ?? []).map((server): string => server['serverId']);
-  const notificationIds: string[] = (document['notifications'] ?? []).map((notification): string => notification['id']);
-  const notificationNames: string[] = (document['notifications'] ?? []).map((notification): string => notification['name'].toLocaleLowerCase());
-  const tokenIds: string[] = (document['accessTokens'] ?? []).map((token): string => token['id']);
-  const tokenNames: string[] = (document['accessTokens'] ?? []).map((token): string => token['name'].toLocaleLowerCase());
-  const tokenHashes: string[] = (document['accessTokens'] ?? []).map((token): string => token['tokenHash']);
-  if (new Set(serverIds).size !== serverIds.length || new Set(notificationIds).size !== notificationIds.length || new Set(notificationNames).size !== notificationNames.length || new Set(tokenIds).size !== tokenIds.length || new Set(tokenNames).size !== tokenNames.length || new Set(tokenHashes).size !== tokenHashes.length) {
+  const serverIds: Web_BackupFormat_BackupDocumentSchema_ServerIds = (document['features'] ?? []).map((server) => server['serverId']);
+  const notificationIds: Web_BackupFormat_BackupDocumentSchema_NotificationIds = (document['notifications'] ?? []).map((notification) => notification['id']);
+  const notificationNames: Web_BackupFormat_BackupDocumentSchema_NotificationNames = (document['notifications'] ?? []).map((notification) => notification['name'].toLocaleLowerCase());
+  const tokenIds: Web_BackupFormat_BackupDocumentSchema_TokenIds = (document['accessTokens'] ?? []).map((token) => token['id']);
+  const tokenNames: Web_BackupFormat_BackupDocumentSchema_TokenNames = (document['accessTokens'] ?? []).map((token) => token['name'].toLocaleLowerCase());
+  const tokenHashes: Web_BackupFormat_BackupDocumentSchema_TokenHashes = (document['accessTokens'] ?? []).map((token) => token['tokenHash']);
+  const groups: Web_BackupFormat_BackupDocumentSchema_Groups = [
+    serverIds,
+    notificationIds,
+    notificationNames,
+    tokenIds,
+    tokenNames,
+    tokenHashes,
+  ];
+
+  if (groups.some((values) => new Set(values).size !== values.length) === true) {
     context.addIssue({
       code: 'custom',
       message: 'The export contains duplicate servers, targets, or tokens.',
     });
   }
+
   for (const server of document['features'] ?? []) {
-    const keys: string[] = server['features'].map((feature): string => feature['key']);
+    const keys: Web_BackupFormat_BackupDocumentSchema_Keys = server['features'].map((feature) => feature['key']);
     if (new Set(keys).size !== keys.length) {
       context.addIssue({
         code: 'custom',
@@ -252,18 +313,20 @@ export const backupDocumentSchema: Web_Api_Schema<Web_Backup_Document> = z.objec
       });
     }
   }
+
+  return;
 });
 
 /**
- * Backup Format - Parse backup document.
+ * Backup Format - Parse Backup Document.
  *
  * Converts untrusted file JSON to the strict portable shape.
  * The wizard never sends the original unvalidated value.
  *
- * @param {unknown} value - Value.
+ * @param {Web_BackupFormat_ParseBackupDocument_Value} value - Value.
  *
- * @returns {Web_Backup_Document}
+ * @returns {Web_BackupFormat_ParseBackupDocument_Returns}
  *
  * @since 4.0.0
  */
-export const parseBackupDocument = (value: unknown): Web_Backup_Document => backupDocumentSchema.parse(value);
+export const parseBackupDocument = (value: Web_BackupFormat_ParseBackupDocument_Value): Web_BackupFormat_ParseBackupDocument_Returns => backupDocumentSchema.parse(value);

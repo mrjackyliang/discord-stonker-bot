@@ -1,6 +1,7 @@
 import z from 'zod';
 
 import { getPrincipal } from '../lib/access.js';
+import { buildChatPlatformAddBotUrl } from '../lib/chat-platform/index.js';
 import { encryptDiscordToken } from '../lib/credential-vault.js';
 import {
   getBotRuntimeControl,
@@ -146,7 +147,7 @@ function describeBot(runtimeControl: Routes_Bot_DescribeBot_RuntimeControl, hear
 
   return {
     activeFeatures,
-    addServerUrl: (applicationId === null) ? null : `https://discord.com/oauth2/authorize?client_id=${encodeURIComponent(applicationId)}&integration_type=0&scope=bot%20applications.commands`,
+    addServerUrl: (applicationId === null) ? null : buildChatPlatformAddBotUrl(applicationId),
     applicationId,
     configurationErrors,
     desiredState: runtimeControl['desiredState'],

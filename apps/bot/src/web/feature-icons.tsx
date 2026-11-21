@@ -1,18 +1,23 @@
 import { Icon } from '@/web/primitives.tsx';
 
-import type { ReactElement } from 'react';
-
-import type { Web_Components_FeatureIcon_Props } from '@/types/web/components.d.ts';
+import type {
+  Web_FeatureIcons_FeatureIcon_Element,
+  Web_FeatureIcons_FeatureIcon_FeatureKey,
+  Web_FeatureIcons_FeatureIcon_Props,
+  Web_FeatureIcons_FeatureIcon_Returns,
+  Web_FeatureIcons_FeatureIcon_Size,
+  Web_FeatureIcons_FeatureIconElements,
+} from '@/types/web/feature-icons.d.ts';
 
 /**
- * Feature Icons - Elements.
+ * Feature Icons - Feature Icon Elements.
  *
  * One Lucide icon per feature in the catalog, keyed by the feature key.
  * They stay out of the shared icon set because only this console lists features.
  *
  * @since 4.0.0
  */
-const featureIconElements: Record<string, ReactElement> = {
+const featureIconElements: Web_FeatureIcons_FeatureIconElements = {
   /*
    * Lucide Icons v1.61.0 - ISC License
    * Copyright (c) 2026 Lucide Icons and Contributors
@@ -165,18 +170,21 @@ const featureIconElements: Record<string, ReactElement> = {
 };
 
 /**
- * Feature Icon.
+ * Feature Icons - Feature Icon.
  *
  * Draws a feature's icon with the same stroke settings as the shared icon set.
  * A feature without its own icon falls back to the general Features icon.
  *
+ * @param {Web_FeatureIcons_FeatureIcon_Props} props - Props.
+ *
+ * @returns {Web_FeatureIcons_FeatureIcon_Returns}
+ *
  * @since 4.0.0
  */
-export const FeatureIcon = ({
-  featureKey,
-  size = 20,
-}: Web_Components_FeatureIcon_Props): ReactElement => {
-  const element: ReactElement | undefined = featureIconElements[featureKey];
+export const FeatureIcon = (props: Web_FeatureIcons_FeatureIcon_Props): Web_FeatureIcons_FeatureIcon_Returns => {
+  const featureKey: Web_FeatureIcons_FeatureIcon_FeatureKey = props['featureKey'];
+  const size: Web_FeatureIcons_FeatureIcon_Size = props['size'] ?? 20;
+  const element: Web_FeatureIcons_FeatureIcon_Element = featureIconElements[featureKey];
 
   if (element === undefined) {
     return <Icon name="features" size={size} />;

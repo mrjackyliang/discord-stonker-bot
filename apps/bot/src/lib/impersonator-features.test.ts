@@ -1,10 +1,10 @@
-import { GatewayIntentBits } from 'discord.js';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
 
+import { chatPlatformIntents } from './chat-platform/index.js';
 import {
   changedUserIdentities,
   findMatchingImpersonatorRule,
@@ -76,7 +76,7 @@ describe('impersonator feature preparation', () => {
 
     expect(prepared['configurationErrors']).toEqual([]);
 
-    expect(prepared['intents']).toEqual([GatewayIntentBits.GuildMembers]);
+    expect(prepared['intents']).toEqual([chatPlatformIntents['GuildMembers']]);
 
     return;
   });

@@ -41,6 +41,8 @@ discord-stonker-bot/
 
 The workspace package name is `discord-stonker-bot-app-bot`. The generated bot is only
 the rewrite foundation; legacy feature behavior is not considered ported by its presence.
+The project-owned chat-platform boundary lives in `apps/bot/src/lib/chat-platform/`;
+production imports of `discord.js` are restricted to its Discord implementation.
 
 ## Build and Tooling
 
@@ -83,6 +85,8 @@ Workspace ownership, roles, and policies are declared in `nova.config.json`; rep
   permissions, intents, and external credentials are known.
 - Separate Discord adapters from domain decisions so moderation and routing behavior can
   be unit-tested without a live client.
+- Keep Discord objects, event names, permissions, REST routes, and asset URL conventions
+  inside `apps/bot/src/lib/chat-platform/`; feature modules consume only project types.
 - Represent scheduled jobs explicitly, give each one a stable identity, and prevent
   duplicate registration across reconnects.
 - Centralize outbound Discord and provider rate-limit handling rather than adding ad hoc
@@ -90,6 +94,9 @@ Workspace ownership, roles, and policies are declared in `nova.config.json`; rep
 - Avoid shared mutable caches between unrelated capabilities. When shared state is
   necessary, give it an owner and a defined lifecycle.
 - Keep external provider clients behind narrow adapters with timeouts and typed results.
+- Keep every third-party notification API behind its adapter in
+  `apps/bot/src/lib/notifiers/`; `notifications.ts` owns payload building and the
+  public notification functions, not service requests.
 
 ## Project Guardrails
 

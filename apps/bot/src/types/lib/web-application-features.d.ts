@@ -1,12 +1,11 @@
-import type { REST } from 'discord.js';
 import type { Pool } from 'pg';
-import type { z } from 'zod';
 
 import type {
   Shared_FeatureKey,
   Shared_JsonObject,
 } from '../shared.d.ts';
 import type { Tests_Support_Database_TestDatabase } from '../tests/support/database.d.ts';
+import type { Lib_ChatPlatform_Contracts_Rest } from './chat-platform/index.d.ts';
 
 export type Lib_WebApplicationFeatures_SecretResolver = (key: string) => string | undefined;
 export type Lib_WebApplicationFeatures_SecretReference = {
@@ -84,11 +83,6 @@ export type Lib_WebApplicationFeatures_ParsedConfiguration = {
   'invite-generator'?: Lib_WebApplicationFeatures_ParsedInviteConfiguration | undefined;
   'map-webhooks'?: Lib_WebApplicationFeatures_ParsedWebhookRoute[] | undefined;
 };
-export type Lib_WebApplicationFeatures_CaptchaResponse = {
-  'error-codes'?: string[] | undefined;
-  'hostname'?: string | undefined;
-  'success': boolean;
-};
 export type Lib_WebApplicationFeatures_DiscordGuildResponse = {
   approximate_member_count?: number | undefined;
   member_count?: number | undefined;
@@ -115,7 +109,7 @@ export type Lib_WebApplicationFeatures_CompileWebApplicationRuntime_Routes = Map
 export type Lib_WebApplicationFeatures_CompileWebApplicationRuntime_TemplateParts = string[];
 export type Lib_WebApplicationFeatures_CompileWebApplicationRuntime_Variables = Lib_WebApplicationFeatures_WebhookVariable[];
 
-export type Lib_WebApplicationFeatures_CreateDiscordInvite_Rest = REST;
+export type Lib_WebApplicationFeatures_CreateDiscordInvite_Rest = Lib_ChatPlatform_Contracts_Rest;
 export type Lib_WebApplicationFeatures_CreateDiscordInvite_ChannelIdentifier = string;
 export type Lib_WebApplicationFeatures_CreateDiscordInvite_Configuration = Lib_WebApplicationFeatures_InviteConfiguration;
 export type Lib_WebApplicationFeatures_CreateDiscordInvite_Returns = Promise<string>;
@@ -131,7 +125,7 @@ export type Lib_WebApplicationFeatures_EscapeDiscordText_Value = string;
 export type Lib_WebApplicationFeatures_EscapeDiscordText_Returns = string;
 export type Lib_WebApplicationFeatures_EscapeDiscordText_Pattern = RegExp;
 
-export type Lib_WebApplicationFeatures_FetchGuildMetadata_Rest = REST;
+export type Lib_WebApplicationFeatures_FetchGuildMetadata_Rest = Lib_ChatPlatform_Contracts_Rest;
 export type Lib_WebApplicationFeatures_FetchGuildMetadata_GuildIdentifier = string;
 export type Lib_WebApplicationFeatures_FetchGuildMetadata_Returns = Promise<Lib_WebApplicationFeatures_GuildMetadata>;
 export type Lib_WebApplicationFeatures_FetchGuildMetadata_Response = unknown;
@@ -185,12 +179,6 @@ export type Lib_WebApplicationFeatures_VerifyRecaptcha_Secret = string;
 export type Lib_WebApplicationFeatures_VerifyRecaptcha_ExpectedHostname = string;
 export type Lib_WebApplicationFeatures_VerifyRecaptcha_RemoteAddress = string;
 export type Lib_WebApplicationFeatures_VerifyRecaptcha_Returns = Promise<boolean>;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_Parsed = z.ZodSafeParseResult<Lib_WebApplicationFeatures_CaptchaResponse>;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_SolvedHostname = string | undefined;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_Form = URLSearchParams;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_Response = Response;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_ResponseText = string;
-export type Lib_WebApplicationFeatures_VerifyRecaptcha_ParsedJson = unknown;
 export type Lib_WebApplicationFeatures_VerifyWebhookSignature_Body = string;
 export type Lib_WebApplicationFeatures_VerifyWebhookSignature_Timestamp = string;
 export type Lib_WebApplicationFeatures_VerifyWebhookSignature_Signature = string;

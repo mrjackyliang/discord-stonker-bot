@@ -19,7 +19,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   fullyParallel: false,
-  globalSetup: './tests/e2e/global-setup.mjs',
+  globalSetup: './tests/e2e/global-setup.ts',
   globalTeardown: './tests/e2e/global-teardown.mjs',
   outputDir: resolve(tmpdir(), 'discord-stonker-bot-playwright'),
   projects: [{
@@ -32,7 +32,7 @@ export default defineConfig({
   reporter: 'list',
   retries: 0,
   testDir: './tests/e2e',
-  testMatch: '**/*-test.mjs',
+  testMatch: '**/*-test.ts',
   timeout: 60_000,
   use: {
     baseURL: process.env['STONKER_E2E_BASE_URL'] ?? 'http://localhost:3110',

@@ -1,10 +1,3 @@
-import { EventEmitter } from 'node:events';
-
-import {
-  Client,
-  Events,
-  GatewayIntentBits,
-} from 'discord.js';
 import {
   describe,
   expect,
@@ -12,10 +5,15 @@ import {
   vi,
 } from 'vitest';
 
+import { Runner as TestChatPlatformClient } from '../tests/support/chat-platform.js';
 import {
   findRaidSignals,
   prepareAntiRaidFeatures,
 } from './anti-raid-features.js';
+import {
+  chatPlatformEvents,
+  chatPlatformIntents,
+} from './chat-platform/index.js';
 
 import type { Mock } from 'vitest';
 
@@ -74,9 +72,7 @@ function prepareBanningRuntime(): Lib_AntiRaidFeatures_PrepareAntiRaidFeatures_R
  */
 describe('anti raid runtime', () => {
   it('bans a joining member who matches and reports the ban', async () => {
-    const client: Lib_AntiRaidFeatures_Test_Client = new Client({
-      intents: [],
-    });
+    const client: Lib_AntiRaidFeatures_Test_Client = new TestChatPlatformClient();
     const ban: Mock = vi.fn();
     const send: Mock = vi.fn();
     const fetchChannel: Mock = vi.fn();
@@ -90,7 +86,7 @@ describe('anti raid runtime', () => {
 
     prepareBanningRuntime().register(client, GUILD_IDENTIFIER);
 
-    EventEmitter.prototype.emit.call(client, Events.GuildMemberAdd, {
+    client.emit(chatPlatformEvents['GuildMemberAdd'], {
       ban,
       displayName: 'Discord Support',
       guild: {
@@ -127,9 +123,7 @@ describe('anti raid runtime', () => {
   });
 
   it('reports a ban that Discord refuses', async () => {
-    const client: Lib_AntiRaidFeatures_Test_Client = new Client({
-      intents: [],
-    });
+    const client: Lib_AntiRaidFeatures_Test_Client = new TestChatPlatformClient();
     const ban: Mock = vi.fn();
     const send: Mock = vi.fn();
     const fetchChannel: Mock = vi.fn();
@@ -143,7 +137,7 @@ describe('anti raid runtime', () => {
 
     prepareBanningRuntime().register(client, GUILD_IDENTIFIER);
 
-    EventEmitter.prototype.emit.call(client, Events.GuildMemberAdd, {
+    client.emit(chatPlatformEvents['GuildMemberAdd'], {
       ban,
       displayName: 'Discord Support',
       guild: {
@@ -180,15 +174,13 @@ describe('anti raid runtime', () => {
   });
 
   it('leaves members who match nothing alone', async () => {
-    const client: Lib_AntiRaidFeatures_Test_Client = new Client({
-      intents: [],
-    });
+    const client: Lib_AntiRaidFeatures_Test_Client = new TestChatPlatformClient();
     const ban: Mock = vi.fn();
     const fetchChannel: Mock = vi.fn();
 
     prepareBanningRuntime().register(client, GUILD_IDENTIFIER);
 
-    EventEmitter.prototype.emit.call(client, Events.GuildMemberAdd, {
+    client.emit(chatPlatformEvents['GuildMemberAdd'], {
       ban,
       displayName: 'Regular Member',
       guild: {
@@ -260,7 +252,7 @@ describe('anti raid runtime', () => {
 
     expect(prepared['activeFeatureKeys']).toEqual(['anti-raid']);
 
-    expect(prepared['intents']).toEqual([GatewayIntentBits.GuildMembers]);
+    expect(prepared['intents']).toEqual([chatPlatformIntents['GuildMembers']]);
 
     return;
   });

@@ -1,6 +1,6 @@
-import type { REST } from 'discord.js';
 import type { Pool } from 'pg';
 
+import type { Lib_ChatPlatform_Contracts_Rest } from './lib/chat-platform/index.d.ts';
 import type {
   Lib_WorkerFeatures_DiscordMessageJobPayload,
   Lib_WorkerFeatures_DiscordMessageResponse,
@@ -42,7 +42,7 @@ export type Worker_ProcessDiscordMessageJob_Payload = Lib_WorkerFeatures_Discord
 export type Worker_ProcessDiscordMessageJob_RuntimeControl = Shared_BotRuntimeControl;
 export type Worker_ProcessDiscordMessageJob_DiscordToken = string;
 export type Worker_ProcessDiscordMessageJob_MessageIdentifier = string;
-export type Worker_ProcessDiscordMessageJob_Rest = REST;
+export type Worker_ProcessDiscordMessageJob_Rest = Lib_ChatPlatform_Contracts_Rest;
 export type Worker_ProcessDiscordMessageJob_Response = Lib_WorkerFeatures_DiscordMessageResponse;
 export type Worker_ProcessDiscordMessageJob_ReactionTasks = Promise<void>[];
 
@@ -53,7 +53,7 @@ export type Worker_ProcessDiscordPermissionJob_Returns = Promise<void>;
 export type Worker_ProcessDiscordPermissionJob_Payload = Lib_WorkerFeatures_DiscordPermissionJobPayload;
 export type Worker_ProcessDiscordPermissionJob_RuntimeControl = Shared_BotRuntimeControl;
 export type Worker_ProcessDiscordPermissionJob_DiscordToken = string;
-export type Worker_ProcessDiscordPermissionJob_Rest = REST;
+export type Worker_ProcessDiscordPermissionJob_Rest = Lib_ChatPlatform_Contracts_Rest;
 export type Worker_ProcessDiscordPermissionJob_Tasks = Promise<void>[];
 
 export type Worker_Run_Returns = Promise<void>;
