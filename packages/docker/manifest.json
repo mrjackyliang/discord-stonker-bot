@@ -57,13 +57,6 @@
     ]
   },
   "runtime": {
-    "arguments": [
-      {
-        "name": "POSTGRESQL_VERSION",
-        "quoted": false,
-        "value": "17.11-0+deb13u1"
-      }
-    ],
     "copies": [
       {
         "destination": "./apps/bot/build",
@@ -100,14 +93,8 @@
       "if [ -d /etc/postgresql/17/main ]; then pg_dropcluster --stop 17 main; fi"
     ],
     "packages": [
-      {
-        "name": "postgresql-17",
-        "version": "${POSTGRESQL_VERSION}"
-      },
-      {
-        "name": "postgresql-client-17",
-        "version": "${POSTGRESQL_VERSION}"
-      }
+      "postgresql-17",
+      "postgresql-client-17"
     ]
   },
   "schemaVersion": 2,
